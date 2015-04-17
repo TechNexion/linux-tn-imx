@@ -114,6 +114,7 @@ struct ads7846 {
 	bool			use_internal;
 
 	struct ads7846_packet	*packet;
+	struct ads7846_platform_data    *pdata;
 
 	struct spi_transfer	xfer[18];
 	struct spi_message	msg[5];
@@ -671,7 +672,7 @@ static int ads7846_get_value(struct ads7846 *ts, struct spi_message *m)
 		list_entry(m->transfers.prev, struct spi_transfer, transfer_list);
 
 	if (ts->model == 7845) {
-		value = be16_to_cpup((__be16 *)&(((char *)t->rx_buf)[1]));
+		return (be16_to_cpup((__be16 *)&(((char*)t->rx_buf)[1])) >> 3) & MAX_12BIT;
 	} else {
 		/*
 		 * adjust:  on-wire is a must-ignore bit, a BE12 value, then
@@ -749,8 +750,10 @@ static void ads7846_read_state(struct ads7846 *ts)
 static void ads7846_report_state(struct ads7846 *ts)
 {
 	struct ads7846_packet *packet = ts->packet;
+	struct ads7846_platform_data *pdata = ts->pdata;
 	unsigned int Rt;
 	u16 x, y, z1, z2;
+	int ix, iy;
 
 	/*
 	 * ads7846_get_value() does in-place conversion (including byte swap)
@@ -835,8 +838,10 @@ static void ads7846_report_state(struct ads7846 *ts)
 			dev_vdbg(&ts->spi->dev, "DOWN\n");
 		}
 
-		input_report_abs(input, ABS_X, x);
-		input_report_abs(input, ABS_Y, y);
+		ix = x; iy = y;
+		input_dev_calibrate(input, &ix, &iy, pdata->x_max, pdata->y_max );
+		input_report_abs(input, ABS_X, ix);
+		input_report_abs(input, ABS_Y, iy);
 		input_report_abs(input, ABS_PRESSURE, ts->pressure_max - Rt);
 
 		input_sync(input);
@@ -1024,15 +1029,23 @@ static void ads7846_setup_spi_msg(struct ads7846 *ts,
 	if (pdata->settle_delay_usecs) {
 		x->delay_usecs = pdata->settle_delay_usecs;
 
-		x++;
-		x->tx_buf = &packet->read_y;
-		x->len = 1;
-		spi_message_add_tail(x, m);
+		if (ts->model == 7845) {
+			x++;
+			x->tx_buf = &packet->read_y_cmd[0];
+			x->rx_buf = &packet->tc.y_buf[0];
+			x->len = 3;
+			spi_message_add_tail(x, m);
+		} else {
+			x++;
+			x->tx_buf = &packet->read_y;
+			x->len = 1;
+			spi_message_add_tail(x, m);
 
-		x++;
-		x->rx_buf = &packet->tc.y;
-		x->len = 2;
-		spi_message_add_tail(x, m);
+			x++;
+			x->rx_buf = &packet->tc.y;
+			x->len = 2;
+			spi_message_add_tail(x, m);
+		}
 	}
 
 	ts->msg_count++;
@@ -1068,14 +1081,21 @@ static void ads7846_setup_spi_msg(struct ads7846 *ts,
 		x->delay_usecs = pdata->settle_delay_usecs;
 
 		x++;
-		x->tx_buf = &packet->read_x;
-		x->len = 1;
-		spi_message_add_tail(x, m);
+		if (ts->model == 7845) {
+				x->tx_buf = &packet->read_x_cmd[0];
+				x->rx_buf = &packet->tc.x_buf[0];
+				x->len = 3;
+				spi_message_add_tail(x, m);
+		} else {
+			x->tx_buf = &packet->read_x;
+			x->len = 1;
+			spi_message_add_tail(x, m);
 
-		x++;
-		x->rx_buf = &packet->tc.x;
-		x->len = 2;
-		spi_message_add_tail(x, m);
+			x++;
+			x->rx_buf = &packet->tc.x;
+			x->len = 2;
+			spi_message_add_tail(x, m);
+		}
 	}
 
 	/* turn y+ off, x- on; we'll use formula #2 */
@@ -1313,6 +1333,7 @@ static int ads7846_probe(struct spi_device *spi)
 		}
 	}
 
+	ts->pdata = pdata;
 	ts->model = pdata->model ? : 7846;
 	ts->vref_delay_usecs = pdata->vref_delay_usecs ? : 100;
 	ts->x_plate_ohms = pdata->x_plate_ohms ? : 400;
