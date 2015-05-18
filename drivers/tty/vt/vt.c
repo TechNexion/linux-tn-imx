@@ -177,7 +177,7 @@ EXPORT_SYMBOL(console_blanked);
 
 static enum vesa_blank_mode vesa_blank_mode;
 static int vesa_off_interval;
-static int blankinterval;
+static int blankinterval = 0 /* Turn blanking off */;
 core_param(consoleblank, blankinterval, int, 0444);
 
 static DECLARE_WORK(console_work, console_callback);
