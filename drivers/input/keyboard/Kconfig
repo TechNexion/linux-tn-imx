@@ -189,6 +189,13 @@ config KEYBOARD_DLINK_DIR685
 	  To compile this driver as a module, choose M here: the
 	  module will be called dlink-dir685-touchkeys.
 
+config KEYBOARD_GPIO_TN_FRAMEWORK
+	tristate "Custom GPIO driver for TechNexion board"
+	depends on GPIOLIB
+	help
+	  Say Y here if your want to enable custom gpio driver for TechNexion boards to access gpio easily
+	  directly to such GPIO pins.
+
 config KEYBOARD_LKKBD
 	tristate "DECstation/VAXstation LK201/LK401 keyboard"
 	select SERIO
