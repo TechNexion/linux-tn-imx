@@ -1451,13 +1451,6 @@ static int ads7846_probe(struct spi_device *spi)
 
 	device_init_wakeup(&spi->dev, pdata->wakeup);
 
-	/*
-	 * If device does not carry platform data we must have allocated it
-	 * when parsing DT data.
-	 */
-	if (!dev_get_platdata(&spi->dev))
-		devm_kfree(&spi->dev, (void *)pdata);
-
 	return 0;
 
  err_remove_attr_group:
