@@ -1391,12 +1391,59 @@ static ssize_t input_dev_show_properties(struct device *dev,
 }
 static DEVICE_ATTR(properties, S_IRUGO, input_dev_show_properties, NULL);
 
+
+void input_dev_calibrate(struct input_dev *dev, int *x, int *y, int xmax, int ymax) {
+       if (dev->calibration[6] > 0) {
+               int tx = (dev->calibration[0] * *x + dev->calibration[1] * *y
+                       + dev->calibration[2]) / dev->calibration[6];
+                int ty = (dev->calibration[3] * *x + dev->calibration[4] * *y
+                       + dev->calibration[5]) / dev->calibration[6];
+
+               /* Ubuntu etc expect TS coordinates be 0 .. xmax, 0..ymax */
+               if (dev->calibration[7] > 0)
+                       tx = ( tx * xmax ) / dev->calibration[7];
+                if (dev->calibration[8] > 0)
+                       ty = ( ty * ymax) / dev->calibration[8];
+               *x = tx;
+               *y = ty;
+       }
+}
+
+static ssize_t input_dev_calibration_show(struct device *dev,
+                                         struct device_attribute *attr,
+                                         char *buf)
+{
+       int i;
+       struct input_dev *id = to_input_dev(dev);
+       size_t p = 0;
+
+       for (i=0; i<9; i++) p += sprintf(buf+p, "%d ", id->calibration[i]);
+       p += sprintf(buf+p, "\n");
+       return p;
+}
+
+static ssize_t input_dev_calibration_store(struct device *dev,
+                                          struct device_attribute *attr,
+                                          const char *buf, size_t count)
+{
+       struct input_dev *id = to_input_dev(dev);
+       int ret, i;
+       int t[9];
+
+       ret = sscanf(buf, "%d %d %d %d %d %d %d %d %d", t, t+1, t+2, t+3, t+4, t+5, t+6, t+7, t+8);
+       for (i=0; i<ret; i++) id->calibration[i] = t[i];
+       return count;
+}
+
+static DEVICE_ATTR(calibration, 0666, input_dev_calibration_show, input_dev_calibration_store);
+
 static struct attribute *input_dev_attrs[] = {
 	&dev_attr_name.attr,
 	&dev_attr_phys.attr,
 	&dev_attr_uniq.attr,
 	&dev_attr_modalias.attr,
 	&dev_attr_properties.attr,
+	&dev_attr_calibration.attr,
 	NULL
 };
 

@@ -182,6 +182,8 @@ struct input_dev {
 	struct list_head	h_list;
 	struct list_head	node;
 
+	int calibration[9];
+
 	unsigned int num_vals;
 	unsigned int max_vals;
 	struct input_value *vals;
@@ -387,6 +389,7 @@ int input_flush_device(struct input_handle *handle, struct file *file);
 
 void input_event(struct input_dev *dev, unsigned int type, unsigned int code, int value);
 void input_inject_event(struct input_handle *handle, unsigned int type, unsigned int code, int value);
+void input_dev_calibrate(struct input_dev *dev, int *x, int *y, int xmax, int ymax);
 
 static inline void input_report_key(struct input_dev *dev, unsigned int code, int value)
 {
