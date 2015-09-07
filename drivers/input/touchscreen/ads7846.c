@@ -954,12 +954,19 @@ static int ads7846_setup_pendown(struct spi_device *spi,
 
 		err = gpio_request_one(pdata->gpio_pendown, GPIOF_IN,
 				       "ads7846_pendown");
+
+		if (err) {
+			gpio_free(pdata->gpio_pendown);
+			err = gpio_request_one(pdata->gpio_pendown, GPIOF_IN,"ads7846_pendown");
+		}
+
 		if (err) {
 			dev_err(&spi->dev,
 				"failed to request/setup pendown GPIO%d: %d\n",
 				pdata->gpio_pendown, err);
 			return err;
 		}
+		gpio_export(pdata->gpio_pendown, true);
 
 		ts->gpio_pendown = pdata->gpio_pendown;
 
