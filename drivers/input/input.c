@@ -1435,7 +1435,7 @@ static ssize_t input_dev_calibration_store(struct device *dev,
        return count;
 }
 
-static DEVICE_ATTR(calibration, 0666, input_dev_calibration_show, input_dev_calibration_store);
+static DEVICE_ATTR(calibration, 0660, input_dev_calibration_show, input_dev_calibration_store);
 
 static struct attribute *input_dev_attrs[] = {
 	&dev_attr_name.attr,
