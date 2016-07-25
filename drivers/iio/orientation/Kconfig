@@ -29,4 +29,14 @@ config HID_SENSOR_DEVICE_ROTATION
 	  device rotation. The output of a device rotation sensor
 	  is presented using quaternion format.
 
+config BNO055
+	tristate "BOSCH BNO055 Absolute Orientation"
+	depends on I2C
+	select REGMAP_I2C
+	help
+	  Say yes here to build support for BOSCH BNO55 9-axis absolute orientation sensor
+	  driver connected via I2C.
+	  This driver can also be built as a module. If so, the module
+	  will be called bno055.
+
 endmenu
