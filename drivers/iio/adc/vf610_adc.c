@@ -20,6 +20,7 @@
 #include <linux/completion.h>
 #include <linux/regulator/consumer.h>
 #include <linux/err.h>
+#include <linux/of.h>
 
 #include <linux/iio/iio.h>
 #include <linux/iio/buffer.h>
@@ -533,7 +534,9 @@ static const struct iio_chan_spec_ext_info vf610_ext_info[] = {
 	},							\
 }
 
-static const struct iio_chan_spec vf610_adc_iio_channels[] = {
+#define MAX_IIO_CHANNEL_NUM 16
+
+static struct iio_chan_spec vf610_adc_iio_channels[] = {
 	VF610_ADC_CHAN(0, IIO_VOLTAGE),
 	VF610_ADC_CHAN(1, IIO_VOLTAGE),
 	VF610_ADC_CHAN(2, IIO_VOLTAGE),
@@ -829,6 +832,9 @@ static int vf610_adc_probe(struct platform_device *pdev)
 	struct iio_dev *indio_dev;
 	int irq;
 	int ret;
+	int i;
+	int use_channel[MAX_IIO_CHANNEL_NUM];
+	u32 channels;
 
 	indio_dev = devm_iio_device_alloc(&pdev->dev, sizeof(struct vf610_adc));
 	if (!indio_dev)
@@ -880,11 +886,19 @@ static int vf610_adc_probe(struct platform_device *pdev)
 
 	init_completion(&info->completion);
 
+	channels = chip_info->num_channels;
+	if (!of_property_read_u32_array(pdev->dev.of_node, "use-channels", use_channel, (int)channels)) {
+		if (((int)channels) <= MAX_IIO_CHANNEL_NUM) {
+			for (i = 0; i < (int)channels; i++)
+				vf610_adc_iio_channels[i].channel = use_channel[i];
+		}
+	}
+
 	indio_dev->name = dev_name(&pdev->dev);
 	indio_dev->info = &vf610_adc_iio_info;
 	indio_dev->modes = INDIO_DIRECT_MODE;
 	indio_dev->channels = vf610_adc_iio_channels;
-	indio_dev->num_channels = chip_info->num_channels;
+	indio_dev->num_channels = (int)channels;
 
 	vf610_adc_cfg_init(info);
 	vf610_adc_hw_init(info);
