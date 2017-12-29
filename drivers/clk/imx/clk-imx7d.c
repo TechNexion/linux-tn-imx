@@ -926,6 +926,8 @@ static void __init imx7d_clocks_init(struct device_node *ccm_node)
 	imx_clk_set_rate(clks[IMX7D_UART5_ROOT_DIV], 80000000);
 	imx_clk_set_parent(clks[IMX7D_UART6_ROOT_SRC], clks[IMX7D_PLL_SYS_MAIN_240M_CLK]);
 	imx_clk_set_rate(clks[IMX7D_UART6_ROOT_DIV], 80000000);
+	imx_clk_set_parent(clks[IMX7D_UART7_ROOT_SRC], clks[IMX7D_PLL_SYS_MAIN_240M_CLK]);
+	imx_clk_set_rate(clks[IMX7D_UART7_ROOT_DIV], 80000000);
 
 	imx_register_uart_clocks(uart_clks);
 }
