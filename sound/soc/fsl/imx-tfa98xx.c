@@ -9,9 +9,6 @@
  * published by the Free Software Foundation.
  */
 
-#define DEBUG
-#define pr_fmt(fmt) "%s(): " fmt, __func__
-
 #include <linux/module.h>
 #include <linux/moduleparam.h>
 #include <linux/timer.h>
@@ -30,7 +27,6 @@
 #include <linux/delay.h>
 
 #include <asm/dma.h>
-#include <asm/mach-types.h>
 
 #define DAI_NAME_SIZE	32
 
@@ -370,7 +366,7 @@ fail:
 	if (cpu_np)
 		of_node_put(cpu_np);
 	if (codecs)
-		of_node_put(codecs);
+		devm_kfree(&pdev->dev, codecs);
 
 	return ret;
 }
