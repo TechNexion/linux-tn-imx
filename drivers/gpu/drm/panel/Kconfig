@@ -67,6 +67,15 @@ config DRM_PANEL_PANASONIC_VVX10F034N00
 	tristate "Panasonic VVX10F034N00 1920x1200 video mode panel"
 	depends on OF
 	depends on DRM_MIPI_DSI
+config DRM_PANEL_ILITEK_ILI9881C
+	tristate "Ilitek ILI9881C-based panels"
+	depends on OF
+	depends on DRM_MIPI_DSI
+	depends on BACKLIGHT_CLASS_DEVICE
+	help
+	  Say Y if you want to enable support for panels based on the
+	  Ilitek ILI9881c controller.
+
 	depends on BACKLIGHT_CLASS_DEVICE
 	help
 	  Say Y here if you want to enable support for Panasonic VVX10F034N00
