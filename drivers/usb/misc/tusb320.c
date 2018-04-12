@@ -13,6 +13,7 @@
  * GNU General Public License for more details.
  */
 
+#include <linux/extcon.h>
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/slab.h>
@@ -27,6 +28,7 @@
 #include <linux/irq.h>
 #include <linux/delay.h>
 #include <linux/wakelock.h>
+#include <linux/regulator/consumer.h>
 
 #undef  __CONST_FFS
 #define __CONST_FFS(_x) \
@@ -116,7 +118,15 @@
 #define TUBS320_I2C_RESET		1
 #define TUBS320_GPIO_I2C_RESET		2
 
+static const unsigned int tusb320_extcon_cable[] = {
+	EXTCON_USB,
+	EXTCON_USB_HOST,
+	EXTCON_NONE,
+};
+
 struct tusb320_data {
+	struct regulator *vbus_reg;
+	struct gpio_desc *ss_sel_gpio;
 	unsigned int_gpio;
 	unsigned enb_gpio;
 	u8 select_mode;
@@ -125,6 +135,7 @@ struct tusb320_data {
 
 struct tusb320_chip {
 	struct i2c_client *client;
+	struct extcon_dev *edev;
 	struct tusb320_data *pdata;
 	int irq_gpio;
 	u8 mode;
@@ -438,13 +449,14 @@ static int tusb320_set_current_max(struct power_supply *psy,
 
 	if (psy->desc->set_property)
 		return psy->desc->set_property(psy,
-				POWER_SUPPLY_PROP_INPUT_CURRENT_MAX, &ret);
+				POWER_SUPPLY_PROP_CURRENT_MAX, &ret);
 	return -ENXIO;
 }
 
 static void tusb320_not_attach(struct tusb320_chip *chip)
 {
 	struct device *cdev = &chip->client->dev;
+	int ret;
 
 	dev_dbg(cdev, "%s: state (%d)\n", __func__, chip->state);
 
@@ -452,7 +464,12 @@ static void tusb320_not_attach(struct tusb320_chip *chip)
 	case TUBS320_UFP_ATTACH_DFP:
 		break;
 	case TUBS320_DFP_ATTACH_UFP:
-		// TODO: clear USB OTG power supply
+		extcon_set_state_sync(chip->edev, EXTCON_USB_HOST, false);
+		if (chip->pdata->vbus_reg && regulator_is_enabled(chip->pdata->vbus_reg)) {
+			ret = regulator_disable(chip->pdata->vbus_reg);
+			if (ret)
+				dev_err(cdev, "regulator disable failed\n");
+		}
 		break;
 	case TUBS320_ATTACH_ACC:
 		break;
@@ -472,6 +489,7 @@ static void tusb320_not_attach(struct tusb320_chip *chip)
 static void tusb320_dfp_attach_ufp(struct tusb320_chip *chip, u8 detail)
 {
 	struct device *cdev = &chip->client->dev;
+	int ret;
 
 	dev_dbg(cdev, "%s: state (%d)\n", __func__, chip->state);
 
@@ -483,7 +501,18 @@ static void tusb320_dfp_attach_ufp(struct tusb320_chip *chip, u8 detail)
 	switch (chip->state) {
 	case TUBS320_NOT_ATTACH:
 		chip->state = TUBS320_DFP_ATTACH_UFP;
-		// TODO: set USB OTG power supply
+		extcon_set_state_sync(chip->edev, EXTCON_USB_HOST, true);
+		if (chip->pdata->vbus_reg) {
+			ret = regulator_enable(chip->pdata->vbus_reg);
+			if (ret)
+				dev_err(cdev, "regulator disable failed\n");
+		}
+
+		if (chip->cable_direction)
+			gpiod_set_value_cansleep(chip->pdata->ss_sel_gpio, 0);
+		else
+			gpiod_set_value_cansleep(chip->pdata->ss_sel_gpio, 1);
+
 		break;
 	case TUBS320_DFP_ATTACH_UFP:
 		break;
@@ -731,6 +760,17 @@ static int tusb320_parse_dt(struct device *cdev, struct tusb320_data *data)
 		rc = 0;
 	}
 
+	data->ss_sel_gpio = devm_gpiod_get_optional(cdev, "ss-sel", GPIOD_OUT_HIGH);
+	if (IS_ERR(data->ss_sel_gpio)) {
+		dev_err(cdev, "Failed to request super speed mux sel gpio.");
+	}
+
+	if (of_property_read_bool(dev_node, "vbus-supply")) {
+			data->vbus_reg = devm_regulator_get(cdev, "vbus");
+			if (IS_ERR(data->vbus_reg))
+				dev_err(cdev, "vbus init failed\n");
+	}
+
 	dev_info(cdev, "select_mode: %d dfp_power %d\n",
 			data->select_mode, data->dfp_power);
 
@@ -792,6 +832,20 @@ static int tusb320_probe(struct i2c_client *client,
 	if (ret) {
 		dev_err(cdev, "failed to init gpio\n");
 		goto err2;
+	}
+
+	/* Allocate extcon device */
+	chip->edev = devm_extcon_dev_allocate(cdev, tusb320_extcon_cable);
+	if (IS_ERR(chip->edev)) {
+		dev_err(cdev, "failed to allocate memory for extcon\n");
+		return -ENOMEM;
+	}
+
+	/* Register extcon device */
+	ret = devm_extcon_dev_register(cdev, chip->edev);
+	if (ret) {
+		dev_err(cdev, "failed to register extcon device\n");
+		return ret;
 	}
 
 	chip->mode = TUBS320_MODE_DEFAULT;
