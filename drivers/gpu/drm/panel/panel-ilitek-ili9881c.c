@@ -288,15 +288,18 @@ static int ili9881c_prepare(struct drm_panel *panel)
 	int ret;
 
 	/* Power the panel */
-	gpiod_set_value(ctx->power, 1);
-	msleep(5);
-
+	if (!IS_ERR(ctx->power)) {
+		gpiod_set_value(ctx->power, 1);
+		msleep(5);
+	}
 	/* And reset it */
-	gpiod_set_value(ctx->reset, 1);
-	msleep(20);
+	if (!IS_ERR(ctx->reset)) {
+		gpiod_set_value(ctx->reset, 1);
+		msleep(20);
 
-	gpiod_set_value(ctx->reset, 0);
-	msleep(20);
+		gpiod_set_value(ctx->reset, 0);
+		msleep(20);
+	}
 
 	for (i = 0; i < ARRAY_SIZE(ili9881c_init); i++) {
 		struct ili9881c_instr *instr = &ili9881c_init[i];
@@ -349,8 +352,11 @@ static int ili9881c_unprepare(struct drm_panel *panel)
 	struct ili9881c *ctx = panel_to_ili9881c(panel);
 
 	mipi_dsi_dcs_enter_sleep_mode(ctx->dsi);
-	gpiod_set_value(ctx->power, 0);
-	gpiod_set_value(ctx->reset, 1);
+	if (!IS_ERR(ctx->power))
+		gpiod_set_value(ctx->power, 0);
+
+	if (!IS_ERR(ctx->reset))
+		gpiod_set_value(ctx->reset, 1);
 
 	return 0;
 }
@@ -421,13 +427,11 @@ static int ili9881c_dsi_probe(struct mipi_dsi_device *dsi)
 	ctx->power = devm_gpiod_get(&dsi->dev, "power", GPIOD_OUT_LOW);
 	if (IS_ERR(ctx->power)) {
 		dev_err(&dsi->dev, "Couldn't get our power GPIO\n");
-		return PTR_ERR(ctx->power);
 	}
 
 	ctx->reset = devm_gpiod_get(&dsi->dev, "reset", GPIOD_OUT_LOW);
 	if (IS_ERR(ctx->reset)) {
 		dev_err(&dsi->dev, "Couldn't get our reset GPIO\n");
-		return PTR_ERR(ctx->reset);
 	}
 
 	ret = drm_panel_add(&ctx->panel);
