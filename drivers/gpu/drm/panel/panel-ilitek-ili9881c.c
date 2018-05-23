@@ -1649,17 +1649,21 @@ static int ili9881c_prepare(struct drm_panel *panel)
 	int ret;
 
 	/* Power the panel */
-	ret = regulator_enable(ctx->power);
-	if (ret)
-		return ret;
-	msleep(5);
+	if (!IS_ERR(ctx->power)) {
+		ret = regulator_enable(ctx->power);
+		if (ret)
+			return ret;
+		msleep(5);
+	}
 
 	/* And reset it */
-	gpiod_set_value_cansleep(ctx->reset, 1);
-	msleep(20);
+	if (!IS_ERR(ctx->reset)) {
+		gpiod_set_value_cansleep(ctx->reset, 1);
+		msleep(20);
 
-	gpiod_set_value_cansleep(ctx->reset, 0);
-	msleep(20);
+		gpiod_set_value_cansleep(ctx->reset, 0);
+		msleep(20);
+	}
 
 	for (i = 0; i < ctx->desc->init_length; i++) {
 		const struct ili9881c_instr *instr = &ctx->desc->init[i];
@@ -1698,8 +1702,10 @@ static int ili9881c_unprepare(struct drm_panel *panel)
 
 	mipi_dsi_dcs_set_display_off_multi(&mctx);
 	mipi_dsi_dcs_enter_sleep_mode_multi(&mctx);
-	regulator_disable(ctx->power);
-	gpiod_set_value_cansleep(ctx->reset, 1);
+	if (!IS_ERR(ctx->power))
+		regulator_disable(ctx->power);
+	if (!IS_ERR(ctx->reset))
+		gpiod_set_value_cansleep(ctx->reset, 1);
 
 	return 0;
 }
