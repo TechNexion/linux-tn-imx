@@ -981,6 +981,7 @@ static void edt_ft5x06_ts_get_defaults(struct device *dev,
 {
 	struct edt_reg_addr *reg_addr = &tsdata->reg_addr;
 	struct regmap *regmap = tsdata->regmap;
+	struct input_dev *input;
 	u32 val;
 	int error;
 
@@ -1016,6 +1017,15 @@ static void edt_ft5x06_ts_get_defaults(struct device *dev,
 			regmap_write(regmap, reg_addr->reg_offset_y, val);
 		tsdata->offset_y = val;
 	}
+
+	error = device_property_read_u32(dev, "direct", &val);
+	if (!error && val) {
+		input = tsdata->input;
+		__set_bit(EV_KEY, input->evbit);
+		__set_bit(EV_ABS, input->evbit);
+		__set_bit(BTN_TOUCH, input->keybit);
+		__set_bit(INPUT_PROP_DIRECT, input->propbit);
+        }
 }
 
 static void edt_ft5x06_ts_get_parameters(struct edt_ft5x06_ts_data *tsdata)
