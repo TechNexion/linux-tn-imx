@@ -783,8 +783,7 @@ static int tusb320_probe(struct i2c_client *client,
 {
 	struct tusb320_chip *chip;
 	struct device *cdev = &client->dev;
-	unsigned long flags;
-	int ret = 0, is_active;
+	int ret = 0;
 	struct power_supply *usb_psy;
 
 	usb_psy = power_supply_get_by_name("usb");
@@ -878,25 +877,12 @@ static int tusb320_probe(struct i2c_client *client,
 		goto err4;
 	}
 
-	/* Update initial interrupt state */
-	local_irq_save(flags);
-	is_active = !gpio_get_value(chip->pdata->int_gpio);
-	local_irq_restore(flags);
-	enable_irq_wake(chip->irq_gpio);
-
 	ret = tusb320_read_device_id(chip);
 	if (ret < 0) {
 		dev_err(cdev, "failed to read device id\n");
 	}
 
-	if (is_active) {
-		dev_info(cdev, "presents interrupt initially\n");
-		schedule_work(&chip->dwork);
-	} else {
-		ret = tusb320_select_mode(chip, chip->pdata->select_mode);
-		if (ret < 0)
-			dev_err(cdev, "failed to select mode and work as default\n");
-	}
+	schedule_work(&chip->dwork);
 
 	return 0;
 
