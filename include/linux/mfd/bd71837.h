@@ -246,14 +246,17 @@ enum {
 #define LDO4_MASK				0x0F
 
 /* BD71837_REG_LDO5_VOLT bits */
+#define LDO5_SEL				0x80
 #define LDO5_EN 				0x40
 #define LDO5_MASK				0x0F
 
 /* BD71837_REG_LDO6_VOLT bits */
+#define LDO6_SEL				0x80
 #define LDO6_EN 				0x40
 #define LDO6_MASK				0x0F
 
 /* BD71837_REG_LDO7_VOLT bits */
+#define LDO7_SEL				0x80
 #define LDO7_EN 				0x40
 #define LDO7_MASK				0x0F
 
