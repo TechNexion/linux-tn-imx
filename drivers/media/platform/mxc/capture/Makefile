@@ -25,6 +25,9 @@ obj-$(CONFIG_MXC_CAMERA_OV5642) += ov5642_camera.o
 ov5640_camera_mipi_int-objs := ov5640_mipi.o
 obj-$(CONFIG_MXC_CAMERA_OV5640_MIPI) += ov5640_camera_mipi_int.o
 
+ov5645_camera_mipi_int-objs := ov5645_mipi.o
+obj-$(CONFIG_MXC_CAMERA_OV5645_MIPI) += ov5645_camera_mipi_int.o
+
 # Used for iMX 7D
 ov5640_camera_mipi_v2-objs := ov5640_mipi_v2.o
 obj-$(CONFIG_MXC_CAMERA_OV5640_MIPI_V2) += ov5640_camera_mipi_v2.o
