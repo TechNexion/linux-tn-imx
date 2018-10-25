@@ -1938,7 +1938,7 @@ static const struct dev_pm_ops mx6s_csi_pm_ops = {
 };
 
 static const struct of_device_id mx6s_csi_dt_ids[] = {
-	{ .compatible = "fsl,imx6s-csi", },
+	{ .compatible = "fsl,imx7d-csi", },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, mx6s_csi_dt_ids);
