@@ -7,6 +7,7 @@ ifeq ($(CONFIG_VIDEO_MXC_IPU_CAMERA),y)
 endif
 
 obj-$(CONFIG_VIDEO_MXC_CSI_CAMERA) += mx6s_capture.o
+obj-$(CONFIG_VIDEO_MXC_CSI_CAMERA_LEGACY) += mx6s_capture_legacy.o
 obj-$(CONFIG_MXC_VADC) += mxc_vadc.o
 obj-$(CONFIG_MXC_MIPI_CSI) += mxc_mipi_csi.o
 

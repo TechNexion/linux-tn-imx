@@ -10,6 +10,12 @@ config VIDEO_MXC_CSI_CAMERA
 	---help---
 		This is the video4linux2 capture driver based on CSI module.
 
+config VIDEO_MXC_CSI_CAMERA_LEGACY
+	tristate "CSI camera support(legacy, for i.mx7)"
+	depends on VIDEO_MXC_CAPTURE && VIDEO_V4L2
+	---help---
+		This is the video4linux2 capture driver based on CSI module.
+
 config MXC_VADC
 	tristate "mxc VADC support"
 	depends on VIDEO_MXC_CAPTURE && VIDEO_V4L2
