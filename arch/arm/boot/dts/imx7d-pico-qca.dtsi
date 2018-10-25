@@ -825,27 +825,36 @@
 		};
 	};
 
-	ov5645_mipi: ov5645_mipi@3c {
-		compatible = "ovti,ov5645_mipi_v2";
+	/* PCA9554 on camera tev_mipi board */
+	pca9554_tev_mipi: pca9554_tev_mipi@24 {
+		compatible = "nxp,pca9554";
+		reg =<0x24>;
+		gpio-controller;
+		#gpio-cells = <2>;
+	};
+
+	ov5640_mipi: ov5640_mipi@3c {
+		compatible = "ovti,ov5640_mipi";
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_mipi_csi>; /* GPIO_P69:mipi clock, GPIO_P67:power on, GPIO_P65:reset */
+		pinctrl-0 = <&pinctrl_mipi_csi>;
 		reg = <0x3c>;
-		clocks = <&clks IMX7D_CLKO1_ROOT_CG>;
+		clocks = <&clks IMX7D_CLK_DUMMY>;
 		clock-names = "csi_mclk";
 		csi_id = <0>;
-		pwn-gpios = <&gpio1 4 1>;
-		rst-gpios = <&gpio1 5 0>;
+		pwn-gpios = <&pca9554_tev_mipi 2 GPIO_ACTIVE_HIGH>;
+		rst-gpios = <&gpio1 5 GPIO_ACTIVE_LOW>;
 		DOVDD-supply = <&reg_2p5v>;
 		AVDD-supply = <&reg_2p5v>;
 		DVDD-supply = <&reg_vref_1v8>;
 		mclk = <24000000>;
 		mclk_source = <0>;
 		port {
-			ov5645_mipi_ep: endpoint {
+			ov5640_mipi_ep: endpoint {
 				remote-endpoint = <&mipi_sensor_ep>;
 			};
 		};
 	};
+
 };
 
 &ecspi3 {
@@ -946,14 +955,15 @@
 };
 
 &mipi_csi {
-	clock-frequency = <24000000>;
+	clock-frequency = <240000000>;
 	status = "okay";
 	port {
 		mipi_sensor_ep: endpoint@1 {
-			remote-endpoint = <&ov5645_mipi_ep>;
+			remote-endpoint = <&ov5640_mipi_ep>;
 			data-lanes = <2>;
 			csis-hs-settle = <13>;
 			csis-clk-settle = <2>;
+			csis-wclk;
 		};
 
 		csi_mipi_ep: endpoint@2 {
