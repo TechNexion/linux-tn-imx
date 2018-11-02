@@ -101,27 +101,11 @@ static int sn65dsi84_probe(struct i2c_client *client,
 	struct device_node *np = client->dev.of_node;
 	int addresses[100];
 	int values[100];
-	int chipid[] = {0x35, 0x38, 0x49, 0x53, 0x44, 0x20, 0x20, 0x20, 0x01};
+	int chipid[] = { 0x35, 0x38, 0x49, 0x53, 0x44, 0x20, 0x20, 0x20, 0x01 }; /* 58isd */
 	char address, value;
 	struct gpio_desc *enable_gpio;
 
-	enable_gpio = devm_gpiod_get_optional(&client->dev, "enable", GPIOD_OUT_HIGH);
-	if (enable_gpio)
-		gpiod_set_value_cansleep(enable_gpio, 1);
-
-	for (i = 0; i < sizeof(chipid) / sizeof(int); i++) {
-		address = (char)i;
-		err = sn65dsi84_i2c_read(client, &address, 1, &value, 1);
-		if (err < 0) {
-			dev_err(&client->dev, "failed to read chip id\n");
-			return err;
-		}
-		if (value != chipid[i]) {
-			dev_err(&client->dev, "chip id is not correct\n");
-			return err;
-		}
-	}
-
+	/* gets the I2C register addresses to write */
 	prop = of_find_property(np, "sn65dsi84,addresses", NULL);
 	if (!prop)
 		return -EINVAL;
@@ -136,6 +120,7 @@ static int sn65dsi84_probe(struct i2c_client *client,
 		return err;
 	}
 
+	/* gets the I2C register data to write */
 	prop = of_find_property(np, "sn65dsi84,values", NULL);
 	if (!prop)
 		return -EINVAL;
@@ -154,6 +139,45 @@ static int sn65dsi84_probe(struct i2c_client *client,
 		return err;
 	}
 
+	/* gets the enable gpio control */
+	enable_gpio = devm_gpiod_get_optional(&client->dev, "enable", GPIOD_OUT_HIGH);
+	if (enable_gpio) {
+		/* set low first to shutdown / reset the sn65dsi84/5 */
+		gpiod_set_value_cansleep(enable_gpio, 0);
+		msleep(10);
+		/* sets high to enable sn65dsi84/5 */
+		gpiod_set_value_cansleep(enable_gpio, 1);
+		msleep(10);
+	} else {
+		dev_err(&client->dev, "Unable to get enable_gpio\n");
+	}
+
+	/* clear error register */
+	/*
+	address = (char) 0xe5;
+	sn65dsi84_write_reg(client, address, 0xff);
+	msleep(1);
+	err = sn65dsi84_i2c_read(client, &address, 1, &value, 1);
+	if (err < 0)
+		dev_info(&client->dev, "Unable to clear and read csr error register: reg:0x%x, val:0x%x\n", address, value);
+	*/
+
+	/* check for the MAGIC String on sn65dsi84/5 */
+	for (i = 0; i < sizeof(chipid) / sizeof(int); i++) {
+		address = (char) i;
+		err = sn65dsi84_i2c_read(client, &address, 1, &value, 1);
+		if (err < 0) {
+			dev_err(&client->dev, "failed to read chip id\n");
+			return err;
+		}
+		if (value != chipid[i]) {
+			dev_err(&client->dev, "chip id is not correct\n");
+			return err;
+		}
+	}
+	dev_info(&client->dev, "Valid sn65dsi84 chip id\n");
+
+	/* write data via I2C to the sn65dsi84 dsi2lvds chip */
 	for (i = 0; i < size; i++) {
 		sn65dsi84_write_reg(client, addresses[i], values[i]);
 		if (err < 0) {
@@ -161,7 +185,10 @@ static int sn65dsi84_probe(struct i2c_client *client,
 			return err;
 		}
 	}
-
+	msleep(10);
+	/* soft reset via the i2c register 0x9.0 */
+	sn65dsi84_write_reg(client, 0x9, 1);
+	dev_info(&client->dev, "Soft reset to default\n");
 
 	return 0;
 }
