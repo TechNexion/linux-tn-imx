@@ -2368,7 +2368,7 @@ static const struct panel_desc_dsi panasonic_vvx10f004b00 = {
 	.lanes = 4,
 };
 
-static const struct drm_display_mode innuolex_hp070ba_mode = {
+static const struct drm_display_mode innolux_hj070na_mode = {
 	.clock = 51000,
 	.hdisplay = 1024,
 	.hsync_start = 1024 + 120,
@@ -2382,9 +2382,9 @@ static const struct drm_display_mode innuolex_hp070ba_mode = {
 	.flags = DRM_MODE_FLAG_NHSYNC | DRM_MODE_FLAG_NVSYNC,
 };
 
-static const struct panel_desc_dsi innuolex_hp070ba = {
+static const struct panel_desc_dsi innolux_hj070na = {
 	.desc = {
-		.modes = &innuolex_hp070ba_mode,
+		.modes = &innolux_hj070na_mode,
 		.num_modes = 1,
 		.bpc = 8,
 		.size = {
@@ -2415,8 +2415,8 @@ static const struct of_device_id dsi_of_match[] = {
 		.compatible = "panasonic,vvx10f004b00",
 		.data = &panasonic_vvx10f004b00
 	}, {
-		.compatible = "innolux,hp070ba",
-		.data = &innuolex_hp070ba
+		.compatible = "innolux,hj070na",
+		.data = &innolux_hj070na
 	}, {
 		/* sentinel */
 	}

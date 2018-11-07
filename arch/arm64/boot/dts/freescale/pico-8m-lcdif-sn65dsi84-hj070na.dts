@@ -65,7 +65,6 @@
 			remote-endpoint = <&lcdif_mipi_dsi>;
 		};
 	};
-
 };
 
 &mipi_dsi_bridge {
@@ -73,11 +72,11 @@
 
 	panel@0 {
 		reg = <0>;
-		compatible = "innolux,hp070ba";
+		compatible = "innolux,hj070na";
 		/* backlight = <&backlight>; */
 		/* pinctrl-0 = <&pinctrl_mipi_dsi_rst>; */
 		/* enable-gpios = <&gpio3 17 GPIO_ACTIVE_HIGH>; */
-		dsi-lanes = <4>;
+		dsi,lanes = <4>;
 		panel-width-mm  = <153>;
 		panel-height-mm = <90>;
 

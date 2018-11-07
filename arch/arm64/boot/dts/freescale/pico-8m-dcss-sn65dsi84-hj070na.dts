@@ -72,6 +72,8 @@
 
 &mipi_dsi {
 	status = "okay";
+	pwr-delay = <10>;
+	best-match;
 
 	assigned-clocks = <&clk IMX8MQ_CLK_DSI_PHY_REF_SRC>,
 						<&clk IMX8MQ_CLK_DSI_CORE_SRC>,
@@ -97,11 +99,11 @@
 
 	panel@0 {
 		reg = <0>;
-		compatible = "innolux,hp070ba";
+		compatible = "innolux,hj070na";
 		/* backlight = <&backlight>; */
 		/* pinctrl-0 = <&pinctrl_mipi_dsi_rst>; */
 		/* enable-gpios = <&gpio3 17 GPIO_ACTIVE_HIGH>; */
-		dsi-lanes = <4>;
+		dsi,lanes = <4>;
 		panel-width-mm  = <153>;
 		panel-height-mm = <90>;
 
