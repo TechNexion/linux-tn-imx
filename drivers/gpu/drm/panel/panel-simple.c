@@ -34,12 +34,13 @@
 #include <drm/drm_panel.h>
 
 #include <video/display_timing.h>
+#include <video/of_display_timing.h>
 #include <video/videomode.h>
 
 struct panel_desc {
-	const struct drm_display_mode *modes;
+	struct drm_display_mode *modes;
 	unsigned int num_modes;
-	const struct display_timing *timings;
+	struct display_timing *timings;
 	unsigned int num_timings;
 
 	unsigned int bpc;
@@ -73,6 +74,12 @@ struct panel_desc {
 
 	u32 bus_format;
 	u32 bus_flags;
+
+	/* additional settings */
+	u32 refresh_rate;
+	u32 rotate;
+	bool hflip;
+	bool vflip;
 };
 
 struct panel_simple {
@@ -87,6 +94,9 @@ struct panel_simple {
 	struct i2c_adapter *ddc;
 
 	struct gpio_desc *enable_gpio;
+
+	/* additional settings */
+	struct display_timings *disp_timings;
 };
 
 static inline struct panel_simple *to_panel_simple(struct drm_panel *panel)
@@ -123,6 +133,10 @@ static int panel_simple_get_fixed_modes(struct panel_simple *panel)
 		if (panel->desc->num_timings == 1)
 			mode->type |= DRM_MODE_TYPE_PREFERRED;
 
+		/* default refresh rate should be 60Hz */
+		mode->vrefresh = panel->desc->refresh_rate;
+		drm_mode_debug_printmodeline(mode);
+
 		drm_mode_probed_add(connector, mode);
 		num++;
 	}
@@ -143,6 +157,8 @@ static int panel_simple_get_fixed_modes(struct panel_simple *panel)
 			mode->type |= DRM_MODE_TYPE_PREFERRED;
 
 		drm_mode_set_name(mode);
+
+		drm_mode_debug_printmodeline(mode);
 
 		drm_mode_probed_add(connector, mode);
 		num++;
@@ -293,7 +309,39 @@ static const struct drm_panel_funcs panel_simple_funcs = {
 	.get_timings = panel_simple_get_timings,
 };
 
-static int panel_simple_probe(struct device *dev, const struct panel_desc *desc)
+
+static int panel_parse_dt_settings (struct device *dev, struct panel_simple *panel, struct panel_desc *desc)
+{
+	struct device_node *np = dev->of_node;
+	int ret = 0;
+
+	/* parse display-timings node from device tree */
+	if (!desc->timings) {
+		panel->disp_timings = of_get_display_timings(np);
+		if (!panel->disp_timings) {
+			pr_err("%s: no timings specified\n", of_node_full_name(np));
+			ret = -ENODEV;
+		} else {
+			desc->timings = *panel->disp_timings->timings;
+			desc->num_timings = panel->disp_timings->num_timings;
+		}
+	}
+
+	/* parse other panel node attributes for panel from device tree */
+	of_property_read_u32(np, "panel-width-mm", &desc->size.width);
+	of_property_read_u32(np, "panel-height-mm", &desc->size.height);
+	of_property_read_u32(np, "refresh-rate", &desc->refresh_rate);
+	of_property_read_u32(np, "bits-per-color", &desc->bpc);
+	of_property_read_u32(np, "bus-format", &desc->bus_format);
+	of_property_read_u32(np, "bus-flags", &desc->bus_flags);
+	of_property_read_u32(np, "rotate", &desc->rotate);
+	desc->hflip = of_property_read_bool(np, "horz-flip");
+	desc->vflip = of_property_read_bool(np, "vert-flip");
+
+	return ret;
+}
+
+static int panel_simple_probe(struct device *dev, struct panel_desc *desc)
 {
 	struct device_node *backlight, *ddc;
 	struct panel_simple *panel;
@@ -302,6 +350,10 @@ static int panel_simple_probe(struct device *dev, const struct panel_desc *desc)
 	panel = devm_kzalloc(dev, sizeof(*panel), GFP_KERNEL);
 	if (!panel)
 		return -ENOMEM;
+
+	err = panel_parse_dt_settings(dev, panel, desc);
+	if (err < 0)
+		dev_warn(dev, "No display timings from dt\n");
 
 	panel->enabled = false;
 	panel->prepared = false;
@@ -370,6 +422,9 @@ static int panel_simple_remove(struct device *dev)
 
 	panel_simple_disable(&panel->base);
 	panel_simple_unprepare(&panel->base);
+
+	if (panel->disp_timings)
+		display_timings_release(panel->disp_timings);
 
 	if (panel->ddc)
 		put_device(&panel->ddc->dev);
@@ -2194,7 +2249,7 @@ static int panel_simple_platform_probe(struct platform_device *pdev)
 	if (!id)
 		return -ENODEV;
 
-	return panel_simple_probe(&pdev->dev, id->data);
+	return panel_simple_probe(&pdev->dev, (struct panel_desc*)id->data);
 }
 
 static int panel_simple_platform_remove(struct platform_device *pdev)
@@ -2418,6 +2473,9 @@ static const struct of_device_id dsi_of_match[] = {
 		.compatible = "innolux,hj070na",
 		.data = &innolux_hj070na
 	}, {
+		.compatible = "tn,dsi2lvds-panel",
+		.data = &innolux_hj070na
+	}, {
 		/* sentinel */
 	}
 };
@@ -2425,23 +2483,52 @@ MODULE_DEVICE_TABLE(of, dsi_of_match);
 
 static int panel_simple_dsi_probe(struct mipi_dsi_device *dsi)
 {
-	const struct panel_desc_dsi *desc;
+	struct device_node *np = dsi->dev.of_node;
+	struct device_node *timings_np;
+	struct panel_simple* panel;
+	struct panel_desc_dsi *desc = NULL;
 	const struct of_device_id *id;
+	u32 dsi_flags = 0;
+	u32 dsi_format = 0;
+	u32 dsi_lanes = 0;
 	int err;
 
-	id = of_match_node(dsi_of_match, dsi->dev.of_node);
+	id = of_match_node(dsi_of_match, np);
 	if (!id)
 		return -ENODEV;
 
-	desc = id->data;
+	/* Additional drm_display_mode parsing here */
+	if (np) {
+		/* allow display-timings to be parsed in panel_simple_probe() */
+		timings_np = of_get_child_by_name(np, "display-timings");
+		if (!timings_np) {
+			pr_err("%s: could not find display-timings dt node\n", of_node_full_name(np));
+		} else {
+			desc = kzalloc(sizeof(struct panel_desc_dsi), GFP_KERNEL);
+			/* if memory allocate failed, fall through to use default settings */
+		}
+	}
+
+	/* if no drm_display_mode from device tree then use the (default) desc (i.e. id->data) */
+	if (!desc) {
+		desc = (struct panel_desc_dsi*)id->data;
+	} else {
+		/* parse only the dsi,flags, format, and lanes setting */
+		of_property_read_u32(np, "dsi,flags", &dsi_flags);
+		desc->flags = dsi_flags;
+		of_property_read_u32(np, "dsi,format", &dsi_format);
+		desc->format = dsi_format;
+		of_property_read_u32(np, "dsi,lanes", &dsi_lanes);
+		desc->lanes = dsi_lanes;
+	}
 
 	err = panel_simple_probe(&dsi->dev, &desc->desc);
 	if (err < 0)
 		return err;
 
-	dsi->mode_flags = desc->flags;
-	dsi->format = desc->format;
-	dsi->lanes = desc->lanes;
+	dsi->mode_flags = dsi_flags;
+	dsi->format = dsi_format;
+	dsi->lanes = dsi_lanes;
 
 	return mipi_dsi_attach(dsi);
 }
@@ -2449,6 +2536,21 @@ static int panel_simple_dsi_probe(struct mipi_dsi_device *dsi)
 static int panel_simple_dsi_remove(struct mipi_dsi_device *dsi)
 {
 	int err;
+	struct device_node *np = dsi->dev.of_node;
+	const struct of_device_id *id;
+	struct panel_simple* panel;
+
+	id = of_match_node(dsi_of_match, np);
+	if (id) {
+		panel = dev_get_drvdata(&dsi->dev);
+		if (panel->desc != id->data) {
+			if (panel->desc->modes)
+				drm_mode_destroy(panel->base.drm, panel->desc->modes);
+			kfree(panel->desc);
+		}
+	} else {
+		dev_err(&dsi->dev, "failed to free allocated panel desc\n");
+	}
 
 	err = mipi_dsi_detach(dsi);
 	if (err < 0)
