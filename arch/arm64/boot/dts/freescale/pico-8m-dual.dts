@@ -1,0 +1,113 @@
+/*
+ * Copyright 2018 Technexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>, Po Cheng <po.cheng@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+#include "pico-8m.dts"
+
+/ {
+	backlight_mipi {
+		status = "okay";
+	};
+};
+
+&lcdif {
+	status = "okay";
+
+	assigned-clocks = <&clk IMX8MQ_CLK_LCDIF_PIXEL_SRC>,
+			<&clk IMX8MQ_VIDEO_PLL1_REF_SEL>,
+			<&clk IMX8MQ_VIDEO_PLL1>;
+	assigned-clock-parents = <&clk IMX8MQ_VIDEO_PLL1_OUT>,
+			<&clk IMX8MQ_CLK_25M>;
+	assigned-clock-rate = <120000000>,
+			<0>,
+			<599999999>;
+
+	/* important to overwrite max-res otherwise DRM lcdif will fail to find a suitable connector */
+	max-res = <4096>, <4096>;
+
+	port@0 {
+		lcdif_mipi_dsi: mipi-dsi-endpoint {
+			remote-endpoint = <&mipi_dsi_in>;
+		};
+	};
+};
+
+&mipi_dsi_phy {
+	status = "okay";
+};
+
+&mipi_dsi {
+	status = "okay";
+	as_bridge;
+	sync-pol = <1>;
+	pwr-delay = <50>;
+	best-match;
+
+	assigned-clocks = <&clk IMX8MQ_CLK_DSI_PHY_REF_SRC>,
+			  <&clk IMX8MQ_CLK_DSI_CORE_SRC>,
+			  <&clk IMX8MQ_VIDEO_PLL1_REF_SEL>,
+			  <&clk IMX8MQ_VIDEO_PLL1>;
+	assigned-clock-parents = <&clk IMX8MQ_VIDEO_PLL1_OUT>,
+				 <&clk IMX8MQ_SYS1_PLL_266M>,
+				 <&clk IMX8MQ_CLK_25M>;
+	assigned-clock-rates = <24000000>,
+			       <266000000>,
+			       <0>,
+			       <599999999>;
+
+	port@1 {
+		mipi_dsi_in: lcdif-endpoint {
+			remote-endpoint = <&lcdif_mipi_dsi>;
+		};
+	};
+};
+
+&mipi_dsi_bridge {
+	status = "okay";
+
+	panel@0 {
+		compatible = "bananapi,lhr050h41", "ilitek,ili9881c";
+		pinctrl-0 = <&pinctrl_mipi_dsi_rst>;
+		reset-gpio = <&gpio3 17 GPIO_ACTIVE_LOW>;
+		reg = <0>;
+		dsi-lanes = <4>;
+		port {
+			panel_in: endpoint {
+				remote-endpoint = <&mipi_dsi_bridge_out>;
+			};
+		};
+	};
+
+	port@1 {
+		mipi_dsi_bridge_out: endpoint {
+			remote-endpoint = <&panel_in>;
+		};
+	};
+};
+
+&i2c2 {
+	polytouch: edt-ft5x06@38 {
+		status = "okay";
+		compatible = "edt,edt-ft5x06";
+		reg = <0x38>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_ft5336_touch_irq &pinctrl_ft5336_touch_rst>;
+		interrupt-parent = <&gpio1>;
+		interrupts = <7 IRQ_TYPE_EDGE_FALLING>;
+		reset-gpios = <&gpio3 18 GPIO_ACTIVE_LOW>;
+		touchscreen-size-x = <720>;
+		touchscreen-size-y = <1280>;
+	};
+};
