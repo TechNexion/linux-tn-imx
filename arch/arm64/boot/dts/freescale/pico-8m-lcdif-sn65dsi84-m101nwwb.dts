@@ -1,0 +1,255 @@
+/*
+ * Copyright 2018 Technexion Ltd.
+ * Copyright 2017 NXP
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+#include "pico-8m.dts"
+
+/ {
+	display-subsystem {
+		status = "disabled";
+	};
+};
+
+&dcss {
+	status = "disabled";
+};
+
+&hdmi {
+	status = "disabled";
+};
+
+/*
+&hdmi_cec {
+	status = "disabled";
+};
+*/
+
+&lcdif {
+	status = "okay";
+
+	/* important to overwrite max-res otherwise DRM lcdif will fail to find a suitable connector */
+	max-res = <4096>, <4096>;
+
+	port@0 {
+		lcdif_mipi_dsi: mipi-dsi-endpoint {
+			remote-endpoint = <&mipi_dsi_in>;
+		};
+	};
+};
+
+&mipi_dsi_phy {
+	status = "okay";
+};
+
+&mipi_dsi {
+	status = "okay";
+	as_bridge;
+	sync-pol = <1>;
+	pwr-delay = <10>;
+	best-match;
+	port@1 {
+		mipi_dsi_in: lcdif_endpoint {
+			remote-endpoint = <&lcdif_mipi_dsi>;
+		};
+	};
+
+};
+
+&mipi_dsi_bridge {
+	status = "okay";
+
+	panel@0 {
+
+#define MIPI_DSI_MODE_VIDEO             0x0001 /* video mode */
+#define MIPI_DSI_MODE_VIDEO_BURST       0x0002 /* video burst mode */
+#define MIPI_DSI_MODE_VIDEO_SYNC_PULSE  0x0004 /* video pulse mode */
+#define MIPI_DSI_MODE_VIDEO_AUTO_VERT   0x0008 /* enable auto vertical count mode */
+#define MIPI_DSI_MODE_VIDEO_HSE         0x0010 /* enable hsync-end packets in vsync-pulse and v-porch area */
+#define MIPI_DSI_MODE_VIDEO_HFP         0x0020 /* disable hfront-porch area */
+#define MIPI_DSI_MODE_VIDEO_HBP         0x0040 /* disable hback-porch area */
+#define MIPI_DSI_MODE_VIDEO_HSA         0x0080 /* disable hsync-active area */
+#define MIPI_DSI_MODE_VSYNC_FLUSH       0x0100 /* flush display FIFO on vsync pulse */
+#define MIPI_DSI_MODE_EOT_PACKET        0x0200 /* disable EoT packets in HS mode */
+#define MIPI_DSI_CLOCK_NON_CONTINUOUS   0x0400 /* device supports non-continuous clock behavior (DSI spec 5.6.1) */
+#define MIPI_DSI_MODE_LPM               0x0800 /* transmit data in low power */
+
+#define MIPI_DSI_FMT_RGB888             0
+#define MIPI_DSI_FMT_RGB666             1
+#define MIPI_DSI_FMT_RGB666_PACKED      2
+#define MIPI_DSI_FMT_RGB565             3
+
+#define DRM_BUS_FLAG_DE_LOW             0x0
+#define DRM_BUS_FLAG_DE_HIGH            0x1
+#define DRM_BUS_FLAG_PIXDATA_POSEDGE    0x4
+#define DRM_BUS_FLAG_PIXDATA_NEGEDGE    0x8
+
+		reg = <0>;
+		/* compatible = "ivo,m101nwwb"; */
+		compatible = "tn,dsi2lvds-panel";
+		/* backlight = <&backlight>; */
+		/* pinctrl-0 = <&pinctrl_mipi_dsi_rst>; */
+		/* enable-gpios = <&gpio3 17 GPIO_ACTIVE_HIGH>; */
+		dsi,flags = <0x0007>; /* MIPI_DSI_MODE_VIDEO MIPI_DSI_MODE_VIDEO_BURST MIPI_DSI_MODE_VIDEO_SYNC_PULSE */
+		dsi,format = <0>;
+		dsi,lanes = <4>;
+		panel-width-mm  = <217>;
+		panel-height-mm = <135>;
+		bus-flags = <1>;
+		refresh-rate = <60>;
+		rotate = <0>;
+		/* horz-flip; */
+		/* vert-flip; */
+
+		port {
+			panel_in: endpoint {
+				remote-endpoint = <&mipi_dsi_bridge_out>;
+			};
+		};
+
+		display-timings {
+			native-mode = <&timing0>;
+
+/*
+ * Panel display timings, For example, hsync active high, vsync active low
+ * (defined here in device tree for struct display_timing)
+ *
+ *				    Active Video
+ * Video  ___________________________XXXXXXXXXXXXXXXXXXXXXXXX__________________________
+ *	  |<- [hv]sync ->|<- [hv]back ->|<----- [hv]active ----->|<- [hv]front ->|<- sync..
+ *	  |       len    |       porch  |		                 |       porch   |
+ *
+ * HSync _|¯¯¯¯¯¯¯¯¯¯|___________________________________________|¯¯¯¯¯¯¯¯¯
+ *
+ * VSync ¯|__________|¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|_________
+ *
+ *
+ *
+ * clock-frequency = <Hz>; clock frequency in Herz
+ * [hv]active = <pixels>; active display in pixels
+ * [hv]back-porch = <pixels>; back-porch in pixels
+ * [hv]front-porch = <pixels>; front-porch in pixels
+ * [hv]sync-len = <pixels>; sync length in pixles
+ *
+ * (optional) Flags to set for display timings,
+ *
+#define DISPLAY_FLAGS_HSYNC_LOW         0x0001
+#define DISPLAY_FLAGS_HSYNC_HIGH        0x0002
+#define DISPLAY_FLAGS_VSYNC_LOW         0x0004
+#define DISPLAY_FLAGS_VSYNC_HIGH        0x0008
+#define DISPLAY_FLAGS_DE_LOW            0x0010
+#define DISPLAY_FLAGS_DE_HIGH           0x0020
+#define DISPLAY_FLAGS_PIXDATA_POSEDGE   0x0040
+#define DISPLAY_FLAGS_PIXDATA_NEGEDGE   0x0080
+#define DISPLAY_FLAGS_INTERLACED        0x0100
+#define DISPLAY_FLAGS_DOUBLESCAN        0x0200
+#define DISPLAY_FLAGS_DOUBLECLK         0x0400
+ *
+ * vsync-active = <0/1>, i.e. DISPLAY_FLAGS_VSYNC_LOW / DISPLAY_FLAGS_VSYNC_HIGH
+ * hsync-active = <0/1>, i.e. DISPLAY_FLAGS_HSYNC_LOW / DISPLAY_FLAGS_HSYNC_HIGH
+ * de-active = <0/1>, i.e. DISPLAY_FLAGS_DE_LOW / DISPLAY_FLAGS_DE_HIGH
+ * pixelclk-active = <0/1>, i.e. DISPLAY_FLAGS_PIXDATA_NEGEDGE / DISPLAY_FLAGS_PIXDATA_POSEDGE
+ * interlaced = True/False, i.e. DISPLAY_FLAGS_INTERLACED
+ * doublescan = True/False, i.e. DISPLAY_FLAGS_DOUBLESCAN
+ * doubleclk = True/False, i.e. DISPLAY_FLAGS_DOUBLECLK
+ *
+ * Important Note:
+ * The horizontal and vertical display timings are mapped to following DRM_DISPLAY_MODE settings.
+ * (the above display timing is mapped to struct drm_display_mode)
+ *
+ *              Active                 Front           Sync           Back
+ *              Region                 Porch           Len            Porch
+ *     <-----------------------><----------------><-------------><-------------->
+ *       //////////////////////|
+ *      ////////////////////// |
+ *     //////////////////////  |..................               ................
+ *                                                _______________
+ *     <----- [hv]display ----->
+ *     <------------- [hv]sync_start ------------>
+ *     <--------------------- [hv]sync_end --------------------->
+ *     <-------------------------------- [hv]total ----------------------------->
+ *
+ */
+
+			timing0: m101nwwb {
+				clock-frequency = <68900000>;
+				hactive = <1280>;
+				vactive = <800>;
+				hfront-porch = <40>;
+				hsync-len = <80>;
+				hback-porch = <40>;
+				vfront-porch = <3>;
+				vsync-len = <10>;
+				vback-porch = <10>;
+				/* flags = DISPLAY_FLAGS_HSYNC_HIGH | DISPLAY_FLAGS_VSYNC_HIGH */
+				vsync-active = <1>;
+				hsync-active = <1>;
+			};
+		};
+	};
+
+	port@1 {
+		mipi_dsi_bridge_out: endpoint {
+			remote-endpoint = <&panel_in>;
+		};
+	};
+
+};
+
+&i2c3 {
+	dsi_lvds_bridge: sn65dsi84@2c {
+		reg = <0x2c>;
+		status = "okay";
+		compatible = "ti,sn65dsi84";
+		#gpio-cells = <2>;
+		enable-gpios = <&gpio3 17 GPIO_ACTIVE_HIGH>; /* <&pinctrl_mipi_dsi_rst>; */
+		sn65dsi84,addresses = <0x09 0x0A 0x0B 0x0D
+		                       0x10 0x11 0x12 0x13
+                               0x18 0x19 0x1A 0x1B
+                               0x20 0x21 0x22 0x23
+                               0x24 0x25 0x26 0x27
+                               0x28 0x29 0x2A 0x2B
+                               0x2C 0x2D 0x2E 0x2F
+                               0x30 0x31 0x32 0x33
+                               0x34 0x35 0x36 0x37
+                               0x38 0x39 0x3A 0x3B
+                               0x3C 0x3D 0x3E 0x0D>;
+
+		sn65dsi84,values = </* reset and clock registers */
+		                    0x00 0x05 0x10 0x00
+                            /* DSI registers */
+		                    0x26 0x00 0x2a 0x00
+		                    /* LVDS registers */
+                            0x7a 0x00 0x03 0x00
+
+                            /* video registers */
+                            /* cha-al-len-l, cha-al-len-h, chb-al-len-l, chb-al-len-h */
+                            0x00 0x05 0x00 0x00
+                            /* cha-v-ds-l, cha-v-ds-h, chb-v-ds-l, chb-v-ds-h */
+                            0x00 0x00 0x00 0x00
+                            /* cha-sdl, cha-sdh, chb-sdl, chb-sdh */
+                            0x21 0x00 0x00 0x00
+                            /* cha-hs-pwl, cha-hs-pwh, chb-hs-pwl, chb-hs-pwh */
+                            0x50 0x00 0x00 0x00
+                            /* cha-vs-pwl, cha-vs-pwh, chb-vs-pwl, chb-vs-pwh */
+                            0x0a 0x00 0x00 0x00
+                            /*cha-hbp, chb-hbp, cha-vbp, chb-vbp*/
+                            0x28 0x00 0x00 0x00
+                            /* cha-hfp, chb-hfp, cha-vfp, chb-vfp*/
+                            0x00 0x00 0x00 0x00
+
+                            0x00 0x00 0x00 0x01>;
+	};
+};
