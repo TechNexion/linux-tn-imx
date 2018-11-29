@@ -53,17 +53,6 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
-		reg_sd1_vmmc: sd1_regulator {
-			compatible = "regulator-fixed";
-			regulator-name = "WLAN_EN";
-			regulator-min-microvolt = <3300000>;
-			regulator-max-microvolt = <3300000>;
-			gpio = <&gpio2 10 GPIO_ACTIVE_HIGH>;
-			off-on-delay = <20000>;
-			startup-delay-us = <100>;
-			enable-active-high;
-		};
-
 		reg_usdhc2_vmmc: regulator-usdhc2 {
 			compatible = "regulator-fixed";
 			regulator-name = "VSD_3V3";
@@ -191,7 +180,7 @@
 				MX8MM_IOMUXC_ENET_RXC_ENET1_RGMII_RXC	0x91
 				MX8MM_IOMUXC_ENET_RX_CTL_ENET1_RGMII_RX_CTL	0x91
 				MX8MM_IOMUXC_ENET_TX_CTL_ENET1_RGMII_TX_CTL	0x1f
-				MX8MM_IOMUXC_SAI2_RXC_GPIO4_IO22	0x19
+				MX8MM_IOMUXC_SD1_RESET_B_GPIO2_IO10	0x19
 			>;
 		};
 
@@ -340,12 +329,6 @@
 				MX8MM_IOMUXC_ECSPI1_MOSI_UART3_DCE_TX		0x140
 				MX8MM_IOMUXC_ECSPI1_SS0_UART3_DCE_RTS_B		0x140
 				MX8MM_IOMUXC_ECSPI1_MISO_UART3_DCE_CTS_B	0x140
-			>;
-		};
-
-		pinctrl_usdhc1_gpio: usdhc1grpgpio {
-			fsl,pins = <
-				MX8MM_IOMUXC_SD1_RESET_B_GPIO2_IO10	0x41
 			>;
 		};
 
@@ -893,12 +876,11 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
-		ethphy0: ethernet-phy@0 {
+		ethphy0: ethernet-phy@1 {
 			compatible = "ethernet-phy-ieee802.3-c22";
-			reg = <0>;
+			reg = <1>;
 			at803x,led-act-blind-workaround;
-			at803x,eee-okay;
-			at803x,vddio-1p8v;
+			at803x,eee-disabled;
 		};
 	};
 };
@@ -955,11 +937,10 @@
 
 &usdhc1 {
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
-	pinctrl-0 = <&pinctrl_usdhc1>, <&pinctrl_usdhc1_gpio>;
-	pinctrl-1 = <&pinctrl_usdhc1_100mhz>, <&pinctrl_usdhc1_gpio>;
-	pinctrl-2 = <&pinctrl_usdhc1_200mhz>, <&pinctrl_usdhc1_gpio>;
+	pinctrl-0 = <&pinctrl_usdhc1>;
+	pinctrl-1 = <&pinctrl_usdhc1_100mhz>;
+	pinctrl-2 = <&pinctrl_usdhc1_200mhz>;
 	bus-width = <4>;
-	vmmc-supply = <&reg_sd1_vmmc>;
 	pm-ignore-notify;
 	keep-power-in-suspend;
 	non-removable;
