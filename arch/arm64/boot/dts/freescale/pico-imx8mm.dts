@@ -62,71 +62,6 @@
 			off-on-delay = <20000>;
 			enable-active-high;
 		};
-
-		reg_audio_board: regulator-audio-board {
-			compatible = "regulator-fixed";
-			regulator-name = "EXT_PWREN";
-			regulator-min-microvolt = <3300000>;
-			regulator-max-microvolt = <3300000>;
-			enable-active-high;
-			startup-delay-us = <300000>;
-			gpio = <&pca6416 1 GPIO_ACTIVE_HIGH>;
-		};
-	};
-
-	wm8524: wm8524 {
-		compatible = "wlf,wm8524";
-		clocks = <&clk IMX8MM_CLK_SAI3_ROOT>;
-		clock-names = "mclk";
-		wlf,mute-gpios = <&gpio5 21 GPIO_ACTIVE_LOW>;
-	};
-
-	sound-wm8524 {
-		compatible = "fsl,imx-audio-wm8524";
-		model = "wm8524-audio";
-		audio-cpu = <&sai3>;
-		audio-codec = <&wm8524>;
-		audio-routing =
-			"Line Out Jack", "LINEVOUTL",
-			"Line Out Jack", "LINEVOUTR";
-	};
-
-	sound-ak4458 {
-		compatible = "fsl,imx-audio-ak4458";
-		model = "ak4458-audio";
-		audio-cpu = <&sai1>;
-		audio-codec = <&ak4458_1>, <&ak4458_2>;
-		ak4458,pdn-gpio = <&pca6416 4 GPIO_ACTIVE_HIGH>;
-	};
-
-	sound-ak5558 {
-		compatible = "fsl,imx-audio-ak5558";
-		model = "ak5558-audio";
-		audio-cpu = <&sai5>;
-		audio-codec = <&ak5558>;
-		status = "disabled";
-	};
-
-	sound-ak4497 {
-		compatible = "fsl,imx-audio-ak4497";
-		model = "ak4497-audio";
-		audio-cpu = <&sai1>;
-		audio-codec = <&ak4497>;
-		status = "disabled";
-	};
-
-	sound-spdif {
-		compatible = "fsl,imx-audio-spdif";
-		model = "imx-spdif";
-		spdif-controller = <&spdif1>;
-		spdif-out;
-		spdif-in;
-	};
-
-	sound-micfil {
-		compatible = "fsl,imx-audio-micfil";
-		model = "imx-audio-micfil";
-		cpu-dai = <&micfil>;
 	};
 };
 
@@ -239,12 +174,6 @@
 		pinctrl_typec1: typec1grp {
 			fsl,pins = <
 				MX8MM_IOMUXC_SD1_STROBE_GPIO2_IO11	0x159
-			>;
-		};
-
-		pinctrl_typec2: typec2grp {
-			fsl,pins = <
-				MX8MM_IOMUXC_SD2_CD_B_GPIO2_IO12	0x159
 			>;
 		};
 
@@ -474,21 +403,6 @@
 	};
 };
 
-&flexspi {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_flexspi0>;
-	status = "okay";
-
-	flash0: mt25qu256aba@0 {
-		reg = <0>;
-		#address-cells = <1>;
-		#size-cells = <1>;
-		compatible = "micron,mt25qu256aba";
-		spi-max-frequency = <29000000>;
-		spi-nor,ddr-quad-read-dummy = <6>;
-	};
-};
-
 &i2c1 {
 	clock-frequency = <400000>;
 	pinctrl-names = "default";
@@ -637,20 +551,6 @@
 	pinctrl-0 = <&pinctrl_i2c2>;
 	status = "okay";
 
-	adv_bridge: adv7535@3d {
-		compatible = "adi,adv7533";
-		reg = <0x3d>;
-		adi,addr-cec = <0x3b>;
-		adi,dsi-lanes = <4>;
-		status = "okay";
-
-		port {
-			adv7535_from_dsim: endpoint {
-				remote-endpoint = <&dsim_to_adv7535>;
-			};
-		};
-	};
-
 	typec1_ptn5110: tcpci@50 {
 		compatible = "usb,tcpci";
 		pinctrl-names = "default";
@@ -697,43 +597,6 @@
 	pinctrl-0 = <&pinctrl_i2c3>;
 	status = "okay";
 
-	pca6416: gpio@20 {
-		compatible = "ti,tca6416";
-		reg = <0x20>;
-		gpio-controller;
-		#gpio-cells = <2>;
-	};
-
-	ak4458_1: ak4458@10 {
-		compatible = "asahi-kasei,ak4458";
-		reg = <0x10>;
-		AVDD-supply = <&reg_audio_board>;
-		DVDD-supply = <&reg_audio_board>;
-	};
-
-	ak4458_2: ak4458@12 {
-		compatible = "asahi-kasei,ak4458";
-		reg = <0x12>;
-		AVDD-supply = <&reg_audio_board>;
-		DVDD-supply = <&reg_audio_board>;
-	};
-
-	ak5558: ak5558@13 {
-		compatible = "asahi-kasei,ak5558";
-		reg = <0x13>;
-		ak5558,pdn-gpio = <&pca6416 3 GPIO_ACTIVE_HIGH>;
-		AVDD-supply = <&reg_audio_board>;
-		DVDD-supply = <&reg_audio_board>;
-	};
-
-	ak4497: ak4497@11 {
-		compatible = "asahi-kasei,ak4497";
-		reg = <0x11>;
-		ak4497,pdn-gpio = <&pca6416 5 GPIO_ACTIVE_HIGH>;
-		AVDD-supply = <&reg_audio_board>;
-		DVDD-supply = <&reg_audio_board>;
-	};
-
 	ov5640_mipi: ov5640_mipi@3c {
 		compatible = "ovti,ov5640_mipi";
 		reg = <0x3c>;
@@ -760,16 +623,6 @@
 
 &lcdif {
 	status = "okay";
-};
-
-&mipi_dsi {
-	status = "okay";
-
-	port@1 {
-		dsim_to_adv7535: endpoint {
-			remote-endpoint = <&adv7535_from_dsim>;
-		};
-	};
 };
 
 &mu {
