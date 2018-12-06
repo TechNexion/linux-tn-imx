@@ -21,7 +21,7 @@
 
 / {
 	model = "TechNexion PICO-IMX8MM and PI baseboard";
-	compatible = "fsl,imx8mm-evk", "fsl,imx8mm";
+	compatible = "fsl,imx8mm-pico", "fsl,imx8mm";
 
 	chosen {
 		bootargs = "console=ttymxc1,115200 earlycon=ec_imx6q,0x30890000,115200";
@@ -88,7 +88,7 @@
 &iomuxc {
 	pinctrl-names = "default";
 
-	imx8mm-evk {
+	imx8mm-pico {
 		pinctrl_csi_pwn: csi_pwn_grp {
 			fsl,pins = <
 				MX8MM_IOMUXC_GPIO1_IO07_GPIO1_IO7		0x19
