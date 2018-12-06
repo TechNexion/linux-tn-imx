@@ -115,6 +115,7 @@ static void __init imx7d_enet_clk_sel(void)
 #define OCOTP_TESTER3_SPEED_800MHZ	0
 #define OCOTP_TESTER3_SPEED_850MHZ	1
 #define OCOTP_TESTER3_SPEED_1GHZ	2
+#define OCOTP_TESTER3_SPEED_1P2GHZ	3
 
 static void __init imx7d_opp_check_speed_grading(struct device *cpu_dev)
 {
@@ -148,7 +149,7 @@ static void __init imx7d_opp_check_speed_grading(struct device *cpu_dev)
 				pr_warn("Failed to disable 996MHz OPP\n");
 		}
 
-		if (val <= OCOTP_TESTER3_SPEED_1GHZ) {
+		if (val < OCOTP_TESTER3_SPEED_1P2GHZ) {
 			if (dev_pm_opp_disable(cpu_dev, 1200000000))
 				pr_warn("Failed to disable 1200MHz OPP\n");
 		}
