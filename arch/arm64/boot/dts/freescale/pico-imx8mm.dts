@@ -40,9 +40,11 @@
 		};
 	};
 
-	modem_reset: modem-reset {
+	bt_reg_on: btreg_on {
 		compatible = "gpio-reset";
-		reset-gpios = <&gpio2 6 GPIO_ACTIVE_LOW>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_bt_ctrl>;
+		reset-gpios = <&gpio1 12 GPIO_ACTIVE_LOW>;
 		reset-delay-us = <2000>;
 		reset-post-delay-ms = <40>;
 		#reset-cells = <0>;
@@ -52,6 +54,19 @@
 		compatible = "simple-bus";
 		#address-cells = <1>;
 		#size-cells = <0>;
+
+		wl_reg_on: wlreg_on {
+			compatible = "regulator-fixed";
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_wifi_ctrl>;
+			regulator-name = "WL_REG_ON";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio1 11 GPIO_ACTIVE_HIGH>;
+			off-on-delay = <20000>;
+			startup-delay-us = <100>;
+			enable-active-high;
+		};
 
 		reg_usdhc2_vmmc: regulator-usdhc2 {
 			compatible = "regulator-fixed";
@@ -229,7 +244,6 @@
 				MX8MM_IOMUXC_UART1_TXD_UART1_DCE_TX	0x140
 				MX8MM_IOMUXC_UART3_RXD_UART1_DCE_CTS_B	0x140
 				MX8MM_IOMUXC_UART3_TXD_UART1_DCE_RTS_B	0x140
-				MX8MM_IOMUXC_SD1_DATA4_GPIO2_IO6	0x19
 			>;
 		};
 
@@ -246,6 +260,18 @@
 				MX8MM_IOMUXC_ECSPI1_MOSI_UART3_DCE_TX		0x140
 				MX8MM_IOMUXC_ECSPI1_SS0_UART3_DCE_RTS_B		0x140
 				MX8MM_IOMUXC_ECSPI1_MISO_UART3_DCE_CTS_B	0x140
+			>;
+		};
+
+		pinctrl_wifi_ctrl: wifi_ctrlgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_GPIO1_IO11_GPIO1_IO11	0x41 /* WL_REG_ON */
+			>;
+		};
+
+		pinctrl_bt_ctrl: bt_ctrlgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_GPIO1_IO12_GPIO1_IO12	0x41 /* BT_REG_ON */
 			>;
 		};
 
@@ -706,7 +732,7 @@
 	assigned-clocks = <&clk IMX8MM_CLK_UART1_SRC>;
 	assigned-clock-parents = <&clk IMX8MM_SYS_PLL1_80M>;
 	fsl,uart-has-rtscts;
-	resets = <&modem_reset>;
+	resets = <&bt_reg_on>;
 	status = "okay";
 };
 
@@ -740,12 +766,15 @@
 	status = "okay";
 };
 
+/* WIFI SDIO */
 &usdhc1 {
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
 	pinctrl-0 = <&pinctrl_usdhc1>;
 	pinctrl-1 = <&pinctrl_usdhc1_100mhz>;
 	pinctrl-2 = <&pinctrl_usdhc1_200mhz>;
+	vmmc-supply = <&wl_reg_on>;
 	bus-width = <4>;
+	no-1-8-v;
 	pm-ignore-notify;
 	keep-power-in-suspend;
 	non-removable;
