@@ -8,7 +8,9 @@
 #include <linux/irqchip.h>
 #include <linux/mfd/syscon.h>
 #include <linux/mfd/syscon/imx7-iomuxc-gpr.h>
+#include <linux/of_address.h>
 #include <linux/of_platform.h>
+#include <linux/pm_opp.h>
 #include <linux/phy.h>
 #include <linux/regmap.h>
 
@@ -17,6 +19,7 @@
 
 #include "common.h"
 #include "cpuidle.h"
+#include "hardware.h"
 
 static struct property device_disabled = {
 	.name = "status",
@@ -103,6 +106,85 @@ static void __init imx7d_enet_clk_sel(void)
 	}
 }
 
+/*
+ * OCOTP_TESTER3[9:8] (see Fusemap Description Table offset 0x440)
+ * defines a 2-bit SPEED_GRADING
+ */
+#define OCOTP_CFG3			0x440
+#define OCOTP_TESTER3_SPEED_SHIFT	8
+#define OCOTP_TESTER3_SPEED_800MHZ	0
+#define OCOTP_TESTER3_SPEED_850MHZ	1
+#define OCOTP_TESTER3_SPEED_1GHZ	2
+
+static void __init imx7d_opp_check_speed_grading(struct device *cpu_dev)
+{
+	struct device_node *np = NULL;
+	void __iomem *base;
+	u32 val;
+
+	if (cpu_is_imx7d())
+		np = of_find_compatible_node(NULL, NULL, "fsl,imx7d-ocotp");
+
+	if (!np) {
+		pr_warn("failed to find ocotp node\n");
+		return;
+	}
+
+	base = of_iomap(np, 0);
+	if (!base) {
+		pr_warn("failed to map ocotp\n");
+		goto put_node;
+	}
+
+	/*
+	 * We need to set the max speed of ARM according to fuse map.
+	 */
+	val = readl_relaxed(base + OCOTP_CFG3);
+	val >>= OCOTP_TESTER3_SPEED_SHIFT;
+	val &= 0x3;
+	if (cpu_is_imx7d()) {
+		if (val < OCOTP_TESTER3_SPEED_1GHZ) {
+			if (dev_pm_opp_disable(cpu_dev, 996000000))
+				pr_warn("Failed to disable 996MHz OPP\n");
+		}
+
+		if (val <= OCOTP_TESTER3_SPEED_1GHZ) {
+			if (dev_pm_opp_disable(cpu_dev, 1200000000))
+				pr_warn("Failed to disable 1200MHz OPP\n");
+		}
+	}
+	iounmap(base);
+
+put_node:
+	of_node_put(np);
+}
+
+static void __init imx7d_opp_init(void)
+{
+	struct device_node *np;
+	struct device *cpu_dev = get_cpu_device(0);
+
+	if (!cpu_dev) {
+		pr_warn("failed to get cpu0 device\n");
+		return;
+	}
+	np = of_node_get(cpu_dev->of_node);
+	if (!np) {
+		pr_warn("failed to find cpu0 node\n");
+		return;
+	}
+
+	if (dev_pm_opp_of_add_table(cpu_dev)) {
+		pr_warn("failed to init OPP table\n");
+		goto put_node;
+	}
+
+	imx7d_opp_check_speed_grading(cpu_dev);
+
+put_node:
+	of_node_put(np);
+}
+
 static inline void imx7d_enet_init(void)
 {
 	imx6_enet_mac_init("fsl,imx7d-fec", "fsl,imx7d-ocotp");
@@ -149,6 +231,10 @@ static void __init imx7d_init_irq(void)
 
 static void __init imx7d_init_late(void)
 {
+	if (IS_ENABLED(CONFIG_ARM_IMX7D_CPUFREQ)) {
+		imx7d_opp_init();
+		platform_device_register_simple("imx7d-cpufreq", -1, NULL, 0);
+	}
 	imx7d_cpuidle_init();
 }
 
