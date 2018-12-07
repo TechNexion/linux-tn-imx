@@ -55,6 +55,16 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
+		reg_usb_otg_vbus: usb_otg_vbus {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_otg_vbus>;
+			compatible = "regulator-fixed";
+			regulator-name = "usb_otg_vbus";
+			regulator-min-microvolt = <5000000>;
+			regulator-max-microvolt = <5000000>;
+			gpio = <&gpio1 9 GPIO_ACTIVE_LOW>;
+		};
+
 		wl_reg_on: wlreg_on {
 			compatible = "regulator-fixed";
 			pinctrl-names = "default";
@@ -79,6 +89,18 @@
 	pinctrl-names = "default";
 
 	imx8mm-pico {
+		pinctrl_otg_vbus: otgvbusgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_GPIO1_IO09_GPIO1_IO9		0x19   /* USB OTG VBUS Enable */
+			>;
+		};
+
+		pinctrl_tusb320_irq: tusb320_irqgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_NAND_CE0_B_GPIO3_IO1		0x41
+			>;
+		};
+
 		pinctrl_csi_pwn: csi_pwn_grp {
 			fsl,pins = <
 				MX8MM_IOMUXC_GPIO1_IO07_GPIO1_IO7		0x19
@@ -554,23 +576,15 @@
 	pinctrl-0 = <&pinctrl_i2c2>;
 	status = "okay";
 
-	typec1_ptn5110: tcpci@50 {
-		compatible = "usb,tcpci";
+	typec_tusb320:tusb320@67 {
+		compatible = "ti,tusb320";
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_typec1>;
-		reg = <0x50>;
-		interrupt-parent = <&gpio2>;
-		interrupts = <11 8>;
-		src-pdos = <0x380190c8>;
-		snk-pdos = <0x380190c8>;
-		/* Only can sink 5V for safe */
-		max-snk-mv = <5000>;
-		max-snk-ma = <3000>;
-		op-snk-mw = <10000>;
-		max-snk-mw = <15000>;
-		port-type = "drp";
-		default-role = "sink";
-		status = "okay";
+		pinctrl-0 = <&pinctrl_tusb320_irq>;
+		reg = <0x67>;
+		vbus-supply = <&reg_usb_otg_vbus>;
+		tusb320,int-gpio = <&gpio3 1 GPIO_ACTIVE_LOW>;
+		tusb320,select-mode = <0>;
+		tusb320,dfp-power = <0>;
 	};
 };
 
@@ -742,7 +756,7 @@
 
 &usbotg1 {
 	dr_mode = "otg";
-	extcon = <0>, <&typec1_ptn5110>;
+	extcon = <0>, <&typec_tusb320>;
 	picophy,pre-emp-curr-control = <3>;
 	picophy,dc-vol-level-adjust = <7>;
 	status = "okay";
