@@ -14,6 +14,7 @@
 
 #include <linux/gpio/consumer.h>
 
+#include <drm/drm_crtc.h>
 #include <drm/drm_mipi_dsi.h>
 #include <drm/drm_modes.h>
 #include <drm/drm_panel.h>
@@ -387,6 +388,8 @@ static int ili9881c_get_modes(struct drm_panel *panel)
 	struct drm_connector *connector = panel->connector;
 	struct ili9881c *ctx = panel_to_ili9881c(panel);
 	struct drm_display_mode *mode;
+	u32 bus_format = MEDIA_BUS_FMT_RGB888_1X24;
+	int ret;
 
 	mode = drm_mode_duplicate(panel->drm, &default_mode);
 	if (!mode) {
@@ -399,6 +402,12 @@ static int ili9881c_get_modes(struct drm_panel *panel)
 	drm_mode_set_name(mode);
 
 	mode->type = DRM_MODE_TYPE_DRIVER | DRM_MODE_TYPE_PREFERRED;
+
+	ret = drm_display_info_set_bus_formats(&connector->display_info,
+					       &bus_format, 1);
+	if (ret)
+		return ret;
+
 	drm_mode_probed_add(connector, mode);
 
 	panel->connector->display_info.width_mm = 62;
@@ -444,7 +453,8 @@ static int ili9881c_dsi_probe(struct mipi_dsi_device *dsi)
 	if (ret < 0)
 		return ret;
 
-	dsi->mode_flags = MIPI_DSI_MODE_VIDEO_SYNC_PULSE;
+	dsi->mode_flags = MIPI_DSI_MODE_VIDEO_HSE | MIPI_DSI_MODE_VIDEO; //To-Do: add MIPI_DSI_CLOCK_NON_CONTINUOUS
+	dsi->mode_flags |= MIPI_DSI_MODE_VIDEO_SYNC_PULSE;
 	dsi->format = MIPI_DSI_FMT_RGB888;
 	dsi->lanes = 4;
 
