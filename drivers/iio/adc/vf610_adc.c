@@ -803,6 +803,7 @@ static int vf610_adc_probe(struct platform_device *pdev)
 	int ret;
 	int i;
 	int use_channel[MAX_IIO_CHANNEL_NUM];
+	struct iio_chan_spec adc_temp = VF610_ADC_TEMPERATURE_CHAN(26, IIO_TEMP);
 	u32 channels;
 
 	indio_dev = devm_iio_device_alloc(&pdev->dev, sizeof(struct vf610_adc));
@@ -866,8 +867,12 @@ static int vf610_adc_probe(struct platform_device *pdev)
 
 	if (!of_property_read_u32_array(pdev->dev.of_node, "use-channels", use_channel, (int)channels)) {
 		if (((int)channels) <= MAX_IIO_CHANNEL_NUM) {
-			for (i = 0; i < (int)channels; i++)
+			for (i = 0; i < (int)channels; i++) {
 				vf610_adc_iio_channels[i].channel = use_channel[i];
+				vf610_adc_iio_channels[i].scan_index = use_channel[i];
+			}
+			memcpy(&vf610_adc_iio_channels[i], &adc_temp, sizeof(struct iio_chan_spec));
+			channels++;
 		}
 	}
 
