@@ -736,6 +736,18 @@ static int ili9881c_prepare(struct drm_panel *panel)
 	for (i = 0; i < ctx->desc->init_length; i++) {
 		const struct ili9881c_instr *instr = &ctx->desc->init[i];
 
+	return 0;
+}
+
+static int ili9881c_enable(struct drm_panel *panel)
+{
+	struct ili9881c *ctx = panel_to_ili9881c(panel);
+	unsigned int i;
+	int ret;
+
+	for (i = 0; i < ARRAY_SIZE(ili9881c_init); i++) {
+		const struct ili9881c_instr *instr = &ili9881c_init[i];
+
 		if (instr->op == ILI9881C_SWITCH_PAGE)
 			ret = ili9881c_switch_page(ctx, instr->arg.page);
 		else if (instr->op == ILI9881C_COMMAND)
@@ -757,13 +769,6 @@ static int ili9881c_prepare(struct drm_panel *panel)
 	ret = mipi_dsi_dcs_exit_sleep_mode(ctx->dsi);
 	if (ret)
 		return ret;
-
-	return 0;
-}
-
-static int ili9881c_enable(struct drm_panel *panel)
-{
-	struct ili9881c *ctx = panel_to_ili9881c(panel);
 
 	msleep(120);
 
@@ -940,8 +945,7 @@ static int ili9881c_dsi_probe(struct mipi_dsi_device *dsi)
 
 	drm_panel_add(&ctx->panel);
 
-	dsi->mode_flags = MIPI_DSI_MODE_VIDEO_HSE | MIPI_DSI_MODE_VIDEO; //To-Do: add MIPI_DSI_CLOCK_NON_CONTINUOUS
-	dsi->mode_flags |= ctx->desc->mode_flags;
+	dsi->mode_flags = MIPI_DSI_MODE_VIDEO_HSE | MIPI_DSI_MODE_VIDEO | ctx->desc->mode_flags;
 	dsi->format = MIPI_DSI_FMT_RGB888;
 	dsi->lanes = 4;
 
