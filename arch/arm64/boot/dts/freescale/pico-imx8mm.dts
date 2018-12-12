@@ -96,7 +96,20 @@
 		brightness-levels = <0 36 72 108 144 180 216 255>;
 		default-brightness-level = <6>;
 		power-supply = <&reg_backlight_pwr>;
-		status = "disabled";
+		status = "okay";
+	};
+};
+
+&mipi_dsi {
+	status = "okay";
+
+	panel@0 {
+		compatible = "bananapi,lhr050h41", "ilitek,ili9881c";
+		pinctrl-0 = <&pinctrl_mipi_dsi_rst>;
+		reset-gpio = <&gpio3 9 GPIO_ACTIVE_LOW>;
+		reg = <0>;
+		dsi-lanes = <4>;
+		status = "okay";
 	};
 };
 
@@ -146,9 +159,9 @@
 			>;
 		};
 
-		pinctrl_mipi_dsi_en: mipi_dsi_en {
+		pinctrl_mipi_dsi_rst: mipi_dsi_rst {
 			fsl,pins = <
-				MX8MM_IOMUXC_GPIO1_IO08_GPIO1_IO8		0x16
+				MX8MM_IOMUXC_NAND_DATA03_GPIO3_IO9	0x16   /* DSI RST */
 			>;
 		};
 
@@ -758,7 +771,7 @@
 	disable-gpio = <&gpio1 5 GPIO_ACTIVE_LOW>;
 	reset-gpio = <&gpio4 21 GPIO_ACTIVE_LOW>;
 	ext_osc = <0>;
-	status = "okay";
+	status = "disabled";
 };
 
 &uart1 { /* BT */
