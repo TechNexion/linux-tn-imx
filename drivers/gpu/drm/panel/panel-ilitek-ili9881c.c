@@ -291,8 +291,7 @@ static int ili9881c_send_cmd_data(struct ili9881c *ctx, u8 cmd, u8 data)
 static int ili9881c_prepare(struct drm_panel *panel)
 {
 	struct ili9881c *ctx = panel_to_ili9881c(panel);
-	unsigned int i;
-	int ret;
+
 
 	/* Power the panel */
 	if (!IS_ERR(ctx->power)) {
@@ -307,6 +306,15 @@ static int ili9881c_prepare(struct drm_panel *panel)
 		gpiod_set_value(ctx->reset, 0);
 		msleep(20);
 	}
+
+	return 0;
+}
+
+static int ili9881c_enable(struct drm_panel *panel)
+{
+	struct ili9881c *ctx = panel_to_ili9881c(panel);
+	unsigned int i;
+	int ret;
 
 	for (i = 0; i < ARRAY_SIZE(ili9881c_init); i++) {
 		struct ili9881c_instr *instr = &ili9881c_init[i];
@@ -332,13 +340,6 @@ static int ili9881c_prepare(struct drm_panel *panel)
 	ret = mipi_dsi_dcs_exit_sleep_mode(ctx->dsi);
 	if (ret)
 		return ret;
-
-	return 0;
-}
-
-static int ili9881c_enable(struct drm_panel *panel)
-{
-	struct ili9881c *ctx = panel_to_ili9881c(panel);
 
 	msleep(120);
 
@@ -453,8 +454,7 @@ static int ili9881c_dsi_probe(struct mipi_dsi_device *dsi)
 	if (ret < 0)
 		return ret;
 
-	dsi->mode_flags = MIPI_DSI_MODE_VIDEO_HSE | MIPI_DSI_MODE_VIDEO; //To-Do: add MIPI_DSI_CLOCK_NON_CONTINUOUS
-	dsi->mode_flags |= MIPI_DSI_MODE_VIDEO_SYNC_PULSE;
+	dsi->mode_flags = MIPI_DSI_MODE_VIDEO_HSE | MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_SYNC_PULSE;
 	dsi->format = MIPI_DSI_FMT_RGB888;
 	dsi->lanes = 4;
 
