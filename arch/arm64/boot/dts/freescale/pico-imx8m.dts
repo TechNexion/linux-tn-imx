@@ -572,12 +572,11 @@
 		status = "okay";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_csi1>;
-		clocks = <&clk IMX8MQ_CLK_CLKO2_DIV>;
+		clocks = <&clk IMX8MQ_CLK_CLKO2>;
 		clock-names = "csi_mclk";
-		assigned-clocks = <&clk IMX8MQ_CLK_CLKO2_SRC>,
-				  <&clk IMX8MQ_CLK_CLKO2_DIV>;
+		assigned-clocks = <&clk IMX8MQ_CLK_CLKO2>;
 		assigned-clock-parents = <&clk IMX8MQ_SYS2_PLL_200M>;
-		assigned-clock-rates = <0>, <20000000>;
+		assigned-clock-rates = <20000000>;
 		csi_id = <0>;
 		pwn-gpios = <&gpio3 2 GPIO_ACTIVE_LOW>;
 		rst-gpios = <&gpio1 12 GPIO_ACTIVE_HIGH>;
@@ -603,12 +602,11 @@
 		status = "okay";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_csi2>;
-		clocks = <&clk IMX8MQ_CLK_CLKO2_DIV>;
+		clocks = <&clk IMX8MQ_CLK_CLKO2>;
 		clock-names = "csi_mclk";
-		assigned-clocks = <&clk IMX8MQ_CLK_CLKO2_SRC>,
-				  <&clk IMX8MQ_CLK_CLKO2_DIV>;
+		assigned-clocks = <&clk IMX8MQ_CLK_CLKO2>;
 		assigned-clock-parents = <&clk IMX8MQ_SYS2_PLL_200M>;
-		assigned-clock-rates = <0>, <20000000>;
+		assigned-clock-rates = <20000000>;
 		csi_id = <1>;
 		pwn-gpios = <&gpio5 7 GPIO_ACTIVE_HIGH>;
 		rst-gpios = <&gpio3 16 GPIO_ACTIVE_HIGH>;
@@ -632,7 +630,7 @@
 &uart1 { /* console */
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart1>;
-	assigned-clocks = <&clk IMX8MQ_CLK_UART1_SRC>;
+	assigned-clocks = <&clk IMX8MQ_CLK_UART1>;
 	assigned-clock-parents = <&clk IMX8MQ_CLK_25M>;
 	status = "okay";
 };
@@ -640,7 +638,7 @@
 &uart2 { /* Bluetooth */
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart2>;
-	assigned-clocks = <&clk IMX8MQ_CLK_UART2_SRC>;
+	assigned-clocks = <&clk IMX8MQ_CLK_UART2>;
 	assigned-clock-parents = <&clk IMX8MQ_CLK_25M>;
 	fsl,uart-has-rtscts;
 	status = "okay";
@@ -649,7 +647,7 @@
 &uart4 { /* 2nd console, CLIX connector */
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart4>;
-	assigned-clocks = <&clk IMX8MQ_CLK_UART4_SRC>;
+	assigned-clocks = <&clk IMX8MQ_CLK_UART4>;
 	assigned-clock-parents = <&clk IMX8MQ_CLK_25M>;
 	fsl,uart-has-rtscts;
 	status = "okay";
@@ -707,18 +705,21 @@
 &sai2 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_sai2>;
-	assigned-clocks = <&clk IMX8MQ_CLK_SAI2_SRC>,
-			<&clk IMX8MQ_CLK_SAI2_DIV>;
+	assigned-clocks = <&clk IMX8MQ_CLK_SAI2>;
 	assigned-clock-parents = <&clk IMX8MQ_AUDIO_PLL1_OUT>;
-	assigned-clock-rates = <0>, <24576000>;
+	assigned-clock-rates = <24576000>;
 	status = "okay";
 };
 
 &sai4 {
-	assigned-clocks = <&clk IMX8MQ_CLK_SAI4_SRC>,
-			<&clk IMX8MQ_CLK_SAI4_DIV>;
+	assigned-clocks = <&clk IMX8MQ_CLK_SAI4>;
 	assigned-clock-parents = <&clk IMX8MQ_AUDIO_PLL1_OUT>;
-	assigned-clock-rates = <0>, <24576000>;
+	assigned-clock-rates = <24576000>;
+	clocks = <&clk IMX8MQ_CLK_SAI4_IPG>, <&clk IMX8MQ_CLK_DUMMY>,
+		<&clk IMX8MQ_CLK_SAI4_ROOT>, <&clk IMX8MQ_CLK_DUMMY>,
+		<&clk IMX8MQ_CLK_DUMMY>, <&clk IMX8MQ_AUDIO_PLL1_OUT>,
+		<&clk IMX8MQ_AUDIO_PLL2_OUT>;
+	clock-names = "bus", "mclk0", "mclk1", "mclk2", "mclk3", "pll8k", "pll11k";
 	status = "okay";
 };
 
