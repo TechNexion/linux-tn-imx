@@ -25,14 +25,14 @@
 &lcdif {
 	status = "okay";
 
-	assigned-clocks = <&clk IMX8MQ_CLK_LCDIF_PIXEL_SRC>,
-			<&clk IMX8MQ_VIDEO_PLL1_REF_SEL>,
-			<&clk IMX8MQ_VIDEO_PLL1>;
+	assigned-clocks = <&clk IMX8MQ_CLK_LCDIF_PIXEL>,
+			  <&clk IMX8MQ_VIDEO_PLL1_REF_SEL>,
+			  <&clk IMX8MQ_VIDEO_PLL1>;
 	assigned-clock-parents = <&clk IMX8MQ_VIDEO_PLL1_OUT>,
-			<&clk IMX8MQ_CLK_25M>;
+				 <&clk IMX8MQ_CLK_25M>;
 	assigned-clock-rate = <120000000>,
-			<0>,
-			<599999999>;
+			      <0>,
+			      <599999999>;
 
 	/* important to overwrite max-res otherwise DRM lcdif will fail to find a suitable connector */
 	max-res = <4096>, <4096>;
@@ -55,8 +55,8 @@
 	pwr-delay = <50>;
 	best-match;
 
-	assigned-clocks = <&clk IMX8MQ_CLK_DSI_PHY_REF_SRC>,
-			  <&clk IMX8MQ_CLK_DSI_CORE_SRC>,
+	assigned-clocks = <&clk IMX8MQ_CLK_DSI_PHY_REF>,
+			  <&clk IMX8MQ_CLK_DSI_CORE>,
 			  <&clk IMX8MQ_VIDEO_PLL1_REF_SEL>,
 			  <&clk IMX8MQ_VIDEO_PLL1>;
 	assigned-clock-parents = <&clk IMX8MQ_VIDEO_PLL1_OUT>,
