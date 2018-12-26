@@ -15,52 +15,36 @@
  * GNU General Public License for more details.
  */
 
-#include "pico-8m.dts"
+#include "pico-imx8m.dts"
 
 / {
-	backlight_mipi {
-		status = "okay";
+	display-subsystem {
+		status = "disabled";
 	};
+};
+
+&dcss {
+	status = "disabled";
 };
 
 &hdmi {
 	status = "disabled";
 };
 
-&dcss {
+/*
+&hdmi_cec {
+	status = "disabled";
+};
+*/
+
+&lcdif {
 	status = "okay";
-	disp-dev = "mipi_disp";
 
-	clocks = <&clk IMX8MQ_CLK_DISP_APB_ROOT>,
-		 <&clk IMX8MQ_CLK_DISP_AXI_ROOT>,
-		 <&clk IMX8MQ_CLK_DISP_RTRM_ROOT>,
-		 <&clk IMX8MQ_CLK_DC_PIXEL_DIV>,
-		 <&clk IMX8MQ_CLK_DUMMY>,
-		 <&clk IMX8MQ_CLK_DISP_DTRC_DIV>;
-	clock-names = "apb", "axi", "rtrm", "pix_div", "pix_out", "dtrc";
-
-	assigned-clocks = <&clk IMX8MQ_CLK_DC_PIXEL_SRC>,
-			  <&clk IMX8MQ_CLK_DISP_AXI_SRC>,
-			  <&clk IMX8MQ_CLK_DISP_RTRM_SRC>,
-			  <&clk IMX8MQ_CLK_DISP_RTRM_PRE_DIV>,
-			  <&clk IMX8MQ_VIDEO_PLL1_REF_SEL>,
-			  <&clk IMX8MQ_VIDEO_PLL1>;
-	assigned-clock-parents = <&clk IMX8MQ_VIDEO_PLL1_OUT>,
-				 <&clk IMX8MQ_SYS1_PLL_800M>,
-				 <&clk IMX8MQ_SYS1_PLL_800M>,
-				 <&clk IMX8MQ_VIDEO_PLL1_OUT>,
-				 <&clk IMX8MQ_CLK_25M>;
-	assigned-clock-rates = <600000000>,
-			       <800000000>,
-			       <400000000>,
-			       <400000000>,
-			       <0>,
-			       <599999999>;
+	/* important to overwrite max-res otherwise DRM lcdif will fail to find a suitable connector */
+	max-res = <4096>, <4096>;
 
 	port@0 {
-		reg = <0>;
-
-		dcss_disp0_mipi_dsi: mipi_dsi_endpoint {
+		lcdif_mipi_dsi: mipi-dsi-endpoint {
 			remote-endpoint = <&mipi_dsi_in>;
 		};
 	};
@@ -72,26 +56,16 @@
 
 &mipi_dsi {
 	status = "okay";
+	as_bridge;
+	sync-pol = <1>;
 	pwr-delay = <10>;
 	best-match;
-
-	assigned-clocks = <&clk IMX8MQ_CLK_DSI_PHY_REF_SRC>,
-						<&clk IMX8MQ_CLK_DSI_CORE_SRC>,
-						<&clk IMX8MQ_VIDEO_PLL1_REF_SEL>,
-						<&clk IMX8MQ_VIDEO_PLL1>;
-	assigned-clock-parents = <&clk IMX8MQ_VIDEO_PLL1_OUT>,
-								<&clk IMX8MQ_SYS1_PLL_266M>,
-								<&clk IMX8MQ_CLK_25M>;
-	assigned-clock-rates = <24000000>,
-							<266000000>,
-							<0>,
-							<599999999>;
-
 	port@1 {
-		mipi_dsi_in: dcss_disp_endpoint {
-			remote-endpoint = <&dcss_disp0_mipi_dsi>;
+		mipi_dsi_in: lcdif_endpoint {
+			remote-endpoint = <&lcdif_mipi_dsi>;
 		};
 	};
+
 };
 
 &mipi_dsi_bridge {
@@ -231,6 +205,7 @@
 			remote-endpoint = <&panel_in>;
 		};
 	};
+
 };
 
 &i2c3 {

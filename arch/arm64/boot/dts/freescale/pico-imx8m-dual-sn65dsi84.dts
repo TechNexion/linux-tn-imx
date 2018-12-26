@@ -1,8 +1,7 @@
 /*
  * Copyright 2018 Technexion Ltd.
- * Copyright 2017 NXP
  *
- * Author: Richard Hu <richard.hu@technexion.com>
+ * Author: Richard Hu <richard.hu@technexion.com>, Po Cheng <po.cheng@technexion.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,27 +14,13 @@
  * GNU General Public License for more details.
  */
 
-#include "pico-8m.dts"
+#include "pico-imx8m.dts"
 
 / {
-	display-subsystem {
-		status = "disabled";
+	backlight_mipi {
+		status = "okay";
 	};
 };
-
-&dcss {
-	status = "disabled";
-};
-
-&hdmi {
-	status = "disabled";
-};
-
-/*
-&hdmi_cec {
-	status = "disabled";
-};
-*/
 
 &lcdif {
 	status = "okay";
@@ -58,14 +43,14 @@
 	status = "okay";
 	as_bridge;
 	sync-pol = <1>;
-	pwr-delay = <10>;
+	pwr-delay = <50>;
 	best-match;
+
 	port@1 {
-		mipi_dsi_in: lcdif_endpoint {
+		mipi_dsi_in: lcdif-endpoint {
 			remote-endpoint = <&lcdif_mipi_dsi>;
 		};
 	};
-
 };
 
 &mipi_dsi_bridge {
@@ -78,7 +63,7 @@
 		/* backlight = <&backlight>; */
 		/* pinctrl-0 = <&pinctrl_mipi_dsi_rst>; */
 		/* enable-gpios = <&gpio3 17 GPIO_ACTIVE_HIGH>; */
-		dsi,flags = <0x0007>; /* MIPI_DSI_MODE_VIDEO MIPI_DSI_MODE_VIDEO_BURST MIPI_DSI_MODE_VIDEO_SYNC_PULSE */
+		dsi,flags = <0x0007>;
 		dsi,format = <0>;
 		dsi,lanes = <4>;
 		panel-width-mm  = <153>;
@@ -88,12 +73,6 @@
 		rotate = <0>;
 		/* horz-flip; */
 		/* vert-flip; */
-
-		port {
-			panel_in: endpoint {
-				remote-endpoint = <&mipi_dsi_bridge_out>;
-			};
-		};
 
 		display-timings {
 			native-mode = <&timing0>;
@@ -107,9 +86,14 @@
 				vfront-porch = <1>;
 				vsync-len = <33>;
 				vback-porch = <1>;
-				/* flags = DISPLAY_FLAGS_HSYNC_HIGH | DISPLAY_FLAGS_VSYNC_HIGH */
 				hsync-active = <1>;
 				vsync-active = <1>;
+			};
+		};
+
+		port {
+			panel_in: endpoint {
+				remote-endpoint = <&mipi_dsi_bridge_out>;
 			};
 		};
 	};
@@ -164,5 +148,20 @@
                             0x00 0x00 0x00 0x00
 
                             0x00 0x00 0x00 0x01>;
+	};
+};
+
+&i2c2 {
+	polytouch: edt-ft5x06@38 {
+		status = "okay";
+		compatible = "edt,edt-ft5x06";
+		reg = <0x38>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_ft5336_touch_irq &pinctrl_ft5336_touch_rst>;
+		interrupt-parent = <&gpio1>;
+		interrupts = <7 IRQ_TYPE_EDGE_FALLING>;
+		reset-gpios = <&gpio3 18 GPIO_ACTIVE_LOW>;
+		touchscreen-size-x = <720>;
+		touchscreen-size-y = <1280>;
 	};
 };

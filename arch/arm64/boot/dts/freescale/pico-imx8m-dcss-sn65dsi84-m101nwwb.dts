@@ -15,7 +15,7 @@
  * GNU General Public License for more details.
  */
 
-#include "pico-8m.dts"
+#include "pico-imx8m.dts"
 
 / {
 	backlight_mipi {
@@ -117,8 +117,13 @@
 #define MIPI_DSI_FMT_RGB666_PACKED      2
 #define MIPI_DSI_FMT_RGB565             3
 
+#define DRM_BUS_FLAG_DE_LOW             0x0
+#define DRM_BUS_FLAG_DE_HIGH            0x1
+#define DRM_BUS_FLAG_PIXDATA_POSEDGE    0x4
+#define DRM_BUS_FLAG_PIXDATA_NEGEDGE    0x8
+
 		reg = <0>;
-		/* compatible = "auo,g156xw01"; */
+		/* compatible = "ivo,m101nwwb"; */
 		compatible = "tn,dsi2lvds-panel";
 		/* backlight = <&backlight>; */
 		/* pinctrl-0 = <&pinctrl_mipi_dsi_rst>; */
@@ -126,8 +131,8 @@
 		dsi,flags = <0x0007>; /* MIPI_DSI_MODE_VIDEO MIPI_DSI_MODE_VIDEO_BURST MIPI_DSI_MODE_VIDEO_SYNC_PULSE */
 		dsi,format = <0>;
 		dsi,lanes = <4>;
-		panel-width-mm  = <344>;
-		panel-height-mm = <193>;
+		panel-width-mm  = <217>;
+		panel-height-mm = <135>;
 		bus-flags = <1>;
 		refresh-rate = <60>;
 		rotate = <0>;
@@ -204,16 +209,16 @@
  *
  */
 
-			timing0: g156xw01 {
-				clock-frequency = <76000000>;
-				hactive = <1368>;
-				vactive = <768>;
-				hfront-porch = <90>;
-				hsync-len = <20>;
-				hback-porch = <90>;
-				vfront-porch = <17>;
-				vsync-len = <4>;
-				vback-porch = <17>;
+			timing0: m101nwwb {
+				clock-frequency = <68900000>;
+				hactive = <1280>;
+				vactive = <800>;
+				hfront-porch = <40>;
+				hsync-len = <80>;
+				hback-porch = <40>;
+				vfront-porch = <3>;
+				vsync-len = <10>;
+				vback-porch = <10>;
 				/* flags = DISPLAY_FLAGS_HSYNC_HIGH | DISPLAY_FLAGS_VSYNC_HIGH */
 				vsync-active = <1>;
 				hsync-active = <1>;
@@ -250,23 +255,23 @@
 		sn65dsi84,values = </* reset and clock registers */
 		                    0x00 0x05 0x10 0x00
                             /* DSI registers */
-		                    0x26 0x00 0x2d 0x00
+		                    0x26 0x00 0x2a 0x00
 		                    /* LVDS registers */
                             0x7a 0x00 0x03 0x00
 
                             /* video registers */
                             /* cha-al-len-l, cha-al-len-h, chb-al-len-l, chb-al-len-h */
-                            0x56 0x05 0x00 0x00
+                            0x00 0x05 0x00 0x00
                             /* cha-v-ds-l, cha-v-ds-h, chb-v-ds-l, chb-v-ds-h */
                             0x00 0x00 0x00 0x00
                             /* cha-sdl, cha-sdh, chb-sdl, chb-sdh */
                             0x21 0x00 0x00 0x00
                             /* cha-hs-pwl, cha-hs-pwh, chb-hs-pwl, chb-hs-pwh */
-                            0x64 0x00 0x00 0x00
+                            0x50 0x00 0x00 0x00
                             /* cha-vs-pwl, cha-vs-pwh, chb-vs-pwl, chb-vs-pwh */
-                            0x14 0x00 0x00 0x00
+                            0x0a 0x00 0x00 0x00
                             /*cha-hbp, chb-hbp, cha-vbp, chb-vbp*/
-                            0x2F 0x00 0x00 0x00
+                            0x28 0x00 0x00 0x00
                             /* cha-hfp, chb-hfp, cha-vfp, chb-vfp*/
                             0x00 0x00 0x00 0x00
 
