@@ -122,7 +122,7 @@
 #define CONFIG_SET_NUMOFDATLANE(x)	REG_PUT(x,  6,  5)
 #define CONFIG_SET_LANEEN(x)		REG_PUT(x,  4,  0)
 
-#define ESCMODE_SET_STOPSTATE_CNT(X)	REG_PUT(x, 31, 21)
+#define ESCMODE_SET_STOPSTATE_CNT(x)	REG_PUT(x, 31, 21)
 #define ESCMODE_FORCESTOPSTATE		BIT(20)
 #define ESCMODE_FORCEBTA		BIT(16)
 #define ESCMODE_CMDLPDT			BIT(7)
@@ -210,6 +210,9 @@
    #define PLLCTRL_SET_P(x)		REG_PUT(x, 18, 13)
    #define PLLCTRL_SET_M(x)		REG_PUT(x, 12,  3)
    #define PLLCTRL_SET_S(x)		REG_PUT(x,  2,  0)
+#define DSIM_PLL_P(x)			((x) << 13)
+#define DSIM_PLL_M(x)			((x) << 4)
+#define DSIM_PLL_S(x)			((x) << 1)
 
 #define PHYTIMING_SET_M_TLPXCTL(x)	REG_PUT(x, 15,  8)
 #define PHYTIMING_SET_M_THSEXITCTL(x)	REG_PUT(x,  7,  0)
@@ -858,7 +861,29 @@ static int sec_mipi_dsim_config_pll(struct sec_mipi_dsim *dsim)
 
 	/* TODO: config dp/dn swap if requires */
 
-	pllctrl |= PLLCTRL_SET_PMS(dsim->pms) | PLLCTRL_PLLEN;
+	//pllctrl |= PLLCTRL_SET_PMS(dsim->pms) | PLLCTRL_PLLEN;
+
+	//For RM67191,
+	//For Fout=445.5MHz, PMS value=(4, 66, 0) and (3, 50, 0)
+	//pllctrl |= (DSIM_PLL_P(4) | DSIM_PLL_M(66) | DSIM_PLL_S(0)) | PLLCTRL_PLLEN;//work
+	//pllctrl |= (DSIM_PLL_P(4) | DSIM_PLL_M(66) | DSIM_PLL_S(0)) | PLLCTRL_PLLEN;//work
+	//pllctrl |= (DSIM_PLL_P(3) | DSIM_PLL_M(50) | DSIM_PLL_S(0)) | PLLCTRL_PLLEN;//doesn't work
+	//pllctrl |= PLLCTRL_SET_PMS(PLLCTRL_SET_S(3) | PLLCTRL_SET_M(50) | PLLCTRL_SET_S(0)) | PLLCTRL_PLLEN;//doesn't work
+
+	//For Fout=395MHz, PMS value=(4, 59, 0) and (3, 50, 0)
+	//pllctrl |= (DSIM_PLL_P(4) | DSIM_PLL_M(59) | DSIM_PLL_S(0)) | PLLCTRL_PLLEN;//display break but show
+	//pllctrl |= (DSIM_PLL_P(4) | DSIM_PLL_M(60) | DSIM_PLL_S(0)) | PLLCTRL_PLLEN;//work
+	//pllctrl |= PLLCTRL_SET_PMS(dsim->pms) | PLLCTRL_PLLEN;
+
+	//For ILI9881C
+	//For Fout=210MHz, PMS value=(4, 31, 0)
+	//pllctrl |= (DSIM_PLL_P(4) | DSIM_PLL_M(31) | DSIM_PLL_S(0)) | PLLCTRL_PLLEN;//doesn't show anything
+	//pllctrl |= (DSIM_PLL_P(4) | DSIM_PLL_M(35) | DSIM_PLL_S(0)) | PLLCTRL_PLLEN;//doesn't show anything
+	//pllctrl |= (DSIM_PLL_P(4) | DSIM_PLL_M(70) | DSIM_PLL_S(1)) | PLLCTRL_PLLEN;//doesn't show anything, close to the time of each bit in LP mode on PICO-IMX8M
+	pllctrl |= (DSIM_PLL_P(4) | DSIM_PLL_M(71) | DSIM_PLL_S(1)) | PLLCTRL_PLLEN;//doesn't show anything, close to the time of each bit in LP mode on PICO-IMX8M
+	//pllctrl |= (DSIM_PLL_P(4) | DSIM_PLL_M(37) | DSIM_PLL_S(0)) | PLLCTRL_PLLEN;
+
+
 	dsim_write(dsim, pllctrl, DSIM_PLLCTRL);
 
 	ret = wait_for_completion_timeout(&dsim->pll_stable, HZ / 10);
