@@ -152,9 +152,15 @@
 			>;
 		};
 
-		pinctrl_i2c2_synaptics_dsx_io: synaptics_dsx_iogrp {
+		pinctrl_ft5336_touch_irq: ft5336_irqgrp {
 			fsl,pins = <
-				MX8MM_IOMUXC_GPIO1_IO09_GPIO1_IO9		0x19	/* Touch int */
+				MX8MM_IOMUXC_GPIO1_IO07_GPIO1_IO7	0x19   /* Touch INT */
+			>;
+		};
+
+		pinctrl_ft5336_touch_rst: ft5336_rstgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_SAI3_RXFS_GPIO4_IO28	0x16   /* GPIO_P42, Touch RST */
 			>;
 		};
 
