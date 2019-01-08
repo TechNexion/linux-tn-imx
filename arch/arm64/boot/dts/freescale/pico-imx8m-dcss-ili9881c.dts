@@ -69,6 +69,8 @@
 
 &mipi_dsi {
 	status = "okay";
+	pwr-delay = <50>;
+	best-match;
 	assigned-clocks = <&clk IMX8MQ_CLK_DSI_PHY_REF>,
 			  <&clk IMX8MQ_CLK_DSI_CORE>,
 			  <&clk IMX8MQ_VIDEO_PLL1_REF_SEL>,
