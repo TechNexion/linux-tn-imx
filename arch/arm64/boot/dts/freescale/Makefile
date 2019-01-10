@@ -126,7 +126,9 @@ dtb-$(CONFIG_ARCH_FSL_IMX8MQ) += fsl-imx8mq-ddr3l-arm2.dtb \
 				 pico-imx8m-lcdif-sn65dsi84-g156xw01.dtb \
 				 pico-imx8m-dual.dtb \
 				 pico-imx8m-dual-sn65dsi84.dtb
-dtb-$(CONFIG_ARCH_FSL_IMX8MM) += fsl-imx8mm-evk.dtb \
+dtb-$(CONFIG_ARCH_FSL_IMX8MM) += flex-imx8mm.dtb \
+				 flex-imx8mm-ili9881c.dtb \
+				 fsl-imx8mm-evk.dtb \
 				 fsl-imx8mm-evk-ak4497.dtb \
 				 fsl-imx8mm-evk-m4.dtb \
 				 fsl-imx8mm-evk-ak5558.dtb \
