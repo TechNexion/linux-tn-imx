@@ -20,12 +20,12 @@
 #include "fsl-imx8mm.dtsi"
 
 / {
-	model = "TechNexion PICO-IMX8MM and PI baseboard";
-	compatible = "fsl,imx8mm-pico", "fsl,imx8mm";
+	model = "TechNexion AXON-IMX8MM and PI baseboard";
+	compatible = "fsl,imx8mm-axon", "fsl,imx8mm";
 
 	chosen {
-		bootargs = "console=ttymxc1,115200 earlycon=ec_imx6q,0x30890000,115200";
-		stdout-path = &uart2;
+		bootargs = "console=ttymxc0,115200 earlycon=ec_imx6q,0x30860000,115200";
+		stdout-path = &uart1;
 	};
 
 	leds {
@@ -108,7 +108,7 @@
 &iomuxc {
 	pinctrl-names = "default";
 
-	imx8mm-pico {
+	imx8mm-axon {
 		pinctrl_otg_vbus: otgvbusgrp {
 			fsl,pins = <
 				MX8MM_IOMUXC_GPIO1_IO09_GPIO1_IO9		0x19   /* USB OTG VBUS Enable */
@@ -225,7 +225,6 @@
 		pinctrl_pcie0: pcie0grp {
 			fsl,pins = <
 				MX8MM_IOMUXC_I2C4_SCL_PCIE1_CLKREQ_B	0x61 /* open drain, pull up */
-				MX8MM_IOMUXC_SAI2_RXFS_GPIO4_IO21	0x41
 			>;
 		};
 
@@ -289,10 +288,8 @@
 
 		pinctrl_uart1: uart1grp {
 			fsl,pins = <
-				MX8MM_IOMUXC_UART1_RXD_UART1_DCE_RX	0x140
-				MX8MM_IOMUXC_UART1_TXD_UART1_DCE_TX	0x140
-				MX8MM_IOMUXC_UART3_RXD_UART1_DCE_CTS_B	0x140
-				MX8MM_IOMUXC_UART3_TXD_UART1_DCE_RTS_B	0x140
+				MX8MM_IOMUXC_SAI2_RXC_UART1_DCE_RX	0x140
+				MX8MM_IOMUXC_SAI2_RXFS_UART1_DCE_TX	0x140
 			>;
 		};
 
