@@ -135,9 +135,14 @@
 		clock-frequency = <400000>;
 		status = "okay";
 
-		eeprom: eeprom@53 {
+		eeprom_module: eeprom@53 {
 			compatible = "at,24c02";
 			reg = <0x53>;
+		};
+
+		eeprom_baseboard: eeprom@51 {
+			compatible = "at,24c02";
+			reg = <0x51>;
 		};
 	};
 };
