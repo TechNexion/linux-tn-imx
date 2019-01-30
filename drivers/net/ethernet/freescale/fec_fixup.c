@@ -21,6 +21,7 @@
 #endif
 #include "fec.h"
 
+#define PHY_ID_AR8035   0x004dd072
 #define PHY_ID_AR8031   0x004dd074
 
 #define IMX8QM_FUSE_MAC0_WORD0		452
@@ -85,6 +86,38 @@ static int ar8031_phy_fixup(struct phy_device *dev)
 	return 0;
 }
 
+static int ar8035_phy_fixup(struct phy_device *dev)
+{
+	u16 val;
+
+	/* Ar803x phy SmartEEE feature cause link status generates glitch,
+	* which cause ethernet link down/up issue, so disable SmartEEE
+	*/
+	phy_write(dev, 0xd, 0x3);
+	phy_write(dev, 0xe, 0x805d);
+	phy_write(dev, 0xd, 0x4003);
+
+	val = phy_read(dev, 0xe);
+	phy_write(dev, 0xe, val & ~(1 << 8));
+
+	/*
+	* Enable 125MHz clock from CLK_25M on the AR8031.  This
+	* is fed in to the IMX6 on the ENET_REF_CLK (V22) pad.
+	* Also, introduce a tx clock delay.
+	*
+	* This is the same as is the AR8031 fixup.
+	*/
+
+	ar8031_phy_fixup(dev);
+
+	/*check phy power*/
+	val = phy_read(dev, 0x0);
+	if (val & BMCR_PDOWN)
+		phy_write(dev, 0x0, val & ~BMCR_PDOWN);
+
+	return 0;
+}
+
 void fec_enet_register_fixup(struct net_device *ndev)
 {
 	struct fec_enet_private *fep = netdev_priv(ndev);
@@ -98,6 +131,10 @@ void fec_enet_register_fixup(struct net_device *ndev)
 
 		if (ar8031_registered)
 			return;
+		err = phy_register_fixup_for_uid(PHY_ID_AR8035, 0xffffffef,
+					ar8035_phy_fixup);
+		if (err)
+			netdev_info(ndev, "Cannot register PHY board fixup\n");
 		err = phy_register_fixup_for_uid(PHY_ID_AR8031, 0xffffffef,
 					ar8031_phy_fixup);
 		if (err)
