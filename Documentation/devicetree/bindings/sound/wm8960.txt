@@ -21,6 +21,10 @@ Optional properties:
 	enabled and disabled together with HP_L and HP_R pins in response to jack
 	detect events.
 
+  - wlf,fixed-mclk: This is a boolean property. If present, the codec will use
+	the internal PLL to set sysclk using the frequency of mclk. Useful if
+	clocking the codec with a fixed external oscillator.
+
 Example:
 
 codec: wm8960@1a {

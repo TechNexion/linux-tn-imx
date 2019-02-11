@@ -19,6 +19,8 @@ struct wm8960_data {
 	bool capless;  /* Headphone outputs configured in capless mode */
 
 	bool shared_lrclk;  /* DAC and ADC LRCLKs are wired together */
+
+	bool fixed_mclk; /* MCLK is fixed external oscillator */
 };
 
 #endif

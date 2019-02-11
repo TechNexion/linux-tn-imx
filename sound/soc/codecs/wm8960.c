@@ -1263,6 +1263,30 @@ static int wm8960_set_dai_sysclk(struct snd_soc_dai *dai, int clk_id,
 {
 	struct snd_soc_codec *codec = dai->codec;
 	struct wm8960_priv *wm8960 = snd_soc_codec_get_drvdata(codec);
+	int ret, freq_in = 0;
+
+	if(wm8960->pdata.fixed_mclk) {
+		clk_id = WM8960_SYSCLK_PLL;
+
+		if(!IS_ERR(wm8960->mclk)) {
+			ret = clk_prepare_enable(wm8960->mclk);
+			if (ret) {
+				dev_err(codec->dev,
+					"Failed to enable MCLK: %d\n",
+					ret);
+				return ret;
+			}
+		}
+
+		freq_in = clk_get_rate(wm8960->mclk);
+		if(!freq_in) {
+			dev_err(codec->dev, "MCLK must be available when using fixed-mclk: %d\n",-EINVAL);
+			return -EINVAL;
+		}
+
+		wm8960->freq_in = freq_in;
+		dev_info(codec->dev, "Using codec PLL. MCLK rate %d Hz\n", wm8960->freq_in);
+	}
 
 	switch (clk_id) {
 	case WM8960_SYSCLK_MCLK:
@@ -1364,6 +1388,9 @@ static void wm8960_set_pdata_from_of(struct i2c_client *i2c,
 
 	if (of_property_read_bool(np, "wlf,shared-lrclk"))
 		pdata->shared_lrclk = true;
+
+	if (of_property_read_bool(np, "wlf,fixed-mclk"))
+		pdata->fixed_mclk = true;
 }
 
 static int wm8960_i2c_probe(struct i2c_client *i2c,
