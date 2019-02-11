@@ -137,6 +137,45 @@
 		clock-frequency = <400000>;
 		status = "okay";
 	};
+
+	sound_wm8960: sound-wm8960 {
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "axon-pi-wm8690-audio";
+		simple-audio-card,format = "i2s";
+		simple-audio-card,bitclock-master = <&dailink_master>;
+		simple-audio-card,frame-master = <&dailink_master>;
+		simple-audio-card,widgets =
+			"Microphone", "Mic Jack",
+			"Speaker", "Speaker",
+			"Headphone", "Headphone Jack";
+		simple-audio-card,routing =
+			"Headphone Jack", "HP_L",
+			"Headphone Jack", "HP_R",
+			"Speaker", "SPK_LP",
+			"Speaker", "SPK_LN",
+			"Speaker", "SPK_RP",
+			"Speaker", "SPK_RN",
+			"LINPUT1", "Mic Jack",
+			"LINPUT3", "Mic Jack",
+			"Mic Jack", "MICB";
+		simple-audio-card,cpu {
+			sound-dai = <&sai1>;
+		};
+
+		dailink_master: simple-audio-card,codec {
+			sound-dai = <&codec_wm8960>;
+			clocks = <&codec_osc>;
+		};
+	};
+
+	clocks {
+		codec_osc: aud_mclk {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <24000000>;
+			clock-output-names = "wm8960-mclk";
+		};
+	};
 };
 
 &clk {
@@ -311,7 +350,7 @@
 			>;
 		};
 
-		pinctrl_sai1: sai1grp { 
+		pinctrl_sai1: sai1grp {
 			fsl,pins = <
 				MX8MM_IOMUXC_SAI1_TXFS_SAI1_TX_SYNC	    0xd6
 				MX8MM_IOMUXC_SAI1_TXC_SAI1_TX_BCLK	    0xd6
@@ -333,14 +372,14 @@
 		pinctrl_sai5_mclk: sai5mclkgrp {
 			fsl,pins = <
 				MX8MM_IOMUXC_SAI5_MCLK_SAI5_MCLK		0xd6
-			>;			
+			>;
 		};
 
 		pinctrl_sai5_rxasync: sai5rxasyncgrp {
 			fsl,pins = <
 				MX8MM_IOMUXC_SAI5_RXC_SAI5_RX_BCLK		0xd6
 				MX8MM_IOMUXC_SAI5_RXFS_SAI5_RX_SYNC		0xd6
-			>;			
+			>;
 		};
 
 		/* Bluetooth audio */
@@ -381,7 +420,7 @@
 				MX8MM_IOMUXC_ECSPI2_MOSI_UART4_DCE_TX		0x140
 			>;
 		};
-		
+
 		pinctrl_uart4: uart4grp {
 			fsl,pins = <
 				MX8MM_IOMUXC_ECSPI2_SCLK_UART4_DCE_RX		0x140
@@ -389,7 +428,7 @@
 				MX8MM_IOMUXC_ECSPI2_MOSI_UART4_DCE_TX		0x140
 				MX8MM_IOMUXC_ECSPI2_SS0_UART4_DTE_CTS_B		0x140
 			>;
-		};	
+		};
 
 		pinctrl_wifi_ctrl: wifi_ctrlgrp {
 			fsl,pins = <
@@ -560,8 +599,20 @@
 	pinctrl-0 = <&pinctrl_i2c1>;
 	status = "okay";
 
-	/* RTC add here */
-	/* Add audio codec here */
+	codec_wm8960: wm8960@1a {
+		compatible = "wlf,wm8960";
+		reg = <0x1a>;
+		#sound-dai-cells = <0>;
+		clocks = <&codec_osc>;  /* Note:  AXON-PI the clock is external osc */
+		clock-names = "mclk";
+		wlf,shared-lrclk;
+		wlf,fixed-mclk;
+	};
+
+	rtc_ds1337: ds1337 {
+		compatible = "dallas,ds1337";
+		reg = <0x68>;
+	};
 
 	typec_tusb320:tusb320@47 {
 		compatible = "ti,tusb320";
@@ -854,7 +905,8 @@
 		<&clk IMX8MM_CLK_DUMMY>, <&clk IMX8MM_AUDIO_PLL1_OUT>,
 		<&clk IMX8MM_AUDIO_PLL2_OUT>;
 	clock-names = "bus", "mclk0", "mclk1", "mclk2", "mclk3", "pll8k", "pll11k";
-	status = "enabled";
+	status = "okay";
+	#sound-dai-cells = <0>;
 };
 
 &sai5 {  // AUD_B
@@ -952,7 +1004,7 @@
 	fsl,uart-has-rtscts;
 	resets = <&bt_reg_on>;
 	status = "okay";  // Disable for now as this causes a kernel panic
-}; 
+};
 
 &usbotg1 {
 	dr_mode = "otg";
