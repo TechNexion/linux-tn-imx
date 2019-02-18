@@ -127,6 +127,7 @@
 		reset-delay-us = <2000>;
 		//reset-post-delay-ms = <40>;
 		#reset-cells = <0>;
+		status="disabled";
 	};
 
 	regulators {
@@ -559,6 +560,46 @@
 	pinctrl-0 = <&pinctrl_i2c4>;
 	status = "okay";
 
+	axonfabric: axonfabric@41 {
+		reg = <0x41>;
+		pinctrl-names = "default";
+		compatible = "technexion,axon-imx8mm-f01";
+		pinctrl-0 = <&pinctrl_fabric_reset>;
+		reset-gpios = <AXON_INT_GPIO_FABRIC_RESET_N GPIO_ACTIVE_LOW>;
+		iob-enable =      /bits/ 8 <0xFF 0xFF 0x00 0xFF 0x1F 0x00 0x00 0xF0 0xFF 0xEF 0xEF 0xFF 0x0F>;
+		iob-pushpull =    /bits/ 8 <0xFF 0xFE 0x00 0xFC 0x07 0x00 0x00 0x3F 0xFF 0x67 0x67 0xFF 0x0F>;
+		iob-direction =   /bits/ 8 <0x00 0x02 0x00 0x03 0x18 0x00 0x00 0xE0 0xE6 0x01 0x01 0x06 0x0E>;
+		iob-selection-0 = /bits/ 8 <0x00 0x03 0x00 0x0C 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00>;
+		iob-selection-1 = /bits/ 8 <0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00>;
+		gpio-controller;
+		gpio-line-names =
+		"F_GPIO_X1_P66", "F_GPIO_X1_P68", "F_GPIO_X1_P70", "F_GPIO_X1_P72", // Bank 0
+		"F_GPIO_X1_P74", "F_GPIO_X1_P76", "F_GPIO_X1_P78", "F_GPIO_X1_P80", // Bank 0
+		"F_GPIO_X2_P18", "F_GPIO_X2_P20", "F_GPIO_X2_P22", "F_GPIO_X2_P24", // Bank 1
+		"F_GPIO_X3_P65", "F_GPIO_X3_P67", "F_GPIO_X3_P69", "F_GPIO_X3_P71", // Bank 1
+		"", "", "", "", "", "", "", "",                                     // Bank 2 - unused
+		"F_DISP_DAT00", "F_DISP_DAT01", "F_DIST_DAT02", "F_DISP_DAT03",     // Bank 3
+		"F_DISP_DAT04", "F_DISP_DAT05", "F_DIST_DAT06", "F_DISP_DAT07",     // Bank 3
+		"F_DISP_DAT08", "F_DISP_DAT09", "F_DIST_DAT10", "F_DISP_DAT11",     // Bank 4
+		"F_DISP_DAT12", "F_DISP_DAT13", "F_DIST_DAT14", "F_DISP_DAT15",     // Bank 4
+		"F_DISP_DAT16", "F_DISP_DAT17", "F_DIST_DAT18", "F_DISP_DAT19",     // Bank 5
+		"F_DISP_DAT20", "F_DISP_DAT21", "F_DIST_DAT22", "F_DISP_DAT23",     // Bank 5
+		"F_DISP_HSYNC", "F_DISP_VSYNC", "F_DISP_CLK", "F_DISP_BKLEN",       // Bank 6
+		"F_DISP_DRDY", "", "", "",                                          // Bank 6
+		"F_UART_A_TXD", "F_UART_A_RXD", "F_UART_A_RTS", "F_UART_A_CTS",     // Bank 7
+		"F_UART_B_TXD", "F_UART_B_RXD", "F_UART_B_RTS", "F_UART_B_CTS",     // Bank 7
+		"F_UART_C_TXD", "F_UART_C_RXD", "F_UART_C_RTS", "F_UART_C_CTS",     // Bank 8
+		"F_AUD_A_TXD", "F_AUD_A_TXFS", "F_AUD_A_TXCLK", "F_AUD_A_RXD",      // Bank 8
+		"F_SPI_A_MISO", "F_SPI_A_MOSI", "F_SPI_A_SCLK", "F_SPI_A_CS0",      // Bank 9
+		"F_SPI_A_CS1", "F_PWM_X1_P39", "F_PWM_X2_P79", "",                  // Bank 9
+		"F_SPI_B_MISO", "F_SPI_B_MOSI", "F_SPI_B_SCLK", "F_SPI_B_CS0",      // Bank 10
+		"F_SPI_B_CS1", "", "", "",                                          // Bank 10
+		"", "", "", "",                                                     // Bank 11
+		"F_CAN_A_TX", "F_CAN_A_RX", "F_CAN_B_TX", "F_CAN_B_RX",             // Bank 11
+		"F_AUD_B_TXD", "F_AUD_B_TXFS", "F_AUD_B_TXCLK", "F_AUD_B_RXD",      // Bank 12
+		"F_AUD_B_RXFS", "F_AUD_B_RXCLK", "F_AUD_B_MCLK", "";                // Bank 12
+	};
+
 	pmic: bd71837@4b {
 		reg = <0x4b>;
 		compatible = "rohm,bd71840", "rohm,bd71837";
@@ -807,7 +848,6 @@
 	assigned-clock-parents = <&clk IMX8MM_SYS_PLL1_80M>;
 	status = "okay";
 };
-
 
 &AXON_UART_B {
 	pinctrl-names = "default";
