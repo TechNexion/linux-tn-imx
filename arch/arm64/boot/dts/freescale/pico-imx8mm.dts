@@ -28,18 +28,6 @@
 		stdout-path = &uart2;
 	};
 
-	leds {
-		compatible = "gpio-leds";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_gpio_led>;
-
-		status {
-			label = "status";
-			gpios = <&gpio3 16 0>;
-			default-state = "on";
-		};
-	};
-
 	bt_reg_on: btreg_on {
 		compatible = "gpio-reset";
 		pinctrl-names = "default";
@@ -195,12 +183,6 @@
 			>;
 		};
 
-		pinctrl_gpio_led: gpioledgrp {
-			fsl,pins = <
-				MX8MM_IOMUXC_NAND_READY_B_GPIO3_IO16	0x19
-			>;
-		};
-
 		pinctrl_i2c1: i2c1grp {
 			fsl,pins = <
 				MX8MM_IOMUXC_I2C1_SCL_I2C1_SCL			0x400001c3
@@ -224,8 +206,7 @@
 
 		pinctrl_pcie0: pcie0grp {
 			fsl,pins = <
-				MX8MM_IOMUXC_I2C4_SCL_PCIE1_CLKREQ_B	0x61 /* open drain, pull up */
-				MX8MM_IOMUXC_SAI2_RXFS_GPIO4_IO21	0x41
+				MX8MM_IOMUXC_NAND_READY_B_GPIO3_IO16	0x41 /* PCIE reset */
 			>;
 		};
 
@@ -761,8 +742,7 @@
 &pcie0{
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_pcie0>;
-	disable-gpio = <&gpio1 5 GPIO_ACTIVE_LOW>;
-	reset-gpio = <&gpio4 21 GPIO_ACTIVE_LOW>;
+	reset-gpio = <&gpio3 16 GPIO_ACTIVE_LOW>;
 	ext_osc = <0>;
 	status = "disabled";
 };
