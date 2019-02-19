@@ -597,7 +597,7 @@
 	status = "okay";
 
 	ov5645_mipi2: ov5645_mipi2@3c {
-		compatible = "ovti,ov5645_mipi";
+		compatible = "ovti,ov5645_mipi_v2";
 		reg = <0x3c>;
 		status = "okay";
 		pinctrl-names = "default";
