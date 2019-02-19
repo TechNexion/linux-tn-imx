@@ -99,6 +99,16 @@ config MFD_AS3722
 	  controllers, 11 LDOs, RTC, automatic battery, temperature and
 	  over current monitoring, GPIOs, ADC and a watchdog.
 
+config MFD_AXONFABRIC
+	tristate "TechNexion Axon Fabric"
+	select MFD_CORE
+	select REGMAP_I2C
+	select REGMAP_IRQ
+	depends on I2C=y && OF
+	help
+	  The Axon Fabric is an signal bus switch, gpio expander, and external
+	  peripheral expander.
+
 config PMIC_ADP5520
 	bool "Analog Devices ADP5520/01 MFD PMIC Core Support"
 	depends on I2C=y
