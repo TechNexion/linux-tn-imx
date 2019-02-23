@@ -58,6 +58,17 @@
 		power-supply = <&reg_backlight_pwr>;
 		status = "disabled";
 	};
+
+	leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_gpio_led>;
+
+		led {
+			label = "gpio-led";
+			gpios = <&gpio5 5 GPIO_ACTIVE_HIGH>;
+		};
+	};
 };
 
 &clk {
@@ -119,6 +130,12 @@
 		pinctrl_ft5336_touch_rst: ft5336_rstgrp {
 			fsl,pins = <
 				MX8MM_IOMUXC_SAI3_RXFS_GPIO4_IO28	0x16   /* GPIO_P42, Touch RST */
+			>;
+		};
+
+		pinctrl_gpio_led: gpioledgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_SPDIF_EXT_CLK_GPIO5_IO5	0x19
 			>;
 		};		
 	};
