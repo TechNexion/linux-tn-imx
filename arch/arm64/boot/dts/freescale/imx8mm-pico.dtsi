@@ -20,9 +20,6 @@
 #include "fsl-imx8mm.dtsi"
 
 / {
-	model = "TechNexion PICO-IMX8MM and PI baseboard";
-	compatible = "fsl,imx8mm-pico", "fsl,imx8mm";
-
 	chosen {
 		bootargs = "console=ttymxc1,115200 earlycon=ec_imx6q,0x30890000,115200";
 		stdout-path = &uart2;
@@ -43,16 +40,6 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
-		reg_usb_otg_vbus: usb_otg_vbus {
-			pinctrl-names = "default";
-			pinctrl-0 = <&pinctrl_otg_vbus>;
-			compatible = "regulator-fixed";
-			regulator-name = "usb_otg_vbus";
-			regulator-min-microvolt = <5000000>;
-			regulator-max-microvolt = <5000000>;
-			gpio = <&gpio1 9 GPIO_ACTIVE_LOW>;
-		};
-
 		wl_reg_on: wlreg_on {
 			compatible = "regulator-fixed";
 			pinctrl-names = "default";
@@ -65,93 +52,13 @@
 			startup-delay-us = <100>;
 			enable-active-high;
 		};
-
-		reg_backlight_pwr: regulator_blpwr {
-			pinctrl-names = "default";
-			pinctrl-0 = <&pinctrl_backlight_pwr>;
-			compatible = "regulator-fixed";
-			regulator-name = "backlight_pwr";
-			regulator-min-microvolt = <5000000>;
-			regulator-max-microvolt = <5000000>;
-			gpio = <&gpio1 10 GPIO_ACTIVE_HIGH>;
-			enable-active-high;
-		};
 	};
-
-	backlight_mipi {
-		compatible = "pwm-backlight";
-		pwms = <&pwm1 0 50000 0>;
-		brightness-levels = <0 36 72 108 144 180 216 255>;
-		default-brightness-level = <6>;
-		power-supply = <&reg_backlight_pwr>;
-		status = "disabled";
-	};
-};
-
-&clk {
-	assigned-clocks = <&clk IMX8MM_AUDIO_PLL1>, <&clk IMX8MM_AUDIO_PLL2>;
-	assigned-clock-rates = <786432000>, <722534400>;
 };
 
 &iomuxc {
 	pinctrl-names = "default";
 
-	imx8mm-pico {
-		pinctrl_otg_vbus: otgvbusgrp {
-			fsl,pins = <
-				MX8MM_IOMUXC_GPIO1_IO09_GPIO1_IO9		0x19   /* USB OTG VBUS Enable */
-			>;
-		};
-
-		pinctrl_backlight_pwr: backlight_pwrgrp {
-			fsl,pins = <
-				MX8MM_IOMUXC_GPIO1_IO10_GPIO1_IO10		0x19
-			>;
-		};
-
-		pinctrl_dsi_pwm: dsi_pwm {
-			fsl,pins = <
-				MX8MM_IOMUXC_GPIO1_IO01_PWM1_OUT		0x16	/* DSI PWM */
-			>;
-		};
-
-		pinctrl_tusb320_irq: tusb320_irqgrp {
-			fsl,pins = <
-				MX8MM_IOMUXC_NAND_CE0_B_GPIO3_IO1		0x41
-			>;
-		};
-
-		pinctrl_csi_pwn: csi_pwn_grp {
-			fsl,pins = <
-				MX8MM_IOMUXC_ECSPI2_MOSI_GPIO5_IO11		0x19
-			>;
-		};
-
-		pinctrl_csi_rst: csi_rst_grp {
-			fsl,pins = <
-				MX8MM_IOMUXC_GPIO1_IO05_GPIO1_IO5		0x19
-				MX8MM_IOMUXC_GPIO1_IO14_CCMSRCGPCMIX_CLKO1	0x59
-			>;
-		};
-
-		pinctrl_mipi_dsi_rst: mipi_dsi_rst {
-			fsl,pins = <
-				MX8MM_IOMUXC_NAND_DATA03_GPIO3_IO9	0x16   /* DSI RST */
-			>;
-		};
-
-		pinctrl_ft5336_touch_irq: ft5336_irqgrp {
-			fsl,pins = <
-				MX8MM_IOMUXC_GPIO1_IO07_GPIO1_IO7	0x19   /* Touch INT */
-			>;
-		};
-
-		pinctrl_ft5336_touch_rst: ft5336_rstgrp {
-			fsl,pins = <
-				MX8MM_IOMUXC_SAI3_RXFS_GPIO4_IO28	0x16   /* GPIO_P42, Touch RST */
-			>;
-		};
-
+	imx8mm-pico {		
 		pinctrl_fec1: fec1grp {
 			fsl,pins = <
 				MX8MM_IOMUXC_ENET_MDC_ENET1_MDC		0x3
@@ -168,18 +75,7 @@
 				MX8MM_IOMUXC_ENET_RXC_ENET1_RGMII_RXC	0x91
 				MX8MM_IOMUXC_ENET_RX_CTL_ENET1_RGMII_RX_CTL	0x91
 				MX8MM_IOMUXC_ENET_TX_CTL_ENET1_RGMII_TX_CTL	0x1f
-				MX8MM_IOMUXC_SD1_RESET_B_GPIO2_IO10	0x19
-			>;
-		};
-
-		pinctrl_flexspi0: flexspi0grp {
-			fsl,pins = <
-				MX8MM_IOMUXC_NAND_ALE_QSPI_A_SCLK		0x1c2
-				MX8MM_IOMUXC_NAND_CE0_B_QSPI_A_SS0_B		0x82
-				MX8MM_IOMUXC_NAND_DATA00_QSPI_A_DATA0		0x82
-				MX8MM_IOMUXC_NAND_DATA01_QSPI_A_DATA1		0x82
-				MX8MM_IOMUXC_NAND_DATA02_QSPI_A_DATA2		0x82
-				MX8MM_IOMUXC_NAND_DATA03_QSPI_A_DATA3		0x82
+				MX8MM_IOMUXC_SD1_RESET_B_GPIO2_IO10	0x19	/* ENET_nRST */
 			>;
 		};
 
@@ -206,7 +102,7 @@
 
 		pinctrl_pcie0: pcie0grp {
 			fsl,pins = <
-				MX8MM_IOMUXC_NAND_READY_B_GPIO3_IO16	0x41 /* PCIE reset */
+				MX8MM_IOMUXC_NAND_READY_B_GPIO3_IO16	0x41 /* PCIE_nReset, PICO-NYMPH */
 			>;
 		};
 
@@ -216,26 +112,13 @@
 			>;
 		};
 
-		pinctrl_typec1: typec1grp {
-			fsl,pins = <
-				MX8MM_IOMUXC_SD1_STROBE_GPIO2_IO11	0x159
-			>;
-		};
-
+		/* Bluetooth audio */
 		pinctrl_sai1: sai1grp {
 			fsl,pins = <
-				MX8MM_IOMUXC_SAI1_MCLK_SAI1_MCLK	0xd6
 				MX8MM_IOMUXC_SAI1_TXFS_SAI1_TX_SYNC	0xd6
-				MX8MM_IOMUXC_SAI1_RXD7_SAI1_TX_SYNC	0xd6
 				MX8MM_IOMUXC_SAI1_TXC_SAI1_TX_BCLK	0xd6
 				MX8MM_IOMUXC_SAI1_TXD0_SAI1_TX_DATA0	0xd6
-				MX8MM_IOMUXC_SAI1_TXD1_SAI1_TX_DATA1	0xd6
-				MX8MM_IOMUXC_SAI1_TXD2_SAI1_TX_DATA2	0xd6
-				MX8MM_IOMUXC_SAI1_TXD3_SAI1_TX_DATA3	0xd6
-				MX8MM_IOMUXC_SAI1_TXD4_SAI1_TX_DATA4	0xd6
-				MX8MM_IOMUXC_SAI1_TXD5_SAI1_TX_DATA5	0xd6
-				MX8MM_IOMUXC_SAI1_TXD6_SAI1_TX_DATA6	0xd6
-				MX8MM_IOMUXC_SAI1_TXD7_SAI1_TX_DATA7	0xd6
+				MX8MM_IOMUXC_SAI1_RXD0_SAI5_RX_DATA0    0xd6
 			>;
 		};
 
@@ -246,25 +129,6 @@
 				MX8MM_IOMUXC_SAI3_MCLK_SAI3_MCLK        0xd6
 				MX8MM_IOMUXC_SAI3_TXD_SAI3_TX_DATA0     0xd6
 				MX8MM_IOMUXC_I2C4_SDA_GPIO5_IO21        0xd6
-			>;
-		};
-
-		pinctrl_sai5: sai5grp {
-			fsl,pins = <
-				MX8MM_IOMUXC_SAI5_MCLK_SAI5_MCLK	0xd6
-				MX8MM_IOMUXC_SAI5_RXC_SAI5_RX_BCLK	0xd6
-				MX8MM_IOMUXC_SAI5_RXFS_SAI5_RX_SYNC	0xd6
-				MX8MM_IOMUXC_SAI5_RXD0_SAI5_RX_DATA0	0xd6
-				MX8MM_IOMUXC_SAI5_RXD1_SAI5_RX_DATA1    0xd6
-				MX8MM_IOMUXC_SAI5_RXD2_SAI5_RX_DATA2    0xd6
-				MX8MM_IOMUXC_SAI5_RXD3_SAI5_RX_DATA3    0xd6
-			>;
-		};
-
-		pinctrl_spdif1: spdif1grp {
-			fsl,pins = <
-				MX8MM_IOMUXC_SPDIF_TX_SPDIF1_OUT	0xd6
-				MX8MM_IOMUXC_SPDIF_RX_SPDIF1_IN		0xd6
 			>;
 		};
 
@@ -700,24 +564,6 @@
 	status = "okay";
 };
 
-&spdif1 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_spdif1>;
-	assigned-clocks = <&clk IMX8MM_CLK_SPDIF1_SRC>,
-			<&clk IMX8MM_CLK_SPDIF1_DIV>;
-	assigned-clock-parents = <&clk IMX8MM_AUDIO_PLL1_OUT>;
-	assigned-clock-rates = <0>, <24576000>;
-	clocks = <&clk IMX8MM_CLK_AUDIO_AHB_DIV>, <&clk IMX8MM_CLK_24M>,
-		<&clk IMX8MM_CLK_SPDIF1_DIV>, <&clk IMX8MM_CLK_DUMMY>,
-		<&clk IMX8MM_CLK_DUMMY>, <&clk IMX8MM_CLK_DUMMY>,
-		<&clk IMX8MM_CLK_AUDIO_AHB_DIV>, <&clk IMX8MM_CLK_DUMMY>,
-		<&clk IMX8MM_CLK_DUMMY>, <&clk IMX8MM_CLK_DUMMY>,
-		<&clk IMX8MM_AUDIO_PLL1_OUT>, <&clk IMX8MM_AUDIO_PLL2_OUT>;
-	clock-names = "core", "rxtx0", "rxtx1", "rxtx2", "rxtx3",
-		"rxtx4", "rxtx5", "rxtx6", "rxtx7", "spba", "pll8k", "pll11k";
-	status = "okay";
-};
-
 &fec1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_fec1>;
@@ -774,7 +620,6 @@
 
 &usbotg1 {
 	dr_mode = "otg";
-	extcon = <0>, <&typec_tusb320>;
 	picophy,pre-emp-curr-control = <3>;
 	picophy,dc-vol-level-adjust = <7>;
 	status = "okay";
