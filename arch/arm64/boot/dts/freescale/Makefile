@@ -130,6 +130,7 @@ dtb-$(CONFIG_ARCH_FSL_IMX8MM) += imx8mm-axon-pi.dtb \
 				 imx8mm-pico-pi.dtb \
 				 imx8mm-pico-pi-ili9881c.dtb \
 				 imx8mm-pico-pi-sn65dsi84-hj070na.dtb \
+				 imx8mm-pico-pi-voicehat.dtb \
 				 imx8mm-flex-pi.dtb \
 				 imx8mm-flex-pi-m4.dtb \
 				 imx8mm-flex-pi-ili9881c.dtb \

@@ -1,0 +1,54 @@
+/*
+ * Copyright 2018 Technexion Ltd.
+ * Copyright 2018 NXP
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+#include "imx8mm-pico-pi.dts"
+
+/ {
+	sound-tfa9912 {
+		compatible = "nxp,imx-audio-tfa98xx", "nxp,imx-tfa98xx";
+		nxp,model = "TFA9912";
+		cpu-dai = <&sai2>;
+		ssi-controller = <&sai2>;
+		nxp,audio-codec = <&tfa98xx_left &tfa98xx_right>;
+		clocks = <&clk IMX8MM_CLK_SAI2_DIV>;
+		nxp,audio-routing =
+			"Speaker", "OUTL",
+			"DMIC1", "Mic",
+			"DMIC2", "Mic",
+			"DMIC3", "Mic",
+			"DMIC4", "Mic";
+	};
+};
+
+&sai2 {
+	status = "okay";
+};
+
+&i2c2 {
+	tfa98xx_left: tfa98xx_left@34 {
+		compatible = "nxp,tfa98xx";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_tfa98xx>;
+		reg = <0x34>;
+		reset-gpio = <&gpio5 10 GPIO_ACTIVE_HIGH>;
+		irq-gpio = <&gpio5 12 GPIO_ACTIVE_HIGH>;
+	};
+	tfa98xx_right: tfa98xx_right@35 {
+		compatible = "nxp,tfa98xx";
+		reg = <0x35>;
+	};
+};
