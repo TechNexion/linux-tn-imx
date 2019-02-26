@@ -233,8 +233,6 @@
 			fsl,pins = <
 				MX8MM_IOMUXC_UART2_RXD_UART2_DCE_RX	0x140
 				MX8MM_IOMUXC_UART2_TXD_UART2_DCE_TX	0x140
-				MX8MM_IOMUXC_UART4_RXD_UART2_DCE_CTS_B	0x140
-				MX8MM_IOMUXC_UART4_TXD_UART2_DCE_RTS_B	0x140
 			>;
 		};
 
@@ -717,7 +715,6 @@
 &uart2 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart2>;
-	fsl,uart-has-rtscts;
 	status = "okay";
 };
 
