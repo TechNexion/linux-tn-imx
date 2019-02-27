@@ -32,9 +32,26 @@
 			"DMIC3", "Mic",
 			"DMIC4", "Mic";
 	};
+
+	sound-sph0645 {
+		compatible = "nxp,imx-audio-sph0645", "nxp,imx-sph0645";
+		nxp,model = "SPH0645";
+		cpu-dai = <&sai3>;
+		ssi-controller = <&sai3>;
+		nxp,audio-codec = <&sound_record>;
+		clocks = <&clk IMX8MM_CLK_SAI3_DIV>;
+	};
+
+	sound_record: codec {
+		compatible = "knowles,sph0645";
+	};
 };
 
 &sai2 {
+	status = "okay";
+};
+
+&sai3 {
 	status = "okay";
 };
 
