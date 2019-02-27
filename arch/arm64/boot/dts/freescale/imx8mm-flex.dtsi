@@ -67,12 +67,32 @@
 			enable-active-high;
 		};
 	};
+
+	i2c_gpio_brd_conf: i2c@0 {
+		compatible = "i2c-gpio";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_flex_i2c_brd_conf>;
+		gpios = <&gpio4 1 GPIO_ACTIVE_HIGH /* SDA */
+			&gpio4 0 GPIO_ACTIVE_HIGH /* SCL */
+		>;
+		clock-frequency = <100000>;
+		status = "okay";
+	};
 };
 
 &iomuxc {
 	pinctrl-names = "default";
 
 	imx8mm-flex {
+		pinctrl_flex_i2c_brd_conf: i2cbrdconfgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_SAI1_RXFS_GPIO4_IO0	0x1c3 /* BRD_CONF_SCL, bitbang */
+				MX8MM_IOMUXC_SAI1_RXC_GPIO4_IO1		0x1c3 /* BRD_CONF_SDA, bitbang */
+			>;
+		};
+
 		pinctrl_fec_pwr_en: fec_pwr_en_irqgrp {
 			fsl,pins = <
 				MX8MM_IOMUXC_NAND_CE0_B_GPIO3_IO1	0x19
