@@ -25,10 +25,6 @@
 	compatible = "fsl,imx8mm-flex", "fsl,imx8mm";
 
 	regulators {
-		compatible = "simple-bus";
-		#address-cells = <1>;
-		#size-cells = <0>;
-
 		reg_usb_otg_vbus: usb_otg_vbus {
 			pinctrl-names = "default";
 			pinctrl-0 = <&pinctrl_otg_vbus>;
@@ -140,13 +136,13 @@
 			>;
 		};
 
-		pinctrl_ft5336_touch_irq: ft5336_irqgrp {
+		pinctrl_touch_irq: touch_irqgrp {
 			fsl,pins = <
 				MX8MM_IOMUXC_SPDIF_RX_GPIO5_IO4		0x19 /* GPIO_P256, Touch INT */
 			>;
 		};
 
-		pinctrl_ft5336_touch_rst: ft5336_rstgrp {
+		pinctrl_touch_rst: touch_rstgrp {
 			fsl,pins = <
 				MX8MM_IOMUXC_SAI1_MCLK_GPIO4_IO20	0x16 /* GPIO_P256, Touch RST */
 			>;

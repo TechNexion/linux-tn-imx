@@ -38,12 +38,12 @@
 	};
 };
 
-&i2c3 {
+&i2c1 {
 	polytouch: edt-ft5x06@38 {
 		compatible = "edt,edt-ft5x06";
 		reg = <0x38>;
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_ft5336_touch_irq &pinctrl_ft5336_touch_rst>;
+		pinctrl-0 = <&pinctrl_touch_irq &pinctrl_touch_rst>;
 		interrupt-parent = <&gpio5>;
 		interrupts = <4 IRQ_TYPE_EDGE_FALLING>;
 		reset-gpios = <&gpio4 20 GPIO_ACTIVE_LOW>;
