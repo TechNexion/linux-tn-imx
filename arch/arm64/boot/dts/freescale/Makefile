@@ -135,6 +135,7 @@ dtb-$(CONFIG_ARCH_FSL_IMX8MM) += imx8mm-axon-pi.dtb \
 				 imx8mm-flex-pi-m4.dtb \
 				 imx8mm-flex-pi-ili9881c.dtb \
 				 imx8mm-flex-pi-ili9881c-m4.dtb \
+				 imx8mm-flex-pi-voicehat.dtb \
 				 fsl-imx8mm-evk.dtb \
 				 fsl-imx8mm-evk-ak4497.dtb \
 				 fsl-imx8mm-evk-m4.dtb \
