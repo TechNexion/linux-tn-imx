@@ -15,6 +15,7 @@
  * GNU General Public License for more details.
  */
 
+#include <dt-bindings/input/input.h>
 #include "imx8mm-pico-pi.dts"
 
 / {
@@ -44,6 +45,60 @@
 
 	sound_record: codec {
 		compatible = "knowles,sph0645";
+	};
+
+	gpio_keys {
+		compatible = "gpio-keys";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_gpio_key_voicehat>;
+
+		prev {
+			gpios = <&gpio3 0 GPIO_ACTIVE_LOW>;
+			label = "KEY PREV";
+			linux,code = <KEY_PREVIOUS>;
+		};
+
+		play {
+			gpios = <&gpio5 4 GPIO_ACTIVE_LOW>;
+			label = "KEY PLAY";
+			linux,code = <KEY_PLAY>;
+		};
+
+		next {
+			gpios = <&gpio5 20 GPIO_ACTIVE_LOW>;
+			label = "KEY NEXT";
+			linux,code = <KEY_NEXT>;
+		};
+
+		up {
+			gpios = <&gpio3 7 GPIO_ACTIVE_LOW>;
+			label = "KEY UP";
+			linux,code = <KEY_UP>;
+		};
+
+		down {
+			gpios = <&gpio3 16 GPIO_ACTIVE_LOW>;
+			label = "KEY DOWN";
+			linux,code = <KEY_DOWN>;
+		};
+
+		mute {
+			gpios = <&gpio3 6 GPIO_ACTIVE_LOW>;
+			label = "KEY MUTE";
+			linux,code = <KEY_MUTE>;
+		};
+
+		pair {
+			gpios = <&gpio5 13 GPIO_ACTIVE_LOW>;
+			label = "KEY PAIR";
+			linux,code = <KEY_SELECT>;
+		};
+
+		act {
+			gpios = <&gpio5 3 GPIO_ACTIVE_LOW>;
+			label = "KEY ACT";
+			linux,code = <KEY_OK>;
+		};
 	};
 };
 
