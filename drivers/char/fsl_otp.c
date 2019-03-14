@@ -227,6 +227,25 @@ static const char *imx8mq_otp_desc[][4] = {
 	BANK4(HDCP3, HDCP4, HDCP5, HDCP6),			/* bank 16 */
 };
 
+/* imx8m 1 bank = 4 words */
+static const char *imx8mm_otp_desc[][4] = {
+	BANK4(LOCK, TESTER0, TESTER1, TESTER2),			/* bank 0 */
+	BANK4(TESTER3, TESTER4, TESTER5, BOOT_CFG0),		/* bank 1 */
+	BANK4(BOOT_CFG1, BOOT_CFG2, BOOT_CFG3, BOOT_CFG4),	/* bank 2 */
+	BANK4(MEM_TRIM0, MEM_TRIM1, ANA0, ANA1),		/* bank 3 */
+	BANK4(ROM_PATCH0, ROM_PATCH1, ROM_PATCH2, ROM_PATCH3),
+	BANK4(ROM_PATCH4, ROM_PATCH5, ROM_PATCH6, ROM_PATCH7),
+	BANK4(SRK0, SRK1, SRK2, SRK3),				/* bank 6 */
+	BANK4(SRK4, SRK5, SRK6, SRK7),				/* bank 7 */
+	BANK4(SJC_RESP0, SJC_RESP1, USB_ID, FIELD_RETURN),	/* bank 8 */
+	BANK4(MAC_ADDR0, MAC_ADDR1, MAC_ADDR2, SRK_REVOKE),	/* bank 9 */
+	BANK4(MAU_KEY0, MAU_KEY1, MAU_KEY2, MAU_KEY3),		/* bank 10 */
+	BANK4(MAU_KEY4, MAU_KEY5, MAU_KEY6, MAU_KEY7),		/* bank 11 */
+	BANK4(ROM_PATCH8, ROM_PATCH9, ROM_PATCH10, ROM_PATCH11),
+	BANK4(ROM_PATCH12, ROM_PATCH13, ROM_PATCH14, ROM_PATCH15),
+	BANK4(GP10, GP11, GP20, GP21),				/* bank 14 */
+};
+
 static DEFINE_MUTEX(otp_mutex);
 static void __iomem *otp_base;
 static struct clk *otp_clk;
@@ -245,6 +264,7 @@ enum fsl_otp_devtype {
 	FSL_OTP_MX7D,
 	FSL_OTP_MX7ULP,
 	FSL_OTP_MX8MQ,
+	FSL_OTP_MX8MM,
 };
 
 struct fsl_otp_devtype_data {
@@ -289,7 +309,7 @@ static u32 fsl_otp_bank_physical(struct fsl_otp_devtype_data *d, int bank)
 
 	if ((bank == 0) || (d->devtype == FSL_OTP_MX6SL) ||
 	    (d->devtype == FSL_OTP_MX7D) || (d->devtype == FSL_OTP_MX7ULP) ||
-	    (d->devtype == FSL_OTP_MX8MQ) )
+	    (d->devtype == FSL_OTP_MX8MQ) || (d->devtype == FSL_OTP_MX8MM))
 		phy_bank = bank;
 	else if ((d->devtype == FSL_OTP_MX6UL) ||
 		 (d->devtype == FSL_OTP_MX6ULL) ||
@@ -316,7 +336,8 @@ static u32 fsl_otp_word_physical(struct fsl_otp_devtype_data *d, int index)
 	u32 word_off, bank_off;
 	u32 words_per_bank;
 
-	if ((d->devtype == FSL_OTP_MX7D) || (d->devtype == FSL_OTP_MX8MQ))
+	if ((d->devtype == FSL_OTP_MX7D) || (d->devtype == FSL_OTP_MX8MQ) ||
+	    (d->devtype == FSL_OTP_MX8MM))
 		words_per_bank = 4;
 	else
 		words_per_bank = 8;
@@ -428,6 +449,15 @@ static struct fsl_otp_devtype_data imx8mq_data = {
 	.bank_desc = (const char **)imx8mq_otp_desc,
 	/* 16 banks of 4 words each */
 	.fuse_nums = 16 * 4,
+	/* timing is same as imx6 */
+	.set_otp_timing = imx6_set_otp_timing,
+};
+
+static struct fsl_otp_devtype_data imx8mm_data = {
+	.devtype = FSL_OTP_MX8MM,
+	.bank_desc = (const char **)imx8mm_otp_desc,
+	/* 14 banks of 4 words each */
+	.fuse_nums = 14 * 4,
 	/* timing is same as imx6 */
 	.set_otp_timing = imx6_set_otp_timing,
 };
@@ -674,6 +704,7 @@ static const struct of_device_id fsl_otp_dt_ids[] = {
 	{ .compatible = "fsl,imx7d-ocotp", .data = (void *)&imx7d_data, },
 	{ .compatible = "fsl,imx7ulp-ocotp", .data = (void *)&imx7ulp_data, },
 	{ .compatible = "fsl,imx8mq-ocotp", .data = (void *)&imx8mq_data, },
+	{ .compatible = "fsl,imx8mm-ocotp", .data = (void *)&imx8mm_data, },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, fsl_otp_dt_ids);
