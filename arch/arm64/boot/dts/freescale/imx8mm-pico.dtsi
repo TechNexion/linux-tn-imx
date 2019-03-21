@@ -464,17 +464,6 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c2>;
 	status = "okay";
-
-	typec_tusb320:tusb320@67 {
-		compatible = "ti,tusb320";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_tusb320_irq>;
-		reg = <0x67>;
-		vbus-supply = <&reg_usb_otg_vbus>;
-		tusb320,int-gpio = <&gpio3 1 GPIO_ACTIVE_LOW>;
-		tusb320,select-mode = <0>;
-		tusb320,dfp-power = <0>;
-	};
 };
 
 &i2c3 {
