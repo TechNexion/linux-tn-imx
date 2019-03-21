@@ -877,7 +877,7 @@
 
 &usbotg1 {
 	dr_mode = "otg";
-	extcon = <0>, <&typec_tusb320>;
+	extcon = <&typec_tusb320>;
 	picophy,pre-emp-curr-control = <3>;
 	picophy,dc-vol-level-adjust = <7>;
 	status = "okay";

@@ -37,6 +37,7 @@
 			regulator-min-microvolt = <5000000>;
 			regulator-max-microvolt = <5000000>;
 			gpio = <AXON_EXT_GPIO_X1_P68 GPIO_ACTIVE_LOW>;
+			enable-active-low;
 		};
 
 		reg_backlight_pwr: regulator_blpwr {
