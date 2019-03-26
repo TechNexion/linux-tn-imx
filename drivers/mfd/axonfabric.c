@@ -31,6 +31,7 @@
 #include <linux/reset.h>
 #include <linux/slab.h>
 #include <linux/mfd/axonfabric.h>
+#include <asm/byteorder.h>
 
 //#include "axonfabric.h"
 
@@ -44,12 +45,18 @@
 #define AXONF_IOB_OUTPUT			8
 #define AXONF_IOB_INPUT				9
 
-#define AXONF_CMD_READVERSION		0x40
 #define AXONF_CMD_WRITE_IOBANK		0x21
 #define AXONF_CMD_READ_IOBANK		0x23
 #define AXONF_CMD_SET_READ_ADDR		0x22
 #define AXONF_CMD_GLOBAL_ENABLE		0x30
 #define AXONF_CMD_GLOBAL_DISABLE	0x31
+#define AXONF_CMD_READ_VERSION		0x40
+#define AXONF_CMD_READ_MAGIC		0x41
+#define AXONF_CMD_READ_CFGDATA		0x42
+#define AXONF_CMD_WRITE_CTRLREG		0x43
+#define AXONF_CMD_READ_CTRLREG		0x44
+#define AXONF_CMD_WRITE_STATUSLED	0x45
+#define AXONF_CMD_READ_STATUSLED	0x46
 
 /*
  * Driver data and types
@@ -86,6 +93,11 @@ const u8 axonf_imx8mm_bank_mask[] = {
 	};
 
 /*
+ * Magic data
+ */
+const u8 axonf_magic[] = "AXON\0";
+
+/*
  * ID table. First member is name, second member is data private to the driver.
  * The device data is stored as an unsigned long, but the maximum we will use is
  * 32-bits (unsigned int).
@@ -100,9 +112,13 @@ static const struct i2c_device_id axonf_id[] = {
 };
 MODULE_DEVICE_TABLE(i2c, axonf_id);
 
-#define MAX_BANK 13
-#define BANK_SZ 8
-#define FW_VERSION_SZ 3
+#define MAX_BANK 		13
+#define BANK_SZ 		8
+#define FW_VERSION_SZ 	3
+#define FW_MAGIC_SZ 	4
+#define FW_CFGDATA_SZ	1
+#define FW_CTRLREG_SZ	2
+#define FW_STATUSLED_SZ	3
 
 #define NBANK(chip) DIV_ROUND_UP(chip->gpio_chip.ngpio, BANK_SZ)
 
@@ -155,6 +171,9 @@ struct axonf_chip {
 	struct regulator *regulator;
 
 	const struct axonf_reg_config *regs;
+
+	u32 statusled_rgb_color;
+	u8 cfgdata;
 
 	int (*write_regs)(struct axonf_chip *, int, u8 *);
 	int (*read_regs)(struct axonf_chip *, int, u8 *);
@@ -505,6 +524,74 @@ static int axonf_gpio_get_direction(struct gpio_chip *gc, unsigned off)
 }
 
 /*
+ * axonf_read_magic: Read magic data of fabric
+ */
+static int axonf_read_magic(struct axonf_chip *chip)
+{
+	u8 magic[FW_MAGIC_SZ+1];
+	int ret;
+
+	memset(magic, 0, FW_MAGIC_SZ+1);
+
+	mutex_lock(&chip->i2c_lock);
+
+	ret = i2c_smbus_read_i2c_block_data(chip->client, AXONF_CMD_READ_MAGIC,
+			FW_MAGIC_SZ, magic);
+
+	if(ret < 0) {
+		dev_err(&chip->client->dev, "failed reading magic %d\n",ret);
+		goto exit;
+	}
+
+	if(strncmp(magic, axonf_magic, FW_MAGIC_SZ)) {
+		dev_err(&chip->client->dev,
+				"magic value incorrect. read: %s, expected %s\n", magic, axonf_magic);
+
+		ret = -ENODEV;
+		goto exit;
+	}
+
+	ret = 0;
+
+exit:
+	mutex_unlock(&chip->i2c_lock);
+
+	return ret;
+}
+
+/*
+ * axonf_read_cfgdata: Read configuration data
+ * Configuration data tells us SOM and fabric-specific details regarding
+ * the firmware loaded into the fabric. Currently it reads the fabric
+ * level and the SOM type, but should be extended to read fabric capabilities
+ * and OEM-specific data for customizations.
+ */
+static int axonf_read_cfgdata(struct axonf_chip *chip)
+{
+	u8 cfgdata;
+	int ret;
+
+	mutex_lock(&chip->i2c_lock);
+
+	ret = i2c_smbus_read_i2c_block_data(chip->client, AXONF_CMD_READ_CFGDATA,
+			1, (u8*)&cfgdata);
+
+	if(ret < 0) {
+		dev_err(&chip->client->dev, "failed reading config data %d\n",ret);
+		goto exit;
+	}
+
+	chip->cfgdata = cfgdata;
+
+	ret = 0;
+
+exit:
+	mutex_unlock(&chip->i2c_lock);
+
+	return ret;
+}
+
+/*
  * axonf_read_version: Read version of fabric
  */
 static int axonf_read_version(struct axonf_chip *chip)
@@ -514,7 +601,7 @@ static int axonf_read_version(struct axonf_chip *chip)
 
 	mutex_lock(&chip->i2c_lock);
 
-	ret = i2c_smbus_read_i2c_block_data(chip->client, AXONF_CMD_READVERSION,
+	ret = i2c_smbus_read_i2c_block_data(chip->client, AXONF_CMD_READ_VERSION,
 			FW_VERSION_SZ, version);
 
 	if(ret < 0) {
@@ -531,6 +618,71 @@ exit:
 	return ret;
 }
 
+/*
+ * axonf_read_status_led: Read status LED value
+ */
+static int axonf_read_statusled(struct axonf_chip *chip)
+{
+	u8 led_val[FW_STATUSLED_SZ+1];
+	int ret;
+	u32 led_rgb = 0;
+
+	mutex_lock(&chip->i2c_lock);
+
+	ret = i2c_smbus_read_i2c_block_data(chip->client, AXONF_CMD_READ_STATUSLED,
+			FW_STATUSLED_SZ, led_val);
+
+	if(ret < 0) {
+		dev_err(&chip->client->dev, "failed to read status led %d\n",ret);
+		goto exit;
+	}
+
+	led_rgb = 	(( led_val[0] << 16) & 0xFF0000 ) |  // R
+				(( led_val[1] << 8)  & 0x00FF00 ) |  // G
+				(  led_val[2]        & 0x0000FF );   // B
+
+	chip->statusled_rgb_color = led_rgb;
+
+	ret = 0;
+
+exit:
+	mutex_unlock(&chip->i2c_lock);
+
+	return ret;
+}
+
+/*
+ * axonf_write_status_led: Writes new value to status LED
+ */
+
+static int axonf_write_statusled(struct axonf_chip *chip, u32 led_rgb)
+{
+	u8 led_val[FW_STATUSLED_SZ+1];
+	int ret;
+
+	led_val[0] = led_rgb >> 16 & 0xFF;  // R
+	led_val[1] = led_rgb >> 8  & 0xFF;  // G
+	led_val[2] = led_rgb & 0xFF;        // B
+
+	mutex_lock(&chip->i2c_lock);
+
+	ret = i2c_smbus_write_i2c_block_data(chip->client, AXONF_CMD_WRITE_STATUSLED,
+			FW_STATUSLED_SZ, led_val);
+
+	if(ret < 0) {
+		dev_err(&chip->client->dev, "failed to write status led %d\n",ret);
+		goto exit;
+	}
+
+	chip->statusled_rgb_color = led_rgb & 0x00FFFFFF;
+
+	ret = 0;
+
+exit:
+	mutex_unlock(&chip->i2c_lock);
+
+	return ret;
+}
 
 static int axonf_gpio_request(struct gpio_chip *gc, unsigned off)
 {
@@ -619,6 +771,70 @@ static void axonf_setup_gpio(struct axonf_chip *chip, int gpios)
 	gc->owner = THIS_MODULE;
 	gc->names = chip->names;
 }
+
+/*
+ * Sysfs show/store functions
+ */
+
+static ssize_t axonf_statusled_rgbhex_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	struct axonf_chip *chip = dev_get_drvdata(dev);
+	int len, ret;
+
+	ret = axonf_read_statusled(chip);
+
+	if(ret) {
+		dev_err(&chip->client->dev, "failed to read status led %d\n",ret);
+		return ret;
+	}
+
+	len = sprintf(buf,"%06X\n",chip->statusled_rgb_color);
+
+	return len;
+}
+
+static ssize_t axonf_statusled_rgbhex_store(struct device *dev, struct device_attribute *attr,
+					const char *buf, size_t count)
+{
+	struct axonf_chip *chip = dev_get_drvdata(dev);
+	int ret;
+	u32 led_rgb;
+
+	sscanf(buf,"%06X", &led_rgb);
+
+	ret = axonf_write_statusled(chip, led_rgb);
+
+	if(ret) {
+		dev_err(&chip->client->dev, "failed to write status led %d\n",ret);
+		return ret;
+	}
+
+	return count;
+}
+
+static DEVICE_ATTR(
+		statusled_rgbhex,
+		S_IRUGO | S_IWUSR,
+		axonf_statusled_rgbhex_show,
+        axonf_statusled_rgbhex_store);
+
+static struct attribute *axonf_attrs[] = {
+    &dev_attr_statusled_rgbhex.attr,
+    NULL
+};
+
+
+static const struct attribute_group axonf_group = {
+	.name = NULL,
+	.attrs = axonf_attrs,
+};
+
+static const struct attribute_group *axonf_groups[] = {
+	&axonf_group,
+	NULL,
+};
+
+//ATTRIBUTE_GROUPS(axonf);
 
 #if 0 //#ifdef CONFIG_GPIO_PCA953X_IRQ
 static void axonf_irq_mask(struct irq_data *d)
@@ -916,10 +1132,32 @@ static int device_axonf_init(struct axonf_chip *chip, u32 invert)
 
 	chip->regs = &axonf_regs;
 
+	ret = axonf_read_magic(chip);
+
+	if (ret)
+		goto out;
+
 	ret = axonf_read_version(chip);
 
 	if (ret)
 		goto out;
+
+	ret = axonf_read_cfgdata(chip);
+
+#if 0 // Temporarily disable return on failure here
+	if (ret)
+		goto out;
+#endif
+
+	dev_info(&chip->client->dev,"cfgdata value: 0x%02X\n", chip->cfgdata);
+
+	/* Read the status led */
+	ret = axonf_read_statusled(chip);
+
+	if(ret)
+		goto out;
+
+	dev_info(&chip->client->dev,"Status LED value: 0x%08X\n", chip->statusled_rgb_color);
 
 	ret = of_property_read_u8_array(chip->client->dev.of_node,"iob-enable",chip->reg_enable, MAX_BANK);
 	if(ret){
@@ -1098,7 +1336,8 @@ static int axonf_probe(struct i2c_client *client,
 	if (ret == -EPROBE_DEFER)
 		return -EPROBE_DEFER;
 
-	/* initialize cached registers from their original values.
+	/*
+	 * initialize cached registers from their original values.
 	 * we can't share this chip with another i2c master.
 	 */
 	axonf_setup_gpio(chip, chip->driver_data & AXONF_GPIO_MASK);
@@ -1128,10 +1367,18 @@ static int axonf_probe(struct i2c_client *client,
 
 	i2c_set_clientdata(client, chip);
 
+	/* Report FW version */
 	dev_info(&client->dev, "Fabric programmed with version: %d.%d.%d\n",
 			chip->fw_version[0],
 			chip->fw_version[1],
 			chip->fw_version[2]);
+
+	/* Create sysfs group for other attributes */
+	ret = sysfs_create_groups(&client->dev.kobj,axonf_groups);
+	if(ret) {
+		dev_err(&client->dev, "sysfs creation failed.\n");
+		goto err_exit;
+	}
 
 	return 0;
 
@@ -1147,6 +1394,8 @@ static int axonf_remove(struct i2c_client *client)
 	struct axonf_platform_data *pdata = dev_get_platdata(&client->dev);
 	struct axonf_chip *chip = i2c_get_clientdata(client);
 	int ret;
+
+	sysfs_remove_groups(&client->dev.kobj, axonf_groups);
 
 	if (pdata && pdata->teardown) {
 		ret = pdata->teardown(client, chip->gpio_chip.base,
