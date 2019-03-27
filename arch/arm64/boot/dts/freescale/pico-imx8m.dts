@@ -576,11 +576,11 @@
 		clock-names = "csi_mclk";
 		assigned-clocks = <&clk IMX8MQ_CLK_CLKO2>;
 		assigned-clock-parents = <&clk IMX8MQ_SYS2_PLL_200M>;
-		assigned-clock-rates = <20000000>;
+		assigned-clock-rates = <24000000>;
 		csi_id = <0>;
 		pwn-gpios = <&gpio3 2 GPIO_ACTIVE_LOW>;
 		rst-gpios = <&gpio1 12 GPIO_ACTIVE_HIGH>;
-		mclk = <20000000>;
+		mclk = <24000000>;
 		mclk_source = <0>;
 		port {
 			ov5645_mipi1_ep: endpoint {
@@ -606,11 +606,11 @@
 		clock-names = "csi_mclk";
 		assigned-clocks = <&clk IMX8MQ_CLK_CLKO2>;
 		assigned-clock-parents = <&clk IMX8MQ_SYS2_PLL_200M>;
-		assigned-clock-rates = <20000000>;
+		assigned-clock-rates = <24000000>;
 		csi_id = <1>;
 		pwn-gpios = <&gpio5 7 GPIO_ACTIVE_HIGH>;
 		rst-gpios = <&gpio3 16 GPIO_ACTIVE_HIGH>;
-		mclk = <20000000>;
+		mclk = <24000000>;
 		mclk_source = <0>;
 		port {
 			ov5645_mipi2_ep: endpoint {
