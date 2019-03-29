@@ -10,7 +10,7 @@
  *
  */
 
-#include <tnmacro.h>
+#include "tnmacro.h"
 
 / {
 	gpio-edm {
