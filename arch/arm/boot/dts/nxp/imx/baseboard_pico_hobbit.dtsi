@@ -10,7 +10,7 @@
  *
  */
 
-#include <tnmacro.h>
+#include "tnmacro.h"
 
 /*
  * Difference between hobbit baseboard FL and GL version
