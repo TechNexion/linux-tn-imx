@@ -116,6 +116,7 @@ dtb-$(CONFIG_ARCH_FSL_IMX8MQ) += fsl-imx8mq-ddr3l-arm2.dtb \
 				 fsl-imx8mq-evk-inmate.dtb \
 				 fsl-imx8mq-evk-dp.dtb \
 				 fsl-imx8mq-evk-edp.dtb \
+				 imx8mq-pico-pi.dtb \
 				 pico-imx8m.dtb \
 				 pico-imx8m-dcss-ili9881c.dtb \
 				 pico-imx8m-dcss-sn65dsi84-hj070na.dtb \
