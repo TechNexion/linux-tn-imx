@@ -559,11 +559,11 @@
 };
 
 &gpu_pd {
-	power-supply = <&buck3_reg>;
+
 };
 
 &vpu_pd {
-	power-supply = <&buck4_reg>;
+
 };
 
 &gpu {
