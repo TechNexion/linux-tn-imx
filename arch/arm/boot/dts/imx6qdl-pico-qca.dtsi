@@ -54,25 +54,17 @@
 		stdout-path = &uart1;
 	};
 
-	bcmdhd_wlan_0: bcmdhd_wlan@0 {
-		compatible = "android,bcmdhd_wlan";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_wifi_ctrl>;
-		gpios = <&gpio7 11 0>;    /* WL_HOST_WAKE */
-		wlreg_on-supply = <&wlreg_on>;
+	memory: memory {
+		reg = <0x10000000 0x80000000>;
 	};
 
 	bt_rfkill {
-		compatible = "net,rfkill-bcm43xx";
+		compatible = "net,rfkill-gpio";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_bt_ctrl>;
 		name = "bt_rfkill";
-		type = <2>;     /* bluetooth */
-		bt_rfkill_reset-gpios = <&gpio7 12 0>;
-	};
-
-	memory: memory {
-		reg = <0x10000000 0x80000000>;
+		type = "bluetooth";
+		shutdown-gpios = <&gpio7 12 GPIO_ACTIVE_HIGH>; /* BT_REG_ON: BT enable */
 	};
 
 	regulators {
@@ -116,13 +108,16 @@
 			gpio = <&gpio3 22 GPIO_ACTIVE_HIGH>;
 		};
 
-		wlreg_on: wlreg_on {
+		wl_reg_on: wlreg_on {
 			compatible = "regulator-fixed";
-			regulator-min-microvolt = <5000000>;
-			regulator-max-microvolt = <5000000>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_wifi_ctrl>;
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
 			regulator-name = "wlreg_on";
 			gpio = <&gpio1 7 GPIO_ACTIVE_HIGH>;
 			enable-active-high;
+			regulator-always-on;
 		};
 	};
 
@@ -269,7 +264,6 @@
 	imx6qdl-pico {
 		pinctrl_hog_1: hoggrp-1 {
 			fsl,pins = <
-				MX6QDL_PAD_ENET_RXD0__XTALOSC_REF_CLK_32K	0x000b0	/* wifi LPO 32K Hz clock */
 				MX6QDL_PAD_EIM_D22__GPIO3_IO22		0x80000000	/* USB OTG power */
 
 /* External pins on PICO connector */
@@ -288,16 +282,13 @@
 
 		pinctrl_wifi_ctrl: wifi_ctrlgrp {
 			fsl,pins = <
-				MX6QDL_PAD_GPIO_7__GPIO1_IO07			0x000b0		/* wifi-reg-on */
-				MX6QDL_PAD_GPIO_16__GPIO7_IO11			0x80000000	/* wifi-host-wake */
+				MX6QDL_PAD_GPIO_7__GPIO1_IO07	0x000b0		/* wifi-reg-on */
 			>;
 		};
 
 		pinctrl_bt_ctrl: bt_ctrlgrp {
 			fsl,pins = <
-				MX6QDL_PAD_GPIO_17__GPIO7_IO12		0x000b0		/* bluetooth-reg-on */
-				MX6QDL_PAD_GPIO_4__GPIO1_IO04		0x000b0		/* bluetooth-wake */
-				MX6QDL_PAD_GPIO_5__GPIO1_IO05   	0x000b0		/* bluetooth-host-wake */
+				MX6QDL_PAD_GPIO_17__GPIO7_IO12	0x000b0		/* bluetooth-reg-on */
 			>;
 		};
 
@@ -626,14 +617,14 @@
 &uart2 {  /* Bluetooth module */
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart2>;
-	uart-has-rtscts;
+	fsl,uart-has-rtscts;
 	status = "okay";
 };
 
 &uart3 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart3>;
-	uart-has-rtscts;
+	fsl,uart-has-rtscts;
 	status = "okay";
 };
 
@@ -665,9 +656,7 @@
 	no-1-8-v;
 	keep-power-in-suspend;
 	non-removable;
-	cd-post;
 	pm-ignore-notify;
-	wifi-host;
 	status = "okay";
 };
 
