@@ -1,0 +1,172 @@
+/*
+ * Copyright 2018 Technexion Ltd.
+ *
+ * Author: Tapani Utriainen <tapani@technexion.com>
+ *         Richard Hu <richard.hu@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ */
+
+#include <tnmacro.h>
+
+/ {
+	gpio-edm {
+		compatible = "gpio-edm";
+
+		gpio_p24 {
+			label = "GPIO_P24";
+			gpios = <&PICO_EXT_GPIO_P24 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+
+#ifdef PICO_PI_REVC2
+		gpio_p25 {
+			label = "SWITCH";
+			gpios = <&PICO_EXT_GPIO_P25 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+#else
+		gpio_p28 {
+			label = "GPIO_P28";
+			gpios = <&PICO_EXT_GPIO_P28 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+#endif
+		gpio_p26 {
+			label = "GPIO_P26";
+			gpios = <&PICO_EXT_GPIO_P26 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+		gpio_p30 {
+			label = "GPIO_P30";
+			gpios = <&PICO_EXT_GPIO_P30 GPIO_ACTIVE_HIGH>;
+			dir   = "in";
+		};
+		gpio_p34 {
+			label = "GPIO_P34";
+			gpios = <&PICO_EXT_GPIO_P34 GPIO_ACTIVE_HIGH>;
+			dir   = "in";
+		};
+#ifdef PICO_EXT_GPIO_P42
+		gpio_p42 {
+			label = "GPIO_P42";
+			gpios = <&PICO_EXT_GPIO_P42 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+#endif
+		gpio_p48 {
+			label = "GPIO_P48";
+			gpios = <&PICO_EXT_GPIO_P48 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+	};
+
+	sound {
+		compatible = "fsl,imx-sgtl5000",
+			     "fsl,imx-audio-sgtl5000";
+		model = "audio-sgtl5000";
+		ssi-controller = <&PICO_AUDA_I2S_CHANNEL>;
+		audio-codec = <&codec>;
+		audio-routing =
+			"MIC_IN", "Mic Jack",
+			"Mic Jack", "Mic Bias",
+			"Headphone Jack", "HP_OUT";
+#if defined(PICO_AUDA_MUX_INT) && defined(PICO_AUDA_MUX_EXT)
+		mux-int-port = <PICO_AUDA_MUX_INT>;
+		mux-ext-port = <PICO_AUDA_MUX_EXT>;
+#else
+		fsl,no-audmux = "true";
+#endif
+	};
+
+	gpio-leds {
+		compatible = "gpio-leds";
+
+		led {
+			label = "gpio-led";
+#ifdef PICO_PI_REVC2
+			gpios = <&PICO_EXT_GPIO_P28 GPIO_ACTIVE_HIGH>; /* PICO_P28 */
+#else
+			gpios = <&PICO_EXT_GPIO_P25 GPIO_ACTIVE_HIGH>; /* PICO_P25 */
+#endif
+		};
+	};
+
+	clocks {
+		codec_osc: aud_mclk {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <24576000>;
+		};
+	};
+};
+
+&PICO_I2CA {
+	status = "okay";
+
+	codec: sgtl5000@0a {
+		compatible = "fsl,sgtl5000";
+		reg = <0x0a>;
+		clocks = <&codec_osc>;
+		VDDA-supply = <&reg_2p5v>;
+		VDDIO-supply = <&reg_3p3v>;
+	};
+
+	bno055@28 {
+		compatible = "bno,bno055";
+		reg = <0x28>;
+		status = "okay";
+	};
+
+	bmp388@76 {
+		compatible = "bosch,bmp380";
+		reg = <0x76>;
+		status = "okay";
+	};
+
+	bme680@77 {
+		compatible = "bme,bme680";
+		reg = <0x77>;
+		status = "okay";
+	};
+};
+
+&PICO_I2CB {
+	polytouch: edt-ft5x06@38 {
+		compatible = "edt,edt-ft5x06";
+
+		reg = <0x38>;
+		interrupt-parent = <&GPIO_BANK(PICO_EXT_GPIO_P44)>; /* PICO_P44 */
+		interrupts = <GPIO_NO(PICO_EXT_GPIO_P44) 0>;
+		reset-gpios = <&PICO_EXT_GPIO_P32 GPIO_ACTIVE_LOW>; /* PICO_P32 */
+		touchscreen-size-x = <800>;
+		touchscreen-size-y = <480>;
+	};
+};
+
+&PICO_I2CC {
+	status = "okay";
+
+};
+
+&PICO_CANA {
+	status = "okay";
+};
+
+&PICO_CANB {
+	status = "okay";
+};
+
+&PICO_SPIA {
+	status = "okay";
+
+	spidev@1 {
+		compatible = "rohm,dh2228fv";
+		spi-max-frequency = <60000000>;
+		reg = <0>;
+	};
+};
+

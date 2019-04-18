@@ -1,0 +1,139 @@
+/*
+ * Copyright 2018 Technexion Ltd.
+ *
+ * Author: Tapani Utriainen <tapani@technexion.com>
+ *         Richard Hu <richard.hu@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ */
+
+#include <tnmacro.h>
+
+/ {
+	gpio-edm {
+		compatible = "gpio-edm";
+
+		/* Mikrobus */
+		gpio_p25 {
+			label = "GPIO_P25";
+			gpios = <&PICO_EXT_GPIO_P25 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+
+		/* GPIO connector, 4 GPIOs */
+		gpio_p28 {
+			label = "GPIO_P28";
+			gpios = <&PICO_EXT_GPIO_P28 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+		gpio_p30 {
+			label = "GPIO_P30";
+			gpios = <&PICO_EXT_GPIO_P30 GPIO_ACTIVE_HIGH>;
+			dir   = "in";
+		};
+		gpio_p32 {
+			label = "GPIO_P32";
+			gpios = <&PICO_EXT_GPIO_P32 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+		gpio_p34 {
+			label = "GPIO_P34";
+			gpios = <&PICO_EXT_GPIO_P34 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+	};
+
+	sound {
+		compatible = "fsl,imx-sgtl5000",
+			     "fsl,imx-audio-sgtl5000";
+		model = "audio-sgtl5000";
+		ssi-controller = <&PICO_AUDA_I2S_CHANNEL>;
+		audio-codec = <&codec>;
+		audio-routing =
+			"MIC_IN", "Mic Jack",
+			"Mic Jack", "Mic Bias",
+			"Headphone Jack", "HP_OUT";
+#if defined(PICO_AUDA_MUX_INT) && defined(PICO_AUDA_MUX_EXT)
+		mux-int-port = <PICO_AUDA_MUX_INT>;
+		mux-ext-port = <PICO_AUDA_MUX_EXT>;
+#else
+		fsl,no-audmux = "true";
+#endif
+	};
+
+	gpio-leds {
+		compatible = "gpio-leds";
+
+		led {
+			label = "gpio-led";
+			gpios = <&PICO_EXT_GPIO_P44 GPIO_ACTIVE_HIGH>; /* PICO_P44 */
+		};
+	};
+
+	clocks {
+		codec_osc: aud_mclk {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <24576000>;
+		};
+	};
+};
+
+&PICO_I2CA {
+	status = "okay";
+
+	codec: sgtl5000@0a {
+		compatible = "fsl,sgtl5000";
+		reg = <0x0a>;
+		clocks = <&codec_osc>;
+		VDDA-supply = <&reg_2p5v>;
+		VDDIO-supply = <&reg_3p3v>;
+	};
+
+	adc: adc081c {
+		compatible = "ti,adc081c";
+		reg = <0x52>;
+		vref-supply = <&reg_2p5v>;
+	};
+
+	rtc: ds1337 {
+		compatible = "dallas,ds1337";
+		reg = <0x68>;
+	};
+};
+
+&PICO_I2CB {
+	status = "okay";
+};
+
+&PICO_I2CC {
+	status = "okay";
+};
+
+&PICO_CANA {
+	status = "okay";
+};
+
+&PICO_CANB {
+	status = "okay";
+};
+
+&PICO_SPIA {
+	status = "okay";
+
+	spidev@1 {
+		compatible = "rohm,dh2228fv";
+		spi-max-frequency = <60000000>;
+		reg = <0>;
+	};
+};
+
+#ifdef PICO_PCIE
+&PICO_PCIE {
+	reset-gpio = <&PICO_EXT_GPIO_P26 GPIO_ACTIVE_HIGH>; /* PICO_P26 */
+	status = "okay";
+};
+#endif
