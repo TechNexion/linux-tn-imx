@@ -1,0 +1,168 @@
+/*
+ * Copyright 2018 Technexion Ltd.
+ *
+ * Author: Tapani Utriainen <tapani@technexion.com>
+ *         Richard Hu <richard.hu@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ */
+
+#include <tnmacro.h>
+
+/ {
+	gpio-edm {
+		compatible = "gpio-edm";
+
+		gpio_exp0 {
+			label = "GPIO_EXP0";
+			gpios = <&pca9554 0 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+		gpio_exp1 {
+			label = "GPIO_EXP1";
+			gpios = <&pca9554 1 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+		gpio_exp2 {
+			label = "GPIO_EXP2";
+			gpios = <&pca9554 2 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+		gpio_exp3 {
+			label = "GPIO_EXP3";
+			gpios = <&pca9554 3 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+		/* expander pin 4 is FT5x06 touch reset */
+		gpio_exp5 {
+			label = "GPIO_EXP5";
+			gpios = <&pca9554 5 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+		/* expander pin 6 is FT5x06 touch interrupt */
+		/* expander pin 7 is ADS7846 touch interrupt */
+	};
+
+	sound {
+		compatible = "fsl,imx-sgtl5000",
+			     "fsl,imx-audio-sgtl5000";
+		model = "audio-sgtl5000";
+		ssi-controller = <&PICO_AUDA_I2S_CHANNEL>;
+		audio-codec = <&codec>;
+		audio-routing =
+			"MIC_IN", "Mic Jack",
+			"Mic Jack", "Mic Bias",
+			"Headphone Jack", "HP_OUT";
+#if defined(PICO_AUDA_MUX_INT) && defined(PICO_AUDA_MUX_EXT)
+		mux-int-port = <PICO_AUDA_MUX_INT>;
+		mux-ext-port = <PICO_AUDA_MUX_EXT>;
+#else
+		fsl,no-audmux = "true";
+#endif
+	};
+
+	clocks {
+		codec_osc: aud_mclk {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <24576000>;
+		};
+	};
+};
+
+&PICO_I2CA {
+	status = "okay";
+
+	codec: sgtl5000@0a {
+		compatible = "fsl,sgtl5000";
+		reg = <0x0a>;
+		clocks = <&codec_osc>;
+		VDDA-supply = <&reg_2p5v>;
+		VDDIO-supply = <&reg_3p3v>;
+	};
+
+	fxas2100x@21 {
+		compatible = "fsl,fxas2100x";
+		reg = <0x21>;
+	};
+
+	fxos8700@1e {
+		compatible = "fsl,fxos8700";
+		reg = <0x1e>;
+	};
+
+	mpl3115@60 {
+		compatible = "fsl,mpl3115";
+		reg = <0x60>;
+	};
+};
+
+&PICO_I2CB {
+	status = "okay";
+
+	pca9554: pca9554@25 {
+		compatible = "nxp,pca9554";
+		gpio-controller;
+		#gpio-cells = <2>;
+		#interrupt-cells = <2>;
+		reg = <0x25>;
+	};
+
+	polytouch: edt-ft5x06@38 {
+		compatible = "edt,edt-ft5x06";
+		reg = <0x38>;
+		interrupt-parent = <&GPIO_BANK(PICO_EXT_GPIO_P44)>; /* PICO_P44(EXP_IO6) */
+		interrupts = <GPIO_NO(PICO_EXT_GPIO_P44) 0>;
+		reset-gpios = <&pca9554 4 GPIO_ACTIVE_LOW>; /* EXP_IO4 */
+		touchscreen-size-x = <800>;
+		touchscreen-size-y = <480>;
+	};
+};
+
+&PICO_I2CC {
+	status = "okay";
+
+	rtc: ds1337 {
+		compatible = "dallas,ds1337";
+		reg = <0x68>;
+	};
+};
+
+&PICO_CANA {
+	status = "okay";
+};
+
+&PICO_CANB {
+	status = "okay";
+};
+
+&PICO_SPIA {
+	status = "okay";
+
+	ads7846@0 {
+		reg = <0>;  /* CS0 */
+		compatible = "ti,ads7846";
+		interrupt-parent = <&GPIO_BANK(PICO_EXT_GPIO_P32)>; /* PICO_P32(EXP_IO7) */
+		interrupts = <GPIO_NO(PICO_EXT_GPIO_P32) 0>;
+		spi-max-frequency = <1000000>;
+		pendown-gpio = <&PICO_EXT_GPIO_P32 0>; /* PICO_P32(EXP_IO7) */
+		vcc-supply = <&reg_3p3v>;
+
+		ti,x-min = /bits/ 16 <0>;
+		ti,x-max = /bits/ 16 <4095>;
+		ti,y-min = /bits/ 16 <0>;
+		ti,y-max = /bits/ 16 <4095>;
+		ti,pressure-max = /bits/ 16 <1024>;
+		ti,x-plate-ohms = /bits/ 16 <90>;
+		ti,y-plate-ohms = /bits/ 16 <90>;
+		ti,debounce-max = /bits/ 16 <70>;
+		ti,debounce-tol = /bits/ 16 <3>;
+		ti,debounce-rep = /bits/ 16 <2>;
+		ti,settle-delay-usec = /bits/ 16 <150>;
+
+		linux,wakeup;
+	};
+};
