@@ -1545,7 +1545,7 @@ static const struct panel_desc nlt_nl192108ac18_02d = {
 	.bus_format = MEDIA_BUS_FMT_RGB888_1X7X4_SPWG,
 };
 
-static const struct drm_display_mode nvd_9128_mode = {
+static struct drm_display_mode nvd_9128_mode = {
 	.clock = 29500,
 	.hdisplay = 800,
 	.hsync_start = 800 + 130,
@@ -1568,7 +1568,7 @@ static const struct panel_desc nvd_9128 = {
 	.bus_format = MEDIA_BUS_FMT_RGB888_1X7X4_SPWG,
 };
 
-static const struct display_timing okaya_rs800480t_7x0gp_timing = {
+static struct display_timing okaya_rs800480t_7x0gp_timing = {
 	.pixelclock = { 30000000, 30000000, 40000000 },
 	.hactive = { 800, 800, 800 },
 	.hfront_porch = { 40, 40, 40 },
@@ -1598,7 +1598,7 @@ static const struct panel_desc okaya_rs800480t_7x0gp = {
 	.bus_format = MEDIA_BUS_FMT_RGB666_1X18,
 };
 
-static const struct drm_display_mode olimex_lcd_olinuxino_43ts_mode = {
+static struct drm_display_mode olimex_lcd_olinuxino_43ts_mode = {
 	.clock = 9000,
 	.hdisplay = 480,
 	.hsync_start = 480 + 5,
@@ -1626,7 +1626,7 @@ static const struct panel_desc olimex_lcd_olinuxino_43ts = {
  * pixel clocks, but this is the timing that was being used in the Adafruit
  * installation instructions.
  */
-static const struct drm_display_mode ontat_yx700wv03_mode = {
+static struct drm_display_mode ontat_yx700wv03_mode = {
 	.clock = 29500,
 	.hdisplay = 800,
 	.hsync_start = 824,
@@ -1655,7 +1655,7 @@ static const struct panel_desc ontat_yx700wv03 = {
 	.bus_format = MEDIA_BUS_FMT_RGB666_1X18,
 };
 
-static const struct drm_display_mode ortustech_com43h4m85ulc_mode  = {
+static struct drm_display_mode ortustech_com43h4m85ulc_mode  = {
 	.clock = 25000,
 	.hdisplay = 480,
 	.hsync_start = 480 + 10,
@@ -1680,7 +1680,7 @@ static const struct panel_desc ortustech_com43h4m85ulc = {
 	.bus_flags = DRM_BUS_FLAG_DE_HIGH | DRM_BUS_FLAG_PIXDATA_POSEDGE,
 };
 
-static const struct drm_display_mode qd43003c0_40_mode = {
+static struct drm_display_mode qd43003c0_40_mode = {
 	.clock = 9000,
 	.hdisplay = 480,
 	.hsync_start = 480 + 8,
@@ -1704,7 +1704,7 @@ static const struct panel_desc qd43003c0_40 = {
 	.bus_format = MEDIA_BUS_FMT_RGB888_1X24,
 };
 
-static const struct drm_display_mode samsung_lsn122dl01_c01_mode = {
+static struct drm_display_mode samsung_lsn122dl01_c01_mode = {
 	.clock = 271560,
 	.hdisplay = 2560,
 	.hsync_start = 2560 + 48,
@@ -1726,7 +1726,7 @@ static const struct panel_desc samsung_lsn122dl01_c01 = {
 	},
 };
 
-static const struct drm_display_mode samsung_ltn101nt05_mode = {
+static struct drm_display_mode samsung_ltn101nt05_mode = {
 	.clock = 54030,
 	.hdisplay = 1024,
 	.hsync_start = 1024 + 24,
@@ -1749,7 +1749,7 @@ static const struct panel_desc samsung_ltn101nt05 = {
 	},
 };
 
-static const struct drm_display_mode samsung_ltn140at29_301_mode = {
+static struct drm_display_mode samsung_ltn140at29_301_mode = {
 	.clock = 76300,
 	.hdisplay = 1366,
 	.hsync_start = 1366 + 64,
@@ -1772,7 +1772,7 @@ static const struct panel_desc samsung_ltn140at29_301 = {
 	},
 };
 
-static const struct display_timing sharp_lq101k1ly04_timing = {
+static struct display_timing sharp_lq101k1ly04_timing = {
 	.pixelclock = { 60000000, 65000000, 80000000 },
 	.hactive = { 1280, 1280, 1280 },
 	.hfront_porch = { 20, 20, 20 },
@@ -1796,7 +1796,7 @@ static const struct panel_desc sharp_lq101k1ly04 = {
 	.bus_format = MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA,
 };
 
-static const struct drm_display_mode sharp_lq123p1jx31_mode = {
+static struct drm_display_mode sharp_lq123p1jx31_mode = {
 	.clock = 252750,
 	.hdisplay = 2400,
 	.hsync_start = 2400 + 48,
@@ -1825,7 +1825,7 @@ static const struct panel_desc sharp_lq123p1jx31 = {
 	},
 };
 
-static const struct drm_display_mode sharp_lq150x1lg11_mode = {
+static struct drm_display_mode sharp_lq150x1lg11_mode = {
 	.clock = 71100,
 	.hdisplay = 1024,
 	.hsync_start = 1024 + 168,
@@ -1849,7 +1849,7 @@ static const struct panel_desc sharp_lq150x1lg11 = {
 	.bus_format = MEDIA_BUS_FMT_RGB565_1X16,
 };
 
-static const struct drm_display_mode shelly_sca07010_bfn_lnn_mode = {
+static struct drm_display_mode shelly_sca07010_bfn_lnn_mode = {
 	.clock = 33300,
 	.hdisplay = 800,
 	.hsync_start = 800 + 1,
@@ -1872,7 +1872,7 @@ static const struct panel_desc shelly_sca07010_bfn_lnn = {
 	.bus_format = MEDIA_BUS_FMT_RGB666_1X18,
 };
 
-static const struct drm_display_mode starry_kr122ea0sra_mode = {
+static struct drm_display_mode starry_kr122ea0sra_mode = {
 	.clock = 147000,
 	.hdisplay = 1920,
 	.hsync_start = 1920 + 16,
@@ -1900,7 +1900,7 @@ static const struct panel_desc starry_kr122ea0sra = {
 	},
 };
 
-static const struct display_timing tianma_tm070jdhg30_timing = {
+static struct display_timing tianma_tm070jdhg30_timing = {
 	.pixelclock = { 62600000, 68200000, 78100000 },
 	.hactive = { 1280, 1280, 1280 },
 	.hfront_porch = { 15, 64, 159 },
@@ -1924,7 +1924,7 @@ static const struct panel_desc tianma_tm070jdhg30 = {
 	.bus_format = MEDIA_BUS_FMT_RGB888_1X7X4_SPWG,
 };
 
-static const struct drm_display_mode tpk_f07a_0102_mode = {
+static struct drm_display_mode tpk_f07a_0102_mode = {
 	.clock = 33260,
 	.hdisplay = 800,
 	.hsync_start = 800 + 40,
@@ -1937,7 +1937,7 @@ static const struct drm_display_mode tpk_f07a_0102_mode = {
 	.vrefresh = 60,
 };
 
-static const struct panel_desc tpk_f07a_0102 = {
+static struct panel_desc tpk_f07a_0102 = {
 	.modes = &tpk_f07a_0102_mode,
 	.num_modes = 1,
 	.size = {
@@ -1947,7 +1947,7 @@ static const struct panel_desc tpk_f07a_0102 = {
 	.bus_flags = DRM_BUS_FLAG_PIXDATA_POSEDGE,
 };
 
-static const struct drm_display_mode tpk_f10a_0102_mode = {
+static struct drm_display_mode tpk_f10a_0102_mode = {
 	.clock = 45000,
 	.hdisplay = 1024,
 	.hsync_start = 1024 + 176,
@@ -1969,7 +1969,7 @@ static const struct panel_desc tpk_f10a_0102 = {
 	},
 };
 
-static const struct display_timing urt_umsh_8596md_timing = {
+static struct display_timing urt_umsh_8596md_timing = {
 	.pixelclock = { 33260000, 33260000, 33260000 },
 	.hactive = { 800, 800, 800 },
 	.hfront_porch = { 41, 41, 41 },
@@ -2005,7 +2005,7 @@ static const struct panel_desc urt_umsh_8596md_parallel = {
 	.bus_format = MEDIA_BUS_FMT_RGB666_1X18,
 };
 
-static const struct drm_display_mode winstar_wf35ltiacd_mode = {
+static struct drm_display_mode winstar_wf35ltiacd_mode = {
 	.clock = 6410,
 	.hdisplay = 320,
 	.hsync_start = 320 + 20,
@@ -2280,7 +2280,7 @@ struct panel_desc_dsi {
 	unsigned int lanes;
 };
 
-static const struct drm_display_mode auo_b080uan01_mode = {
+static struct drm_display_mode auo_b080uan01_mode = {
 	.clock = 154500,
 	.hdisplay = 1200,
 	.hsync_start = 1200 + 62,
@@ -2308,7 +2308,7 @@ static const struct panel_desc_dsi auo_b080uan01 = {
 	.lanes = 4,
 };
 
-static const struct drm_display_mode boe_tv080wum_nl0_mode = {
+static struct drm_display_mode boe_tv080wum_nl0_mode = {
 	.clock = 160000,
 	.hdisplay = 1200,
 	.hsync_start = 1200 + 120,
@@ -2338,7 +2338,7 @@ static const struct panel_desc_dsi boe_tv080wum_nl0 = {
 	.lanes = 4,
 };
 
-static const struct drm_display_mode lg_ld070wx3_sl01_mode = {
+static struct drm_display_mode lg_ld070wx3_sl01_mode = {
 	.clock = 71000,
 	.hdisplay = 800,
 	.hsync_start = 800 + 32,
@@ -2366,7 +2366,7 @@ static const struct panel_desc_dsi lg_ld070wx3_sl01 = {
 	.lanes = 4,
 };
 
-static const struct drm_display_mode lg_lh500wx1_sd03_mode = {
+static struct drm_display_mode lg_lh500wx1_sd03_mode = {
 	.clock = 67000,
 	.hdisplay = 720,
 	.hsync_start = 720 + 12,
@@ -2394,7 +2394,7 @@ static const struct panel_desc_dsi lg_lh500wx1_sd03 = {
 	.lanes = 4,
 };
 
-static const struct drm_display_mode panasonic_vvx10f004b00_mode = {
+static struct drm_display_mode panasonic_vvx10f004b00_mode = {
 	.clock = 157200,
 	.hdisplay = 1920,
 	.hsync_start = 1920 + 154,
@@ -2423,7 +2423,7 @@ static const struct panel_desc_dsi panasonic_vvx10f004b00 = {
 	.lanes = 4,
 };
 
-static const struct drm_display_mode innolux_hj070na_mode = {
+static struct drm_display_mode innolux_hj070na_mode = {
 	.clock = 51000,
 	.hdisplay = 1024,
 	.hsync_start = 1024 + 120,
@@ -2485,7 +2485,6 @@ static int panel_simple_dsi_probe(struct mipi_dsi_device *dsi)
 {
 	struct device_node *np = dsi->dev.of_node;
 	struct device_node *timings_np;
-	struct panel_simple* panel;
 	struct panel_desc_dsi *desc = NULL;
 	const struct of_device_id *id;
 	u32 dsi_flags = 0;
