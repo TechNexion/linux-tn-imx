@@ -90,22 +90,22 @@
 
 		pinctrl_i2c1: i2c1grp {
 			fsl,pins = <
-				MX8MQ_IOMUXC_I2C1_SCL_I2C1_SCL			0x4000007f
-				MX8MQ_IOMUXC_I2C1_SDA_I2C1_SDA			0x4000007f
+				MX8MQ_IOMUXC_I2C1_SCL_I2C1_SCL			0x40000067
+				MX8MQ_IOMUXC_I2C1_SDA_I2C1_SDA			0x40000067
 			>;
 		};
 
 		pinctrl_i2c2: i2c2grp {
 			fsl,pins = <
-				MX8MQ_IOMUXC_I2C2_SCL_I2C2_SCL			0x4000007f
-				MX8MQ_IOMUXC_I2C2_SDA_I2C2_SDA			0x4000007f
+				MX8MQ_IOMUXC_I2C2_SCL_I2C2_SCL			0x40000067
+				MX8MQ_IOMUXC_I2C2_SDA_I2C2_SDA			0x40000067
 			>;
 		};
 
 		pinctrl_i2c3: i2c3grp {
 			fsl,pins = <
-				MX8MQ_IOMUXC_I2C3_SCL_I2C3_SCL			0x4000007f
-				MX8MQ_IOMUXC_I2C3_SDA_I2C3_SDA			0x4000007f
+				MX8MQ_IOMUXC_I2C3_SCL_I2C3_SCL			0x40000067
+				MX8MQ_IOMUXC_I2C3_SDA_I2C3_SDA			0x40000067
 			>;
 		};
 
@@ -583,16 +583,6 @@
 };
 
 &mu {
-	status = "okay";
-};
-
-&rpmsg{
-	/*
-	 * 64K for one rpmsg instance:
-	 * --0xb8000000~0xb800ffff: pingpong
-	 */
-	vdev-nums = <1>;
-	reg = <0x0 0xb8000000 0x0 0x10000>;
 	status = "okay";
 };
 
