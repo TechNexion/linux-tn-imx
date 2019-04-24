@@ -58,6 +58,9 @@
 #define AXONF_CMD_WRITE_STATUSLED	0x45
 #define AXONF_CMD_READ_STATUSLED	0x46
 
+#define AXONF_CTRLREG_GIO_ENABLE				0
+#define AXONF_CTRLREG_SHARED_SYSCONFIG_DISABLE	1
+
 /*
  * Driver data and types
  */
@@ -173,6 +176,7 @@ struct axonf_chip {
 	const struct axonf_reg_config *regs;
 
 	u32 statusled_rgb_color;
+	u16 ctrlreg;
 	u8 cfgdata;
 
 	int (*write_regs)(struct axonf_chip *, int, u8 *);
@@ -684,6 +688,73 @@ exit:
 	return ret;
 }
 
+/*
+ * axonf_read_ctrlreg: Read control register
+ */
+static int axonf_read_ctrlreg(struct axonf_chip *chip)
+{
+	u8 reg[FW_CTRLREG_SZ+1];
+	int ret;
+	u16 ctrlreg = 0;
+
+	mutex_lock(&chip->i2c_lock);
+
+	ret = i2c_smbus_read_i2c_block_data(chip->client, AXONF_CMD_READ_CTRLREG,
+			FW_CTRLREG_SZ, reg);
+
+	if(ret < 0) {
+		dev_err(&chip->client->dev, "failed to read control register %d\n",ret);
+		goto exit;
+	}
+
+	ctrlreg =  (reg[0] << 8) | reg[1] ;
+
+	dev_info(&chip->client->dev, "Read control register: %04X\n",ctrlreg);
+
+	chip->ctrlreg = ctrlreg;
+
+	ret = 0;
+
+exit:
+	mutex_unlock(&chip->i2c_lock);
+
+	return ret;
+}
+
+/*
+ * axonf_write_ctrlreg: Writes new value to control register
+ */
+
+static int axonf_write_ctrlreg(struct axonf_chip *chip, u16 ctrlreg)
+{
+	u8 val[FW_CTRLREG_SZ+1];
+	int ret;
+
+	val[1] = ctrlreg & 0xFF;
+	val[0] = (ctrlreg >> 8) & 0xFF;
+
+	mutex_lock(&chip->i2c_lock);
+
+	ret = i2c_smbus_write_i2c_block_data(chip->client, AXONF_CMD_WRITE_CTRLREG,
+			FW_CTRLREG_SZ, val);
+
+	if(ret < 0) {
+		dev_err(&chip->client->dev, "failed to write control register %d\n",ret);
+		goto exit;
+	}
+
+	dev_info(&chip->client->dev, "Wrote control register: %04X\n",ctrlreg);
+
+	chip->ctrlreg = ctrlreg;
+
+	ret = 0;
+
+exit:
+	mutex_unlock(&chip->i2c_lock);
+
+	return ret;
+}
+
 static int axonf_gpio_request(struct gpio_chip *gc, unsigned off)
 {
 	struct axonf_chip *chip = gpiochip_get_data(gc);
@@ -818,11 +889,64 @@ static DEVICE_ATTR(
 		axonf_statusled_rgbhex_show,
         axonf_statusled_rgbhex_store);
 
+static ssize_t axonf_shared_sc_disable_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	struct axonf_chip *chip = dev_get_drvdata(dev);
+	int len, ret;
+	char val;
+
+	ret = axonf_read_ctrlreg(chip);
+
+	if(ret) {
+		dev_err(&chip->client->dev, "failed to read control register %d\n",ret);
+		return ret;
+	}
+
+	val = (chip->ctrlreg & (0x1 << AXONF_CTRLREG_SHARED_SYSCONFIG_DISABLE)) ? '1' : '0';
+
+	len = sprintf(buf,"%c\n", val);
+
+	return len;
+}
+
+static ssize_t axonf_shared_sc_disable_store(struct device *dev, struct device_attribute *attr,
+					const char *buf, size_t count)
+{
+	struct axonf_chip *chip = dev_get_drvdata(dev);
+	int ret;
+	int val;
+	int mask;
+
+	sscanf(buf,"%d", &val);
+
+	mask = 1 << AXONF_CTRLREG_SHARED_SYSCONFIG_DISABLE;
+
+	if(val)
+		chip->ctrlreg |= mask;
+	else
+		chip->ctrlreg &= ~mask;
+
+	ret = axonf_write_ctrlreg(chip, chip->ctrlreg);
+
+	if(ret) {
+		dev_err(&chip->client->dev, "failed to write ctrlreg %d\n",ret);
+		return ret;
+	}
+
+	return count;
+}
+
+static DEVICE_ATTR(
+		shared_sysconfig_disable,
+		S_IRUGO | S_IWUSR,
+		axonf_shared_sc_disable_show,
+        axonf_shared_sc_disable_store);
+
 static struct attribute *axonf_attrs[] = {
     &dev_attr_statusled_rgbhex.attr,
+	&dev_attr_shared_sysconfig_disable.attr,
     NULL
 };
-
 
 static const struct attribute_group axonf_group = {
 	.name = NULL,
@@ -1158,6 +1282,15 @@ static int device_axonf_init(struct axonf_chip *chip, u32 invert)
 		goto out;
 
 	dev_info(&chip->client->dev,"Status LED value: 0x%08X\n", chip->statusled_rgb_color);
+
+	ret = axonf_read_ctrlreg(chip);
+
+	if (ret) {
+		dev_err(&chip->client->dev,"error reading control register\n");
+		goto out;
+	}
+
+	dev_info(&chip->client->dev,"ctrlreg value: 0x%04X\n", chip->ctrlreg);
 
 	ret = of_property_read_u8_array(chip->client->dev.of_node,"iob-enable",chip->reg_enable, MAX_BANK);
 	if(ret){
