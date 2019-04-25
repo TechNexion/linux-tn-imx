@@ -2511,6 +2511,9 @@ static int panel_simple_dsi_probe(struct mipi_dsi_device *dsi)
 	/* if no drm_display_mode from device tree then use the (default) desc (i.e. id->data) */
 	if (!desc) {
 		desc = (struct panel_desc_dsi*)id->data;
+		dsi_flags = desc->flags;
+		dsi_format = desc->format;
+		dsi_lanes = desc->lanes;
 	} else {
 		/* parse only the dsi,flags, format, and lanes setting */
 		of_property_read_u32(np, "dsi,flags", &dsi_flags);
