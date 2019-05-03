@@ -121,7 +121,8 @@ struct ov5645 {
 	struct clk *sensor_clk;
 	int csi;
 
-	void (*io_init)(void);
+	void (*io_init)(struct ov5645 *);
+	int pwn_gpio, rst_gpio;
 
 	/* Fields to keep track of loaded settings */
 	enum ov5645_frame_rate loaded_fps;
@@ -136,8 +137,6 @@ struct ov5645_res {
 /*!
  * Maintains the information on the current state of the sesor.
  */
-static struct ov5645 ov5645_data;
-static int pwn_gpio, rst_gpio;
 
 struct ov5645_res ov5645_valid_res[] = {
 	[0] = {640, 480},
@@ -2191,8 +2190,8 @@ static int ov5645_probe(struct i2c_client *adapter,
 				const struct i2c_device_id *device_id);
 static int ov5645_remove(struct i2c_client *client);
 
-static s32 ov5645_read_reg(u16 reg, u8 *val);
-static s32 ov5645_write_reg(u16 reg, u8 val);
+static s32 ov5645_read_reg(struct ov5645 *sensor, u16 reg, u8 *val);
+static s32 ov5645_write_reg(struct ov5645 *sensor, u16 reg, u8 val);
 
 static const struct i2c_device_id ov5645_id[] = {
 	{"ov5645_mipi", 0},
@@ -2246,38 +2245,38 @@ static const struct ov5645_datafmt
 	return NULL;
 }
 
-static inline void ov5645_power_down(int enable)
+static inline void ov5645_power_down(struct ov5645 *sensor, int enable)
 {
-	if (pwn_gpio < 0)
+	if (sensor->pwn_gpio < 0)
 		return;
 
 	if (enable)
-		gpio_set_value_cansleep(pwn_gpio, 0);
+		gpio_set_value_cansleep(sensor->pwn_gpio, 0);
 	else
-		gpio_set_value_cansleep(pwn_gpio, 1);
+		gpio_set_value_cansleep(sensor->pwn_gpio, 1);
 
 	msleep(2);
 }
 
-static void ov5645_reset(void)
+static void ov5645_reset(struct ov5645 *sensor)
 {
-	if (rst_gpio < 0 || pwn_gpio < 0)
+	if (sensor->rst_gpio < 0 || sensor->pwn_gpio < 0)
 		return;
 
 	/* camera reset */
-	gpio_set_value(rst_gpio, 1);
+	gpio_set_value(sensor->rst_gpio, 1);
 
 	/* camera power dowmn */
-	gpio_set_value(pwn_gpio, 0);
+	gpio_set_value(sensor->pwn_gpio, 0);
 	msleep(5);
 
-	gpio_set_value(pwn_gpio, 1);
+	gpio_set_value(sensor->pwn_gpio, 1);
 	msleep(5);
 
-	gpio_set_value(rst_gpio, 0);
+	gpio_set_value(sensor->rst_gpio, 0);
 	msleep(1);
 
-	gpio_set_value(rst_gpio, 1);
+	gpio_set_value(sensor->rst_gpio, 1);
 	msleep(5);
 }
 
@@ -2343,7 +2342,7 @@ static int ov5645_regulator_enable(struct device *dev)
 	return ret;
 }
 
-static s32 ov5645_write_reg(u16 reg, u8 val)
+static s32 ov5645_write_reg(struct ov5645 *sensor, u16 reg, u8 val)
 {
 	u8 au8Buf[3] = {0};
 
@@ -2351,13 +2350,13 @@ static s32 ov5645_write_reg(u16 reg, u8 val)
 	au8Buf[1] = reg & 0xff;
 	au8Buf[2] = val;
 
-	if (i2c_master_send(ov5645_data.i2c_client, au8Buf, 3) < 0) {
+	if (i2c_master_send(sensor->i2c_client, au8Buf, 3) < 0) {
 		pr_err("%s:write reg error:reg=%x,val=%x, retrying once\n",
 			__func__, reg, val);
 
 		msleep(1);
 
-		if (i2c_master_send(ov5645_data.i2c_client, au8Buf, 3) < 0) {
+		if (i2c_master_send(sensor->i2c_client, au8Buf, 3) < 0) {
 			pr_err("%s:write reg error:reg=%x,val=%x, failed again, returning\n",
 				__func__, reg, val);
 			return -1;
@@ -2367,7 +2366,7 @@ static s32 ov5645_write_reg(u16 reg, u8 val)
 	return 0;
 }
 
-static s32 ov5645_read_reg(u16 reg, u8 *val)
+static s32 ov5645_read_reg(struct ov5645 *sensor, u16 reg, u8 *val)
 {
 	u8 au8RegBuf[2] = {0};
 	u8 u8RdVal = 0;
@@ -2375,13 +2374,13 @@ static s32 ov5645_read_reg(u16 reg, u8 *val)
 	au8RegBuf[0] = reg >> 8;
 	au8RegBuf[1] = reg & 0xff;
 
-	if (2 != i2c_master_send(ov5645_data.i2c_client, au8RegBuf, 2)) {
+	if (2 != i2c_master_send(sensor->i2c_client, au8RegBuf, 2)) {
 		pr_err("%s:write reg error:reg=%x\n",
 				__func__, reg);
 		return -1;
 	}
 
-	if (1 != i2c_master_recv(ov5645_data.i2c_client, &u8RdVal, 1)) {
+	if (1 != i2c_master_recv(sensor->i2c_client, &u8RdVal, 1)) {
 		pr_err("%s:read reg error:reg=%x,val=%x\n",
 				__func__, reg, u8RdVal);
 		return -1;
@@ -2392,29 +2391,29 @@ static s32 ov5645_read_reg(u16 reg, u8 *val)
 	return u8RdVal;
 }
 
-static void ov5645_release_af(void)
+static void ov5645_release_af(struct ov5645 *sensor)
 {
-	ov5645_write_reg(0x3022, 0x08);
+	ov5645_write_reg(sensor, 0x3022, 0x08);
 }
 
-static void ov5645_enable_cont_af(void)
+static void ov5645_enable_cont_af(struct ov5645 *sensor)
 {
-	ov5645_release_af();
-	ov5645_write_reg(0x3022, 0x12);
-	ov5645_write_reg(0x3022, 0x04);
+	ov5645_release_af(sensor);
+	ov5645_write_reg(sensor, 0x3022, 0x12);
+	ov5645_write_reg(sensor, 0x3022, 0x04);
 }
 
-static void ov5645_lock_af(void)
+static void ov5645_lock_af(struct ov5645 *sensor)
 {
 	u8 temp;
 	int cnt = 40;
 	/* At full 5M resolution it typically takes 1600ms for AF to stabilize.
 	 * Setting the retry count to 20 gives us enough margin to always succeed */
-	ov5645_release_af();
-	ov5645_write_reg(0x3022, 0x12);
-	ov5645_write_reg(0x3022, 0x03);
+	ov5645_release_af(sensor);
+	ov5645_write_reg(sensor, 0x3022, 0x12);
+	ov5645_write_reg(sensor, 0x3022, 0x03);
 	do {
-		ov5645_read_reg(0x3029, &temp);
+		ov5645_read_reg(sensor, 0x3029, &temp);
 		msleep(50);
 		pr_debug("AF reg 0x3029: 0x%02x\n", temp);
 		// If the status reg 0x3029 reads 0x10 we have stabilized
@@ -2427,24 +2426,24 @@ static void ov5645_lock_af(void)
 static int prev_sysclk, prev_HTS;
 static int AE_low, AE_high, AE_Target = 52;
 
-static void OV5645_stream_on(void)
+static void OV5645_stream_on(struct ov5645 *sensor)
 {
-	ov5645_write_reg(0x3008, 0x02);
-	ov5645_write_reg(0x4202, 0x00);
-	ov5645_enable_cont_af();
+	ov5645_write_reg(sensor, 0x3008, 0x02);
+	ov5645_write_reg(sensor, 0x4202, 0x00);
+	ov5645_enable_cont_af(sensor);
 }
 
-static void OV5645_stream_off(void)
+static void OV5645_stream_off(struct ov5645 *sensor)
 {
-	ov5645_release_af();
-	ov5645_write_reg(0x4202, 0x0f);
-	ov5645_write_reg(0x3008, 0x42);
+	ov5645_release_af(sensor);
+	ov5645_write_reg(sensor, 0x4202, 0x0f);
+	ov5645_write_reg(sensor, 0x3008, 0x42);
 }
 
-static int OV5645_get_sysclk(void)
+static int OV5645_get_sysclk(struct ov5645 *sensor)
 {
 	 /* calculate sysclk */
-	int xvclk = ov5645_data.mclk / 10000;
+	int xvclk = sensor->mclk / 10000;
 	int temp1, temp2;
 	int Multiplier, PreDiv, VCO, SysDiv, Pll_rdiv;
 	int Bit_div2x = 1, sclk_rdiv, sysclk;
@@ -2452,24 +2451,24 @@ static int OV5645_get_sysclk(void)
 
 	int sclk_rdiv_map[] = {1, 2, 4, 8};
 
-	temp1 = ov5645_read_reg(0x3034, &temp);
+	temp1 = ov5645_read_reg(sensor, 0x3034, &temp);
 	temp2 = temp1 & 0x0f;
 	if (temp2 == 8 || temp2 == 10)
 		Bit_div2x = temp2 / 2;
 
-	temp1 = ov5645_read_reg(0x3035, &temp);
+	temp1 = ov5645_read_reg(sensor, 0x3035, &temp);
 	SysDiv = temp1>>4;
 	if (SysDiv == 0)
 		SysDiv = 16;
 
-	temp1 = ov5645_read_reg(0x3036, &temp);
+	temp1 = ov5645_read_reg(sensor, 0x3036, &temp);
 	Multiplier = temp1;
 
-	temp1 = ov5645_read_reg(0x3037, &temp);
+	temp1 = ov5645_read_reg(sensor, 0x3037, &temp);
 	PreDiv = temp1 & 0x0f;
 	Pll_rdiv = ((temp1 >> 4) & 0x01) + 1;
 
-	temp1 = ov5645_read_reg(0x3108, &temp);
+	temp1 = ov5645_read_reg(sensor, 0x3108, &temp);
 	temp2 = temp1 & 0x03;
 	sclk_rdiv = sclk_rdiv_map[temp2];
 
@@ -2480,70 +2479,70 @@ static int OV5645_get_sysclk(void)
 	return sysclk;
 }
 
-static void OV5645_set_night_mode(void)
+static void OV5645_set_night_mode(struct ov5645 *sensor)
 {
 	 /* read HTS from register settings */
 	u8 mode;
 
-	ov5645_read_reg(0x3a00, &mode);
+	ov5645_read_reg(sensor, 0x3a00, &mode);
 	mode &= 0xfb;
-	ov5645_write_reg(0x3a00, mode);
+	ov5645_write_reg(sensor, 0x3a00, mode);
 }
 
-static int OV5645_get_HTS(void)
+static int OV5645_get_HTS(struct ov5645 *sensor)
 {
 	 /* read HTS from register settings */
 	int HTS;
 	u8 temp;
 
-	HTS = ov5645_read_reg(0x380c, &temp);
-	HTS = (HTS<<8) + ov5645_read_reg(0x380d, &temp);
+	HTS = ov5645_read_reg(sensor, 0x380c, &temp);
+	HTS = (HTS<<8) + ov5645_read_reg(sensor, 0x380d, &temp);
 
 	return HTS;
 }
 
-static int OV5645_get_VTS(void)
+static int OV5645_get_VTS(struct ov5645 *sensor)
 {
 	 /* read VTS from register settings */
 	int VTS;
 	u8 temp;
 
 	/* total vertical size[15:8] high byte */
-	VTS = ov5645_read_reg(0x380e, &temp);
+	VTS = ov5645_read_reg(sensor, 0x380e, &temp);
 
-	VTS = (VTS<<8) + ov5645_read_reg(0x380f, &temp);
+	VTS = (VTS<<8) + ov5645_read_reg(sensor, 0x380f, &temp);
 
 	return VTS;
 }
 
-static int OV5645_set_VTS(int VTS)
+static int OV5645_set_VTS(struct ov5645 *sensor, int VTS)
 {
 	 /* write VTS to registers */
 	 int temp;
 
 	 temp = VTS & 0xff;
-	 ov5645_write_reg(0x380f, temp);
+	 ov5645_write_reg(sensor, 0x380f, temp);
 
 	 temp = VTS>>8;
-	 ov5645_write_reg(0x380e, temp);
+	 ov5645_write_reg(sensor, 0x380e, temp);
 
 	 return 0;
 }
 
-static int OV5645_get_shutter(void)
+static int OV5645_get_shutter(struct ov5645 *sensor)
 {
 	 /* read shutter, in number of line period */
 	int shutter;
 	u8 temp;
 
-	shutter = (ov5645_read_reg(0x03500, &temp) & 0x0f);
-	shutter = (shutter<<8) + ov5645_read_reg(0x3501, &temp);
-	shutter = (shutter<<4) + (ov5645_read_reg(0x3502, &temp)>>4);
+	shutter = (ov5645_read_reg(sensor, 0x03500, &temp) & 0x0f);
+	shutter = (shutter<<8) + ov5645_read_reg(sensor, 0x3501, &temp);
+	shutter = (shutter<<4) + (ov5645_read_reg(sensor, 0x3502, &temp)>>4);
 
 	 return shutter;
 }
 
-static int OV5645_set_shutter(int shutter)
+static int OV5645_set_shutter(struct ov5645 *sensor, int shutter)
 {
 	 /* write shutter, in number of line period */
 	 int temp;
@@ -2552,56 +2551,56 @@ static int OV5645_set_shutter(int shutter)
 
 	 temp = shutter & 0x0f;
 	 temp = temp<<4;
-	 ov5645_write_reg(0x3502, temp);
+	 ov5645_write_reg(sensor, 0x3502, temp);
 
 	 temp = shutter & 0xfff;
 	 temp = temp>>4;
-	 ov5645_write_reg(0x3501, temp);
+	 ov5645_write_reg(sensor, 0x3501, temp);
 
 	 temp = shutter>>12;
-	 ov5645_write_reg(0x3500, temp);
+	 ov5645_write_reg(sensor, 0x3500, temp);
 
 	 return 0;
 }
 
-static int OV5645_get_gain16(void)
+static int OV5645_get_gain16(struct ov5645 *sensor)
 {
 	 /* read gain, 16 = 1x */
 	int gain16;
 	u8 temp;
 
-	gain16 = ov5645_read_reg(0x350a, &temp) & 0x03;
-	gain16 = (gain16<<8) + ov5645_read_reg(0x350b, &temp);
+	gain16 = ov5645_read_reg(sensor, 0x350a, &temp) & 0x03;
+	gain16 = (gain16<<8) + ov5645_read_reg(sensor, 0x350b, &temp);
 
 	return gain16;
 }
 
-static int OV5645_set_gain16(int gain16)
+static int OV5645_set_gain16(struct ov5645 *sensor, int gain16)
 {
 	/* write gain, 16 = 1x */
 	u8 temp;
 	gain16 = gain16 & 0x3ff;
 
 	temp = gain16 & 0xff;
-	ov5645_write_reg(0x350b, temp);
+	ov5645_write_reg(sensor, 0x350b, temp);
 
 	temp = gain16>>8;
-	ov5645_write_reg(0x350a, temp);
+	ov5645_write_reg(sensor, 0x350a, temp);
 
 	return 0;
 }
 
-static int OV5645_get_light_freq(void)
+static int OV5645_get_light_freq(struct ov5645 *sensor)
 {
 	/* get banding filter value */
 	int temp, temp1, light_freq = 0;
 	u8 tmp;
 
-	temp = ov5645_read_reg(0x3c01, &tmp);
+	temp = ov5645_read_reg(sensor, 0x3c01, &tmp);
 
 	if (temp & 0x80) {
 		/* manual */
-		temp1 = ov5645_read_reg(0x3c00, &tmp);
+		temp1 = ov5645_read_reg(sensor, 0x3c00, &tmp);
 		if (temp1 & 0x04) {
 			/* 50Hz */
 			light_freq = 50;
@@ -2611,7 +2610,7 @@ static int OV5645_get_light_freq(void)
 		}
 	} else {
 		/* auto */
-		temp1 = ov5645_read_reg(0x3c0c, &tmp);
+		temp1 = ov5645_read_reg(sensor, 0x3c0c, &tmp);
 		if (temp1 & 0x01) {
 			/* 50Hz */
 			light_freq = 50;
@@ -2622,38 +2621,38 @@ static int OV5645_get_light_freq(void)
 	return light_freq;
 }
 
-static void OV5645_set_bandingfilter(void)
+static void OV5645_set_bandingfilter(struct ov5645 *sensor)
 {
 	int prev_VTS;
 	int band_step60, max_band60, band_step50, max_band50;
 
 	/* read preview PCLK */
-	prev_sysclk = OV5645_get_sysclk();
+	prev_sysclk = OV5645_get_sysclk(sensor);
 	/* read preview HTS */
-	prev_HTS = OV5645_get_HTS();
+	prev_HTS = OV5645_get_HTS(sensor);
 
 	/* read preview VTS */
-	prev_VTS = OV5645_get_VTS();
+	prev_VTS = OV5645_get_VTS(sensor);
 
 	/* calculate banding filter */
 	/* 60Hz */
 	band_step60 = prev_sysclk * 100/prev_HTS * 100/120;
-	ov5645_write_reg(0x3a0a, (band_step60 >> 8));
-	ov5645_write_reg(0x3a0b, (band_step60 & 0xff));
+	ov5645_write_reg(sensor, 0x3a0a, (band_step60 >> 8));
+	ov5645_write_reg(sensor, 0x3a0b, (band_step60 & 0xff));
 
 	max_band60 = (int)((prev_VTS-4)/band_step60);
-	ov5645_write_reg(0x3a0d, max_band60);
+	ov5645_write_reg(sensor, 0x3a0d, max_band60);
 
 	/* 50Hz */
 	band_step50 = prev_sysclk * 100/prev_HTS;
-	ov5645_write_reg(0x3a08, (band_step50 >> 8));
-	ov5645_write_reg(0x3a09, (band_step50 & 0xff));
+	ov5645_write_reg(sensor, 0x3a08, (band_step50 >> 8));
+	ov5645_write_reg(sensor, 0x3a09, (band_step50 & 0xff));
 
 	max_band50 = (int)((prev_VTS-4)/band_step50);
-	ov5645_write_reg(0x3a0e, max_band50);
+	ov5645_write_reg(sensor, 0x3a0e, max_band50);
 }
 
-static int OV5645_set_AE_target(int target)
+static int OV5645_set_AE_target(struct ov5645 *sensor, int target)
 {
 	/* stable in high */
 	int fast_high, fast_low;
@@ -2666,21 +2665,21 @@ static int OV5645_set_AE_target(int target)
 
 	fast_low = AE_low >> 1;
 
-	ov5645_write_reg(0x3a0f, AE_high);
-	ov5645_write_reg(0x3a10, AE_low);
-	ov5645_write_reg(0x3a1b, AE_high);
-	ov5645_write_reg(0x3a1e, AE_low);
-	ov5645_write_reg(0x3a11, fast_high);
-	ov5645_write_reg(0x3a1f, fast_low);
+	ov5645_write_reg(sensor, 0x3a0f, AE_high);
+	ov5645_write_reg(sensor, 0x3a10, AE_low);
+	ov5645_write_reg(sensor, 0x3a1b, AE_high);
+	ov5645_write_reg(sensor, 0x3a1e, AE_low);
+	ov5645_write_reg(sensor, 0x3a11, fast_high);
+	ov5645_write_reg(sensor, 0x3a1f, fast_low);
 
 	return 0;
 }
 
-static void OV5645_turn_on_AE_AG(int enable)
+static void OV5645_turn_on_AE_AG(struct ov5645 *sensor, int enable)
 {
 	u8 ae_ag_ctrl;
 
-	ov5645_read_reg(0x3503, &ae_ag_ctrl);
+	ov5645_read_reg(sensor, 0x3503, &ae_ag_ctrl);
 	if (enable) {
 		/* turn on auto AE/AG */
 		ae_ag_ctrl = ae_ag_ctrl & ~(0x03);
@@ -2688,13 +2687,13 @@ static void OV5645_turn_on_AE_AG(int enable)
 		/* turn off AE/AG */
 		ae_ag_ctrl = ae_ag_ctrl | 0x03;
 	}
-	ov5645_write_reg(0x3503, ae_ag_ctrl);
+	ov5645_write_reg(sensor, 0x3503, ae_ag_ctrl);
 }
 
-static bool binning_on(void)
+static bool binning_on(struct ov5645 *sensor)
 {
 	u8 temp;
-	ov5645_read_reg(0x3821, &temp);
+	ov5645_read_reg(sensor, 0x3821, &temp);
 	temp &= 0xfe;
 	if (temp)
 		return true;
@@ -2702,17 +2701,17 @@ static bool binning_on(void)
 		return false;
 }
 
-static void ov5645_set_virtual_channel(int channel)
+static void ov5645_set_virtual_channel(struct ov5645 *sensor, int channel)
 {
 	u8 channel_id;
 
-	ov5645_read_reg(0x4814, &channel_id);
+	ov5645_read_reg(sensor, 0x4814, &channel_id);
 	channel_id &= ~(3 << 6);
-	ov5645_write_reg(0x4814, channel_id | (channel << 6));
+	ov5645_write_reg(sensor, 0x4814, channel_id | (channel << 6));
 }
 
 /* download ov5645 settings to sensor through i2c */
-static int ov5645_download_firmware(struct reg_value *pModeSetting, s32 ArySize)
+static int ov5645_download_firmware(struct ov5645 *sensor, struct reg_value *pModeSetting, s32 ArySize)
 {
 	register u32 Delay_ms = 0;
 	register u16 RegAddr = 0;
@@ -2728,7 +2727,7 @@ static int ov5645_download_firmware(struct reg_value *pModeSetting, s32 ArySize)
 		Mask = pModeSetting->u8Mask;
 
 		if (Mask) {
-			retval = ov5645_read_reg(RegAddr, &RegVal);
+			retval = ov5645_read_reg(sensor, RegAddr, &RegVal);
 			if (retval < 0)
 				goto err;
 
@@ -2737,7 +2736,7 @@ static int ov5645_download_firmware(struct reg_value *pModeSetting, s32 ArySize)
 			Val |= RegVal;
 		}
 
-		retval = ov5645_write_reg(RegAddr, Val);
+		retval = ov5645_write_reg(sensor, RegAddr, Val);
 		if (retval < 0)
 			goto err;
 
@@ -2748,7 +2747,7 @@ err:
 	return retval;
 }
 
-static void ov5645_dnld_af_fw(void)
+static void ov5645_dnld_af_fw(struct ov5645 *sensor)
 {
 	struct reg_value *pModeSetting = NULL;
 	s32 ArySize = 0;
@@ -2758,10 +2757,10 @@ static void ov5645_dnld_af_fw(void)
 
 	pModeSetting = ov5645_af_setting;
 	ArySize = ARRAY_SIZE(ov5645_af_setting);
-	retval = ov5645_download_firmware(pModeSetting, ArySize);
+	retval = ov5645_download_firmware(sensor, pModeSetting, ArySize);
 
 	do {
-		ov5645_read_reg(0x3029, &temp);
+		ov5645_read_reg(sensor, 0x3029, &temp);
 		msleep(5);
 	} while (temp != 0x70 && --cnt > 0);
 
@@ -2772,7 +2771,7 @@ static void ov5645_dnld_af_fw(void)
 /* sensor changes between scaling and subsampling
  * go through exposure calcualtion
  */
-static int ov5645_change_mode_exposure_calc(enum ov5645_frame_rate frame_rate,
+static int ov5645_change_mode_exposure_calc(struct ov5645 *sensor, enum ov5645_frame_rate frame_rate,
 				enum ov5645_mode mode)
 {
 	struct reg_value *pModeSetting = NULL;
@@ -2791,12 +2790,12 @@ static int ov5645_change_mode_exposure_calc(enum ov5645_frame_rate frame_rate,
 	ArySize =
 		ov5645_mode_info_data[frame_rate][mode].init_data_size;
 
-	ov5645_data.pix.width =
+	sensor->pix.width =
 		ov5645_mode_info_data[frame_rate][mode].width;
-	ov5645_data.pix.height =
+	sensor->pix.height =
 		ov5645_mode_info_data[frame_rate][mode].height;
 
-	if (ov5645_data.pix.width == 0 || ov5645_data.pix.height == 0 ||
+	if (sensor->pix.width == 0 || sensor->pix.height == 0 ||
 		pModeSetting == NULL || ArySize == 0)
 		return -EINVAL;
 
@@ -2804,40 +2803,40 @@ static int ov5645_change_mode_exposure_calc(enum ov5645_frame_rate frame_rate,
 	/* OV5645_auto_focus();//if no af function, just skip it */
 
 	/* turn off AE/AG */
-	OV5645_turn_on_AE_AG(0);
+	OV5645_turn_on_AE_AG(sensor, 0);
 
 	/* read preview shutter */
-	prev_shutter = OV5645_get_shutter();
-	if ((binning_on()) && (mode != ov5645_mode_720P_1280_720)
+	prev_shutter = OV5645_get_shutter(sensor);
+	if ((binning_on(sensor)) && (mode != ov5645_mode_720P_1280_720)
 			&& (mode != ov5645_mode_1080P_1920_1080))
 		prev_shutter *= 2;
 
 	/* read preview gain */
-	prev_gain16 = OV5645_get_gain16();
+	prev_gain16 = OV5645_get_gain16(sensor);
 
 	/* get average */
-	ov5645_read_reg(0x56a1, &average);
+	ov5645_read_reg(sensor, 0x56a1, &average);
 
 	/* turn off night mode for capture */
-	OV5645_set_night_mode();
+	OV5645_set_night_mode(sensor);
 
 	/* turn off overlay */
-	/* ov5645_write_reg(0x3022, 0x06);//if no af function, just skip it */
+	/* ov5645_write_reg(sensor, sensor, 0x3022, 0x06);//if no af function, just skip it */
 
-	OV5645_stream_off();
+	OV5645_stream_off(sensor);
 
 	/* Write capture setting */
-	retval = ov5645_download_firmware(pModeSetting, ArySize);
+	retval = ov5645_download_firmware(sensor, pModeSetting, ArySize);
 	if (retval < 0)
 		goto err;
 
 	/* read capture VTS */
-	cap_VTS = OV5645_get_VTS();
-	cap_HTS = OV5645_get_HTS();
-	cap_sysclk = OV5645_get_sysclk();
+	cap_VTS = OV5645_get_VTS(sensor);
+	cap_HTS = OV5645_get_HTS(sensor);
+	cap_sysclk = OV5645_get_sysclk(sensor);
 
 	/* calculate capture banding filter */
-	light_freq = OV5645_get_light_freq();
+	light_freq = OV5645_get_light_freq(sensor);
 	if (light_freq == 60) {
 		/* 60Hz */
 		cap_bandfilt = cap_sysclk * 100 / cap_HTS * 100 / 120;
@@ -2885,14 +2884,14 @@ static int ov5645_change_mode_exposure_calc(enum ov5645_frame_rate frame_rate,
 	}
 
 	/* write capture gain */
-	OV5645_set_gain16(cap_gain16);
+	OV5645_set_gain16(sensor, cap_gain16);
 
 	/* write capture shutter */
 	if (cap_shutter > (cap_VTS - 4)) {
 		cap_VTS = cap_shutter + 4;
-		OV5645_set_VTS(cap_VTS);
+		OV5645_set_VTS(sensor, cap_VTS);
 	}
-	OV5645_set_shutter(cap_shutter);
+	OV5645_set_shutter(sensor, cap_shutter);
 
 err:
 	return retval;
@@ -2901,7 +2900,7 @@ err:
 /* if sensor changes inside scaling or subsampling
  * change mode directly
  * */
-static int ov5645_change_mode_direct(enum ov5645_frame_rate frame_rate,
+static int ov5645_change_mode_direct(struct ov5645 *sensor, enum ov5645_frame_rate frame_rate,
 				enum ov5645_mode mode)
 {
 	struct reg_value *pModeSetting = NULL;
@@ -2914,32 +2913,32 @@ static int ov5645_change_mode_direct(enum ov5645_frame_rate frame_rate,
 	ArySize =
 		ov5645_mode_info_data[frame_rate][mode].init_data_size;
 
-	ov5645_data.pix.width =
+	sensor->pix.width =
 		ov5645_mode_info_data[frame_rate][mode].width;
-	ov5645_data.pix.height =
+	sensor->pix.height =
 		ov5645_mode_info_data[frame_rate][mode].height;
 
-	if (ov5645_data.pix.width == 0 || ov5645_data.pix.height == 0 ||
+	if (sensor->pix.width == 0 || sensor->pix.height == 0 ||
 		pModeSetting == NULL || ArySize == 0)
 		return -EINVAL;
 
 	/* turn off AE/AG */
-	OV5645_turn_on_AE_AG(0);
+	OV5645_turn_on_AE_AG(sensor, 0);
 
-	OV5645_stream_off();
+	OV5645_stream_off(sensor);
 
 	/* Write capture setting */
-	retval = ov5645_download_firmware(pModeSetting, ArySize);
+	retval = ov5645_download_firmware(sensor, pModeSetting, ArySize);
 	if (retval < 0)
 		goto err;
 
-	OV5645_turn_on_AE_AG(1);
+	OV5645_turn_on_AE_AG(sensor, 1);
 
 err:
 	return retval;
 }
 
-static int ov5645_init_mode(enum ov5645_frame_rate frame_rate,
+static int ov5645_init_mode(struct ov5645 *sensor, enum ov5645_frame_rate frame_rate,
 			    enum ov5645_mode mode, enum ov5645_mode orig_mode)
 {
 	struct reg_value *pModeSetting = NULL;
@@ -2960,39 +2959,39 @@ static int ov5645_init_mode(enum ov5645_frame_rate frame_rate,
 		pModeSetting = ov5645_init_setting_30fps_VGA;
 		ArySize = ARRAY_SIZE(ov5645_init_setting_30fps_VGA);
 
-		ov5645_data.pix.width = 2592;
-		ov5645_data.pix.height = 1944;
-		ov5645_data.loaded_fps = ov5645_15_fps;
-		ov5645_data.loaded_mode = ov5645_mode_QSXGA_2592_1944;
+		sensor->pix.width = 2592;
+		sensor->pix.height = 1944;
+		sensor->loaded_fps = ov5645_15_fps;
+		sensor->loaded_mode = ov5645_mode_QSXGA_2592_1944;
 
-		retval = ov5645_download_firmware(pModeSetting, ArySize);
+		retval = ov5645_download_firmware(sensor, pModeSetting, ArySize);
 		if (retval < 0)
 			goto err;
 
 		pModeSetting = ov5645_setting_15fps_QSXGA_2592_1944;
 		ArySize = ARRAY_SIZE(ov5645_setting_15fps_QSXGA_2592_1944);
-		retval = ov5645_download_firmware(pModeSetting, ArySize);
+		retval = ov5645_download_firmware(sensor, pModeSetting, ArySize);
 
-		ov5645_dnld_af_fw();
+		ov5645_dnld_af_fw(sensor);
 
 	} else if ((dn_mode == SUBSAMPLING && orig_dn_mode == SCALING) ||
 			(dn_mode == SCALING && orig_dn_mode == SUBSAMPLING)) {
 		/* change between subsampling and scaling
 		 * go through exposure calucation */
-		retval = ov5645_change_mode_exposure_calc(frame_rate, mode);
+		retval = ov5645_change_mode_exposure_calc(sensor, frame_rate, mode);
 	} else {
 		/* change inside subsampling or scaling
 		 * download firmware directly */
-		retval = ov5645_change_mode_direct(frame_rate, mode);
+		retval = ov5645_change_mode_direct(sensor, frame_rate, mode);
 	}
 
 	if (retval < 0)
 		goto err;
 
-	OV5645_set_AE_target(AE_Target);
-	OV5645_get_light_freq();
-	OV5645_set_bandingfilter();
-	ov5645_set_virtual_channel(ov5645_data.csi);
+	OV5645_set_AE_target(sensor, AE_Target);
+	OV5645_get_light_freq(sensor);
+	OV5645_set_bandingfilter(sensor);
+	ov5645_set_virtual_channel(sensor, sensor->csi);
 
 	/* add delay to wait for sensor stable */
 	if (mode == ov5645_mode_QSXGA_2592_1944) {
@@ -3148,10 +3147,10 @@ static int ov5645_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *a)
 			return -EINVAL;
 		}
 
-		orig_mode = ov5645_data.loaded_mode;
+		orig_mode = sensor->loaded_mode;
 		if ((orig_mode != (u32)a->parm.capture.capturemode) ||
-				(frame_rate != ov5645_data.loaded_fps)) {
-			ret = ov5645_init_mode(frame_rate,
+				(frame_rate != sensor->loaded_fps)) {
+			ret = ov5645_init_mode(sensor, frame_rate,
 					(u32)a->parm.capture.capturemode, orig_mode);
 		}
 		if (ret < 0)
@@ -3160,8 +3159,8 @@ static int ov5645_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *a)
 		sensor->streamcap.timeperframe = *timeperframe;
 		sensor->streamcap.capturemode =
 				(u32)a->parm.capture.capturemode;
-		ov5645_data.loaded_mode = a->parm.capture.capturemode;
-		ov5645_data.loaded_fps = frame_rate;
+		sensor->loaded_mode = a->parm.capture.capturemode;
+		sensor->loaded_fps = frame_rate;
 		break;
 
 	/* These are all the possible cases. */
@@ -3210,9 +3209,9 @@ static int ov5645_set_fmt(struct v4l2_subdev *sd,
 
 	capturemode = get_capturemode(mf->width, mf->height);
 	if (capturemode >= 0) {
-		ov5645_data.streamcap.capturemode = capturemode;
-		ov5645_data.pix.width = mf->width;
-		ov5645_data.pix.height = mf->height;
+		sensor->streamcap.capturemode = capturemode;
+		sensor->pix.width = mf->width;
+		sensor->pix.height = mf->height;
 		return 0;
 	}
 
@@ -3237,8 +3236,8 @@ static int ov5645_get_fmt(struct v4l2_subdev *sd,
 	mf->colorspace	= fmt->colorspace;
 	mf->field	= V4L2_FIELD_NONE;
 
-	mf->width	= ov5645_data.pix.width;
-	mf->height	= ov5645_data.pix.height;
+	mf->width	= sensor->pix.width;
+	mf->height	= sensor->pix.height;
 
 	return 0;
 }
@@ -3329,26 +3328,26 @@ static int ov5645_enum_frameintervals(struct v4l2_subdev *sd,
  * @s: pointer to standard V4L2 device structure
  *
  */
-static int init_device(void)
+static int init_device(struct ov5645 *sensor)
 {
 	u32 tgt_xclk;	/* target xclk */
 	u32 tgt_fps;	/* target frames per secound */
 	enum ov5645_frame_rate frame_rate;
 	int ret;
 
-	ov5645_data.on = true;
+	sensor->on = true;
 
 	/* mclk */
-	tgt_xclk = ov5645_data.mclk;
+	tgt_xclk = sensor->mclk;
 	tgt_xclk = min(tgt_xclk, (u32)OV5645_XCLK_MAX);
 	tgt_xclk = max(tgt_xclk, (u32)OV5645_XCLK_MIN);
-	ov5645_data.mclk = tgt_xclk;
+	sensor->mclk = tgt_xclk;
 
 	pr_debug("   Setting mclk to %d MHz\n", tgt_xclk / 1000000);
 
 	/* Default camera frame rate is set in probe */
-	tgt_fps = ov5645_data.streamcap.timeperframe.denominator /
-		  ov5645_data.streamcap.timeperframe.numerator;
+	tgt_fps = sensor->streamcap.timeperframe.denominator /
+		  sensor->streamcap.timeperframe.numerator;
 
 	if (tgt_fps == 15)
 		frame_rate = ov5645_15_fps;
@@ -3357,17 +3356,20 @@ static int init_device(void)
 	else
 		return -EINVAL; /* Only support 15fps or 30fps now. */
 
-	ret = ov5645_init_mode(frame_rate, ov5645_mode_INIT, ov5645_mode_INIT);
+	ret = ov5645_init_mode(sensor, frame_rate, ov5645_mode_INIT, ov5645_mode_INIT);
 
 	return ret;
 }
 
 static int ov5645_s_stream(struct v4l2_subdev *sd, int enable)
 {
+	struct i2c_client *client = v4l2_get_subdevdata(sd);
+	struct ov5645 *sensor = to_ov5645(client);
+
 	if (enable)
-		OV5645_stream_on();
+		OV5645_stream_on(sensor);
 	else
-		OV5645_stream_off();
+		OV5645_stream_off(sensor);
 	return 0;
 }
 
@@ -3413,7 +3415,7 @@ static void ov5645_adjust_setting_20mhz(void)
 			regsetting->u8Val = 0x17;
 }
 
-static int ov5645_set_regs(const char *buffer, struct kernel_param *kp)
+static int ov5645_set_regs(struct ov5645 *sensor, const char *buffer, struct kernel_param *kp)
 {
 	// Use this sysfs node to set the ov5645 isp regs by sending it a
 	// comma separated list of register value pairs in hex
@@ -3438,7 +3440,7 @@ static int ov5645_set_regs(const char *buffer, struct kernel_param *kp)
 
 		pr_warning("%s: Writing Reg = %04x, val = %02x\n", __func__,
 			(unsigned int)reg_addr, (unsigned int)value);
-		retval = ov5645_write_reg(reg_addr & 0xffff, value & 0xff);
+		retval = ov5645_write_reg(sensor, reg_addr & 0xffff, value & 0xff);
 
 		if (retval < 0)
 			break;
@@ -3459,13 +3461,13 @@ static int ov5645_set_print_reg(const char *buffer, struct kernel_param *kp)
 	return 0;
 }
 
-static int ov5645_get_print_reg(char *buffer, struct kernel_param *kp)
+static int ov5645_get_print_reg(struct ov5645 *sensor, char *buffer, struct kernel_param *kp)
 {
 	int cnt, retval;
 	u8 val;
 	if (reg_addr_to_read == 0)
 		return 0;
-	retval = ov5645_read_reg(reg_addr_to_read & 0xffff, &val);
+	retval = ov5645_read_reg(sensor, reg_addr_to_read & 0xffff, &val);
 	if (retval < 0)
 		return 0;
 	cnt = sprintf(buffer, "0x%04x: 0x%02x",
@@ -3473,20 +3475,20 @@ static int ov5645_get_print_reg(char *buffer, struct kernel_param *kp)
 	return cnt;
 }
 
-static int ov5645_set_af_mode(const char *buffer, struct kernel_param *kp)
+static int ov5645_set_af_mode(struct ov5645 *sensor, const char *buffer, struct kernel_param *kp)
 {
 	int cnt, val;
 	cnt = sscanf(buffer, "%d", &val);
 
 	switch (val) {
 	case ov5645_af_release:
-		ov5645_release_af();
+		ov5645_release_af(sensor);
 		break;
 	case ov5645_af_lock:
-		ov5645_lock_af();
+		ov5645_lock_af(sensor);
 		break;
 	case ov5645_af_cont:
-		ov5645_enable_cont_af();
+		ov5645_enable_cont_af(sensor);
 		break;
 	default:
 		pr_warning("%s: Incorrect value written to sysfs node\n", __func__);
@@ -3495,11 +3497,11 @@ static int ov5645_set_af_mode(const char *buffer, struct kernel_param *kp)
 	return 0;
 }
 
-static int ov5645_read_af(char *buffer, struct kernel_param *kp)
+static int ov5645_read_af(struct ov5645 *sensor, char *buffer, struct kernel_param *kp)
 {
 	int cnt, retval;
 	u8 val;
-	retval = ov5645_read_reg(0x3029, &val);
+	retval = ov5645_read_reg(sensor, 0x3029, &val);
 
 	cnt = sprintf(buffer, "%d", (unsigned int)val & 0xff);
 	return cnt;
@@ -3524,17 +3526,23 @@ static int ov5645_probe(struct i2c_client *client,
 	int retval;
 	u8 chip_id_high, chip_id_low;
 
+	struct ov5645 *sensor;
+
+	sensor = kmalloc(sizeof(*sensor), GFP_KERNEL);
+	/* Set initial values for the sensor struct. */
+	memset(sensor, 0, sizeof(*sensor));
+
 	/* ov5645 pinctrl */
 	pinctrl = devm_pinctrl_get_select_default(dev);
 	if (IS_ERR(pinctrl))
 		dev_warn(dev, "no pin available\n");
 
 	/* request power down pin */
-	pwn_gpio = of_get_named_gpio(dev->of_node, "pwn-gpios", 0);
-	if (!gpio_is_valid(pwn_gpio))
+	sensor->pwn_gpio = of_get_named_gpio(dev->of_node, "pwn-gpios", 0);
+	if (!gpio_is_valid(sensor->pwn_gpio))
 		dev_warn(dev, "no sensor pwdn pin available");
 	else {
-		retval = devm_gpio_request_one(dev, pwn_gpio, GPIOF_OUT_INIT_HIGH,
+		retval = devm_gpio_request_one(dev, sensor->pwn_gpio, GPIOF_OUT_INIT_HIGH,
 						"ov5645_mipi_pwdn");
 		if (retval < 0) {
 			dev_warn(dev, "Failed to set power pin\n");
@@ -3544,11 +3552,11 @@ static int ov5645_probe(struct i2c_client *client,
 	}
 
 	/* request reset pin */
-	rst_gpio = of_get_named_gpio(dev->of_node, "rst-gpios", 0);
-	if (!gpio_is_valid(rst_gpio))
+	sensor->rst_gpio = of_get_named_gpio(dev->of_node, "rst-gpios", 0);
+	if (!gpio_is_valid(sensor->rst_gpio))
 		dev_warn(dev, "no sensor reset pin available");
 	else {
-		retval = devm_gpio_request_one(dev, rst_gpio, GPIOF_OUT_INIT_HIGH,
+		retval = devm_gpio_request_one(dev, sensor->rst_gpio, GPIOF_OUT_INIT_HIGH,
 						"ov5645_mipi_reset");
 		if (retval < 0) {
 			dev_warn(dev, "Failed to set reset pin\n");
@@ -3556,35 +3564,33 @@ static int ov5645_probe(struct i2c_client *client,
 		}
 	}
 
-	/* Set initial values for the sensor struct. */
-	memset(&ov5645_data, 0, sizeof(ov5645_data));
-	ov5645_data.sensor_clk = devm_clk_get(dev, "csi_mclk");
-	if (IS_ERR(ov5645_data.sensor_clk)) {
+	sensor->sensor_clk = devm_clk_get(dev, "csi_mclk");
+	if (IS_ERR(sensor->sensor_clk)) {
 		/* assuming clock enabled by default */
-		ov5645_data.sensor_clk = NULL;
+		sensor->sensor_clk = NULL;
 		dev_err(dev, "clock-frequency missing or invalid\n");
-		return PTR_ERR(ov5645_data.sensor_clk);
+		return PTR_ERR(sensor->sensor_clk);
 	}
 
 	retval = of_property_read_u32(dev->of_node, "mclk",
-					&(ov5645_data.mclk));
+					&(sensor->mclk));
 	if (retval) {
 		dev_err(dev, "mclk missing or invalid\n");
 		return retval;
 	}
 
-	if (ov5645_data.mclk == OV5645_XCLK_20MHZ)
+	if (sensor->mclk == OV5645_XCLK_20MHZ)
 		ov5645_adjust_setting_20mhz();
 
 	retval = of_property_read_u32(dev->of_node, "mclk_source",
-					(u32 *) &(ov5645_data.mclk_source));
+					(u32 *) &(sensor->mclk_source));
 	if (retval) {
 		dev_err(dev, "mclk_source missing or invalid\n");
 		return retval;
 	}
 
 	retval = of_property_read_u32(dev->of_node, "csi_id",
-					&(ov5645_data.csi));
+					&(sensor->csi));
 	if (retval) {
 		dev_err(dev, "csi id missing or invalid\n");
 		return retval;
@@ -3597,55 +3603,55 @@ static int ov5645_probe(struct i2c_client *client,
 			 AE_Target);
 	}
 
-	clk_prepare_enable(ov5645_data.sensor_clk);
+	clk_prepare_enable(sensor->sensor_clk);
 
-	ov5645_data.io_init = ov5645_reset;
-	ov5645_data.i2c_client = client;
-	ov5645_data.pix.pixelformat = V4L2_PIX_FMT_YUYV;
-	ov5645_data.pix.width = 640;
-	ov5645_data.pix.height = 480;
-	ov5645_data.streamcap.capability = V4L2_MODE_HIGHQUALITY |
+	sensor->io_init = ov5645_reset;
+	sensor->i2c_client = client;
+	sensor->pix.pixelformat = V4L2_PIX_FMT_YUYV;
+	sensor->pix.width = 640;
+	sensor->pix.height = 480;
+	sensor->streamcap.capability = V4L2_MODE_HIGHQUALITY |
 					   V4L2_CAP_TIMEPERFRAME;
-	ov5645_data.streamcap.capturemode = 0;
-	ov5645_data.streamcap.timeperframe.denominator = DEFAULT_FPS;
-	ov5645_data.streamcap.timeperframe.numerator = 1;
+	sensor->streamcap.capturemode = 0;
+	sensor->streamcap.timeperframe.denominator = DEFAULT_FPS;
+	sensor->streamcap.timeperframe.numerator = 1;
 
 	ov5645_regulator_enable(&client->dev);
 
-	ov5645_reset();
+	ov5645_reset(sensor);
 
-	ov5645_power_down(0);
+	ov5645_power_down(sensor, 0);
 
-	retval = ov5645_read_reg(OV5645_CHIP_ID_HIGH_BYTE, &chip_id_high);
+	retval = ov5645_read_reg(sensor, OV5645_CHIP_ID_HIGH_BYTE, &chip_id_high);
 	if (retval < 0 || chip_id_high != 0x56) {
 		pr_warning("camera ov5645_mipi is not found\n");
-		clk_disable_unprepare(ov5645_data.sensor_clk);
+		clk_disable_unprepare(sensor->sensor_clk);
 		return -ENODEV;
 	}
-	retval = ov5645_read_reg(OV5645_CHIP_ID_LOW_BYTE, &chip_id_low);
+	retval = ov5645_read_reg(sensor, OV5645_CHIP_ID_LOW_BYTE, &chip_id_low);
 	if (retval < 0 || chip_id_low != 0x45) {
 		pr_warning("camera ov5645_mipi is not found\n");
-		clk_disable_unprepare(ov5645_data.sensor_clk);
+		clk_disable_unprepare(sensor->sensor_clk);
 		return -ENODEV;
 	}
 
-	retval = init_device();
+	retval = init_device(sensor);
 	if (retval < 0) {
-		clk_disable_unprepare(ov5645_data.sensor_clk);
+		clk_disable_unprepare(sensor->sensor_clk);
 		pr_warning("camera ov5645 init failed\n");
-		ov5645_power_down(1);
+		ov5645_power_down(sensor, 1);
 		return retval;
 	}
 
-	v4l2_i2c_subdev_init(&ov5645_data.subdev, client, &ov5645_subdev_ops);
+	v4l2_i2c_subdev_init(&sensor->subdev, client, &ov5645_subdev_ops);
 
-	ov5645_data.subdev.grp_id = 678;
-	retval = v4l2_async_register_subdev(&ov5645_data.subdev);
+	sensor->subdev.grp_id = 678;
+	retval = v4l2_async_register_subdev(&sensor->subdev);
 	if (retval < 0)
 		dev_err(&client->dev,
 					"%s--Async register failed, ret=%d\n", __func__, retval);
 
-	OV5645_stream_off();
+	OV5645_stream_off(sensor);
 	pr_info("camera ov5645_mipi is found\n");
 	return retval;
 }
@@ -3659,12 +3665,13 @@ static int ov5645_probe(struct i2c_client *client,
 static int ov5645_remove(struct i2c_client *client)
 {
 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+	struct ov5645 *sensor = to_ov5645(client);
 
 	v4l2_async_unregister_subdev(sd);
 
-	clk_disable_unprepare(ov5645_data.sensor_clk);
+	clk_disable_unprepare(sensor->sensor_clk);
 
-	ov5645_power_down(1);
+	ov5645_power_down(sensor, 1);
 
 	if (gpo_regulator)
 		regulator_disable(gpo_regulator);
