@@ -117,17 +117,7 @@ dtb-$(CONFIG_ARCH_FSL_IMX8MQ) += fsl-imx8mq-ddr3l-arm2.dtb \
 				 fsl-imx8mq-evk-dp.dtb \
 				 fsl-imx8mq-evk-edp.dtb \
 				 imx8mq-pico-pi.dtb \
-				 imx8mq-pico-pi-dcss-ili9881c.dtb \
-				 pico-imx8m.dtb \
-				 pico-imx8m-dcss-ili9881c.dtb \
-				 pico-imx8m-dcss-sn65dsi84-hj070na.dtb \
-				 pico-imx8m-lcdif-sn65dsi84-hj070na.dtb \
-				 pico-imx8m-dcss-sn65dsi84-m101nwwb.dtb \
-				 pico-imx8m-lcdif-sn65dsi84-m101nwwb.dtb \
-				 pico-imx8m-dcss-sn65dsi84-g156xw01.dtb \
-				 pico-imx8m-lcdif-sn65dsi84-g156xw01.dtb \
-				 pico-imx8m-dual.dtb \
-				 pico-imx8m-dual-sn65dsi84.dtb
+				 imx8mq-pico-pi-dcss-ili9881c.dtb
 dtb-$(CONFIG_ARCH_FSL_IMX8MM) += imx8mm-axon-pi.dtb \
 				 imx8mm-pico-pi.dtb \
 				 imx8mm-pico-pi-g101uan02.dtb \
