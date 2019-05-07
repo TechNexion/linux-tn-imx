@@ -21,6 +21,7 @@
 
 #include <video/mipi_display.h>
 
+
 struct ili9881c {
 	struct drm_panel	panel;
 	struct mipi_dsi_device	*dsi;
@@ -292,7 +293,6 @@ static int ili9881c_prepare(struct drm_panel *panel)
 {
 	struct ili9881c *ctx = panel_to_ili9881c(panel);
 
-
 	/* Power the panel */
 	if (!IS_ERR(ctx->power)) {
 		gpiod_set_value(ctx->power, 1);
@@ -315,6 +315,8 @@ static int ili9881c_enable(struct drm_panel *panel)
 	struct ili9881c *ctx = panel_to_ili9881c(panel);
 	unsigned int i;
 	int ret;
+
+	ctx->dsi->mode_flags |= MIPI_DSI_MODE_LPM;
 
 	for (i = 0; i < ARRAY_SIZE(ili9881c_init); i++) {
 		struct ili9881c_instr *instr = &ili9881c_init[i];
@@ -370,14 +372,25 @@ static int ili9881c_unprepare(struct drm_panel *panel)
 }
 
 static const struct drm_display_mode default_mode = {
+	.clock		= 108000,
+	.vrefresh	= 60,
+	.hdisplay	= 720,
+	.hsync_start	= 720 + 34,
+	.hsync_end	= 720 + 34 + 100,
+	.htotal	= 720 + 34 + 100 + 100,
+	.vdisplay	= 1280,
+	.vsync_start	= 1280 + 2,
+	.vsync_end	= 1280 + 2 + 30,
+	.vtotal	= 1280 + 2 + 30 + 20,
+};
+
+static const struct drm_display_mode origin_mode = {
 	.clock		= 62000,
 	.vrefresh	= 60,
-
 	.hdisplay	= 720,
 	.hsync_start	= 720 + 10,
 	.hsync_end	= 720 + 10 + 20,
 	.htotal		= 720 + 10 + 20 + 30,
-
 	.vdisplay	= 1280,
 	.vsync_start	= 1280 + 10,
 	.vsync_end	= 1280 + 10 + 10,
@@ -389,14 +402,16 @@ static int ili9881c_get_modes(struct drm_panel *panel)
 	struct drm_connector *connector = panel->connector;
 	struct ili9881c *ctx = panel_to_ili9881c(panel);
 	struct drm_display_mode *mode;
+	const struct drm_display_mode *display_mode;
 	u32 bus_format = MEDIA_BUS_FMT_RGB888_1X24;
 	int ret;
 
-	mode = drm_mode_duplicate(panel->drm, &default_mode);
+	display_mode = &default_mode;
+	mode = drm_mode_duplicate(panel->drm, display_mode);
 	if (!mode) {
 		dev_err(&ctx->dsi->dev, "failed to add mode %ux%ux@%u\n",
-			default_mode.hdisplay, default_mode.vdisplay,
-			default_mode.vrefresh);
+			display_mode->hdisplay, display_mode->vdisplay,
+			display_mode->vrefresh);
 		return -ENOMEM;
 	}
 
@@ -454,7 +469,7 @@ static int ili9881c_dsi_probe(struct mipi_dsi_device *dsi)
 	if (ret < 0)
 		return ret;
 
-	dsi->mode_flags = MIPI_DSI_MODE_VIDEO_HSE | MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_SYNC_PULSE;
+	dsi->mode_flags = MIPI_DSI_MODE_VIDEO_HSE | MIPI_DSI_MODE_VIDEO | MIPI_DSI_CLOCK_NON_CONTINUOUS/*| MIPI_DSI_MODE_VIDEO_SYNC_PULSE*/;
 	dsi->format = MIPI_DSI_FMT_RGB888;
 	dsi->lanes = 4;
 
