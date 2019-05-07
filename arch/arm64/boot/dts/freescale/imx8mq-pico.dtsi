@@ -109,6 +109,12 @@
 			>;
 		};
 
+		pinctrl_pcie1: pcie1grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_NAND_CE3_B_GPIO3_IO4	0x16 /* PCIE_nReset, PICO-NYMPH */
+			>;
+		};
+
 		pinctrl_uart1: uart1grp {
 			fsl,pins = <
 				MX8MQ_IOMUXC_UART1_RXD_UART1_DCE_RX		0x49
@@ -456,6 +462,14 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c3>;
 	status = "okay";
+};
+
+&pcie1{
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pcie1>;
+	reset-gpio = <&gpio3 4 GPIO_ACTIVE_LOW>;
+	ext_osc = <0>;
+	status = "disabled";
 };
 
 &uart1 { /* console */
