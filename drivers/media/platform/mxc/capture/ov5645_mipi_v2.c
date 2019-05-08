@@ -3370,6 +3370,7 @@ static int ov5645_s_stream(struct v4l2_subdev *sd, int enable)
 		OV5645_stream_on(sensor);
 	else
 		OV5645_stream_off(sensor);
+
 	return 0;
 }
 
@@ -3526,7 +3527,7 @@ static int ov5645_probe(struct i2c_client *client,
 	int retval;
 	u8 chip_id_high, chip_id_low;
 
-	struct ov5645 *sensor;
+	struct ov5645 *sensor = (struct ov5645 *)NULL;
 
 	sensor = kmalloc(sizeof(*sensor), GFP_KERNEL);
 	/* Set initial values for the sensor struct. */
@@ -3547,7 +3548,7 @@ static int ov5645_probe(struct i2c_client *client,
 		if (retval < 0) {
 			dev_warn(dev, "Failed to set power pin\n");
 			dev_warn(dev, "retval=%d\n", retval);
-			return retval;
+			goto err;
 		}
 	}
 
@@ -3560,7 +3561,7 @@ static int ov5645_probe(struct i2c_client *client,
 						"ov5645_mipi_reset");
 		if (retval < 0) {
 			dev_warn(dev, "Failed to set reset pin\n");
-			return retval;
+			goto err;
 		}
 	}
 
@@ -3569,14 +3570,15 @@ static int ov5645_probe(struct i2c_client *client,
 		/* assuming clock enabled by default */
 		sensor->sensor_clk = NULL;
 		dev_err(dev, "clock-frequency missing or invalid\n");
-		return PTR_ERR(sensor->sensor_clk);
+		retval = PTR_ERR(sensor->sensor_clk);
+		goto err;
 	}
 
 	retval = of_property_read_u32(dev->of_node, "mclk",
 					&(sensor->mclk));
 	if (retval) {
 		dev_err(dev, "mclk missing or invalid\n");
-		return retval;
+		goto err;
 	}
 
 	if (sensor->mclk == OV5645_XCLK_20MHZ)
@@ -3586,14 +3588,14 @@ static int ov5645_probe(struct i2c_client *client,
 					(u32 *) &(sensor->mclk_source));
 	if (retval) {
 		dev_err(dev, "mclk_source missing or invalid\n");
-		return retval;
+		goto err;
 	}
 
 	retval = of_property_read_u32(dev->of_node, "csi_id",
 					&(sensor->csi));
 	if (retval) {
 		dev_err(dev, "csi id missing or invalid\n");
-		return retval;
+		goto err;
 	}
 
 	retval = of_property_read_u32(dev->of_node, "ae_target", &(AE_Target));
@@ -3626,13 +3628,15 @@ static int ov5645_probe(struct i2c_client *client,
 	if (retval < 0 || chip_id_high != 0x56) {
 		pr_warning("camera ov5645_mipi is not found\n");
 		clk_disable_unprepare(sensor->sensor_clk);
-		return -ENODEV;
+		retval = -ENODEV;
+		goto err;
 	}
 	retval = ov5645_read_reg(sensor, OV5645_CHIP_ID_LOW_BYTE, &chip_id_low);
 	if (retval < 0 || chip_id_low != 0x45) {
 		pr_warning("camera ov5645_mipi is not found\n");
 		clk_disable_unprepare(sensor->sensor_clk);
-		return -ENODEV;
+		retval = -ENODEV;
+		goto err;
 	}
 
 	retval = init_device(sensor);
@@ -3640,7 +3644,8 @@ static int ov5645_probe(struct i2c_client *client,
 		clk_disable_unprepare(sensor->sensor_clk);
 		pr_warning("camera ov5645 init failed\n");
 		ov5645_power_down(sensor, 1);
-		return retval;
+		retval = retval;
+		goto err;
 	}
 
 	v4l2_i2c_subdev_init(&sensor->subdev, client, &ov5645_subdev_ops);
@@ -3654,6 +3659,14 @@ static int ov5645_probe(struct i2c_client *client,
 	OV5645_stream_off(sensor);
 	pr_info("camera ov5645_mipi is found\n");
 	return retval;
+
+err:
+	if(sensor) {
+		kfree(sensor);
+		sensor = (struct ov5645 *)NULL;
+	}
+	return retval;
+
 }
 
 /*!
