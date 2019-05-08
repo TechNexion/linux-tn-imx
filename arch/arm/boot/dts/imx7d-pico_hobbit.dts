@@ -1,0 +1,21 @@
+/*
+ * Copyright 2018 Technexion Ltd.
+ *
+ * Author: Tapani Utriainen <tapani@technexion.com>
+ *	   Richard Hu <richard.hu@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ */
+/dts-v1/;
+
+#include "imx7d.dtsi"
+#include "imx7d-pico.dtsi"
+#include "baseboard_pico_hobbit.dtsi"
+/ {
+	model = "TechNexion PICO-IMX7D and HOBBIT baseboard";
+	compatible = "fsl,pico-imx7d", "fsl,imx7d";
+};
+
