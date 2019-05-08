@@ -29,6 +29,7 @@ struct ili9881c {
 
 	struct regulator	*power;
 	struct gpio_desc	*reset;
+	u32	timing_mode;
 };
 
 enum ili9881c_op {
@@ -594,7 +595,7 @@ static int ili9881c_unprepare(struct drm_panel *panel)
 	return 0;
 }
 
-static const struct drm_display_mode bananapi_default_mode = {
+static const struct drm_display_mode high_clk_mode = {
 	.clock		= 108000,
 	.vrefresh	= 60,
 	.hdisplay	= 720,
@@ -607,7 +608,7 @@ static const struct drm_display_mode bananapi_default_mode = {
 	.vtotal	= 1280 + 2 + 30 + 20,
 };
 
-static const struct drm_display_mode origin_mode = {
+static const struct drm_display_mode default_mode = {
 	.clock		= 62000,
 	.vrefresh	= 60,
 	.hdisplay	= 720,
@@ -650,6 +651,20 @@ static int ili9881c_get_modes(struct drm_panel *panel,
 	int ret;
 
 	mode = drm_mode_duplicate(connector->dev, ctx->desc->mode);
+	switch (ctx->timing_mode) {
+		case 0:
+			display_mode = &default_mode;
+			break;
+		case 1:
+			display_mode = &high_clk_mode;
+			break;
+		default:
+			dev_warn(&ctx->dsi->dev, "invalid timing mode %d, fail back to use default mode\n", ctx->timing_mode);
+			display_mode = &default_mode;
+			break;
+
+	}
+	mode = drm_mode_duplicate(connector->dev, ctx->desc->mode);
 	if (!mode) {
 		dev_err(&ctx->dsi->dev, "failed to add mode %ux%ux@%u\n",
 			ctx->desc->mode->hdisplay,
@@ -685,8 +700,11 @@ static const struct drm_panel_funcs ili9881c_funcs = {
 
 static int ili9881c_dsi_probe(struct mipi_dsi_device *dsi)
 {
+	struct device *dev = &dsi->dev;
+	struct device_node *np = dev->of_node;
 	struct ili9881c *ctx;
 	int ret;
+	u32 video_mode;
 
 	ctx = devm_kzalloc(&dsi->dev, sizeof(*ctx), GFP_KERNEL);
 	if (!ctx)
@@ -716,7 +734,39 @@ static int ili9881c_dsi_probe(struct mipi_dsi_device *dsi)
 
 	dsi->mode_flags = MIPI_DSI_MODE_VIDEO_HSE | MIPI_DSI_MODE_VIDEO | MIPI_DSI_CLOCK_NON_CONTINUOUS/*| MIPI_DSI_MODE_VIDEO_SYNC_PULSE*/;
 	dsi->format = MIPI_DSI_FMT_RGB888;
+
+	ret = of_property_read_u32(np, "timing-mode", &ctx->timing_mode);
+	if (ret < 0) {
+		dev_err(&dsi->dev, "Failed to get timing-mode, use default timing-mode (%d)\n", ret);
+		ctx->timing_mode = 0;
+		return ret;
+	}
+
 	dsi->lanes = 4;
+	dsi->format = MIPI_DSI_FMT_RGB888;
+	dsi->mode_flags =  MIPI_DSI_MODE_VIDEO_HSE | MIPI_DSI_MODE_VIDEO |
+			   MIPI_DSI_CLOCK_NON_CONTINUOUS;
+
+	ret = of_property_read_u32(np, "video-mode", &video_mode);
+	if (!ret) {
+		switch (video_mode) {
+		case 0:
+			/* burst mode */
+			dsi->mode_flags |= MIPI_DSI_MODE_VIDEO_BURST;
+			break;
+		case 1:
+			/* non-burst mode with sync event */
+			break;
+		case 2:
+			/* non-burst mode with sync pulse */
+			dsi->mode_flags |= MIPI_DSI_MODE_VIDEO_SYNC_PULSE;
+			break;
+		default:
+			dev_warn(dev, "invalid video mode %d\n", video_mode);
+			break;
+
+		}
+	}
 
 	return mipi_dsi_attach(dsi);
 }
