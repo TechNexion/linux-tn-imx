@@ -37,14 +37,23 @@
 
 #include <asm/unaligned.h>
 
-#define AXONF_IOB_ENABLE			0
-#define AXONF_IOB_PUSHPULL			1
-#define AXONF_IOB_DIRECTION			2
-#define AXONF_IOB_SEL0				3
-#define AXONF_IOB_SEL1				4
-#define AXONF_IOB_OUTPUT			8
-#define AXONF_IOB_INPUT				9
+/* IO Bank register addresses */
+#define AXONF_IOB_ENABLE			0x0
+#define AXONF_IOB_PUSHPULL			0x1
+#define AXONF_IOB_DIRECTION			0x2
+#define AXONF_IOB_SEL0				0x3
+#define AXONF_IOB_SEL1				0x4
+#define AXONF_IOB_OUTPUT			0x8
+#define AXONF_IOB_EXT_INPUT			0x9
+#define AXONF_IOB_INT_INPUT			0xA
 
+/* IO Block definitions */
+#define AXONF_IOB_SEL_PASSTHROUGH   0x0
+#define AXONF_IOB_SEL_GPIO          0x3
+#define AXONF_IOB_SEL_ALT0          0x1
+#define AXONF_IOB_SEL_ALT1          0x2
+
+/* I2C commands */
 #define AXONF_CMD_WRITE_IOBANK		0x21
 #define AXONF_CMD_READ_IOBANK		0x23
 #define AXONF_CMD_SET_READ_ADDR		0x22
@@ -142,7 +151,7 @@ static const struct axonf_reg_config axonf_regs = {
 	.sel0 = AXONF_IOB_SEL0,
 	.sel1 = AXONF_IOB_SEL1,
 	.output = AXONF_IOB_OUTPUT,
-	.input = AXONF_IOB_INPUT,
+	.input = AXONF_IOB_EXT_INPUT,
 };
 
 struct axonf_chip {
@@ -759,26 +768,55 @@ static int axonf_gpio_request(struct gpio_chip *gc, unsigned off)
 {
 	struct axonf_chip *chip = gpiochip_get_data(gc);
 	u8 bank_mask;
-	int offset, allocated;
+	int offset, allocated, sel0, sel1;
+	unsigned int sel;
 	int ret = 0;
 
 	/* Check to see if this gpio is available */
-	bank_mask = chip->bank_mask[off / BANK_SZ];
-	allocated = chip->allocated[off / BANK_SZ];
 	offset = off % BANK_SZ;
 
+	bank_mask = (chip->bank_mask[off / BANK_SZ] >> offset) & 0x1;
+	allocated = (chip->allocated[off / BANK_SZ] >> offset) & 0x1;
+
+	sel0 = (chip->reg_sel0[off / BANK_SZ] >> offset) & 0x1;
+	sel1 = (chip->reg_sel1[off / BANK_SZ] >> offset) & 0x1;
+
+	sel = (sel1 << 1) | sel0;
+
 	/* check if this pin is available */
-	if ((bank_mask & (1 << offset)) == 0) {
+	if (!bank_mask) {
 		dev_info(&chip->client->dev,
-			"pin %u cannot be allocated (check mask)\n", offset);
+			"pin %u cannot be allocated (check mask)\n", off);
 		ret = -EINVAL;
+		goto exit;
+	}
+
+	/* Make sure that this iob can be configured as GPIO.
+	   IOBs that are not configured as GPIO during initialization cannot
+	   be allocated as GPIO at runtime. This to to prevent conflicts IOB
+	   that might be in passthrough mode, or in alternate modes. */
+	if (sel != AXONF_IOB_SEL_GPIO)  {
+		/* Let's send a helpful message to the developer */
+		switch (sel) {
+			case AXONF_IOB_SEL_PASSTHROUGH:
+				dev_info(&chip->client->dev,
+					"pin %u cannot be allocated as GPIO. Configured in passthrough mode. sel=%x\n", off, sel);
+				break;
+			default:
+				dev_info(&chip->client->dev,
+					"pin %u cannot be allocated as GPIO. Configured in one of the ALT modes. sel=%x\n", off, sel);
+				break;
+		}
+		ret = -EBUSY;
 		goto exit;
 	}
 
 	/* check if this pin is already allocated */
 	if (allocated & (1 << offset)) {
 		dev_info(&chip->client->dev,
-			"pin %u already in use\n", offset);
+			"pin %u already in use\n", off);
+		ret = -EBUSY;
+		goto exit;
 	}
 
 	chip->allocated[off / BANK_SZ] |= (1 << offset);
@@ -889,11 +927,50 @@ static DEVICE_ATTR(
 		axonf_statusled_rgbhex_show,
         axonf_statusled_rgbhex_store);
 
-static ssize_t axonf_shared_sc_disable_show(struct device *dev, struct device_attribute *attr, char *buf)
-{
+/*
+	Set the control register bit to val.
+		bit = index of ctrl register bit
+		val = value of the bit to set
+*/
+static int axonf_ctrlreg_write_bit( struct device *dev, char val, int bit) {
+
 	struct axonf_chip *chip = dev_get_drvdata(dev);
-	int len, ret;
-	char val;
+	int mask, ret;
+
+	// Test to make sure val is a either 0 or 1
+	if( val && (val != 1))
+		return -EINVAL;
+
+	mask = 1 << bit;
+
+	if(val)
+		chip->ctrlreg |= mask;
+	else
+		chip->ctrlreg &= ~mask;
+
+	ret = axonf_write_ctrlreg( chip, chip->ctrlreg );
+
+	if(ret) {
+		dev_err(&chip->client->dev, "failed to write ctrlreg %d\n",ret);
+		return ret;
+	}
+
+	return 0;
+}
+
+
+/*
+	Read the value of the control register bit
+		bit = index of ctrl register bit
+		val = value of the bit to set
+		returns 0 or 1 upon success, depending on the value of the bit
+		returns a negative value upon failure
+*/
+static int axonf_ctrlreg_read_bit( struct device *dev, int bit) {
+
+	struct axonf_chip *chip = dev_get_drvdata(dev);
+	int ret;
+	int val;
 
 	ret = axonf_read_ctrlreg(chip);
 
@@ -902,7 +979,21 @@ static ssize_t axonf_shared_sc_disable_show(struct device *dev, struct device_at
 		return ret;
 	}
 
-	val = (chip->ctrlreg & (0x1 << AXONF_CTRLREG_SHARED_SYSCONFIG_DISABLE)) ? '1' : '0';
+	val = (chip->ctrlreg & (0x1 << bit)) ? 1 : 0;
+
+	return val;
+}
+
+static ssize_t axonf_shared_sc_disable_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	char val;
+	int ret, len;
+
+	ret = axonf_ctrlreg_read_bit(dev, AXONF_CTRLREG_SHARED_SYSCONFIG_DISABLE);
+
+	if(ret < 0) return ret;
+
+	val = ret ? '1' : '0';
 
 	len = sprintf(buf,"%c\n", val);
 
@@ -912,26 +1003,15 @@ static ssize_t axonf_shared_sc_disable_show(struct device *dev, struct device_at
 static ssize_t axonf_shared_sc_disable_store(struct device *dev, struct device_attribute *attr,
 					const char *buf, size_t count)
 {
-	struct axonf_chip *chip = dev_get_drvdata(dev);
 	int ret;
 	int val;
-	int mask;
 
 	sscanf(buf,"%d", &val);
 
-	mask = 1 << AXONF_CTRLREG_SHARED_SYSCONFIG_DISABLE;
+	ret = axonf_ctrlreg_write_bit(dev, val, AXONF_CTRLREG_SHARED_SYSCONFIG_DISABLE);
 
-	if(val)
-		chip->ctrlreg |= mask;
-	else
-		chip->ctrlreg &= ~mask;
-
-	ret = axonf_write_ctrlreg(chip, chip->ctrlreg);
-
-	if(ret) {
-		dev_err(&chip->client->dev, "failed to write ctrlreg %d\n",ret);
+	if(ret)
 		return ret;
-	}
 
 	return count;
 }
@@ -942,9 +1022,48 @@ static DEVICE_ATTR(
 		axonf_shared_sc_disable_show,
         axonf_shared_sc_disable_store);
 
+static ssize_t axonf_shared_gio_enable_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	char val;
+	int ret, len;
+
+	ret = axonf_ctrlreg_read_bit(dev, AXONF_CTRLREG_GIO_ENABLE);
+
+	if(ret < 0) return ret;
+
+	val = ret ? '1' : '0';
+
+	len = sprintf(buf,"%c\n", val);
+
+	return len;
+}
+
+static ssize_t axonf_shared_gio_enable_store(struct device *dev, struct device_attribute *attr,
+					const char *buf, size_t count)
+{
+	int ret;
+	int val;
+
+	sscanf(buf,"%d", &val);
+
+	ret = axonf_ctrlreg_write_bit(dev, val, AXONF_CTRLREG_GIO_ENABLE);
+
+	if(ret)
+		return ret;
+
+	return count;
+}
+
+static DEVICE_ATTR(
+		gio_enable,
+		S_IRUGO | S_IWUSR,
+		axonf_shared_gio_enable_show,
+        axonf_shared_gio_enable_store);
+
 static struct attribute *axonf_attrs[] = {
     &dev_attr_statusled_rgbhex.attr,
 	&dev_attr_shared_sysconfig_disable.attr,
+	&dev_attr_gio_enable.attr,
     NULL
 };
 
