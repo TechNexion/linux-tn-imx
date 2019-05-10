@@ -1,0 +1,218 @@
+/*
+ * Copyright 2018 TechNexion Ltd.
+ *
+ * Author: Alvin chen <alvin.chen@technexion.com>
+ *         Ray Chang <ray.chang@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ */
+
+#include "tnmacro.h"
+
+#define EDM_EXT_GPIO_EXP0 pca9555 0
+#define EDM_EXT_GPIO_EXP1 pca9555 1
+#define EDM_EXT_GPIO_EXP2 pca9555 2
+#define EDM_EXT_GPIO_EXP3 pca9555 3
+#define EDM_EXT_GPIO_EXP4 pca9555 4
+#define EDM_EXT_GPIO_EXP5 pca9555 5
+#define EDM_EXT_GPIO_EXP6 pca9555 6
+#define EDM_EXT_GPIO_EXP7 pca9555 7
+#define EDM_EXT_GPIO_EXP8 pca9555 8
+#define EDM_EXT_GPIO_EXP9 pca9555 9
+#define EDM_EXT_GPIO_EXP10 pca9555 10
+#define EDM_EXT_GPIO_EXP11 pca9555 11
+
+/ {
+	gpio-edm {
+		compatible = "gpio-edm";
+		gpio_p255 {
+			label = "GPIO_P255";
+			gpios = <&EDM_EXT_GPIO_P255 1>;
+			dir   = "out";
+		};
+		gpio_p256 {
+			label = "GPIO_P256";
+			gpios = <&EDM_EXT_GPIO_P256 1>;
+			dir   = "out";
+		};
+		gpio_p257 {
+			label = "GPIO_P257";
+			gpios = <&EDM_EXT_GPIO_P257 1>;
+			dir   = "out";
+		};
+		gpio_p259 {
+			label = "GPIO_P259";
+			gpios = <&EDM_EXT_GPIO_P259 0>;
+			dir   = "in";
+		};
+		gpio_p260 {
+			label = "GPIO_P260";
+			gpios = <&EDM_EXT_GPIO_P260 0>;
+			dir   = "in";
+		};
+		gpio_p261 {
+			label = "GPIO_P261";
+			gpios = <&EDM_EXT_GPIO_P261 0>;
+			dir   = "out";
+		};
+		gpio_p262 {
+			label = "GPIO_P262";
+			gpios = <&EDM_EXT_GPIO_P262 0>;
+			dir   = "out";
+		};
+		gpio_exp0 {
+			label = "GPIO_EXP0";
+			gpios = <&EDM_EXT_GPIO_EXP0 0>;
+			dir   = "out";
+		};
+		gpio_exp1 {
+			label = "GPIO_EXP1";
+			gpios = <&EDM_EXT_GPIO_EXP1 0>;
+			dir   = "out";
+		};
+		gpio_exp2 {
+			label = "GPIO_EXP2";
+			gpios = <&EDM_EXT_GPIO_EXP2 0>;
+			dir   = "in";
+		};
+		gpio_exp3 {
+			label = "GPIO_EXP3";
+			gpios = <&EDM_EXT_GPIO_EXP3 0>;
+			dir   = "in";
+		};
+		gpio_exp4 {
+			label = "GPIO_EXP4";
+			gpios = <&EDM_EXT_GPIO_EXP4 0>;
+			dir   = "out";
+		};
+		gpio_exp5 {
+			label = "GPIO_EXP5";
+			gpios = <&EDM_EXT_GPIO_EXP5 0>;
+			dir   = "out";
+		};
+		gpio_exp6 {
+			label = "GPIO_EXP6";
+			gpios = <&EDM_EXT_GPIO_EXP6 0>;
+			dir   = "in";
+		};
+		gpio_exp7 {
+			label = "GPIO_EXP7";
+			gpios = <&EDM_EXT_GPIO_EXP7 0>;
+			dir   = "in";
+		};
+		gpio_exp8 {
+			label = "GPIO_EXP8";
+			gpios = <&EDM_EXT_GPIO_EXP8 0>;
+			dir   = "out";
+		};
+		gpio_exp9 {
+			label = "GPIO_EXP9";
+			gpios = <&EDM_EXT_GPIO_EXP9 0>;
+			dir   = "out";
+		};
+		gpio_exp10 {
+			label = "GPIO_EXP10";
+			gpios = <&EDM_EXT_GPIO_EXP10 0>;
+			dir   = "in";
+		};
+		gpio_exp11 {
+			label = "GPIO_EXP11";
+			gpios = <&EDM_EXT_GPIO_EXP11 0>;
+			dir   = "in";
+		};
+	};
+
+#ifdef EDM_EXT_LVDS_PWR
+	regulators {
+		compatible = "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		lvds_power: regulator@200 {
+			compatible = "regulator-fixed";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			regulator-name = "LVDS_PWR";
+			gpio = <&EDM_EXT_LVDS_PWR 1>;
+			enable-active-high;
+			regulator-always-on;
+		};
+	};
+#endif
+
+	sound {
+		compatible = "fsl,imx-sgtl5000",
+			     "fsl,imx-audio-sgtl5000";
+		model = "audio-sgtl5000";
+		ssi-controller = <&EDM_AUDA_I2S_CHANNEL>;
+		audio-codec = <&codec>;
+		audio-routing =
+			"MIC_IN", "Mic Jack",
+			"Mic Jack", "Mic Bias",
+			"Line Out Jack", "HP_OUT";
+		mux-int-port = <EDM_AUDA_MUX_INT>;
+		mux-ext-port = <EDM_AUDA_MUX_EXT>;
+	};
+};
+
+&EDM_I2CA {
+	status = "okay";
+};
+
+&EDM_I2CB {
+	status = "okay";
+	pca9555: pca9555@27 {
+		compatible = "nxp,pca9555";
+		reg = <0x27>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		#ifdef EDM_EXT_GPIO_P264
+		interrupt-controller;
+		interrupt-parent = <&gpio7>;
+		interrupts = <8 IRQ_TYPE_EDGE_FALLING>;
+		#interrupt-cells = <2>;
+		#endif
+	};
+
+	codec: sgtl5000@0a {
+		compatible = "fsl,sgtl5000";
+		reg = <0x0a>;
+		clocks = <&EDM_AUDA_CLK_SRC>;
+		VDDA-supply = <&reg_2p5v>;
+		VDDIO-supply = <&reg_3p3v>;
+	};
+};
+
+&EDM_I2CC {
+	status = "okay";
+	ds1337: rtc@68 {
+		compatible = "mxim,ds1337";
+		reg = <0x68>;
+	};
+};
+
+&EDM_CANA {
+	status = "okay";
+};
+
+&EDM_CANB {
+	status = "okay";
+};
+
+&spdif {
+	status = "okay";
+};
+
+&ecspi1 {
+	status = "okay";
+};
+
+#ifdef EDM_PCIEA
+&EDM_PCIEA {
+	#ifdef EDM_PCIEA_RESET_GPIO
+	reset-gpio = <&EDM_PCIEA_RESET_GPIO GPIO_ACTIVE_HIGH>;
+	#endif
+	status = "okay";
+};
+#endif
