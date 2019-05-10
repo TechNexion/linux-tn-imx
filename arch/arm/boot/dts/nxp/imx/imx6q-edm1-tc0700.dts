@@ -1,0 +1,29 @@
+/*
+ * Copyright 2018 TechNexion Ltd.
+ *
+ * Author: Wig Cheng <wig.cheng@technexion.com>
+ *         Richard Hu <richard.hu@technexion.com>
+ *         Tapani Utriainen <tapani@technexion.com>
+ *         Ray Chang <ray.chang@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ */
+
+/dts-v1/;
+#include <dt-bindings/interrupt-controller/irq.h>
+#include "imx6q.dtsi"
+#include "imx6qdl-edm.dtsi"
+#include "baseboard_edm1_tc0700.dtsi"
+
+/ {
+	model = "TechNexion EDM1-IMX6 Quad/Dual and TC0700 baseboard";
+	compatible = "fsl,edm-imx6q", "fsl,imx6q";
+};
+
+&ldb {
+	lvds-channel@0 {
+		crtc = "ipu2-di0";
+	};
+};
