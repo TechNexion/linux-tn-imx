@@ -1,0 +1,203 @@
+/*
+ * Copyright 2018 TechNexion Ltd.
+ *
+ * Author: Tapani Utriainen <tapani@technexion.com>
+ *	   Richard Hu <richard.hu@technexion.com>
+ *	   Ray Chang <ray.chang@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ */
+
+#include "tnmacro.h"
+
+#define EXGPIO_0 pca9554 0
+#define EXGPIO_1 pca9554 1
+#define EXGPIO_2 pca9554 2
+#define EXGPIO_3 pca9554 3
+#define EXGPIO_4 pca9554 4
+#define EXGPIO_5 pca9554 5
+#define EXGPIO_6 pca9554 6
+#define EXGPIO_7 pca9554 7
+
+/ {
+	gpio-edm {
+		compatible = "gpio-edm";
+		ex-gpio_0 {
+			label = "EXGPIO_0";
+			gpios = <&EXGPIO_0 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+		ex-gpio_1 {
+			label = "EXGPIO_1";
+			gpios = <&EXGPIO_1 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+		ex-gpio_2 {
+			label = "EXGPIO_2";
+			gpios = <&EXGPIO_2 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+		ex-gpio_3 {
+			label = "EXGPIO_3";
+			gpios = <&EXGPIO_3 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+		ex-gpio_4 {
+			label = "EXGPIO_4";
+			gpios = <&EXGPIO_4 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+		ex-gpio_5 {
+			label = "EXGPIO_5";
+			gpios = <&EXGPIO_5 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+		ex-gpio_6 {
+			label = "EXGPIO_6";
+			gpios = <&EXGPIO_6 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+		gpio_p255 {
+			label = "GPIO_P255";
+			gpios = <&EDM_EXT_GPIO_P255 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+		gpio_p256 {
+			label = "GPIO_P256";
+			gpios = <&EDM_EXT_GPIO_P256 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+		gpio_p260 {
+			label = "GPIO_P260";
+			gpios = <&EDM_EXT_GPIO_P260 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+		gpio_p262 {
+			label = "GPIO_P262";
+			gpios = <&EDM_EXT_GPIO_P262 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+		gpio_p263 {
+			label = "GPIO_P263";
+			gpios = <&EDM_EXT_GPIO_P263 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+		gpio_p264 {
+			label = "GPIO_P264";
+			gpios = <&EDM_EXT_GPIO_P264 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+	};
+
+	sound {
+		compatible = "fsl,imx-sgtl5000",
+			     "fsl,imx-audio-sgtl5000";
+		model = "audio-sgtl5000";
+		ssi-controller = <&EDM_AUDA_I2S_CHANNEL>;
+		audio-codec = <&codec>;
+		audio-routing =
+			"MIC_IN", "Mic Jack",
+			"Mic Jack", "Mic Bias",
+			"Headphone Jack", "HP_OUT";
+#if defined(EDM_AUDA_MUX_INT) && defined(EDM_AUDA_MUX_EXT)
+		mux-int-port = <EDM_AUDA_MUX_INT>;
+		mux-ext-port = <EDM_AUDA_MUX_EXT>;
+#else
+		fsl,no-audmux = "true";
+#endif
+	};
+
+	gpio-leds {
+		compatible = "gpio-leds";
+		gnome-led {
+			label = "gnome-led";
+			gpios = <&EDM_EXT_GPIO_P258 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+		};
+	};
+
+	sound-spdif {
+		status = "disabled";
+	};
+
+	backlight_lvds {
+		status = "disabled";
+	};
+};
+
+&EDM_I2CA {
+	status = "okay";
+};
+
+&EDM_I2CB {
+	status = "okay";
+
+	codec: sgtl5000@0a {
+		compatible = "fsl,sgtl5000";
+		reg = <0x0a>;
+		clocks = <&EDM_AUDA_CLK_SRC>;
+		VDDA-supply = <&reg_2p5v>;
+		VDDIO-supply = <&reg_3p3v>;
+	};
+
+	polytouch: edt-ft5x06@38 {
+		compatible = "edt,edt-ft5x06";
+		reg = <0x38>;
+		interrupt-parent = <&GPIO_BANK(EDM_EXT_GPIO_P261)>; /* GPIO_P261 J1B-261 */
+		reset-gpios = <&EDM_EXT_GPIO_P259 GPIO_ACTIVE_LOW>; /* GPIO_P259 J1B-259 */
+		interrupts = <GPIO_NO(EDM_EXT_GPIO_P261) 0>;
+		touchscreen-size-x = <800>;
+		touchscreen-size-y = <480>;
+	};
+
+	pca9554: pca9554@25 {
+		compatible = "nxp,pca9554";
+		reg = <0x25>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		#interrupt-cells = <2>;
+	};
+};
+
+&EDM_I2CC {
+	status = "okay";
+
+	typec_tusb320:tusb320@67 {
+		compatible = "ti,tusb320";
+		reg = <0x67>;
+		tusb320,int-gpio = <&EXGPIO_7 GPIO_ACTIVE_LOW>;
+		tusb320,select-mode = <0>;
+		tusb320,dfp-power = <0>;
+	};
+
+	ds1337: rtc@68 {
+		compatible = "mxim,ds1337";
+		reg = <0x68>;
+	};
+};
+
+&EDM_SPIA {
+	status = "okay";
+
+	spidev@0 {
+		compatible = "rohm,dh2228fv";
+		spi-max-frequency = <10000000>;
+		reg = <0>;
+	};
+};
+
+&EDM_SPIB {
+	status = "okay";
+};
+
+&EDM_CANA {
+	status = "okay";
+};
+
+&EDM_CANB {
+	status = "okay";
+};
+
