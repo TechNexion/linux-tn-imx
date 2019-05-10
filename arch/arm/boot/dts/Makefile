@@ -685,6 +685,8 @@ dtb-$(CONFIG_SOC_IMX7D) += \
 	imx7d-pico-pi-m4.dtb \
 	imx7d-pico-pi-qca.dtb \
 	imx7d-pico-pi-qca-m4.dtb \
+	imx7d-edm1-gnome-qca.dtb \
+	imx7d-edm1-gnome-qca-m4.dtb \
 	imx7d-sdb.dtb \
 	imx7d-sdb-epdc.dtb \
 	imx7d-sdb-gpmi-weim.dtb \
