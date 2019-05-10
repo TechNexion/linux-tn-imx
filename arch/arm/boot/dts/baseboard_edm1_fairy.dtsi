@@ -1,0 +1,191 @@
+/*
+ * Copyright 2018 Technexion Ltd.
+ *
+ * Author: Tapani Utriainen <tapani@technexion.com>
+ *         Richard Hu <richard.hu@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ */
+
+#include "tnmacro.h"
+
+/ {
+	gpio-edm {
+		compatible = "gpio-edm";
+
+		gpio_p256 {
+			label = "GPIO_P256";
+			gpios = <&EDM_EXT_GPIO_P256 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+
+		gpio_p257 {
+			label = "GPIO_P257";
+			gpios = <&EDM_EXT_GPIO_P257 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+
+		gpio_p258 {
+			label = "GPIO_P258";
+			gpios = <&EDM_EXT_GPIO_P258 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+
+		gpio_p260 {
+			label = "GPIO_P260";
+			gpios = <&EDM_EXT_GPIO_P260 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+
+		gpio_p262 {
+			label = "GPIO_P262";
+			gpios = <&EDM_EXT_GPIO_P262 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+	};
+
+	sound {
+		compatible = "fsl,imx-sgtl5000",
+			     "fsl,imx-audio-sgtl5000";
+		model = "audio-sgtl5000";
+		ssi-controller = <&EDM_AUDA_I2S_CHANNEL>;
+		audio-codec = <&codec>;
+		audio-routing =
+			"MIC_IN", "Mic Jack",
+			"Mic Jack", "Mic Bias",
+			"Headphone Jack", "HP_OUT";
+#if defined(EDM_AUDA_MUX_INT) && defined(EDM_AUDA_MUX_EXT)
+		mux-int-port = <EDM_AUDA_MUX_INT>;
+		mux-ext-port = <EDM_AUDA_MUX_EXT>;
+#else
+		fsl,no-audmux = "true";
+#endif
+	};
+};
+
+&EDM_I2CA {
+	status = "okay";
+};
+
+&EDM_I2CB {
+	status = "okay";
+
+	codec: sgtl5000@0a {
+		compatible = "fsl,sgtl5000";
+		reg = <0x0a>;
+		clocks = <&EDM_AUDA_CLK_SRC>;
+		VDDA-supply = <&reg_2p5v>;
+		VDDIO-supply = <&reg_3p3v>;
+	};
+
+	polytouch: edt-ft5x06@38 {
+		compatible = "edt,edt-ft5x06";
+		reg = <0x38>;
+		pinctrl-names = "default";
+		interrupt-parent = <&GPIO_BANK(EDM_EXT_GPIO_P261)>; /* GPIO_P261 J1B-261 */
+		reset-gpios = <&EDM_EXT_GPIO_P264 1>; /* GPIO_P264 J1B-264 */
+		interrupts = <GPIO_NO(EDM_EXT_GPIO_P261) 0>;
+		touchscreen-size-x = <800>;
+		touchscreen-size-y = <480>;
+	};
+};
+
+&EDM_I2CC {
+	status = "okay";
+
+	mag3110@0e {
+		compatible = "fsl,mag3110";
+		reg = <0x0e>;
+		position = <2>;
+		vdd-supply = <&reg_3p3v>;
+		vddio-supply = <&reg_3p3v>;
+	};
+
+	lis331dlh: lis331dlh@18 {
+		compatible = "st,lis331dlh", "st,lis3lv02d";
+		reg = <0x18>;
+		Vdd-supply = <&reg_3p3v>;
+		Vdd_IO-supply = <&reg_3p3v>;
+
+		st,click-single-x;
+		st,click-single-y;
+		st,click-single-z;
+		st,click-thresh-x = <10>;
+		st,click-thresh-y = <10>;
+		st,click-thresh-z = <10>;
+		st,irq1-click;
+		st,irq2-click;
+		st,wakeup-x-lo;
+		st,wakeup-x-hi;
+		st,wakeup-y-lo;
+		st,wakeup-y-hi;
+		st,wakeup-z-lo;
+		st,wakeup-z-hi;
+		st,min-limit-x = <120>;
+		st,min-limit-y = <120>;
+		st,min-limit-z = <140>;
+		st,max-limit-x = <550>;
+		st,max-limit-y = <550>;
+		st,max-limit-z = <750>;
+	};
+
+	isl29023@44 {
+		compatible = "fsl,isl29023";
+		reg = <0x44>;
+		rext = <499>;
+	};
+
+	ds1337: rtc@68 {
+		compatible = "mxim,ds1337";
+		reg = <0x68>;
+	};
+};
+
+&EDM_CANA {
+	status = "okay";
+};
+
+&EDM_CANB {
+	status = "okay";
+};
+
+&EDM_SPIB {
+	status = "okay";
+
+	ads7846@0 {
+		reg = <0>;  /* CS0 */
+		compatible = "ti,ads7846";
+		interrupt-parent = <&GPIO_BANK(EDM_EXT_GPIO_P263)>;
+		interrupts = <GPIO_NO(EDM_EXT_GPIO_P263) 0>;
+		spi-max-frequency = <1000000>;
+		pendown-gpio = <&EDM_EXT_GPIO_P263 0>;
+		vcc-supply = <&reg_3p3v>;
+
+		ti,x-min = /bits/ 16 <0>;
+		ti,x-max = /bits/ 16 <4095>;
+		ti,y-min = /bits/ 16 <0>;
+		ti,y-max = /bits/ 16 <4095>;
+		ti,pressure-max = /bits/ 16 <1024>;
+		ti,x-plate-ohms = /bits/ 16 <90>;
+		ti,y-plate-ohms = /bits/ 16 <90>;
+		ti,debounce-max = /bits/ 16 <70>;
+		ti,debounce-tol = /bits/ 16 <3>;
+		ti,debounce-rep = /bits/ 16 <2>;
+		ti,settle-delay-usec = /bits/ 16 <150>;
+
+		linux,wakeup;
+	};
+};
+
+#ifdef EDM_PCIEA
+&EDM_PCIEA {
+        #ifdef EDM_PCIEA_RESET_GPIO
+	reset-gpio = <&EDM_PCIEA_RESET_GPIO GPIO_ACTIVE_HIGH>;
+        #endif
+	status = "okay";
+};
+#endif
+
