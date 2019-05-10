@@ -1,0 +1,137 @@
+/*
+ * Copyright 2018 TechNexion Ltd.
+ *
+ * Author: Wig Cheng <wig.cheng@technexion.com>
+ *         Richard Hu <richard.hu@technexion.com>
+ *         Tapani Utriainen <tapani@technexion.com>
+ *         Ray Chang <ray.chang@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ */
+
+#include "tnmacro.h"
+
+/ {
+	gpio-edm {
+		compatible = "gpio-edm";
+		gpio_p259 {
+			label = "GPIO_P259";
+			gpios = <&EDM_EXT_GPIO_P259 GPIO_ACTIVE_HIGH>;
+			dir   = "in";
+		};
+		gpio_p260 {
+			label = "GPIO_P260";
+			gpios = <&EDM_EXT_GPIO_P260 GPIO_ACTIVE_HIGH>;
+			dir   = "in";
+		};
+		gpio_p261 {
+			label = "GPIO_P261";
+			gpios = <&EDM_EXT_GPIO_P261 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+		gpio_p262 {
+			label = "GPIO_P262";
+			gpios = <&EDM_EXT_GPIO_P262 GPIO_ACTIVE_HIGH>;
+			dir   = "out";
+		};
+	};
+
+	sound {
+		compatible = "fsl,imx-sgtl5000",
+			     "fsl,imx-audio-sgtl5000";
+		model = "audio-sgtl5000";
+		ssi-controller = <&EDM_AUDA_I2S_CHANNEL>;
+		audio-codec = <&codec>;
+		audio-routing =
+			"MIC_IN", "Mic Jack",
+			"Mic Jack", "Mic Bias",
+			"Line Out Jack", "HP_OUT";
+		mux-int-port = <EDM_AUDA_MUX_INT>;
+		mux-ext-port = <EDM_AUDA_MUX_EXT>;
+	};
+};
+
+&EDM_I2CA {
+	status = "okay";
+};
+
+&EDM_I2CB {
+	status = "okay";
+
+	codec: sgtl5000@0a {
+		compatible = "fsl,sgtl5000";
+		reg = <0x0a>;
+		clocks = <&EDM_AUDA_CLK_SRC>;
+		VDDA-supply = <&reg_2p5v>;
+		VDDIO-supply = <&reg_3p3v>;
+	};
+};
+
+&EDM_I2CC {
+	status = "okay";
+
+	mag3110@0e {
+		compatible = "fsl,mag3110";
+		reg = <0x0e>;
+		position = <2>;
+		vdd-supply = <&reg_3p3v>;
+		vddio-supply = <&reg_3p3v>;
+	};
+
+	lis331dlh: lis331dlh@18 {
+		compatible = "st,lis331dlh", "st,lis3lv02d";
+		reg = <0x18>;
+		Vdd-supply = <&reg_3p3v>;
+		Vdd_IO-supply = <&reg_3p3v>;
+
+		st,click-single-x;
+		st,click-single-y;
+		st,click-single-z;
+		st,click-thresh-x = <10>;
+		st,click-thresh-y = <10>;
+		st,click-thresh-z = <10>;
+		st,irq1-click;
+		st,irq2-click;
+		st,wakeup-x-lo;
+		st,wakeup-x-hi;
+		st,wakeup-y-lo;
+		st,wakeup-y-hi;
+		st,wakeup-z-lo;
+		st,wakeup-z-hi;
+		st,min-limit-x = <120>;
+		st,min-limit-y = <120>;
+		st,min-limit-z = <140>;
+		st,max-limit-x = <550>;
+		st,max-limit-y = <550>;
+		st,max-limit-z = <750>;
+	};
+
+	isl29023@44 {
+		compatible = "fsl,isl29023";
+		reg = <0x44>;
+		rext = <499>;
+	};
+
+	ds1337: rtc@68 {
+		compatible = "mxim,ds1337";
+		reg = <0x68>;
+	};
+};
+
+&EDM_CANA {
+	status = "okay";
+};
+
+&EDM_CANB {
+	status = "okay";
+};
+
+&spdif {
+	status = "okay";
+};
+
+&ecspi1 {
+	status = "okay";
+};

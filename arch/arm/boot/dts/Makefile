@@ -364,6 +364,16 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6dl-axon-pi.dtb \
 	imx6dl-colibri-eval-v3.dtb \
 	imx6dl-cubox-i.dtb \
+	imx6dl-edm1-fairy.dtb \
+	imx6dl-edm1-gnome.dtb \
+	imx6dl-edm1-tc0700.dtb \
+	imx6dl-edm1-tc1000.dtb \
+	imx6dl-edm1-fairy-qca.dtb \
+	imx6dl-edm1-gnome-qca.dtb \
+	imx6dl-edm1-fairy-qca.dtb \
+	imx6dl-edm1-tc0700-qca.dtb \
+	imx6dl-edm1-tc1000-qca.dtb \
+	imx6dl-edm2-gremlin.dtb \
 	imx6dl-dfi-fs700-m60.dtb \
 	imx6dl-gw51xx.dtb \
 	imx6dl-gw52xx.dtb \
@@ -442,6 +452,16 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6q-dfi-fs700-m60.dtb \
 	imx6q-dmo-edmqmx6.dtb \
 	imx6q-evi.dtb \
+	imx6q-edm1-fairy.dtb \
+	imx6q-edm1-gnome.dtb \
+	imx6q-edm1-tc0700.dtb \
+	imx6q-edm1-tc1000.dtb \
+	imx6q-edm1-fairy-qca.dtb \
+	imx6q-edm1-gnome-qca.dtb \
+	imx6q-edm1-fairy-qca.dtb \
+	imx6q-edm1-tc0700-qca.dtb \
+	imx6q-edm1-tc1000-qca.dtb \
+	imx6q-edm2-gremlin.dtb \
 	imx6q-gk802.dtb \
 	imx6q-gw51xx.dtb \
 	imx6q-gw52xx.dtb \
@@ -503,6 +523,15 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6q-wandboard.dtb \
 	imx6q-wandboard-revb1.dtb \
 	imx6q-zii-rdu2.dtb \
+	imx6qp-edm1-fairy.dtb \
+	imx6qp-edm1-gnome.dtb \
+	imx6qp-edm1-tc0700.dtb \
+	imx6qp-edm1-tc1000.dtb \
+	imx6qp-edm1-fairy-qca.dtb \
+	imx6qp-edm1-gnome-qca.dtb \
+	imx6qp-edm1-fairy-qca.dtb \
+	imx6qp-edm1-tc0700-qca.dtb \
+	imx6qp-edm1-tc1000-qca.dtb \
 	imx6qp-nitrogen6_max.dtb \
 	imx6qp-nitrogen6_som2.dtb \
 	imx6qp-sabreauto.dtb \
