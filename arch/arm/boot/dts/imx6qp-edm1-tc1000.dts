@@ -1,0 +1,98 @@
+/*
+ * Copyright 2018 TechNexion Ltd.
+ *
+ * Author: Alvin Chen <alvin.chen@technexion.com>
+ *         Po Cheng <po.chen@technexion.com>
+ *         Ray Chang <ray.chang@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ */
+
+/dts-v1/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include "imx6qp.dtsi"
+#include "imx6qdl-edm.dtsi"
+#include "baseboard_edm1_tc1000.dtsi"
+
+/ {
+	model = "TechNexion EDM1-IMX6 Quad Plus and TC1000 baseboard";
+	compatible = "fsl,edm-imx6qp", "fsl,imx6qp";
+};
+
+&ldb {
+	lvds-channel@0 {
+		crtc = "ipu2-di0";
+		display-timings {
+			native-mode = <&timing0>;
+			timing0: hj070na {
+				clock-frequency = <71100000>;
+				hactive = <1280>;
+				vactive = <800>;
+				hback-porch = <40>;
+				hfront-porch = <40>;
+				vback-porch = <10>;
+				vfront-porch = <3>;
+				hsync-len = <80>;
+				vsync-len = <10>;
+			};
+		};
+	};
+};
+
+&mxcfb1 {
+	prefetch;
+	status = "okay";
+};
+
+&mxcfb2 {
+	prefetch;
+	status = "okay";
+};
+
+&mxcfb3 {
+	prefetch;
+	status = "okay";
+};
+
+&mxcfb4 {
+	prefetch;
+	status = "okay";
+};
+
+&pre1 {
+	status = "okay";
+};
+
+&pre2 {
+	status = "okay";
+};
+
+&pre3 {
+	status = "okay";
+};
+
+&pre4 {
+	status = "okay";
+};
+
+&prg1 {
+	memory-region = <&memory>;
+	status = "okay";
+};
+
+&prg2 {
+	memory-region = <&memory>;
+	status = "okay";
+};
+
+&sata {
+	status = "okay";
+};
+
+&fec {
+	/delete-property/ phy-reset-gpios;
+};
