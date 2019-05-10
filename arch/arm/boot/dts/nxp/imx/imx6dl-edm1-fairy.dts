@@ -1,0 +1,33 @@
+/*
+ * Copyright 2018 Technexion Ltd.
+ *
+ * Author: Tapani Utriainen <tapani@technexion.com>
+ *         Richard Hu <richard.hu@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ */
+
+/dts-v1/;
+#include <dt-bindings/interrupt-controller/irq.h>
+#include "imx6dl.dtsi"
+#include "imx6qdl-edm.dtsi"
+#include "baseboard_edm1_fairy.dtsi"
+
+/ {
+	model = "TechNexion EDM1-IMX6 DualLite/Solo and FAIRY baseboard";
+	compatible = "fsl,edm-imx6dl", "fsl,imx6dl";
+};
+
+&ldb {
+	lvds-channel@0 {
+		crtc = "ipu1-di0";
+	};
+};
+
+&epdc {
+	status = "disabled";
+};
+
