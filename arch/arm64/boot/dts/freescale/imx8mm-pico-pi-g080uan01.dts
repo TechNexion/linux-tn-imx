@@ -1,0 +1,69 @@
+/*
+ * Copyright 2018 Technexion Ltd.
+ * Copyright 2018 NXP
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+#include "imx8mm-pico-pi.dts"
+
+
+/ {
+       backlight_exp_mipi: backlight_exp_mipi {
+               compatible = "pwm-backlight";
+               pwms = <&pwm3 0 50000 0>;
+               brightness-levels = <0 36 72 108 144 180 216 255>;
+               default-brightness-level = <6>;
+               status = "okay";
+       };
+};
+
+&iomuxc {
+       pinctrl-names = "default";
+
+       imx8mm-pico {
+               pinctrl_exp_dsi_pwm: exp_dsi_pwm {
+                       fsl,pins = <
+                               MX8MM_IOMUXC_SPDIF_TX_PWM3_OUT          0x16    /* Expansion DSI PWM */
+                       >;
+               };
+
+               pinctrl_exp_mipi_dsi_en: exp_mipi_dsi_en {
+                       fsl,pins = <
+                               MX8MM_IOMUXC_ECSPI2_MISO_GPIO5_IO12     0x16   /* Enable pin for MIPI DSI panel */
+                       >;
+               };
+       };
+};
+
+&pwm3 {
+       pinctrl-names = "default";
+       pinctrl-0 = <&pinctrl_exp_dsi_pwm>;
+       status = "okay";
+};
+
+&mipi_dsi {
+       status = "okay";
+
+       panel@0 {
+	      compatible = "auo,g080uan01";
+
+               reg = <0>;
+               pinctrl-0 = <&pinctrl_exp_mipi_dsi_en>;
+               enable-gpios = <&gpio5 12 GPIO_ACTIVE_HIGH>;
+               backlight = <&backlight_exp_mipi>;
+               status = "okay";
+       };
+
+
+};
