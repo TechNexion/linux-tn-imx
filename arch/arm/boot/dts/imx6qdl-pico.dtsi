@@ -535,8 +535,9 @@
 &fec {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_enet>;
-	phy-mode = "rgmii";
-	phy-reset-gpios = <&gpio1 26 0>;
+	phy-mode = "rgmii-id";
+	phy-reset-gpios = <&gpio1 26 GPIO_ACTIVE_LOW>;
+	fsl,magic-packet;
 	status = "okay";
 };
 
