@@ -858,12 +858,12 @@
 
 &fec1 {
 	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_enet1 &pinctrl_enet_refclk>;
-	phy-mode = "rgmii";
+	pinctrl-0 = <&pinctrl_enet1>;
+	phy-mode = "rgmii-id";
 	phy-handle = <&ethphy0>;
-	phy-reset-gpios = <&gpio6 11 0>;
+	phy-reset-gpios = <&gpio6 11 GPIO_ACTIVE_LOW>;
+	fsl,magic-packet;
 	status = "okay";
-
 	mdio {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -871,7 +871,8 @@
 		ethphy0: ethernet-phy@1 {
 			compatible = "ethernet-phy-ieee802.3-c22";
 			reg = <1>;
-			status = "okay";
+			at803x,led-act-blind-workaround;
+			at803x,eee-disabled;
 		};
 	};
 };
