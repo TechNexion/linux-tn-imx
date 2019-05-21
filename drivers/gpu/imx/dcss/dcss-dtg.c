@@ -91,8 +91,9 @@
 
 /* Maximum Video PLL frequency */
 #define MAX_PLL_FREQ 1200000000
+#define MIN_PLL_FREQ 400000000
 /* Mininum pixel clock in kHz */
-#define MIN_PIX_CLK 74250
+#define MIN_PIX_CLK 27000
 
 static struct dcss_debug_reg dtg_debug_reg[] = {
 	DCSS_DBG_REG(DCSS_DTG_TC_CONTROL_STATUS),
@@ -294,6 +295,24 @@ void dcss_dtg_exit(struct dcss_soc *dcss)
 	}
 }
 
+static unsigned long mxsfb_get_lcm(unsigned long a, unsigned long b)
+{
+	u32 gcf = 0; /* greatest common factor */
+	unsigned long tmp_a = a;
+	unsigned long tmp_b = b;
+
+	while (tmp_a % tmp_b) {
+		gcf = tmp_a % tmp_b;
+		tmp_a = tmp_b;
+		tmp_b = gcf;
+	}
+
+	if (!gcf)
+		return a;
+
+	return (a * b) / gcf;
+}
+
 static struct clk *dcss_dtg_find_src_clk(struct dcss_soc *dcss, int crtc_clock,
 	       unsigned long *out_rate)
 {
@@ -336,8 +355,12 @@ static struct clk *dcss_dtg_find_src_clk(struct dcss_soc *dcss, int crtc_clock,
 			break;
 
 		/* Find the highest rate that fits our needs */
-		*out_rate = crtc_clock * (MAX_PLL_FREQ / crtc_clock);
-		if (!(*out_rate % src_rate))
+		*out_rate = mxsfb_get_lcm(crtc_clock / 1000, src_rate / 1000);
+		*out_rate *= 1000;
+
+		while (*out_rate < MIN_PLL_FREQ)
+			*out_rate <<= 1;
+		if (*out_rate <= MAX_PLL_FREQ)
 			break;
 
 		/* Get the next clock source available */
