@@ -48,7 +48,7 @@
 	assigned-clock-parents = <&clk IMX8MQ_VIDEO_PLL1_OUT>,
 				 <&clk IMX8MQ_SYS1_PLL_800M>,
 				 <&clk IMX8MQ_SYS1_PLL_800M>;
-	assigned-clock-rates = <600000000>,
+	assigned-clock-rates = <594000000>,
 			       <800000000>,
 			       <400000000>;
 
@@ -106,7 +106,9 @@
 		display-timings {
 			native-mode = <&timing0>;
 			timing0: hj070na {
-				clock-frequency = <51000000>;
+				//clock-frequency = <51000000>;
+				clock-frequency = <49500000>;
+				//clock-frequency =    <74250000>;
 				hactive = <1024>;
 				vactive = <600>;
 				hfront-porch = <120>;
