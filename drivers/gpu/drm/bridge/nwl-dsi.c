@@ -36,6 +36,9 @@
 
 #define MIPI_FIFO_TIMEOUT msecs_to_jiffies(500)
 
+/* Maximum Video PLL frequency */
+#define MAX_PLL_FREQ 1200000000
+
 /* DSI HOST registers */
 #define CFG_NUM_LANES			0x0
 #define CFG_NONCONTINUOUS_CLK		0x4
@@ -471,6 +474,24 @@ static void nwl_dsi_init_interrupts(struct nwl_mipi_dsi *dsi)
 	nwl_dsi_write(dsi, IRQ_MASK, irq_enable);
 }
 
+static unsigned long nwl_dsi_get_lcm(unsigned long a, unsigned long b)
+{
+	u32 gcf = 0; /* greatest common factor */
+	unsigned long tmp_a = a;
+	unsigned long tmp_b = b;
+
+	while (tmp_a % tmp_b) {
+		gcf = tmp_a % tmp_b;
+		tmp_a = tmp_b;
+		tmp_b = gcf;
+	}
+
+	if (!gcf)
+		return a;
+
+	return (a * b) / gcf;
+}
+
 /*
  * This function will try the required phy speed for current mode
  * If the phy speed can be achieved, the phy will save the speed
@@ -481,19 +502,31 @@ static struct mode_config *nwl_dsi_mode_probe(struct nwl_mipi_dsi *dsi,
 {
 	struct device *dev = dsi->dev;
 	struct mode_config *config;
-	unsigned long pixclock = mode->clock * 1000;
+	unsigned long clock = mode->clock * 1000;
+	unsigned long crtc_clock = mode->crtc_clock * 1000;
 	unsigned long bit_clk = 0;
 	u32 phyref_rate = 0, lanes = dsi->lanes;
 	size_t i = 0, num_rates = ARRAY_SIZE(phyref_rates);
 	int ret = 0;
 
 	list_for_each_entry(config, &dsi->valid_modes, list)
-		if (config->pixclock == pixclock)
+		if (config->pixclock == clock)
 			return config;
 
 	while (i < num_rates) {
-		bit_clk = nwl_dsi_get_bit_clock(dsi, pixclock);
+		unsigned long lcm;
 		phyref_rate = phyref_rates[i];
+		bit_clk = nwl_dsi_get_bit_clock(dsi, clock);
+
+		/*
+		 * First, we need to check if phy_ref can actually be obtained
+		 * from crtc clock. To do this, we check their lowest common
+		 * multiple, which has to be in PLL range.
+		 */
+		lcm = nwl_dsi_get_lcm(crtc_clock / 1000, phyref_rate / 1000);
+		if (lcm * 1000 > MAX_PLL_FREQ)
+		       continue;
+
 		ret = mixel_phy_mipi_set_phy_speed(dsi->phy,
 			bit_clk,
 			phyref_rate,
@@ -523,7 +556,7 @@ static struct mode_config *nwl_dsi_mode_probe(struct nwl_mipi_dsi *dsi,
 	}
 
 	config = devm_kzalloc(dsi->dev, sizeof(struct mode_config), GFP_KERNEL);
-	config->pixclock = pixclock;
+	config->pixclock = clock;
 	config->lanes = lanes;
 	config->bitclock = bit_clk;
 	config->phyref_rate = phyref_rate;
@@ -1055,21 +1088,12 @@ static int nwl_dsi_connector_get_modes(struct drm_connector *connector)
 
 	/*
 	 * We need to inform the CRTC about the actual bit clock that we need
-	 * for each mode
+	 * for each mode. So, set crtc_clock down with 10% from the actual
+	 * pixel clock so that we will have enough space in the display timing
+	 * to send DSI commands.
 	 */
-	list_for_each_entry(mode, &connector->probed_modes, head) {
-		struct mode_config *config;
-		u32 phy_rate;
-
-		config = nwl_dsi_mode_probe(dsi, mode);
-		/* Unsupported mode */
-		if (!config)
-			continue;
-
-		/* Actual pixel clock that should be used by CRTC */
-		phy_rate = config->phyref_rate / 1000;
-		mode->crtc_clock = phy_rate * (mode->clock / phy_rate);
-	}
+	list_for_each_entry(mode, &connector->probed_modes, head)
+		mode->crtc_clock = (mode->clock * 10) / 11;
 
 	return num_modes;
 }
