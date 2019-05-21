@@ -111,7 +111,7 @@
 	status = "okay";
 
 	panel@0 {
-		compatible = "auo,g080uan01";
+		compatible = "auo,g080uan01_imx8m";
 		reg = <0>;
 		pinctrl-0 = <&pinctrl_exp_mipi_dsi_en>;
 		enable-gpios = <&gpio5 8 GPIO_ACTIVE_HIGH>;
