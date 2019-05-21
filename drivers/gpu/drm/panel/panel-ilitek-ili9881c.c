@@ -596,7 +596,7 @@ static int ili9881c_unprepare(struct drm_panel *panel)
 }
 
 static const struct drm_display_mode high_clk_mode = {
-	.clock		= 108000,
+	.clock		= 74250,
 	.vrefresh	= 60,
 	.hdisplay	= 720,
 	.hsync_start	= 720 + 34,
