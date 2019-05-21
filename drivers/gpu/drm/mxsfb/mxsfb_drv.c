@@ -47,8 +47,9 @@
 /* The eLCDIF max possible CRTCs */
 #define MAX_CRTCS 1
 
-/* Maximum Video PLL frequency */
+/* Minimum and maximum Video PLL frequency */
 #define MAX_PLL_FREQ 1200000000
+#define MIN_PLL_FREQ 400000000
 /* Mininum pixel clock in Hz */
 #define MIN_PIX_CLK  74250000
 enum mxsfb_devtype {
@@ -164,6 +165,24 @@ static const struct drm_mode_config_helper_funcs mxsfb_mode_config_helpers = {
 	.atomic_commit_tail = drm_atomic_helper_commit_tail_rpm,
 };
 
+static unsigned long mxsfb_get_lcm(unsigned long a, unsigned long b)
+{
+	u32 gcf = 0; /* greatest common factor */
+	unsigned long tmp_a = a;
+	unsigned long tmp_b = b;
+
+	while (tmp_a % tmp_b) {
+		gcf = tmp_a % tmp_b;
+		tmp_a = tmp_b;
+		tmp_b = gcf;
+	}
+
+	if (!gcf)
+		return a;
+
+	return (a * b) / gcf;
+}
+
 static struct clk *mxsfb_find_src_clk(struct mxsfb_drm_private *mxsfb,
 	       int crtc_clock,
 	       unsigned long *out_rate)
@@ -200,15 +219,20 @@ static struct clk *mxsfb_find_src_clk(struct mxsfb_drm_private *mxsfb,
 	}
 
 	while (!IS_ERR_OR_NULL(src)) {
-		/* Check if current rate satisfies our needs */
 		src_rate = clk_get_rate(src);
+		/* Check if current rate satisfies our needs */
 		*out_rate = clk_get_rate(mxsfb->clk_pll);
 		if (!(*out_rate % crtc_clock))
 			break;
 
 		/* Find the highest rate that fits our needs */
-		*out_rate = crtc_clock * (MAX_PLL_FREQ / crtc_clock);
-		if (!(*out_rate % src_rate))
+		*out_rate = mxsfb_get_lcm(crtc_clock / 1000, src_rate / 1000);
+		*out_rate *= 1000;
+
+		while (*out_rate < MIN_PLL_FREQ)
+			*out_rate <<= 1;
+
+		if (*out_rate <= MAX_PLL_FREQ)
 			break;
 
 		/* Get the next clock source available */
