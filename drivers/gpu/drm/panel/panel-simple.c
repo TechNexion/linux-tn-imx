@@ -2337,6 +2337,35 @@ static const struct panel_desc_dsi auo_g101uan02 = {
 	.lanes = 4,
 };
 
+static const struct drm_display_mode auo_g101uan02_imx8m_mode = {
+	.clock = 148500,
+	.hdisplay = 1920,
+	.hsync_start = 1920 + 60,
+	.hsync_end = 1920 + 60 + 18,
+	.htotal = 1920 + 60 + 18 + 60,
+	.vdisplay = 1200,
+	.vsync_start = 1200 + 5,
+	.vsync_end = 1200 + 5 + 2,
+	.vtotal = 1200 + 5 + 2 + 5,
+	.vrefresh = 60,
+};
+
+static const struct panel_desc_dsi auo_g101uan02_imx8m = {
+	.desc = {
+		.modes = &auo_g101uan02_imx8m_mode,
+		.num_modes = 1,
+		.bpc = 8,
+		.size = {
+			.width = 217,
+			.height = 136,
+		},
+		.bus_format = MEDIA_BUS_FMT_RGB888_1X24,
+	},
+	.flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_SYNC_PULSE,
+	.format = MIPI_DSI_FMT_RGB888,
+	.lanes = 4,
+};
+
 static const struct drm_display_mode auo_g080uan01_mode = {
 	.clock = 159400,
 	.hdisplay = 1200,
@@ -2522,6 +2551,9 @@ static const struct of_device_id dsi_of_match[] = {
 	}, {
 		.compatible = "auo,g101uan02",
 		.data = &auo_g101uan02
+	}, {
+		.compatible = "auo,g101uan02_imx8m",
+		.data = &auo_g101uan02_imx8m
 	}, {
 		.compatible = "boe,tv080wum-nl0",
 		.data = &boe_tv080wum_nl0
