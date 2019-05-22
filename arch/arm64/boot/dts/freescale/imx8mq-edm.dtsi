@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Technexion Ltd.
+ * Copyright 2018 TechNexion Ltd.
  * Copyright 2017 NXP
  *
  * Author: Richard Hu <richard.hu@technexion.com>
@@ -106,6 +106,20 @@
 			fsl,pins = <
 				MX8MQ_IOMUXC_I2C3_SCL_I2C3_SCL			0x4000007f
 				MX8MQ_IOMUXC_I2C3_SDA_I2C3_SDA			0x4000007f
+			>;
+		};
+
+		pinctrl_pcie0: pcie0grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_SAI5_RXD2_GPIO3_IO23	0x76 /* PCIE_A_CLKREQn, open drain, pull up */
+				MX8MQ_IOMUXC_GPIO1_IO06_GPIO1_IO6	0x16 /* PCIE_A_PERSTn */
+			>;
+		};
+
+		pinctrl_pcie1: pcie1grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_NAND_RE_B_GPIO3_IO15	0x16 /* GPIO_P263, W_Disable# */
+				MX8MQ_IOMUXC_SAI1_MCLK_GPIO4_IO20	0x16 /* PCIE_nRST */
 			>;
 		};
 
@@ -455,6 +469,24 @@
 	clock-frequency = <100000>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c3>;
+	status = "okay";
+};
+
+&pcie0{
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pcie0>;
+	clkreq-gpio = <&gpio3 23 GPIO_ACTIVE_LOW>;
+	reset-gpio = <&gpio1 6 GPIO_ACTIVE_LOW>;
+	ext_osc = <1>;
+	status = "okay";
+};
+
+&pcie1{
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pcie1>;
+	disable-gpio = <&gpio3 15 GPIO_ACTIVE_LOW>;
+	reset-gpio = <&gpio4 20 GPIO_ACTIVE_LOW>;
+	ext_osc = <1>;
 	status = "okay";
 };
 
