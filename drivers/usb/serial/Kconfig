@@ -279,6 +279,15 @@ config USB_SERIAL_GARMIN
          To compile this driver as a module, choose M here: the
          module will be called garmin_gps.
 
+config USB_SERIAL_GOBISERIAL
+	tristate "USB GobiSerial"
+	default n
+	help
+	  Say Y here if you have a GobiSerial USB modem device.  These are
+	  usually wireless cellular modems.
+	  To compile this driver as a module, choose M here: the
+	  module will be called gobiserial.
+
 config USB_SERIAL_IPW
         tristate "USB IPWireless (3G UMTS TDD) Driver"
 	select USB_SERIAL_WWAN

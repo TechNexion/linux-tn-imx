@@ -359,6 +359,25 @@ config USB_NET_GL620A
 
 	  Note that the half-duplex "GL620USB" is not supported.
 
+config USB_NET_GOBINET
+		tristate "Gobinet driver based 3G and LTE modems"
+		default n
+		help
+		  Support AirPrime LTE/3G devices.
+
+		  This driver will only drive the ethernet part of the chips.
+		  The devices require additional configuration to be usable.
+		  Multiple management interfaces with linux drivers are
+		  available:
+
+			* option: AT commands on /dev/ttyUSBx
+			* cdc-wdm: Qualcomm MSM Interface (QMI) protocol on /dev/cdc-wdmx
+
+		  A modem manager with support for QMI is recommended.
+
+		  To compile this driver as a module, choose M here: the
+		  module will be called gobinet.
+
 config USB_NET_NET1080
 	tristate "NetChip 1080 based cables (Laplink, ...)"
 	default y
