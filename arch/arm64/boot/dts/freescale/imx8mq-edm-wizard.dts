@@ -190,6 +190,12 @@
 				MX8MQ_IOMUXC_NAND_ALE_GPIO3_IO0		0x19 /* reset */
 			>;
 		};
+
+		pinctrl_pca9555: pca9555grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_NAND_CE0_B_GPIO3_IO1	0x41 /* irq */
+			>;
+		};
 	};
 };
 
@@ -228,6 +234,18 @@
 		interrupt-controller;
 		#interrupt-cells = <2>;
 	};
+
+	pca9555: pca9555@23 {
+		compatible = "nxp,pca9555";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pca9555>;
+		interrupt-parent = <&gpio3>;
+		interrupts = <1 IRQ_TYPE_EDGE_FALLING>;
+		reg =<0x23>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
 	};
 };
 
