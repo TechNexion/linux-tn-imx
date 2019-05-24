@@ -1533,8 +1533,10 @@ static int axonf_probe(struct i2c_client *client,
 		reset_gpio = devm_gpiod_get_optional(&client->dev, "reset",
 						     GPIOD_OUT_LOW);
 
-		if (IS_ERR(reset_gpio))
+		if (IS_ERR(reset_gpio)) {
+			dev_err(&client->dev, "failed to get reset gpio. error %ld\n", PTR_ERR(reset_gpio));
 			return PTR_ERR(reset_gpio);
+		}
 	}
 
 	chip->client = client;
