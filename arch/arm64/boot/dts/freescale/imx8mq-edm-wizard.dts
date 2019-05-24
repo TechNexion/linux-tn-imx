@@ -280,6 +280,11 @@
 		};
 	};
 
+	pcie-clock@6a {
+		compatible = "idt,9FGV0241AKILF";
+		pinctrl-names = "default";
+		/* TODO */
+		reg = <0x6a>;
 	};
 };
 
