@@ -221,6 +221,11 @@
 		wlf,shared-lrclk;
 	};
 
+	rtc_ds1337: ds1337@68 {
+		compatible = "dallas,ds1337";
+		reg = <0x68>;
+	};
+
 	sc16is752: sc16is752@4d {
 		compatible = "nxp,sc16is752";
 		pinctrl-names = "default";
