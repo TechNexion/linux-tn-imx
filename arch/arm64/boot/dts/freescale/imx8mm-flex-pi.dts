@@ -33,7 +33,6 @@
 			regulator-min-microvolt = <5000000>;
 			regulator-max-microvolt = <5000000>;
 			gpio = <&gpio1 9 GPIO_ACTIVE_LOW>;
-			enable-active-low;
 		};
 
 		reg_backlight_pwr: regulator_blpwr {
@@ -250,7 +249,7 @@
 
 &usbotg1 {
 	dr_mode = "otg";
-	extcon = <&typec_tusb320>;
+	extcon = <0>, <&typec_tusb320>;
 	status = "okay";
 };
 
