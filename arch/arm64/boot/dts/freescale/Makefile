@@ -117,6 +117,8 @@ dtb-$(CONFIG_ARCH_FSL_IMX8MQ) += fsl-imx8mq-ddr3l-arm2.dtb \
 				 fsl-imx8mq-evk-dp.dtb \
 				 fsl-imx8mq-evk-edp.dtb \
 				 imx8mq-edm-wizard.dtb \
+				 imx8mq-edm-wizard.dtb \
+				 imx8mq-edm-wizard-dcss-ili9881c.dtb \
 				 imx8mq-pico-pi.dtb \
 				 imx8mq-pico-pi-dcss-g080uan01.dtb \
 				 imx8mq-pico-pi-dcss-g101uan02.dtb \

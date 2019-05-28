@@ -164,7 +164,7 @@
 
 		pinctrl_mipi_dsi_rst: mipi_dsi_rst {
 			fsl,pins = <
-				MX8MQ_IOMUXC_NAND_WE_B_GPIO3_IO17	0x16   /* DSI RST */
+				MX8MQ_IOMUXC_GPIO1_IO10_GPIO1_IO10      0x16   /* DSI RST, GPIO_P264 */
 			>;
 		};
 
@@ -176,7 +176,7 @@
 
 		pinctrl_touch_rst: touch_rstgrp {
 			fsl,pins = <
-				MX8MQ_IOMUXC_NAND_WP_B_GPIO3_IO18	0x16
+				MX8MQ_IOMUXC_NAND_WP_B_GPIO3_IO18	0x16	/* GPIO_P260 */
 			>;
 		};
 
