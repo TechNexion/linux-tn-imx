@@ -12,6 +12,7 @@
 struct bmp3_reg_calib_data {
 	uint16_t	par_t1;
 	uint16_t	par_t2;
+	int8_t		unused;	// fill the alignment hole
 	int8_t		par_t3;
 	int16_t		par_p1;
 	int16_t		par_p2;
@@ -24,7 +25,7 @@ struct bmp3_reg_calib_data {
 	int16_t		par_p9;
 	int8_t		par_p10;
 	int8_t		par_p11;
-	int64_t		t_lin;
+	int16_t		t_lin;
 };
 
 struct bmp380_data {
@@ -79,49 +80,78 @@ static int bmp380_read_press(struct bmp380_data *data, int *val, int *val2)
 	int64_t partial_data4;
 	int64_t partial_data5;
 	int64_t partial_data6;
-	uint64_t offset;
-	uint64_t sensitivity;
 	uint64_t comp_press;
 	uint32_t uncomp_data;
+
+	int64_t partial_out1;
+	int64_t partial_out2;
 
 	ret = bmp3_set_op_mode(data->regmap, data);
 	if (ret < 0)
 		return ret;
 
+	usleep_range(5500, 6000);
+
 	ret = regmap_bulk_read(data->regmap, BMP3_PRESS_ADDR, reg_data, 3);
 	if (ret < 0) {
-		dev_err(dev, "failed to read temperature\n");
+		dev_err(dev, "failed to read pressure\n");
 		return ret;
 	}
 
-	uncomp_data = (uint32_t)reg_data[0] | (uint32_t)reg_data[1] << 8 | (uint32_t)reg_data[2] << 16;
+	uncomp_data = ((uint32_t)reg_data[0]) | (((uint32_t)reg_data[1]) << 8) | (((uint32_t)reg_data[2]) << 16);
+
+//	dev_info(dev, "Praw: B2 - B0, combined: %u, %u, %u %u\n", reg_data[2], reg_data[1], reg_data[0], uncomp_data);
 
 	partial_data1 = data->reg_calib_data.t_lin * data->reg_calib_data.t_lin;
-	partial_data2 = partial_data1 >> 6;
-	partial_data3 = (partial_data2 * data->reg_calib_data.t_lin) >> 8;
-	partial_data4 = (data->reg_calib_data.par_p8 * partial_data3) >> 5;
-	partial_data5 = (data->reg_calib_data.par_p7 * partial_data1) << 4;
-	partial_data6 = (data->reg_calib_data.par_p6 * data->reg_calib_data.t_lin) << 22;
-	offset = (data->reg_calib_data.par_p5 << 30);
-	offset = (offset << 17) + partial_data4 + partial_data5 + partial_data6;
+	partial_data3 = partial_data1 * data->reg_calib_data.t_lin;
 
-	partial_data2 = (data->reg_calib_data.par_p4 * partial_data3) >> 5;
-	partial_data4 = (data->reg_calib_data.par_p3 * partial_data1) << 2;
-	partial_data5 = (data->reg_calib_data.par_p2 - 16384) * data->reg_calib_data.t_lin << 21;
-	sensitivity = (data->reg_calib_data.par_p1 - 16384) << 30;
-	sensitivity = (sensitivity << 16) + partial_data2 + partial_data4 + partial_data5;
+/*
+	dev_info(dev, "Praw, T-lin: %u, %i PS Param: T: %u, %u, %i\n", uncomp_data, data->reg_calib_data.t_lin, data->reg_calib_data.par_t1, 
+				data->reg_calib_data.par_t2, data->reg_calib_data.par_t3);
+	dev_info(dev, "PS Param: P01-P06: %i, %i, %i, %i, %u, %u\n", data->reg_calib_data.par_p1, data->reg_calib_data.par_p2, 
+				data->reg_calib_data.par_p3, data->reg_calib_data.par_p4, data->reg_calib_data.par_p5, data->reg_calib_data.par_p6);
+	dev_info(dev, "PS Param: P07-P11: %i, %i, %i, %i, %i, %i\n", data->reg_calib_data.par_p7, data->reg_calib_data.par_p8, 
+				data->reg_calib_data.par_p9, data->reg_calib_data.par_p10, data->reg_calib_data.par_p11, data->reg_calib_data.t_lin);
+*/
 
+	partial_data6 = (((int64_t)data->reg_calib_data.par_p6) * ((int64_t)data->reg_calib_data.t_lin)) << 9;
+	partial_data5 = (((int64_t)data->reg_calib_data.par_p7) * partial_data1) << 7;
+	partial_data4 = ((int64_t)data->reg_calib_data.par_p8) * partial_data3;
+	partial_out1 = (((int64_t)(data->reg_calib_data.par_p5)) << 18);
+	partial_out1 = partial_out1 + partial_data4 + partial_data5 + partial_data6;
+/*
+	dev_info(dev, "Intermediate Results 1: pd1, pd2, pd3, Partial_out1: %lld, %lld, %lld, %lld\n", partial_data4, partial_data5, partial_data6, partial_out1);
+*/
+	partial_data5 = (((int64_t)data->reg_calib_data.par_p2 - 16384) * ((int64_t)data->reg_calib_data.t_lin)) << 8;
+	partial_data4 = (((int64_t)data->reg_calib_data.par_p3) * partial_data1) << 5;
+	partial_data2 = ((int64_t)data->reg_calib_data.par_p4) * partial_data3;
+	partial_out2 = ((int64_t)(data->reg_calib_data.par_p1 - 16384)) << 17;
+	partial_out2 = partial_out2 + partial_data2 + partial_data4 + partial_data5;
+	partial_out2 = partial_out2 * ((int64_t)uncomp_data);
+/*
+	dev_info(dev, "Intermediate Results 2: pd1, pd2, pd3, Partial_out2: %lld, %lld, %lld, %lld\n", partial_data5, partial_data4, partial_data2, partial_out2);
+*/
 
-	partial_data1 = (sensitivity >> 24) * uncomp_data;
-	partial_data2 = data->reg_calib_data.par_p10 * data->reg_calib_data.t_lin;
-	partial_data3 = partial_data2 + (data->reg_calib_data.par_p9 << 16);
-	partial_data4 = (partial_data3 * uncomp_data) >> 13;
-	partial_data5 = (partial_data4 * uncomp_data) >> 9;
-	partial_data6 = (int64_t)((uint64_t)uncomp_data * (uint64_t)uncomp_data);
-	partial_data2 = (data->reg_calib_data.par_p11 * partial_data6) >> 16;
-	partial_data3 = (partial_data2 * uncomp_data) >> 7;
-	partial_data4 = (offset >> 2) + partial_data1 + partial_data5 + partial_data3;
-	comp_press = (((uint64_t)partial_data4 * 25) >> 40);
+	partial_data2 = ((int64_t)data->reg_calib_data.par_p10) * ((int64_t)data->reg_calib_data.t_lin);
+	partial_data3 = partial_data2 + ((int64_t)data->reg_calib_data.par_p9);
+	partial_data4 = partial_data3 * uncomp_data;
+	partial_data5 = partial_data4 * uncomp_data;
+	partial_data1 = ((int64_t)uncomp_data) * ((int64_t)uncomp_data);
+	partial_data1 = partial_data1 >> 9;
+	partial_data1 = partial_data1 * ((int64_t)uncomp_data);
+	partial_data2 = partial_data1 >> 8;
+	partial_data3 = (((int64_t)(data->reg_calib_data.par_p11)) * partial_data2);
+	partial_data4 = partial_data5 + partial_data3;
+	partial_data4 = partial_data4 >> 11;
+
+//	dev_info(dev, "Intermediate Results 3: pd5, pd1, pd2, pd3: %lld, %lld, %lld, %lld\n", partial_data5, partial_data1, partial_data2, partial_data3);
+
+	/* Intermediate Result */
+//	dev_info(dev, "Intermediate Results: Partial_out1, Partial_out2, Partial_data4: %lld, %lld, %lld\n", partial_out1, partial_out2, partial_data4);
+	partial_data4 = partial_data4 + partial_out2;
+	partial_data4 = partial_data4 >> 22;
+	partial_data4 = partial_data4 + partial_out1;
+	comp_press = (((uint64_t)partial_data4 * 25) >> 13);
 
 	if (val && val2) {
 		*val = comp_press;
@@ -135,12 +165,12 @@ static int bmp380_read_press(struct bmp380_data *data, int *val, int *val2)
 static int bmp380_read_temp(struct bmp380_data *data, int *val, int *val2)
 {
 	struct device *dev = regmap_get_device(data->regmap);
-	uint32_t uncomp_data;
+	int32_t uncomp_data;
 	int ret = 0;
 	uint8_t reg_data[3] = {0};
-	uint64_t partial_data1;
-	uint64_t partial_data2;
-	uint64_t partial_data3;
+	int64_t partial_data1;
+	int64_t partial_data2;
+	int64_t partial_data3;
 	int64_t partial_data4;
 	int64_t partial_data5;
 	int64_t partial_data6;
@@ -150,22 +180,25 @@ static int bmp380_read_temp(struct bmp380_data *data, int *val, int *val2)
 	if (ret < 0)
 		return ret;
 
+	usleep_range(5500, 6000);
+
 	ret = regmap_bulk_read(data->regmap, BMP3_TEMPE_ADDR, reg_data, 3);
 	if (ret < 0) {
 		dev_err(dev, "failed to read temperature\n");
 		return ret;
 	}
 
-	uncomp_data = (uint32_t)reg_data[0] | (uint32_t)reg_data[1] << 8 | (uint32_t)reg_data[2] << 16;
+	uncomp_data = (int32_t)((((uint32_t)reg_data[0]) | (((uint32_t)reg_data[1]) << 8)) | (uint32_t)((int32_t)reg_data[2] << 16));
 
-	partial_data1 = uncomp_data - (uint64_t)(data->reg_calib_data.par_t1 << 8);
+	partial_data1 = uncomp_data - (((int32_t)data->reg_calib_data.par_t1) << 8);
 	partial_data2 = (data->reg_calib_data.par_t2) * partial_data1;
 	partial_data3 = partial_data1 * partial_data1;
-	partial_data4 = (uint64_t)partial_data3 * data->reg_calib_data.par_t3;
-	partial_data5 = ((uint64_t)(partial_data2 << 18) + partial_data4);
+	partial_data4 = partial_data3 * data->reg_calib_data.par_t3;
+	partial_data5 = ((partial_data2 << 18) + partial_data4);
 	partial_data6 = partial_data5 >> 32;
-	data->reg_calib_data.t_lin = partial_data6;
-	comp_temp = (int64_t)((partial_data6 * 25) >> 14);
+//	dev_info(dev, "Intermediate Results: T-Lin: %i, %lld, %lld, %lld, %lld\n", uncomp_data, partial_data2, partial_data4, partial_data5, partial_data6);
+	data->reg_calib_data.t_lin = (int16_t)(partial_data6 >> 16);
+	comp_temp = (partial_data6 * 25) >> 14;
 
 	if (val && val2) {
 		*val = comp_temp;
