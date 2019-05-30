@@ -58,7 +58,7 @@
 		pinctrl-0 = <&pinctrl_gpio_key_voicehat>;
 
 		prev {
-			gpios = <&gpio3 23 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio3 9 GPIO_ACTIVE_LOW>;
 			label = "KEY PREV";
 			linux,code = <KEY_PREVIOUS>;
 		};

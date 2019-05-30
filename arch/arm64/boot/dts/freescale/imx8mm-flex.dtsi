@@ -30,7 +30,7 @@
 		compatible = "gpio-reset";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_bt_ctrl>;
-		reset-gpios = <&gpio3 7 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&gpio1 3 GPIO_ACTIVE_LOW>;
 		reset-delay-us = <2000>;
 		reset-post-delay-ms = <40>;
 		#reset-cells = <0>;
@@ -48,7 +48,7 @@
 			regulator-name = "WL_REG_ON";
 			regulator-min-microvolt = <3300000>;
 			regulator-max-microvolt = <3300000>;
-			gpio = <&gpio3 6 GPIO_ACTIVE_HIGH>;
+			gpio = <&gpio1 0 GPIO_ACTIVE_HIGH>;
 			off-on-delay = <20000>;
 			startup-delay-us = <100>;
 			enable-active-high;
@@ -156,7 +156,7 @@
 
 		pinctrl_pmic: pmicirq {
 			fsl,pins = <
-				MX8MM_IOMUXC_GPIO1_IO03_GPIO1_IO3	0x41
+				MX8MM_IOMUXC_NAND_DATA01_GPIO3_IO7	0x41
 			>;
 		};
 
@@ -211,7 +211,7 @@
 
 		pinctrl_pcie1_ctrl: pcie1ctrlgrp {
 			fsl,pins = <
-				MX8MM_IOMUXC_SAI2_RXC_GPIO4_IO22	0x61 /* open drain, pull up */
+				MX8MM_IOMUXC_SAI2_RXC_GPIO4_IO22	0x61 /* PCIE1_nCLKREQ open drain, pull up */
 				MX8MM_IOMUXC_SAI2_RXFS_GPIO4_IO21	0x41 /* PCIE1_nWAKE */
 			>;
 		};
@@ -253,6 +253,9 @@
 			fsl,pins = <
 				MX8MM_IOMUXC_UART2_RXD_UART2_DCE_RX	0x140
 				MX8MM_IOMUXC_UART2_TXD_UART2_DCE_TX	0x140
+/* Used in UART4 for Cortex-M4*/
+//				MX8MM_IOMUXC_UART4_RXD_UART2_DCE_CTS_B	0x140
+//				MX8MM_IOMUXC_UART4_TXD_UART2_DCE_RTS_B	0x140
 			>;
 		};
 
@@ -265,7 +268,7 @@
 			>;
 		};
 
-		pinctrl_uart4: uart4grp {
+		pinctrl_uart4: uart4grp { /* Used in Cortex-M4 */
 			fsl,pins = <
 				MX8MM_IOMUXC_UART4_RXD_UART4_DCE_RX	0x140
 				MX8MM_IOMUXC_UART4_TXD_UART4_DCE_TX	0x140
@@ -274,14 +277,14 @@
 
 		pinctrl_wifi_ctrl: wifi_ctrlgrp {
 			fsl,pins = <
-				MX8MM_IOMUXC_NAND_DATA00_GPIO3_IO6	0x41 /* WL_REG_ON */
+				MX8MM_IOMUXC_GPIO1_IO00_GPIO1_IO0	0x41 /* WL_REG_ON */
 				MX8MM_IOMUXC_NAND_ALE_GPIO3_IO0		0x41 /* WL_WAKE_HOST */
 			>;
 		};
 
 		pinctrl_bt_ctrl: bt_ctrlgrp {
 			fsl,pins = <
-				MX8MM_IOMUXC_NAND_DATA01_GPIO3_IO7	0x41 /* BT_REG_ON */
+				MX8MM_IOMUXC_GPIO1_IO03_GPIO1_IO3	0x41 /* BT_REG_ON */
 				MX8MM_IOMUXC_NAND_READY_B_GPIO3_IO16	0x41 /* BT_WAKE_HOST */
 			>;
 		};
@@ -334,6 +337,7 @@
 		pinctrl_usdhc2_gpio: usdhc2grpgpio {
 			fsl,pins = <
 				MX8MM_IOMUXC_SD2_CD_B_GPIO2_IO12	0x1c4
+				MX8MM_IOMUXC_SD2_RESET_B_GPIO2_IO19	0x41
 			>;
 		};
 
@@ -466,7 +470,6 @@
 };
 
 &i2c3 {
-	clock-frequency = <100000>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c3>;
 	status = "okay";
@@ -481,9 +484,9 @@
 	pmic: bd71837@4b {
 		reg = <0x4b>;
 		compatible = "rohm,bd71840", "rohm,bd71837";
-		/* PMIC BD71837 PMIC_nINT GPIO1_IO3 */
+		/* PMIC BD71837 PMIC_nINT GPIO3_IO7 */
 		pinctrl-0 = <&pinctrl_pmic>;
-		gpio_intr = <&gpio1 3 GPIO_ACTIVE_LOW>;
+		gpio_intr = <&gpio3 7 GPIO_ACTIVE_LOW>;
 
 		gpo {
 			rohm,drv = <0x0C>;	/* 0b0000_1100 all gpos with cmos output mode */
@@ -671,7 +674,6 @@
 	phy-handle = <&ethphy0>;
 	phy-reset-gpios = <&gpio2 10 GPIO_ACTIVE_LOW>;
 	phy-supply = <&reg_fec_supply>;
-	fsl,ar8031-phy-fixup;
 	fsl,magic-packet;
 	status = "okay";
 
