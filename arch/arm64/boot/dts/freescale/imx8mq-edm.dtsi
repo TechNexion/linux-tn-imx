@@ -40,6 +40,18 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
+		wl_pwr_on: wlpwr_on {
+			compatible = "regulator-fixed";
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_wifi_pwr_ctrl>;
+			regulator-name = "WL_PWR_ON";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio1 14 GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+			regulator-always-on;
+		};
+
 		wl_reg_on: wlreg_on {
 			compatible = "regulator-fixed";
 			pinctrl-names = "default";
@@ -254,9 +266,16 @@
 			>;
 		};
 
+		pinctrl_wifi_pwr_ctrl: wifi_pwr_ctrlgrp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_GPIO1_IO14_GPIO1_IO14	0x19 /* WIFI_PWR_ON */
+			>;
+		};
+
 		pinctrl_wifi_ctrl: wifi_ctrlgrp {
 			fsl,pins = <
 				MX8MQ_IOMUXC_SAI5_RXD3_GPIO3_IO24		0x19 /* WL_REG_ON */
+				MX8MQ_IOMUXC_SAI5_RXFS_GPIO3_IO19		0x41 /* WAKE_UP */
 			>;
 		};
 
