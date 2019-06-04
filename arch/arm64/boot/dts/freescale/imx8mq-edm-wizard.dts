@@ -157,8 +157,6 @@
 		pinctrl_csi1: csi1grp {
 			fsl,pins = <
 				MX8MQ_IOMUXC_UART3_TXD_GPIO5_IO27			0x19   /* CSI P1 PWDN */
-				MX8MQ_IOMUXC_GPIO1_IO12_GPIO1_IO12		0x19   /* CSI nRST */
-				MX8MQ_IOMUXC_GPIO1_IO15_CCMSRCGPCMIX_CLKO2	0x59
 			>;
 		};
 
