@@ -1236,8 +1236,6 @@ static int wm8960_set_dai_pll(struct snd_soc_dai *codec_dai, int pll_id,
 	struct snd_soc_codec *codec = codec_dai->codec;
 	struct wm8960_priv *wm8960 = snd_soc_codec_get_drvdata(codec);
 
-	wm8960->freq_in = freq_in;
-
 	if (pll_id == WM8960_SYSCLK_AUTO)
 		return 0;
 
@@ -1316,7 +1314,6 @@ static int wm8960_set_dai_sysclk(struct snd_soc_dai *dai, int clk_id,
 		}
 
 		wm8960->freq_in = freq_in;
-		dev_info(codec->dev, "Using codec PLL. MCLK rate %d Hz\n", wm8960->freq_in);
 	}
 
 	switch (clk_id) {
