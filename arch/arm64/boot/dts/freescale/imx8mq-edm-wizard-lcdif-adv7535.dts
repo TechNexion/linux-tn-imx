@@ -1,0 +1,92 @@
+/*
+ * Copyright 2019 Technexion Ltd.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+#include "imx8mq-edm-wizard.dts"
+
+/ {
+	display-subsystem {
+		status = "disabled";
+	};
+
+	sound-hdmi {
+		status = "disabled";
+	};
+};
+
+&irqsteer_dcss {
+	status = "disabled";
+};
+
+&dcss {
+	status = "disabled";
+};
+
+&hdmi {
+	status = "disabled";
+};
+
+&lcdif {
+	status = "okay";
+	max-res = <1280>, <720>;
+
+	port@0 {
+		lcdif_mipi_dsi: mipi-dsi-endpoint {
+			remote-endpoint = <&mipi_dsi_in>;
+		};
+	};
+};
+
+&mipi_dsi_phy {
+	status = "okay";
+};
+
+&mipi_dsi {
+	status = "okay";
+	as_bridge;
+	sync-pol = <1>;
+	pwr-delay = <10>;
+
+	port@1 {
+		mipi_dsi_in: endpoint {
+			remote-endpoint = <&lcdif_mipi_dsi>;
+		};
+	};
+};
+
+&mipi_dsi_bridge {
+	status = "okay";
+	port@1 {
+		mipi_dsi_bridge_adv: endpoint {
+			remote-endpoint = <&adv7535_in>;
+		};
+	};
+};
+
+&i2c3 {
+	adv_bridge: adv7535@3d {
+		compatible = "adi,adv7533";
+		reg = <0x3d>;
+		adi,addr-cec = <0x38>;
+		adi,dsi-lanes = <4>;
+		pinctrl-0 = <&pinctrl_touch_irq>;
+		interrupt-parent = <&gpio1>;
+		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
+		status = "okay";
+		port {
+			adv7535_in: endpoint {
+				remote-endpoint = <&mipi_dsi_bridge_adv>;
+			};
+		};
+	};
+};
