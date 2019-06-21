@@ -1,0 +1,71 @@
+/*
+ * Copyright 2019 TechNexion Ltd.
+ * Copyright 2018 NXP
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+#include "imx8mm-pico-pi.dts"
+
+/ {
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		m4_reserved: m4@0x80000000 {
+			no-map;
+			reg = <0 0x80000000 0 0x1000000>;
+		};
+
+	};
+};
+
+/*
+ * ATTENTION: M4 may use IPs like below
+ * ECSPI0/ECSPI2, GPIO1/GPIO5, GPT1, I2C3, I2S1, WDOG1, UART4, PWM3, SDMA1
+ */
+
+&i2c3 {
+	status = "disabled";
+};
+
+&rpmsg{
+	/*
+	 * 64K for one rpmsg instance:
+	 * --0xb8000000~0xb800ffff: pingpong
+	 */
+	vdev-nums = <1>;
+	reg = <0x0 0xb8000000 0x0 0x10000>;
+	status = "okay";
+};
+
+&sdma1{
+	status = "disabled";
+};
+
+&uart4 {
+	status = "disabled";
+};
+
+&sdma3 {
+	status = "disabled";
+};
+
+&sai1 {
+	status = "disabled";
+};
+
+&flexspi {
+	status = "disabled";
+};
