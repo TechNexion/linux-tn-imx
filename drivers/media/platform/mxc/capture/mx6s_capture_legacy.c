@@ -587,7 +587,7 @@ static void csi_dmareq_rff_disable(struct mx6s_csi_dev *csi_dev)
 	__raw_writel(cr3, csi_dev->regbase + CSI_CSICR3);
 }
 
-static void csi_set_32bit_imagpara(struct mx6s_csi_dev *csi,
+static void csi_set_imagpara(struct mx6s_csi_dev *csi,
 					int width, int height)
 {
 	int imag_para = 0;
@@ -600,30 +600,33 @@ static void csi_set_32bit_imagpara(struct mx6s_csi_dev *csi,
 	__raw_writel(cr3 | BIT_DMA_REFLASH_RFF, csi->regbase + CSI_CSICR3);
 }
 
-static void csi_set_16bit_imagpara(struct mx6s_csi_dev *csi,
-					int width, int height)
+static void csi_error_recovery(struct mx6s_csi_dev *csi_dev)
 {
-	int imag_para = 0;
-	unsigned long cr3 = __raw_readl(csi->regbase + CSI_CSICR3);
+	u32 cr1, cr3, cr18;
+	/* software reset */
 
-	imag_para = ((width * 2) << 16) | height;
-	__raw_writel(imag_para, csi->regbase + CSI_CSIIMAG_PARA);
+	/* Disable csi  */
+	cr18 = csi_read(csi_dev, CSI_CSICR18);
+	cr18 &= ~BIT_CSI_ENABLE;
+	csi_write(csi_dev, cr18, CSI_CSICR18);
 
-	/* reflash the embeded DMA controller */
-	__raw_writel(cr3 | BIT_DMA_REFLASH_RFF, csi->regbase + CSI_CSICR3);
-}
+	/* Clear RX FIFO */
+	cr1 = csi_read(csi_dev, CSI_CSICR1);
+	csi_write(csi_dev, cr1 & ~BIT_FCC, CSI_CSICR1);
+	cr1 = csi_read(csi_dev, CSI_CSICR1);
+	csi_write(csi_dev, cr1 | BIT_CLR_RXFIFO, CSI_CSICR1);
 
-static void csi_set_8bit_imagpara(struct mx6s_csi_dev *csi,
-					int width, int height)
-{
-	int imag_para = 0;
-	unsigned long cr3 = __raw_readl(csi->regbase + CSI_CSICR3);
+	cr1 = csi_read(csi_dev, CSI_CSICR1);
+	csi_write(csi_dev, cr1 | BIT_FCC, CSI_CSICR1);
 
-	imag_para = (width << 16) | height;
-	__raw_writel(imag_para, csi->regbase + CSI_CSIIMAG_PARA);
+	/* DMA reflash */
+	cr3 = csi_read(csi_dev, CSI_CSICR3);
+	cr3 |= BIT_DMA_REFLASH_RFF;
+	csi_write(csi_dev, cr3, CSI_CSICR3);
 
-	/* reflash the embeded DMA controller */
-	__raw_writel(cr3 | BIT_DMA_REFLASH_RFF, csi->regbase + CSI_CSICR3);
+	/* Ensable csi  */
+	cr18 |= BIT_CSI_ENABLE;
+	csi_write(csi_dev, cr18, CSI_CSICR18);
 }
 
 /*
@@ -810,6 +813,7 @@ static int mx6s_configure_csi(struct mx6s_csi_dev *csi_dev)
 {
 	struct v4l2_pix_format *pix = &csi_dev->pix;
 	u32 cr1, cr18;
+	u32 width;
 
 	if (pix->field == V4L2_FIELD_INTERLACED) {
 		csi_deinterlace_enable(csi_dev, true);
@@ -822,21 +826,22 @@ static int mx6s_configure_csi(struct mx6s_csi_dev *csi_dev)
 
 	switch (csi_dev->fmt->pixelformat) {
 	case V4L2_PIX_FMT_YUV32:
-		csi_set_32bit_imagpara(csi_dev, pix->width, pix->height);
+	case V4L2_PIX_FMT_SBGGR8:
+		width = pix->width;
 		break;
 	case V4L2_PIX_FMT_UYVY:
-		csi_set_16bit_imagpara(csi_dev, pix->width, pix->height);
-		break;
 	case V4L2_PIX_FMT_YUYV:
-		csi_set_16bit_imagpara(csi_dev, pix->width, pix->height);
-		break;
-	case V4L2_PIX_FMT_SBGGR8:
-		csi_set_8bit_imagpara(csi_dev, pix->width, pix->height);
+		if (csi_dev->csi_mux_mipi == true)
+			width = pix->width;
+		else
+			/* For parallel 8-bit sensor input */
+			width = pix->width * 2;
 		break;
 	default:
 		pr_debug("   case not supported\n");
 		return -EINVAL;
 	}
+	csi_set_imagpara(csi_dev, width, pix->height);
 
 	if (csi_dev->csi_mux_mipi == true) {
 		cr1 = csi_read(csi_dev, CSI_CSICR1);
@@ -1064,7 +1069,7 @@ static irqreturn_t mx6s_csi_irq_handler(int irq, void *data)
 {
 	struct mx6s_csi_dev *csi_dev =  data;
 	unsigned long status;
-	u32 cr1, cr3, cr18;
+	u32 cr3, cr18;
 
 	spin_lock(&csi_dev->slock);
 
@@ -1080,36 +1085,15 @@ static irqreturn_t mx6s_csi_irq_handler(int irq, void *data)
 		return IRQ_HANDLED;
 	}
 
-	if (status & BIT_RFF_OR_INT)
+	if (status & BIT_RFF_OR_INT) {
 		dev_warn(csi_dev->dev, "%s Rx fifo overflow\n", __func__);
+		csi_error_recovery(csi_dev);
+	}
 
 	if (status & BIT_HRESP_ERR_INT) {
-		/* software reset */
-
-		/* Disable csi  */
-		cr18 = csi_read(csi_dev, CSI_CSICR18);
-		cr18 &= ~BIT_CSI_ENABLE;
-		csi_write(csi_dev, cr18, CSI_CSICR18);
-
-		/* Clear RX FIFO */
-		cr1 = csi_read(csi_dev, CSI_CSICR1);
-		csi_write(csi_dev, cr1 & ~BIT_FCC, CSI_CSICR1);
-		cr1 = csi_read(csi_dev, CSI_CSICR1);
-		csi_write(csi_dev, cr1 | BIT_CLR_RXFIFO, CSI_CSICR1);
-
-		cr1 = csi_read(csi_dev, CSI_CSICR1);
-		csi_write(csi_dev, cr1 | BIT_FCC, CSI_CSICR1);
-
-		/* DMA reflash */
-		cr3 = csi_read(csi_dev, CSI_CSICR3);
-		cr3 |= BIT_DMA_REFLASH_RFF;
-		csi_write(csi_dev, cr3, CSI_CSICR3);
-
-		/* Ensable csi  */
-		cr18 |= BIT_CSI_ENABLE;
-		csi_write(csi_dev, cr18, CSI_CSICR18);
-
-		pr_warning("Hresponse error is detected.\n");
+		dev_warn(csi_dev->dev, "%s Hresponse error detected\n",
+			__func__);
+		csi_error_recovery(csi_dev);
 	}
 
 	if (status & BIT_ADDR_CH_ERR_INT) {
@@ -1412,6 +1396,12 @@ static int mx6s_vidioc_try_fmt_vid_cap(struct file *file, void *priv,
 	if (!fmt) {
 		dev_err(csi_dev->dev, "Fourcc format (0x%08x) invalid.",
 			f->fmt.pix.pixelformat);
+		return -EINVAL;
+	}
+
+	if (f->fmt.pix.width == 0 || f->fmt.pix.height == 0) {
+		dev_err(csi_dev->dev, "width %d, height %d is too small.\n",
+			f->fmt.pix.width, f->fmt.pix.height);
 		return -EINVAL;
 	}
 
