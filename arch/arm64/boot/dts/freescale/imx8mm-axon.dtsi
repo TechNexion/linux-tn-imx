@@ -295,7 +295,7 @@
 				MX8MM_IOMUXC_SAI1_TXFS_SAI1_TX_SYNC	    0xd6
 				MX8MM_IOMUXC_SAI1_TXC_SAI1_TX_BCLK	    0xd6
 				MX8MM_IOMUXC_SAI1_TXD0_SAI1_TX_DATA0	0xd6
-				MX8MM_IOMUXC_SAI1_RXD0_SAI5_RX_DATA0    0xd6
+				MX8MM_IOMUXC_SAI1_RXD0_SAI1_RX_DATA0    0xd6
 			>;
 		};
 
@@ -569,9 +569,10 @@
 		iob-enable =      /bits/ 8 <0xFF 0xFF 0x00 0xFF 0x1F 0x00 0x00 0xF0 0xFF 0xEF 0xEF 0xFF 0x0F>;
 		iob-pushpull =    /bits/ 8 <0xFF 0xFE 0x00 0xFC 0x07 0x00 0x00 0x3F 0xFF 0x67 0x67 0xFF 0x0F>;
 		iob-direction =   /bits/ 8 <0x00 0x02 0x00 0x03 0x18 0x00 0x00 0xE0 0xE6 0x01 0x01 0x06 0x0E>;
-		iob-selection-0 = /bits/ 8 <0x00 0x03 0x00 0x0C 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00>;
-		iob-selection-1 = /bits/ 8 <0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00>;
+		iob-selection-0 = /bits/ 8 <0x00 0x80 0x00 0x0C 0x10 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00>;
+		iob-selection-1 = /bits/ 8 <0x00 0x00 0x00 0x00 0x10 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00>;
 		gpio-controller;
+		#gpio-cells = <2>;
 		gpio-line-names =
 		"F_GPIO_X1_P66", "F_GPIO_X1_P68", "F_GPIO_X1_P70", "F_GPIO_X1_P72", // Bank 0
 		"F_GPIO_X1_P74", "F_GPIO_X1_P76", "F_GPIO_X1_P78", "F_GPIO_X1_P80", // Bank 0
@@ -598,6 +599,7 @@
 		"F_CAN_A_TX", "F_CAN_A_RX", "F_CAN_B_TX", "F_CAN_B_RX",             // Bank 11
 		"F_AUD_B_TXD", "F_AUD_B_TXFS", "F_AUD_B_TXCLK", "F_AUD_B_RXD",      // Bank 12
 		"F_AUD_B_RXFS", "F_AUD_B_RXCLK", "F_AUD_B_MCLK", "";                // Bank 12
+		status="okay";
 	};
 
 	pmic: bd71837@4b {
@@ -943,13 +945,24 @@
 &AXON_SPI_A {
 	cs-gpios = <AXON_EXT_GPIO_SPI_A_CS0   GPIO_ACTIVE_LOW>,
 			   <AXON_EXT_GPIO_SPI_A_CS1   GPIO_ACTIVE_LOW>;
+	fsl,spi-num-chipselects = <2>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_spi_a>;
+	#address-cells = <1>;
+	#size-cells = <0>;
 	status = "okay";
-	spidev0: spi@0 {
+
+	spidevA_0: spidev@0 {
+		compatible = "spidev", "rohm,dh2228fv";
+		spi-max-frequency = <523000000>;
+		reg = <0>;
+		status = "okay";
+		};
+	spidevA_1: spidev@1 {
 		compatible = "spidev", "rohm,dh2228fv";
 		spi-max-frequency = <52000000>;
-		reg = <0>;
+		reg = <1>;
+		status = "okay";
 		};
 };
 
@@ -958,13 +971,34 @@
 				<AXON_EXT_GPIO_SPI_B_CS1         GPIO_ACTIVE_LOW>,
 				<AXON_EXT_GPIO_SPI_B_FABRIC_CS_N GPIO_ACTIVE_LOW>,
 				<AXON_EXT_GPIO_SPI_B_CORE_CS_N   GPIO_ACTIVE_LOW>;
+	fsl,spi-num-chipselects = <4>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_spi_b>;
 	status = "okay";
-	spidev1: spi@1 {
-		compatible = "spidev", "rohm,dh2228fv";
+
+	spidevB_0: spidev@0 {
+		compatible = "spidev","rohm,dh2228fv";
+		spi-max-frequency = <52000000>;
+		reg = <0>;
+		status = "okay";
+		};
+	spidevB_1: spidev@1 {
+		compatible = "spidev","rohm,dh2228fv";
 		spi-max-frequency = <52000000>;
 		reg = <1>;
+		status = "okay";
+		};
+	spidevB_2: spidev@2 {
+		compatible = "spidev","rohm,dh2228fv";
+		spi-max-frequency = <52000000>;
+		reg = <2>;
+		status = "okay";
+		};
+	spidevB_3: spidev@3 {
+		compatible = "spidev","rohm,dh2228fv";
+		spi-max-frequency = <52000000>;
+		reg = <3>;
+		status = "okay";
 		};
 };
 
