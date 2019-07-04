@@ -2194,7 +2194,7 @@ static s32 ov5645_read_reg(struct ov5645 *sensor, u16 reg, u8 *val);
 static s32 ov5645_write_reg(struct ov5645 *sensor, u16 reg, u8 val);
 
 static const struct i2c_device_id ov5645_id[] = {
-	{"ov5645_mipi", 0},
+	{"ov5645_mipi_v2", 0},
 	{},
 };
 
@@ -3508,10 +3508,12 @@ static int ov5645_read_af(struct ov5645 *sensor, char *buffer, struct kernel_par
 	return cnt;
 }
 
+/*
 module_param_call(ov5645_set_regs, ov5645_set_regs, NULL, NULL, 0644);
 module_param_call(ov5645_print_reg, ov5645_set_print_reg, ov5645_get_print_reg,
 		NULL, 0644);
 module_param_call(ov5645_af, ov5645_set_af_mode, ov5645_read_af, NULL, 0644);
+*/
 
 /*!
  * ov5645 I2C probe function
