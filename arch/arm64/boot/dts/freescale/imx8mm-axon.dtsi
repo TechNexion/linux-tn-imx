@@ -159,7 +159,6 @@
 			enable-active-high;
 			regulator-always-on;
 		};
-
 	};
 
 	i2c_gpio_brd_conf: i2c@0 {
