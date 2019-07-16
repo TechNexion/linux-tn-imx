@@ -188,6 +188,18 @@
 			regulator-always-on;
 		};
 
+		reg_usdhc1_vmmc: regulator-usdhc1 {
+			compatible = "regulator-fixed";
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_usdhc1_pwr>;
+			regulator-name = "SD_3V3";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <AXON_EXT_GPIO_X2_P24 GPIO_ACTIVE_HIGH>;
+			off-on-delay = <20000>;
+			enable-active-high;
+			status = "disabled";
+		};
 	};
 
 	sound-hdmi {
@@ -640,6 +652,12 @@
 			>;
 		};
 
+		pinctrl_usdhc1_pwr: usdhc1rstgrp {
+			fsl,pins = <
+				MX6QDL_PAD_CSI0_DATA_EN__GPIO5_IO20	0x4001b0b5   /* GPIO_X2_P24 */
+			>;
+		};
+
 		pinctrl_usdhc1: usdhc1grp {
 			fsl,pins = <
 				MX6QDL_PAD_SD1_CMD__SD1_CMD		0x17071
@@ -824,24 +842,10 @@
 &fec {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_enet>;
-	phy-mode = "rgmii";
-	phy-handle = <&ethphy>;
+	phy-mode = "rgmii-id";
 	phy-reset-gpios = <&gpio1 26 GPIO_ACTIVE_LOW>;
-	phy-reset-duration = <10>;
-	fsl,err006687-workaround-present;
+	fsl,magic-packet;
 	status = "okay";
-
-	mdio {
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		ethphy: ethernet-phy@1 {
-			compatible = "ethernet-phy-ieee802.3-c22";
-			reg = <1>;
-			at803x,led-act-blind-workaround;
-			at803x,eee-disabled;
-		};
-	};
 };
 
 &hdmi_audio {

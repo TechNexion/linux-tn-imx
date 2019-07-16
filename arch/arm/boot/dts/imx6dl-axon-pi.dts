@@ -262,6 +262,16 @@
 	status = "okay";
 };
 
+/* Baseboard microSD slot */
+&reg_usdhc1_vmmc {
+	status = "okay";
+};
+
+&usdhc1 {
+	vmmc-supply = <&reg_usdhc1_vmmc>;
+	status = "okay";
+};
+
 &pcie {
 	status = "disabled";
 };
