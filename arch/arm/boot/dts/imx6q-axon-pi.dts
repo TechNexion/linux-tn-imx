@@ -171,7 +171,7 @@
 &AXON_I2C_B {
   status = "okay";
 	ov5645_mipi: ov5645_mipi@3c {
-		compatible = "ovti,ov5645_mipi_v2";
+		compatible = "ovti,ov5645_mipi";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_mipi_csi>;
 		reg = <0x3c>;
