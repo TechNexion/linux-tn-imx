@@ -13,39 +13,6 @@
 #include "tnmacro.h"
 
 / {
-	gpio-edm {
-		compatible = "gpio-edm";
-
-		gpio_exp0 {
-			label = "GPIO_EXP0";
-			gpios = <&pca9554 0 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-		gpio_exp1 {
-			label = "GPIO_EXP1";
-			gpios = <&pca9554 1 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-		gpio_exp2 {
-			label = "GPIO_EXP2";
-			gpios = <&pca9554 2 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-		gpio_exp3 {
-			label = "GPIO_EXP3";
-			gpios = <&pca9554 3 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-		/* expander pin 4 is FT5x06 touch reset */
-		gpio_exp5 {
-			label = "GPIO_EXP5";
-			gpios = <&pca9554 5 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-		/* expander pin 6 is FT5x06 touch interrupt */
-		/* expander pin 7 is ADS7846 touch interrupt */
-	};
-
 	sound {
 		compatible = "fsl,imx-sgtl5000",
 			     "fsl,imx-audio-sgtl5000";
@@ -72,6 +39,8 @@
 		};
 	};
 };
+
+PICO_DWARF_GPIO_DEFS();
 
 &PICO_I2CA {
 	status = "okay";
@@ -109,6 +78,8 @@
 		#gpio-cells = <2>;
 		#interrupt-cells = <2>;
 		reg = <0x25>;
+		gpio-line-names =
+			"GPIO_EXP0", "GPIO_EXP1", "GPIO_EXP2", "GPIO_EXP3", "GPIO_EXP4", "GPIO_EXP5", "", "";
 	};
 
 	polytouch: edt-ft5x06@38 {
