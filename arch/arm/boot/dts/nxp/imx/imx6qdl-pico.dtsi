@@ -24,6 +24,81 @@
 #define PICO_EXT_GPIO_P44 gpio5 31
 #define PICO_EXT_GPIO_P48 gpio6 1
 
+#define PICO_DWARF_GPIO_DEFS()	\
+&gpio5 {									\
+	gpio-line-names = 							\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "GPIO_P44";				\
+										\
+	pinctrl-0 = <&pinctrl_gpio5>;						\
+}
+
+
+#define PICO_HOBBIT_GPIO_DEFS()	\
+&gpio5 {									\
+	gpio-line-names = 							\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "GPIO_P25", "GPIO_P24", "GPIO_P28", "GPIO_P26", "", "",	\
+		"", "", "GPIO_P30", "GPIO_P32", "", "", "", "";			\
+										\
+	pinctrl-0 = <&pinctrl_gpio5>;						\
+};										\
+										\
+&gpio6 {									\
+	gpio-line-names = 							\
+		"GPIO_P34", "GPIO_P48", "", "", "", "", "", "",			\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "";					\
+										\
+	pinctrl-0 = <&pinctrl_gpio6>;						\
+}
+
+#define PICO_NYMPH_GPIO_DEFS()	\
+&gpio5 {									\
+	gpio-line-names = 							\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "GPIO_P28", "", "", "",				\
+		"", "", "GPIO_P30", "GPIO_P32", "", "", "", "";			\
+										\
+	pinctrl-0 = <&pinctrl_gpio5>;						\
+};										\
+										\
+&gpio6 {									\
+	gpio-line-names = 							\
+		"GPIO_P34", "", "", "", "", "", "", "",				\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "";					\
+										\
+	pinctrl-0 = <&pinctrl_gpio6>;						\
+}
+
+#define PICO_PI_GPIO_DEFS()	\
+&gpio5 {									\
+	gpio-line-names = 							\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "GPIO_P24", "GPIO_P28", "GPIO_P26", "", "",		\
+		"", "", "GPIO_P30", "", "", "", "", "";				\
+										\
+	pinctrl-0 = <&pinctrl_gpio5>;						\
+};										\
+										\
+&gpio6 {									\
+	gpio-line-names = 							\
+		"GPIO_P34", "GPIO_P48", "", "", "", "", "", "",			\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "";					\
+										\
+	pinctrl-0 = <&pinctrl_gpio6>;						\
+}
+
 #define PICO_PCIE pcie
 
 /* audio codec */
@@ -212,6 +287,8 @@
 		status = "okay";
 	};
 
+	gpio_p24 {
+	};
 };
 
 &audmux {
@@ -270,18 +347,27 @@
 		pinctrl_hog_1: hoggrp-1 {
 			fsl,pins = <
 				MX6QDL_PAD_ENET_RXD0__XTALOSC_REF_CLK_32K	0x000b0	/* wifi LPO 32K Hz clock */
-				MX6QDL_PAD_EIM_D22__GPIO3_IO22		0x80000000	/* USB OTG power */
+				MX6QDL_PAD_EIM_D22__GPIO3_IO22			0x80000000	/* USB OTG power */
+			>;
+		};
 
-/* External pins on PICO connector */
+		pinctrl_gpio5: gpio5_grp {
+			fsl,pins = <
+				/* External pins on PICO connector */
 				MX6QDL_PAD_CSI0_MCLK__GPIO5_IO19	0x4001b0b5 /* PICO_P24 */
 				MX6QDL_PAD_CSI0_PIXCLK__GPIO5_IO18	0x4001b0b5 /* PICO_P25 */
 				MX6QDL_PAD_CSI0_VSYNC__GPIO5_IO21	0x4001b0b5 /* PICO_P26 */
 				MX6QDL_PAD_CSI0_DATA_EN__GPIO5_IO20	0x4001b0b5 /* PICO_P28 */
 				MX6QDL_PAD_CSI0_DAT8__GPIO5_IO26	0x4001b0b5 /* PICO_P30 */
 				MX6QDL_PAD_CSI0_DAT9__GPIO5_IO27	0x4001b0b5 /* PICO_P32 */
-				MX6QDL_PAD_CSI0_DAT14__GPIO6_IO00	0x4001b0b5 /* PICO_P34 */
 				MX6QDL_PAD_CSI0_DAT12__GPIO5_IO30  	0x4001b0b5 /* PICO_P42 */
 				MX6QDL_PAD_CSI0_DAT13__GPIO5_IO31	0x4001b0b5 /* PICO_P44 */
+			>;
+		};
+
+		pinctrl_gpio6: gpio6_grp {
+			fsl,pins = <
+				MX6QDL_PAD_CSI0_DAT14__GPIO6_IO00	0x4001b0b5 /* PICO_P34 */
 				MX6QDL_PAD_CSI0_DAT15__GPIO6_IO01	0x4001b0b5 /* PICO_P48 */
 			>;
 		};
