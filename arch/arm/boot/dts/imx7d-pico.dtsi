@@ -25,6 +25,50 @@
 #define PICO_EXT_GPIO_P44 gpio2 13
 #define PICO_EXT_GPIO_P48 gpio2 7
 
+#define PICO_DWARF_GPIO_DEFS()	\
+&gpio2 {													\
+	gpio-line-names =											\
+		"", "", "", "", "", "", "", "",									\
+		"", "", "", "", "", "GPIO_P44", "", "",								\
+		"", "", "", "", "", "", "", "",									\
+		"", "", "", "", "", "", "", "";									\
+														\
+	pinctrl-0 = <&pinctrl_gpio2>;										\
+}
+
+#define PICO_HOBBIT_GPIO_DEFS()	\
+&gpio2 {													\
+	gpio-line-names =											\
+		"GPIO_P24", "GPIO_P26", "GPIO_P28", "GPIO_P30", "GPIO_P32", "GPIO_P34", "GPIO_P25", "GPIO_P48",	\
+		"", "", "", "", "", "", "", "",									\
+		"", "", "", "", "", "", "", "",									\
+		"", "", "", "", "", "", "", "";									\
+														\
+	pinctrl-0 = <&pinctrl_gpio2>;										\
+}
+
+#define PICO_NYMPH_GPIO_DEFS()	\
+&gpio2 {													\
+	gpio-line-names =											\
+		"", "", "GPIO_P28", "GPIO_P30", "GPIO_P32", "GPIO_P34", "", "",					\
+		"", "", "", "", "", "", "", "",									\
+		"", "", "", "", "", "", "", "",									\
+		"", "", "", "", "", "", "", "";									\
+														\
+	pinctrl-0 = <&pinctrl_gpio2>;										\
+}
+
+#define PICO_PI_GPIO_DEFS()	\
+&gpio2 {													\
+	gpio-line-names =											\
+		"GPIO_P24", "GPIO_P26", "GPIO_P28", "GPIO_P30", "", "GPIO_P34", "", "GPIO_P48",			\
+		"", "", "", "", "", "", "", "",									\
+		"", "", "", "", "", "", "", "",									\
+		"", "", "", "", "", "", "", "";									\
+														\
+	pinctrl-0 = <&pinctrl_gpio2>;										\
+}
+
 #define PICO_PCIE pcie
 
 /* audio codec */
@@ -176,11 +220,10 @@
 
 &iomuxc {
 	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_hog_1>;
 
 	imx7d-pico {
 
-		pinctrl_hog_1: hoggrp-1 {
+		pinctrl_gpio2: gpiogrp {
 			fsl,pins = <
 				MX7D_PAD_EPDC_DATA00__GPIO2_IO0		0x59 /* PICO_P24 */
 				MX7D_PAD_EPDC_DATA06__GPIO2_IO6		0x59 /* PICO_P25 */
