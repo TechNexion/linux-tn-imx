@@ -13,39 +13,6 @@
 #include "tnmacro.h"
 
 / {
-	gpio-edm {
-		compatible = "gpio-edm";
-
-		/* Mikrobus */
-		gpio_p25 {
-			label = "GPIO_P25";
-			gpios = <&PICO_EXT_GPIO_P25 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-
-		/* GPIO connector, 4 GPIOs */
-		gpio_p28 {
-			label = "GPIO_P28";
-			gpios = <&PICO_EXT_GPIO_P28 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-		gpio_p30 {
-			label = "GPIO_P30";
-			gpios = <&PICO_EXT_GPIO_P30 GPIO_ACTIVE_HIGH>;
-			dir   = "in";
-		};
-		gpio_p32 {
-			label = "GPIO_P32";
-			gpios = <&PICO_EXT_GPIO_P32 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-		gpio_p34 {
-			label = "GPIO_P34";
-			gpios = <&PICO_EXT_GPIO_P34 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-	};
-
 	sound {
 		compatible = "fsl,imx-sgtl5000",
 			     "fsl,imx-audio-sgtl5000";
@@ -81,6 +48,8 @@
 		};
 	};
 };
+
+PICO_NYMPH_GPIO_DEFS();
 
 &PICO_I2CA {
 	status = "okay";
