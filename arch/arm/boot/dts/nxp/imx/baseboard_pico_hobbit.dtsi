@@ -21,36 +21,6 @@
  */
 
 / {
-	gpio-edm {
-		compatible = "gpio-edm";
-
-		gpio_p24 {
-			label = "GPIO_P24";
-			gpios = <&PICO_EXT_GPIO_P24 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-		gpio_p26 {
-			label = "GPIO_P26";
-			gpios = <&PICO_EXT_GPIO_P26 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-		gpio_p28 {
-			label = "GPIO_P28";
-			gpios = <&PICO_EXT_GPIO_P28 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-		gpio_p30 {
-			label = "GPIO_P30";
-			gpios = <&PICO_EXT_GPIO_P30 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-		gpio_p34 {
-			label = "GPIO_P34";
-			gpios = <&PICO_EXT_GPIO_P34 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-	};
-
 	sound {
 		compatible = "fsl,imx-sgtl5000",
 			     "fsl,imx-audio-sgtl5000";
@@ -88,6 +58,8 @@
 		};
 	};
 };
+
+PICO_HOBBIT_GPIO_DEFS();
 
 &PICO_I2CA {
 	status = "okay";
