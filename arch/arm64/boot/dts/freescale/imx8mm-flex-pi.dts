@@ -21,7 +21,7 @@
 #include "imx8mm-flex.dtsi"
 
 / {
-	model = "TechNexion FLEX-IMX8MM and FLEX-PI baseboard";
+	model = "TechNexion FLEX-IMX8MM and PI baseboard";
 	compatible = "fsl,imx8mm-flex", "fsl,imx8mm";
 
 	regulators {
