@@ -467,14 +467,14 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6q-nitrogen6_som2.dtb \
 	imx6q-novena.dtb \
 	imx6q-phytec-pbab01.dtb \
-	imx6q-pico-qca_dwarf.dtb \
-	imx6q-pico-qca_hobbit.dtb \
-	imx6q-pico-qca_nymph.dtb \
-	imx6q-pico-qca_pi.dtb \
-	imx6q-pico_dwarf.dtb \
-	imx6q-pico_hobbit.dtb \
-	imx6q-pico_nymph.dtb \
-	imx6q-pico_pi.dtb \
+	imx6q-pico-dwarf.dtb \
+	imx6q-pico-dwarf-qca.dtb \
+	imx6q-pico-hobbit.dtb \
+	imx6q-pico-hobbit-qca.dtb \
+	imx6q-pico-nymph.dtb \
+	imx6q-pico-nymph-qca.dtb \
+	imx6q-pico-pi.dtb \
+	imx6q-pico-pi-qca.dtb \
 	imx6q-rex-pro.dtb \
 	imx6q-sabreauto.dtb \
 	imx6q-sabreauto-ecspi.dtb \
