@@ -13,19 +13,37 @@
 /dts-v1/;
 
 #include "imx6q.dtsi"
-#include "imx6qdl-pico.dtsi"
-#include "baseboard_pico_hobbit.dtsi"
+#include "imx6qdl-pico-qca.dtsi"
+#include "baseboard_pico_pi.dtsi"
 / {
-	model = "TechNexion PICO-IMX6 Quad and HOBBIT baseboard";
+	model = "TechNexion PICO-IMX6 Quad with QCA WLAN module and PI baseboard";
 	compatible = "fsl,pico-imx6q", "fsl,imx6q";
-};
 
-&ldb {
-	lvds-channel@0 {
-		crtc = "ipu2-di0";
+	sound-hdmi {
+		status = "disabled";
+	};
+
+	backlight_lvds {
+		status = "disabled";
 	};
 };
 
+&ldb {
+	status = "disabled";
+};
+
+&hdmi_audio {
+	status = "disabled";
+};
+
+&hdmi_core {
+	status = "disabled";
+};
+
+&hdmi_video {
+	status = "disabled";
+};
+
 &sata {
-	status = "okay";
+	status = "disabled";
 };
