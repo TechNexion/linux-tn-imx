@@ -381,14 +381,14 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6dl-nit6xlite.dtb \
 	imx6dl-nitrogen6x.dtb \
 	imx6dl-phytec-pbab01.dtb \
-	imx6dl-pico-qca_dwarf.dtb \
-	imx6dl-pico-qca_hobbit.dtb \
-	imx6dl-pico-qca_nymph.dtb \
-	imx6dl-pico-qca_pi.dtb \
-	imx6dl-pico_dwarf.dtb \
-	imx6dl-pico_hobbit.dtb \
-	imx6dl-pico_nymph.dtb \
-	imx6dl-pico_pi.dtb \
+	imx6dl-pico-dwarf.dtb \
+	imx6dl-pico-dwarf-qca.dtb \
+	imx6dl-pico-hobbit.dtb \
+	imx6dl-pico-hobbit-qca.dtb \
+	imx6dl-pico-nymph.dtb \
+	imx6dl-pico-nymph-qca.dtb \
+	imx6dl-pico-pi.dtb \
+	imx6dl-pico-pi-qca.dtb \
 	imx6dl-rex-basic.dtb \
 	imx6dl-riotboard.dtb \
 	imx6dl-sabreauto.dtb \
