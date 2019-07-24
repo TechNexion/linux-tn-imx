@@ -12,10 +12,9 @@
 /dts-v1/;
 
 #include "imx7d.dtsi"
-#include "imx7d-pico.dtsi"
-#include "baseboard_pico_hobbit.dtsi"
+#include "imx7d-pico-qca.dtsi"
+#include "baseboard_pico_nymph.dtsi"
 / {
-	model = "TechNexion PICO-IMX7D and HOBBIT baseboard";
+	model = "TechNexion PICO-IMX7D with QCA WLAN module and NYMPH baseboard";
 	compatible = "fsl,pico-imx7d", "fsl,imx7d";
 };
-
