@@ -1,17 +1,32 @@
-// SPDX-License-Identifier: GPL-2.0 OR MIT
-//
-// Copyright 2018 Technexion Ltd.
-//
-// Author: Wig Cheng <wig.cheng@technexion.com>
-//	   Richard Hu <richard.hu@technexion.com>
-//	   Tapani Utriainen <tapani@technexion.com>
-
+/*
+ * Copyright 2016,2017,2018 Technexion Ltd.
+ *
+ * Author: Wig Cheng <wig.cheng@technexion.com>
+ *         Richard Hu <richard.hu@technexion.com>
+ *         Tapani Utriainen <tapani@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ */
 /dts-v1/;
 
 #include "imx6q.dtsi"
-#include "imx6qdl-pico-pi.dtsi"
-
+#include "imx6qdl-pico.dtsi"
+#include "baseboard_pico_nymph.dtsi"
 / {
-	model = "TechNexion PICO-IMX6 Quad Board and Nymph baseboard";
-	compatible = "technexion,imx6q-pico-nymph", "fsl,imx6q";
+	model = "TechNexion PICO-IMX6 Quad and NYMPH baseboard";
+	compatible = "fsl,pico-imx6q", "fsl,imx6q";
 };
+
+&ldb {
+	lvds-channel@0 {
+		crtc = "ipu2-di0";
+	};
+};
+
+&sata {
+	status = "okay";
+};
+
