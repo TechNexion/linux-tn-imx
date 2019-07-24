@@ -1,0 +1,63 @@
+/*
+ * Copyright 2018 TechNexion Ltd.
+ *
+ * Author: Tapani Utriainen <tapani@technexion.com>
+ *         Richard Hu <richard.hu@technexion.com>
+ *         Ray Chang <ray.chang@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ */
+
+#include "imx7d-pico-pi-qca.dts"
+
+/ {
+	memory {
+		linux,usable-memory = <0x80000000 0x1ff00000>;
+	};
+
+	m4_tcm: tcml@007f8000 {
+		compatible = "fsl, m4_tcml";
+		reg = <0x007f8000 0x8000>;
+	};
+
+	gpio-leds {
+		status = "disabled";
+	};
+};
+
+&adc1 {
+	status = "disabled";
+};
+
+&adc2 {
+	status = "disabled";
+};
+
+&gpt3 {
+	status = "disabled";
+};
+
+&gpt4 {
+	status = "disabled";
+};
+
+&ocram {
+	reg = <0x00901000 0xf000>;
+};
+
+&rpmsg{
+	vdev-nums = <1>;
+	reg = <0x9fff0000 0x10000>;
+	status = "okay";
+};
+
+&uart6 {
+	status = "disabled";
+};
+
+&wdog3{
+	status = "disabled";
+};
