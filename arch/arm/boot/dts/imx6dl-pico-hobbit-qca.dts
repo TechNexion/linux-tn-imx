@@ -13,10 +13,11 @@
 /dts-v1/;
 
 #include "imx6dl.dtsi"
-#include "imx6qdl-pico.dtsi"
-#include "baseboard_pico_nymph.dtsi"
+#include "imx6qdl-pico-qca.dtsi"
+#include "baseboard_pico_hobbit.dtsi"
+
 / {
-	model = "TechNexion PICO-IMX6 DualLite/Solo and NYMPH baseboard";
+	model = "TechNexion PICO-IMX6 DualLite/Solo with QCA WLAN module and HOBBIT baseboard";
 	compatible = "fsl,pico-imx6dl", "fsl,imx6dl";
 };
 
