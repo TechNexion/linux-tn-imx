@@ -646,17 +646,16 @@ dtb-$(CONFIG_SOC_IMX7D) += \
 	imx7d-12x12-lpddr3-arm2-mqs.dtb \
 	imx7d-12x12-lpddr3-arm2-pcie.dtb \
 	imx7d-19x19-lpddr2-arm2.dtb \
-	imx7d-pico-qca_dwarf.dtb \
-	imx7d-pico-qca_hobbit.dtb \
-	imx7d-pico-qca_nymph.dtb \
-	imx7d-pico-qca_pi.dtb \
-	imx7d-pico-qca_pi-m4.dtb \
-	imx7d-pico_dwarf.dtb \
-	imx7d-pico_hobbit.dtb \
-	imx7d-pico_nymph.dtb \
-	imx7d-pico_pi.dtb \
-	imx7d-pico-qca_pi.dtb \
-	imx7d-pico_pi-m4.dtb \
+	imx7d-pico-dwarf.dtb \
+	imx7d-pico-dwarf-qca.dtb \
+	imx7d-pico-hobbit.dtb \
+	imx7d-pico-hobbit-qca.dtb \
+	imx7d-pico-nymph.dtb \
+	imx7d-pico-nymph-qca.dtb \
+	imx7d-pico-pi.dtb \
+	imx7d-pico-pi-m4.dtb \
+	imx7d-pico-pi-qca.dtb \
+	imx7d-pico-pi-qca-m4.dtb \
 	imx7d-sdb.dtb \
 	imx7d-sdb-epdc.dtb \
 	imx7d-sdb-gpmi-weim.dtb \

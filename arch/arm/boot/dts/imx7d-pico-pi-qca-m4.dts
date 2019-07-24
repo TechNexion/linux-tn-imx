@@ -11,7 +11,7 @@
  *
  */
 
-#include "imx7d-pico_pi.dts"
+#include "imx7d-pico-pi-qca.dts"
 
 / {
 	memory {
