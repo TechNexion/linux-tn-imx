@@ -1,17 +1,53 @@
-// SPDX-License-Identifier: GPL-2.0 OR MIT
-//
-// Copyright 2018 Technexion Ltd.
-//
-// Author: Wig Cheng <wig.cheng@technexion.com>
-//	   Richard Hu <richard.hu@technexion.com>
-//	   Tapani Utriainen <tapani@technexion.com>
-
+/*
+ * Copyright 2016,2017,2018 Technexion Ltd.
+ *
+ * Author: Wig Cheng <wig.cheng@technexion.com>
+ *         Richard Hu <richard.hu@technexion.com>
+ *         Tapani Utriainen <tapani@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ */
 /dts-v1/;
 
 #include "imx6dl.dtsi"
-#include "imx6qdl-pico-pi.dtsi"
-
+#include "imx6qdl-pico.dtsi"
+#include "baseboard_pico_pi.dtsi"
 / {
-	model = "TechNexion PICO-IMX6 DualLite/Solo Board and PI baseboard";
-	compatible = "technexion,imx6dl-pico-pi", "fsl,imx6dl";
+	model = "TechNexion PICO-IMX6 DualLite/Solo and PI baseboard";
+	compatible = "fsl,pico-imx6dl", "fsl,imx6dl";
+
+	sound-hdmi {
+		status = "disabled";
+	};
+
+	backlight_lvds {
+		status = "disabled";
+	};
+};
+
+&ldb {
+	status = "disabled";
+};
+
+&hdmi_audio {
+	status = "disabled";
+};
+
+&hdmi_core {
+	status = "disabled";
+};
+
+&hdmi_video {
+	status = "disabled";
+};
+
+&epdc {
+	status = "disabled";
+};
+
+&pcie {
+	status = "disabled";
 };
