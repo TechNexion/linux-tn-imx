@@ -39,7 +39,7 @@
 #define PICO_HOBBIT_GPIO_DEFS()	\
 &gpio2 {													\
 	gpio-line-names =											\
-		"GPIO_P24", "GPIO_P26", "GPIO_P28", "GPIO_P30", "GPIO_P32", "GPIO_P34", "GPIO_P25", "GPIO_P48",	\
+		"GPIO_P24", "GPIO_P26", "GPIO_P28", "GPIO_P30", "", "GPIO_P34", "", "",	\
 		"", "", "", "", "", "", "", "",									\
 		"", "", "", "", "", "", "", "",									\
 		"", "", "", "", "", "", "", "";									\
