@@ -79,7 +79,10 @@ PICO_DWARF_GPIO_DEFS();
 		#interrupt-cells = <2>;
 		reg = <0x25>;
 		gpio-line-names =
-			"GPIO_EXP0", "GPIO_EXP1", "GPIO_EXP2", "GPIO_EXP3", "GPIO_EXP4", "GPIO_EXP5", "", "";
+			"GPIO_EXP0", "GPIO_EXP1", "GPIO_EXP2", "GPIO_EXP3", "", "GPIO_EXP5", "", "";
+		/* expander pin 4 is FT5x06 touch reset */
+		/* expander pin 6 is FT5x06 touch interrupt */
+		/* expander pin 7 is ADS7846 touch interrupt */
 	};
 
 	polytouch: edt-ft5x06@38 {
