@@ -24,17 +24,26 @@
 #define PICO_EXT_GPIO_P44 gpio5 31
 #define PICO_EXT_GPIO_P48 gpio6 1
 
-#define PICO_DWARF_GPIO_DEFS()	\
+#define PICO_DWARF_GPIO_DEFS()							\
 &gpio5 {									\
 	gpio-line-names = 							\
 		"", "", "", "", "", "", "", "",					\
 		"", "", "", "", "", "", "", "",					\
 		"", "", "", "", "", "", "", "",					\
-		"", "", "", "", "", "", "", "GPIO_P44";				\
+		"", "", "", "", "", "", "", "";					\
 										\
 	pinctrl-0 = <&pinctrl_gpio5>;						\
+};										\
+										\
+&gpio6 {									\
+	gpio-line-names = 							\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "";					\
+										\
+	pinctrl-0 = <&pinctrl_gpio6>;						\
 }
-
 
 #define PICO_HOBBIT_GPIO_DEFS()	\
 &gpio5 {									\
