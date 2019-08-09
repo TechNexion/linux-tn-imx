@@ -871,7 +871,7 @@ static void axonf_setup_gpio(struct axonf_chip *chip, int gpios)
 	gc->get_direction = axonf_gpio_get_direction;
 	gc->request = axonf_gpio_request;
 	gc->free = axonf_gpio_free;
-	gc->can_sleep = true;
+	gc->can_sleep = false;
 
 	gc->base = chip->gpio_start;
 	gc->ngpio = gpios;
