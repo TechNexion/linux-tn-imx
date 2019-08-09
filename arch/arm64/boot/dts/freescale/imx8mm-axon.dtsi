@@ -524,12 +524,36 @@
 	};
 };
 
+&gpio1 {
+	gpio-line-names =
+		"", "FABRIC_RESET_N", "", "", "", "FABRIC_GPIO_INT0_N", "FABRIC_GPIO_INT1_N", "FABRIC_GPIO_INT2_N",
+		"SPI_A_CS1", "SPI_B_CS1", "SPI_B_CORE_CS_N", "SPI_B_FABRIC_CS_N", "", "", "GPIO_X3_P69", "",
+		"", "", "", "", "", "", "", "",
+		"", "", "", "", "", "", "", "";
+};
+
+&gpio3 {
+	gpio-line-names =
+		"", "ENET_PWR_EN", "", "", "", "", "WL_REG_ON", "BT_REG_ON",
+		"", "SOC_STATUS_LED", "", "", "", "", "", "",
+		"BT_HOST_WAKE", "", "", "", "", "", "", "",
+		"", "", "", "", "", "", "", "";
+};
+
 &gpio4 {
 	gpio-line-names =
-		"", "", "", "GPIO_X1_P78", "GPIO_X1_P80", "", "", "",
-		"", "", "", "", "", "GPIO_X1_P66", "GPIO_X1_P68", "GPIO_X1_P70",
-		"GPIO_X1_P72", "", "GPIO_X1_P74", "GPIO_X1_P76", "", "", "", "",
-		"", "", "", "", "", "", "", "";
+		"BRD_CONF_SCL", "BRD_CONF_SDA", "", "GPIO_X1_P78", "GPIO_X1_P80", "GPIO_X2_P18", "", "",
+		"", "GPIO_X2_P20", "", "", "", "GPIO_X1_P66", "GPIO_X1_P68", "GPIO_X1_P70",
+		"GPIO_X1_P72", "", "GPIO_X1_P74", "GPIO_X1_P76", "GPIO_SPARE1", "", "", "",
+		"", "GPIO_X2_P24", "GPIO_X3_P65", "GPIO_X2_P22", "GPIO_X3_P71", "", "", "";
+};
+
+&gpio5 {
+	gpio-line-names =
+		"", "GPIO_X3_P67", "", "", "", "", "", "",
+		"", "SPI_A_CS0", "", "", "", "", "", "",
+		"", "", "", "", "", "", "", "",
+		"", "SPI_B_CS0", "", "", "PCIE_A_WAKE", "PCIE_A_RESET", "", "";
 };
 
 &AXON_I2C_A {  // I2C_A
