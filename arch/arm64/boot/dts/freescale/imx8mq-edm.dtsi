@@ -133,6 +133,8 @@
 			fsl,pins = <
 				MX8MQ_IOMUXC_UART1_RXD_UART1_DCE_RX		0x49
 				MX8MQ_IOMUXC_UART1_TXD_UART1_DCE_TX		0x49
+				MX8MQ_IOMUXC_UART3_RXD_UART1_DCE_CTS_B		0x49
+				MX8MQ_IOMUXC_UART3_TXD_UART1_DCE_RTS_B		0x49
 			>;
 		};
 
@@ -523,6 +525,7 @@
 	pinctrl-0 = <&pinctrl_uart1>;
 	assigned-clocks = <&clk IMX8MQ_CLK_UART1>;
 	assigned-clock-parents = <&clk IMX8MQ_CLK_25M>;
+	fsl,uart-has-rtscts;
 	status = "okay";
 };
 
