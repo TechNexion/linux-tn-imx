@@ -278,6 +278,7 @@
 		pinctrl_bt_ctrl: bt_ctrlgrp {
 			fsl,pins = <
 				MX8MQ_IOMUXC_SAI5_RXD0_GPIO3_IO21		0x19 /* BT_ON */
+				MX8MQ_IOMUXC_SAI5_RXC_GPIO3_IO20		0x41 /* BT WAKE_UP */
 			>;
 		};
 	};
