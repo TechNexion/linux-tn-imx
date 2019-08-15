@@ -180,16 +180,15 @@
 			>;
 		};
 
-		pinctrl_sc16is752: sc16is752grp {
+		pinctrl_pca9555_1: pca9555_1grp {
 			fsl,pins = <
-				MX8MQ_IOMUXC_NAND_CE3_B_GPIO3_IO4	0x41 /* irq */
-				MX8MQ_IOMUXC_NAND_ALE_GPIO3_IO0		0x19 /* reset */
+				MX8MQ_IOMUXC_NAND_CE0_B_GPIO3_IO1	0x41 /* irq */
 			>;
 		};
 
-		pinctrl_pca9555: pca9555grp {
+		pinctrl_pca9554_2: pca9554_2grp {
 			fsl,pins = <
-				MX8MQ_IOMUXC_NAND_CE0_B_GPIO3_IO1	0x41 /* irq */
+				MX8MQ_IOMUXC_GPIO1_IO12_GPIO1_IO12	0x41 /* irq */
 			>;
 		};
 	};
@@ -244,33 +243,6 @@
 		compatible = "dallas,ds1337";
 		reg = <0x68>;
 	};
-
-	sc16is752: sc16is752@4d {
-		compatible = "nxp,sc16is752";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_sc16is752>;
-		reg = <0x4d>;
-		clocks = <&sc16is752_clk>;
-		interrupt-parent = <&gpio3>;
-		interrupts = <4 IRQ_TYPE_EDGE_FALLING>;
-		gpio-controller;
-		#gpio-cells = <2>;
-		interrupt-controller;
-		#interrupt-cells = <2>;
-	};
-
-	pca9555: pca9555@23 {
-		compatible = "nxp,pca9555";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_pca9555>;
-		interrupt-parent = <&gpio3>;
-		interrupts = <1 IRQ_TYPE_EDGE_FALLING>;
-		reg =<0x23>;
-		gpio-controller;
-		#gpio-cells = <2>;
-		interrupt-controller;
-		#interrupt-cells = <2>;
-	};
 };
 
 &i2c4 {
@@ -299,11 +271,30 @@
 		};
 	};
 
-	pcie-clock@6a {
-		compatible = "idt,9FGV0241AKILF";
+	pca9555_1: pca9555_1@23 {
+		compatible = "nxp,pca9555";
 		pinctrl-names = "default";
-		/* TODO */
-		reg = <0x6a>;
+		pinctrl-0 = <&pinctrl_pca9555_1>;
+		interrupt-parent = <&gpio3>;
+		interrupts = <1 IRQ_TYPE_EDGE_FALLING>;
+		reg =<0x23>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+	};
+
+	pca9554_2: pca9554_2@25 {
+		compatible = "nxp,pca9554";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pca9554_2>;
+		interrupt-parent = <&gpio1>;
+		interrupts = <12 IRQ_TYPE_EDGE_FALLING>;
+		reg =<0x25>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
 	};
 };
 
