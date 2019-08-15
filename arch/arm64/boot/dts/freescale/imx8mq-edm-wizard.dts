@@ -143,6 +143,19 @@
 			>;
 		};
 
+		pinctrl_pcie0: pcie0grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_SAI5_RXD2_GPIO3_IO23	0x76 /* PCIE_A_CLKREQn, open drain, pull up */
+				MX8MQ_IOMUXC_GPIO1_IO06_GPIO1_IO6	0x16 /* PCIE_A_PERSTn */
+			>;
+		};
+
+		pinctrl_pcie1: pcie1grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_SAI1_MCLK_GPIO4_IO20	0x16 /* PCIE_nRST */
+			>;
+		};
+
 		pinctrl_mipi_dsi_rst: mipi_dsi_rst {
 			fsl,pins = <
 				MX8MQ_IOMUXC_GPIO1_IO10_GPIO1_IO10      0x16   /* DSI RST, GPIO_P264 */
@@ -396,5 +409,25 @@
 &pwm4 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_fan_pwm>;
+	status = "okay";
+};
+
+&pcie0{
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pcie0>;
+	clkreq-gpio = <&gpio3 23 GPIO_ACTIVE_LOW>;
+	disable-gpio = <&pca9555_1 5 GPIO_ACTIVE_LOW>;
+	reset-gpio = <&gpio1 6 GPIO_ACTIVE_LOW>;
+	ext_osc = <1>;
+	status = "okay";
+};
+
+&pcie1{
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pcie1>;
+	clkreq-gpio = <&pca9555_1 4 GPIO_ACTIVE_LOW>;
+	disable-gpio = <&pca9555_1 1 GPIO_ACTIVE_LOW>;
+	reset-gpio = <&gpio4 20 GPIO_ACTIVE_LOW>;
+	ext_osc = <1>;
 	status = "okay";
 };
