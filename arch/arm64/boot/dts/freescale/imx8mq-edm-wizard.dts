@@ -228,7 +228,7 @@
 	};
 };
 
-&i2c3 {
+&i2c4 {
 	status = "okay";
 
 	ov5645_mipi2: ov5645_mipi2@3c {
