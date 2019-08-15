@@ -130,7 +130,16 @@
 
 		pinctrl_csi1: csi1grp {
 			fsl,pins = <
-				MX8MQ_IOMUXC_UART3_TXD_GPIO5_IO27			0x19   /* CSI P1 PWDN */
+				MX8MQ_IOMUXC_GPIO1_IO01_GPIO1_IO1			0x19   /* CSI P2 PWDN */
+				MX8MQ_IOMUXC_SAI3_RXC_GPIO4_IO29			0x19   /* CSI P2 RESET*/
+			>;
+		};
+
+		pinctrl_csiedm: csiedmgrp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_SAI2_RXFS_GPIO4_IO21		0x19   /* CSI EDM PWDN */
+				MX8MQ_IOMUXC_SAI2_RXC_GPIO4_IO22		0x19   /* CSI nRST */
+				MX8MQ_IOMUXC_GPIO1_IO15_CCMSRCGPCMIX_CLKO2	0x59
 			>;
 		};
 
@@ -175,6 +184,29 @@
 
 &i2c2 {
 	status = "okay";
+
+	ov5645_mipi: ov5645_mipi@3c {
+		compatible = "ovti,ov5645_mipi_v2";
+		reg = <0x3c>;
+		status = "okay";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_csiedm>;
+		clocks = <&clk IMX8MQ_CLK_CLKO2>;
+		clock-names = "csi_mclk";
+		assigned-clocks = <&clk IMX8MQ_CLK_CLKO2>;
+		assigned-clock-parents = <&clk IMX8MQ_SYS2_PLL_200M>;
+		assigned-clock-rates = <24000000>;
+		csi_id = <0>;
+		pwn-gpios = <&gpio4 21 GPIO_ACTIVE_LOW>;
+		rst-gpios = <&gpio4 22 GPIO_ACTIVE_HIGH>;
+		mclk = <24000000>;
+		mclk_source = <0>;
+		port {
+			ov5645_mipi1_ep: endpoint {
+				remote-endpoint = <&mipi1_sensor_ep>;
+			};
+		};
+	};
 
 	typec_tusb320:tusb320@47 {
 		compatible = "ti,tusb320";
@@ -243,8 +275,8 @@
 		assigned-clock-parents = <&clk IMX8MQ_SYS2_PLL_200M>;
 		assigned-clock-rates = <24000000>;
 		csi_id = <1>;
-		pwn-gpios = <&gpio5 27 GPIO_ACTIVE_HIGH>;
-		rst-gpios = <&gpio1 12 GPIO_ACTIVE_HIGH>;
+		pwn-gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>;
+		rst-gpios = <&gpio4 29 GPIO_ACTIVE_HIGH>;
 		mclk = <24000000>;
 		mclk_source = <0>;
 		port {
@@ -297,6 +329,34 @@
 
 &hdmi {
 	status = "okay";
+};
+
+&csi1_bridge {
+	fsl,mipi-mode;
+	fsl,two-8bit-sensor-mode;
+	status = "okay";
+
+	port {
+		csi1_ep: endpoint {
+		remote-endpoint = <&csi1_mipi_ep>;
+		};
+	};
+};
+
+&mipi_csi_1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+	port {
+		mipi1_sensor_ep: endpoint1 {
+			remote-endpoint = <&ov5645_mipi1_ep>;
+			data-lanes = <1 2>;
+		};
+
+		csi1_mipi_ep: endpoint2 {
+			remote-endpoint = <&csi1_ep>;
+		};
+	};
 };
 
 &csi2_bridge {
