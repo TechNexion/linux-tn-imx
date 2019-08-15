@@ -61,26 +61,6 @@
 		status = "disabled";
 	};
 
-	leds {
-		compatible = "gpio-leds";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_gpio_led>;
-
-		led {
-			label = "gpio-led";
-			gpios = <&gpio5 5 GPIO_ACTIVE_HIGH>;
-		};
-	};
-
-	clocks {
-		sc16is752_clk: sc16is752_clk {
-			compatible = "fixed-clock";
-			#clock-cells = <0>;
-			clock-frequency = <3072000>;
-			clock-output-names = "sc16is752-mclk";
-		};
-	};
-
 	sound-wm8960 {
 		compatible = "fsl,imx-audio-wm8960";
 		model = "wm8960-audio";
@@ -127,12 +107,6 @@
 		pinctrl_otg_vbus: otgvbusgrp {
 			fsl,pins = <
 				MX8MQ_IOMUXC_NAND_DQS_GPIO3_IO14		0x19   /* USB OTG VBUS Enable */
-			>;
-		};
-
-		pinctrl_backlight_pwr: backlight_pwrgrp {
-			fsl,pins = <
-				MX8MQ_IOMUXC_GPIO1_IO08_GPIO1_IO8		0x19
 			>;
 		};
 
