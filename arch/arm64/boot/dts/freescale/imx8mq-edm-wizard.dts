@@ -54,7 +54,7 @@
 
 	backlight_mipi {
 		compatible = "pwm-backlight";
-		pwms = <&pwm1 0 50000 0>;
+		pwms = <&pwm3 0 50000 0>;
 		brightness-levels = <0 36 72 108 144 180 216 255>;
 		default-brightness-level = <6>;
 		power-supply = <&reg_backlight_pwr>;
@@ -112,7 +112,7 @@
 
 		pinctrl_dsi_pwm: dsi_pwm {
 			fsl,pins = <
-				MX8MQ_IOMUXC_GPIO1_IO01_PWM1_OUT		0x16	/* DSI PWM */
+				MX8MQ_IOMUXC_I2C3_SDA_PWM3_OUT		0x16	/* DSI PWM */
 			>;
 		};
 
@@ -391,7 +391,7 @@
 	};
 };
 
-&pwm1 {
+&pwm3 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_dsi_pwm>;
 	status = "okay";
