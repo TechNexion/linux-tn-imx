@@ -183,9 +183,9 @@
 			>;
 		};
 
-		pinctrl_gpio_led: gpioledgrp {
+		pinctrl_backlight_pwr: backlight_pwrgrp {
 			fsl,pins = <
-				MX8MQ_IOMUXC_SPDIF_EXT_CLK_GPIO5_IO5	0x19
+				MX8MQ_IOMUXC_GPIO1_IO08_GPIO1_IO8	0x19
 			>;
 		};
 
