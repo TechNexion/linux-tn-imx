@@ -15,7 +15,7 @@
  * GNU General Public License for more details.
  */
 
-#include "imx8mq-pico-pi.dts"
+#include "imx8mq-edm-wizard.dts"
 
 / {
 	sound-hdmi {
