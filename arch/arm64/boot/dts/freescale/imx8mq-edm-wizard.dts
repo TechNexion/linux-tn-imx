@@ -167,7 +167,7 @@
 
 		pinctrl_mipi_dsi_rst: mipi_dsi_rst {
 			fsl,pins = <
-				MX8MQ_IOMUXC_GPIO1_IO10_GPIO1_IO10      0x16   /* DSI RST, GPIO_P264 */
+				MX8MQ_IOMUXC_NAND_CE3_B_GPIO3_IO4	0x16   /* DSI RST, GPIO_P257 */
 			>;
 		};
 
