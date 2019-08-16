@@ -19,6 +19,10 @@
 
 / {
 
+	sound-wm8960 {
+		status = "disabled";
+	};
+
 	sound-tfa9912 {
 		compatible = "nxp,imx-audio-tfa98xx", "nxp,imx-tfa98xx";
 		nxp,model = "TFA9912";
