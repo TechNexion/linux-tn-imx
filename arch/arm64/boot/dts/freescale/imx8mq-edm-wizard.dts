@@ -127,7 +127,7 @@
 
 		pinctrl_fan_pwm: fan_pwm {
 			fsl,pins = <
-				MX8MQ_IOMUXC_SAI3_MCLK_PWM4_OUT			0x16	/* FAN PWM */
+				MX8MQ_IOMUXC_I2C3_SCL_PWM4_OUT			0x16	/* FAN PWM */
 			>;
 		};
 
