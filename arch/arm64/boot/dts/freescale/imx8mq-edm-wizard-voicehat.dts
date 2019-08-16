@@ -120,7 +120,7 @@
 	};
 };
 
-&i2c3 {
+&i2c4 {
 	/* PCA9955 - 16-bit RGB LED */
 	led_pca9955: pca9955@60 {
 		#address-cells = <1>;
