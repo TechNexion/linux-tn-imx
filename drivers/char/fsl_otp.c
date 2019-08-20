@@ -25,6 +25,8 @@
 
 #define HW_OCOTP_CTRL			0x00000000
 #define HW_OCOTP_CTRL_SET		0x00000004
+#define HW_OCOTP_CTRL_CLR		0x00000008
+#define HW_OCOTP_CTRL_TOG		0x0000000C
 #define BP_OCOTP_CTRL_WR_UNLOCK		16
 #define BM_OCOTP_CTRL_WR_UNLOCK		0xFFFF0000
 #define BM_OCOTP_CTRL_RELOAD_SHADOWS	0x00000400
@@ -35,6 +37,18 @@
 #define BM_OCOTP_CTRL_ADDR_MX7D		0x0000000F
 #define BP_OCOTP_CTRL_ADDR_MX7ULP	0
 #define BM_OCOTP_CTRL_ADDR_MX7ULP	0x000000FF
+#define BP_OCOTP_CTRL_ADDR_MX8M		0
+#define BM_OCOTP_CTRL_ADDR_MX8M		0x000000FF
+
+#define HW_OCOTP_READ_CTRL		0x00000030
+#define HW_OCOTP_READ_CTRL_SET		0x00000034
+#define HW_OCOTP_READ_CTRL_CLR		0x00000038
+#define HW_OCOTP_READ_CTRL_TOG		0x0000003C
+#define HW_OCOTP_READ_DATA		0x00000040
+#define HW_OCOTP_READ_DATA_SET		0x00000044
+#define HW_OCOTP_READ_DATA_CLR		0x00000048
+#define HW_OCOTP_READ_DATA_TOG		0x0000004C
+#define BM_OCOTP_READ_CTRL_FUSE		0x00000001
 
 #define HW_OCOTP_TIMING			0x00000010
 #define BP_OCOTP_TIMING_STROBE_READ	16
@@ -81,6 +95,15 @@
 #define BANK4(a, b, c, d) { \
 	"HW_OCOTP_"#a, "HW_OCOTP_"#b, "HW_OCOTP_"#c, "HW_OCOTP_"#d, \
 }
+
+#define IMX8M_TIMING_STROBE_PROG_US       10  /* Min time to blow a fuse */
+#define IMX8M_TIMING_STROBE_READ_NS       37  /* Min time before read */
+#define IMX8M_TIMING_RELAX_NS         17
+
+
+//#define USE_FUSE_SENSE_FOR_READING
+#define USE_SHADOWS_REGISTER_RELOAD
+//#define FIX_IMX8M_OFFSET_INDEX_AFTER_RELOAD
 
 static const char *imx6q_otp_desc[16][8] = {
 	BANK8(LOCK, CFG0, CFG1, CFG2, CFG3, CFG4, CFG5, CFG6),
@@ -206,44 +229,89 @@ static const char *imx7ulp_otp_desc[][8] = {
 	BANK8(CRC0, CRC1, CRC2, CRC3, CRC4, CRC5, CRC6, CRC7),
 };
 
-/* imx8m 1 bank = 4 words */
 static const char *imx8mq_otp_desc[][4] = {
-	BANK4(LOCK, TESTER0, TESTER1, TESTER2),			/* bank 0 */
-	BANK4(TESTER3, TESTER4, TESTER5, BOOT_CFG0),		/* bank 1 */
-	BANK4(BOOT_CFG1, BOOT_CFG2, BOOT_CFG3, BOOT_CFG4),	/* bank 2 */
-	BANK4(MEM_TRIM0, MEM_TRIM1, ANA0, ANA1),		/* bank 3 */
-	BANK4(ROM_PATCH0, ROM_PATCH1, ROM_PATCH2, ROM_PATCH3),
-	BANK4(ROM_PATCH4, ROM_PATCH5, ROM_PATCH6, ROM_PATCH7),
-	BANK4(SRK0, SRK1, SRK2, SRK3),				/* bank 6 */
-	BANK4(SRK4, SRK5, SRK6, SRK7),				/* bank 7 */
-	BANK4(SJC_RESP0, SJC_RESP1, USB_ID, FIELD_RETURN),	/* bank 8 */
-	BANK4(MAC_ADDR0, MAC_ADDR1, MAC_ADDR2, SRK_REVOKE),	/* bank 9 */
-	BANK4(MAU_KEY0, MAU_KEY1, MAU_KEY2, MAU_KEY3),		/* bank 10 */
-	BANK4(MAU_KEY4, MAU_KEY5, MAU_KEY6, MAU_KEY7),		/* bank 11 */
-	BANK4(ROM_PATCH8, ROM_PATCH9, ROM_PATCH10, ROM_PATCH11),
-	BANK4(ROM_PATCH12, ROM_PATCH13, ROM_PATCH14, ROM_PATCH15),
-	BANK4(GP10, GP11, GP20, GP21),				/* bank 14 */
-	BANK4(CRC, HDCP0, HDCP1, HDCP2),			/* bank 15 */
-	BANK4(HDCP3, HDCP4, HDCP5, HDCP6),			/* bank 16 */
+	/* 0*/BANK4(LOCK, TESTER0, TESTER1, TESTER2),
+	/* 1*/BANK4(TESTER3, TESTER4, TESTER5, BOOT_CFG0),
+	/* 2*/BANK4(BOOT_CFG1, BOOT_CFG2, BOOT_CFG3, BOOT_CFG4),
+	/* 3*/BANK4(MEM_TRIM0, MEM_TRIM1, ANA0, ANA1),
+	/* 4*/BANK4(RESERVED4_0, RESERVED4_1, RESERVED4_2, RESERVED4_3),
+	/* 5*/BANK4(RESERVED5_0, RESERVED5_1, RESERVED5_2, RESERVED5_3),
+	/* 6*/BANK4(SRK0, SRK1, SRK2, SRK3),
+	/* 7*/BANK4(SRK4, SRK5, SRK6, SRK7),
+	/* 8*/BANK4(SJC_RESP0, SJC_RESP1, USB_ID, FIELD_RETURN),
+	/* 9*/BANK4(MAC_ADDR0, MAC_ADDR1, MAC_ADDR2, SRK_REVOKE),
+	/*10*/BANK4(MAU_KEY0, MAU_KEY1, MAU_KEY2, MAU_KEY3),
+	/*11*/BANK4(MAU_KEY4, MAU_KEY5, MAU_KEY6, MAU_KEY7),
+	/*12*/BANK4(RESERVED12_0, RESERVED12_1, RESERVED12_2, RESERVED12_3),
+	/*13*/BANK4(RESERVED13_0, RESERVED13_1, RESERVED13_2, RESERVED13_3),
+	/*14*/BANK4(GP10, GP11, GP20, GP21),
+	/*15*/BANK4(CRC_GP10, CRC_GP11, CRC_GP20, CRC_GP21),
+	/*16*/BANK4(HDMI_FW_SRK0, HDMI_FW_SRK1, HDMI_FW_SRK2, HDMI_FW_SRK3),
+	/*17*/BANK4(HDMI_FW_SRK4, HDMI_FW_SRK5, HDMI_FW_SRK6, HDMI_FW_SRK7),
+	/*18*/BANK4(HDMI_KMEK0, HDMI_KMEK1, HDMI_KMEK2, HDMI_KMEK3),
+	/*19*/BANK4(HDCP_TX_CONS0, HDCP_TX_CONS1, HDCP_TX_CONS2, HDCP_TX_CONS3),
+	/*20*/BANK4(RESERVED20_0, RESERVED20_1, RESERVED20_2, RESERVED20_3),
+	/*21*/BANK4(HDCP_TX_CERT0, HDCP_TX_CERT1, HDCP_TX_CERT2, HDCP_TX_CERT3),
+	/*22*/BANK4(HDCP_TX_CERT4, HDCP_TX_CERT5, HDCP_TX_CERT6, HDCP_TX_CERT7),
+	/*23*/BANK4(HDCP_TX_CERT8, HDCP_TX_CERT9, HDCP_TX_CERT10, HDCP_TX_CERT11),
+	/*24*/BANK4(HDCP_TX_CERT12, HDCP_TX_CERT13, HDCP_TX_CERT14, HDCP_TX_CERT15),
+	/*25*/BANK4(HDCP_TX_CERT16, HDCP_TX_CERT17, HDCP_TX_CERT18, HDCP_TX_CERT19),
+	/*26*/BANK4(HDCP_TX_CERT20, HDCP_TX_CERT21, HDCP_TX_CERT22, HDCP_TX_CERT23),
+	/*27*/BANK4(HDCP_TX_CERT24, HDCP_TX_CERT25, HDCP_TX_CERT26, HDCP_TX_CERT27),
+	/*28*/BANK4(HDCP_TX_CERT28, HDCP_TX_CERT29, HDCP_TX_CERT30, HDCP_TX_CERT31),
+	/*29*/BANK4(HDCP_TX_CERT32, HDCP_TX_CERT33, HDCP_TX_CERT34, HDCP_TX_CERT35),
+	/*30*/BANK4(HDCP_TX_CERT36, HDCP_TX_CERT37, HDCP_TX_CERT38, HDCP_TX_CERT39),
+	/*31*/BANK4(HDCP_TX_CERT40, HDCP_TX_CERT41, HDCP_TX_CERT42, HDCP_TX_CERT43),
+	/*32*/BANK4(HDCP_TX_CERT44, HDCP_TX_CERT45, HDCP_TX_CERT46, HDCP_TX_CERT47),
+	/*33*/BANK4(HDCP_TX_CERT48, HDCP_TX_CERT49, HDCP_TX_CERT50, HDCP_TX_CERT51),
+	/*34*/BANK4(HDCP_TX_CERT52, HDCP_TX_CERT53, HDCP_TX_CERT54, HDCP_TX_CERT55),
+	/*35*/BANK4(HDCP_TX_CERT56, HDCP_TX_CERT57, HDCP_TX_CERT58, HDCP_TX_CERT59),
+	/*36*/BANK4(HDCP_TX_CERT60, HDCP_TX_CERT61, HDCP_TX_CERT62, HDCP_TX_CERT63),
+	/*37*/BANK4(HDCP_TX_CERT64, HDCP_TX_CERT65, HDCP_TX_CERT66, HDCP_TX_CERT67),
+	/*38*/BANK4(HDCP_TX_CERT68, HDCP_TX_CERT69, HDCP_TX_CERT70, HDCP_TX_CERT71),
+	/*39*/BANK4(HDCP_TX_CERT72, HDCP_TX_CERT73, HDCP_TX_CERT74, HDCP_TX_CERT75),
+	/*40*/BANK4(HDCP_TX_CERT76, HDCP_TX_CERT77, HDCP_TX_CERT78, HDCP_TX_CERT79),
+	/*41*/BANK4(HDCP_TX_CERT80, HDCP_TX_CERT81, HDCP_TX_CERT82, HDCP_TX_CERT83),
+	/*42*/BANK4(HDCP_TX_CERT84, HDCP_TX_CERT85, HDCP_TX_CERT86, HDCP_TX_CERT87),
+	/*43*/BANK4(HDCP_TX_CERT88, HDCP_TX_CERT89, HDCP_TX_CERT90, HDCP_TX_CERT91),
+	/*44*/BANK4(HDCP_TX_CERT92, HDCP_TX_CERT93, HDCP_TX_CERT94, HDCP_TX_CERT95),
+	/*45*/BANK4(HDCP_KEY0, HDCP_KEY1, HDCP_KEY2, HDCP_KEY3),
+	/*46*/BANK4(HDCP_KEY4, HDCP_KEY5, HDCP_KEY6, HDCP_KEY7),
+	/*47*/BANK4(HDCP_KEY8, HDCP_KEY9, HDCP_KEY10, HDCP_KEY11),
+	/*48*/BANK4(HDCP_KEY12, HDCP_KEY13, HDCP_KEY14, HDCP_KEY15),
+	/*49*/BANK4(HDCP_KEY16, HDCP_KEY17, HDCP_KEY18, HDCP_KEY19),
+	/*50*/BANK4(HDCP_KEY20, HDCP_KEY21, HDCP_KEY22, HDCP_KEY23),
+	/*51*/BANK4(HDCP_KEY24, HDCP_KEY25, HDCP_KEY26, HDCP_KEY27),
+	/*52*/BANK4(HDCP_KEY28, HDCP_KEY29, HDCP_KEY30, HDCP_KEY31),
+	/*53*/BANK4(HDCP_KEY32, HDCP_KEY33, HDCP_KEY34, HDCP_KEY35),
+	/*54*/BANK4(HDCP_KEY36, HDCP_KEY37, HDCP_KEY38, HDCP_KEY39),
+	/*55*/BANK4(HDCP_KEY40, HDCP_KEY41, HDCP_KEY42, HDCP_KEY43),
+	/*56*/BANK4(HDCP_KEY44, HDCP_KEY45, HDCP_KEY46, HDCP_KEY47),
+	/*57*/BANK4(HDCP_KEY48, HDCP_KEY49, HDCP_KEY50, HDCP_KEY51),
+	/*58*/BANK4(HDCP_KEY52, HDCP_KEY53, HDCP_KEY54, HDCP_KEY55),
+	/*59*/BANK4(HDCP_KEY56, HDCP_KEY57, HDCP_KEY58, HDCP_KEY59),
+	/*60*/BANK4(HDCP_KEY60, HDCP_KEY61, HDCP_KEY62, HDCP_KEY63),
+	/*61*/BANK4(HDCP_KEY64, HDCP_KEY65, HDCP_KEY66, HDCP_KEY67),
+	/*62*/BANK4(HDCP_KEY68, HDCP_KEY69, HDCP_KEY70, HDCP_KEY71),
+	/*63*/BANK4(RESERVED63_0, RESERVED63_1, RESERVED63_2, RESERVED63_3),
 };
 
-/* imx8m 1 bank = 4 words */
 static const char *imx8mm_otp_desc[][4] = {
-	BANK4(LOCK, TESTER0, TESTER1, TESTER2),			/* bank 0 */
-	BANK4(TESTER3, TESTER4, TESTER5, BOOT_CFG0),		/* bank 1 */
-	BANK4(BOOT_CFG1, BOOT_CFG2, BOOT_CFG3, BOOT_CFG4),	/* bank 2 */
-	BANK4(MEM_TRIM0, MEM_TRIM1, ANA0, ANA1),		/* bank 3 */
-	BANK4(ROM_PATCH0, ROM_PATCH1, ROM_PATCH2, ROM_PATCH3),
-	BANK4(ROM_PATCH4, ROM_PATCH5, ROM_PATCH6, ROM_PATCH7),
-	BANK4(SRK0, SRK1, SRK2, SRK3),				/* bank 6 */
-	BANK4(SRK4, SRK5, SRK6, SRK7),				/* bank 7 */
-	BANK4(SJC_RESP0, SJC_RESP1, USB_ID, FIELD_RETURN),	/* bank 8 */
-	BANK4(MAC_ADDR0, MAC_ADDR1, MAC_ADDR2, SRK_REVOKE),	/* bank 9 */
-	BANK4(MAU_KEY0, MAU_KEY1, MAU_KEY2, MAU_KEY3),		/* bank 10 */
-	BANK4(MAU_KEY4, MAU_KEY5, MAU_KEY6, MAU_KEY7),		/* bank 11 */
-	BANK4(ROM_PATCH8, ROM_PATCH9, ROM_PATCH10, ROM_PATCH11),
-	BANK4(ROM_PATCH12, ROM_PATCH13, ROM_PATCH14, ROM_PATCH15),
-	BANK4(GP10, GP11, GP20, GP21),				/* bank 14 */
+	/* 0*/BANK4(LOCK, TESTER0, TESTER1, TESTER2),
+	/* 1*/BANK4(TESTER3, TESTER4, TESTER5, BOOT_CFG0),
+	/* 2*/BANK4(BOOT_CFG1, BOOT_CFG2, BOOT_CFG3, BOOT_CFG4),
+	/* 3*/BANK4(MEM_TRIM0, MEM_TRIM1, ANA0, ANA1),
+	/* 4*/BANK4(RESERVED4_0, RESERVED4_1, RESERVED4_2, RESERVED4_3),
+	/* 5*/BANK4(RESERVED5_0, RESERVED5_1, RESERVED5_2, RESERVED5_3),
+	/* 6*/BANK4(SRK0, SRK1, SRK2, SRK3),
+	/* 7*/BANK4(SRK4, SRK5, SRK6, SRK7),
+	/* 8*/BANK4(SJC_RESP0, SJC_RESP1, USB_ID, FIELD_RETURN),
+	/* 9*/BANK4(MAC_ADDR0, MAC_ADDR1, MAC_ADDR2, SRK_REVOKE),
+	/*10*/BANK4(MAU_KEY0, MAU_KEY1, MAU_KEY2, MAU_KEY3),
+	/*11*/BANK4(MAU_KEY4, MAU_KEY5, MAU_KEY6, MAU_KEY7),
+	/*12*/BANK4(RESERVED12_0, RESERVED12_1, RESERVED12_2, RESERVED12_3),
+	/*13*/BANK4(RESERVED13_0, RESERVED13_1, RESERVED13_2, RESERVED13_3),
+	/*14*/BANK4(GP10, GP11, GP20, GP21),
 };
 
 static DEFINE_MUTEX(otp_mutex);
@@ -252,6 +320,10 @@ static struct clk *otp_clk;
 struct kobject *otp_kobj;
 struct kobj_attribute *otp_kattr;
 struct attribute_group *otp_attr_group;
+
+#ifdef FIX_IMX8M_OFFSET_INDEX_AFTER_RELOAD
+static int offset_index_after_reload;
+#endif /* FIX_IMX8M_OFFSET_INDEX_AFTER_RELOAD */
 
 enum fsl_otp_devtype {
 	FSL_OTP_MX6Q,
@@ -271,6 +343,7 @@ struct fsl_otp_devtype_data {
 	enum fsl_otp_devtype devtype;
 	const char **bank_desc;
 	int fuse_nums;
+	int words_per_bank;
 	void (*set_otp_timing)(void);
 };
 
@@ -336,12 +409,7 @@ static u32 fsl_otp_word_physical(struct fsl_otp_devtype_data *d, int index)
 	u32 word_off, bank_off;
 	u32 words_per_bank;
 
-	if ((d->devtype == FSL_OTP_MX7D) || (d->devtype == FSL_OTP_MX8MQ) ||
-	    (d->devtype == FSL_OTP_MX8MM))
-		words_per_bank = 4;
-	else
-		words_per_bank = 8;
-
+	words_per_bank = d->words_per_bank;
 	bank_off = index / words_per_bank;
 	word_off = index % words_per_bank;
 	phy_bank_off = fsl_otp_bank_physical(d, bank_off);
@@ -393,10 +461,36 @@ static void imx7ulp_set_otp_timing(void)
 	/* No need to setup timing for ULP */
 }
 
+static void imx8m_set_otp_timing(void)
+{
+	/* copy and paste from imx-ocotp.c */
+	unsigned long clk_rate = 0;
+	unsigned long strobe_read, relax, strobe_prog;
+	u32 timing = 0;
+
+	clk_rate = clk_get_rate(otp_clk);
+
+	relax = DIV_ROUND_UP(clk_rate * IMX8M_TIMING_RELAX_NS, 1000000000) - 1;
+	strobe_read = DIV_ROUND_UP(clk_rate * IMX8M_TIMING_STROBE_READ_NS,
+					1000000000);
+	strobe_read += 2 * (relax + 1) - 1;
+	strobe_prog = DIV_ROUND_CLOSEST(clk_rate * IMX8M_TIMING_STROBE_PROG_US,
+					1000000);
+	strobe_prog += 2 * (relax + 1) - 1;
+
+	timing = __raw_readl(otp_base + HW_OCOTP_TIMING) & 0x0FC00000;
+	timing |= BF(relax, OCOTP_TIMING_RELAX);
+	timing |= BF(strobe_read, OCOTP_TIMING_STROBE_READ);
+	timing |= BF(strobe_prog, OCOTP_TIMING_STROBE_PROG);
+
+	__raw_writel(timing, otp_base + HW_OCOTP_TIMING);
+}
+
 static struct fsl_otp_devtype_data imx6q_data = {
 	.devtype = FSL_OTP_MX6Q,
 	.bank_desc = (const char **)imx6q_otp_desc,
 	.fuse_nums = 16 * 8,
+	.words_per_bank = 8,
 	.set_otp_timing = imx6_set_otp_timing,
 };
 
@@ -404,6 +498,7 @@ static struct fsl_otp_devtype_data imx6sl_data = {
 	.devtype = FSL_OTP_MX6SL,
 	.bank_desc = (const char **)imx6sl_otp_desc,
 	.fuse_nums = 8 * 8,
+	.words_per_bank = 8,
 	.set_otp_timing = imx6_set_otp_timing,
 };
 
@@ -412,6 +507,7 @@ static struct fsl_otp_devtype_data imx6sll_data = {
 	.bank_desc = (const char **)imx6sll_otp_desc,
 	/* Bank 7 and Bank 8 are 4 words each */
 	.fuse_nums = 8 * 8,
+	.words_per_bank = 8,
 	.set_otp_timing = imx6_set_otp_timing,
 };
 
@@ -419,6 +515,7 @@ static struct fsl_otp_devtype_data imx6ul_data = {
 	.devtype = FSL_OTP_MX6UL,
 	.bank_desc = (const char **)imx6ul_otp_desc,
 	.fuse_nums = 16 * 8,
+	.words_per_bank = 8,
 	.set_otp_timing = imx6_set_otp_timing,
 };
 
@@ -427,6 +524,7 @@ static struct fsl_otp_devtype_data imx6ull_data = {
 	.bank_desc = (const char **)imx6ull_otp_desc,
 	/* Bank 7 and Bank 8 are 4 words each */
 	.fuse_nums = 8 * 8,
+	.words_per_bank = 8,
 	.set_otp_timing = imx6_set_otp_timing,
 };
 
@@ -434,6 +532,7 @@ static struct fsl_otp_devtype_data imx7d_data = {
 	.devtype = FSL_OTP_MX7D,
 	.bank_desc = (const char **)imx7d_otp_desc,
 	.fuse_nums = 16 * 4,
+	.words_per_bank = 4,
 	.set_otp_timing = imx7_set_otp_timing,
 };
 
@@ -441,25 +540,24 @@ static struct fsl_otp_devtype_data imx7ulp_data = {
 	.devtype = FSL_OTP_MX7ULP,
 	.bank_desc = (const char **)imx7ulp_otp_desc,
 	.fuse_nums = 31 * 8,
+	.words_per_bank = 8,
 	.set_otp_timing = imx7ulp_set_otp_timing,
 };
 
 static struct fsl_otp_devtype_data imx8mq_data = {
 	.devtype = FSL_OTP_MX8MQ,
 	.bank_desc = (const char **)imx8mq_otp_desc,
-	/* 16 banks of 4 words each */
-	.fuse_nums = 16 * 4,
-	/* timing is same as imx6 */
-	.set_otp_timing = imx6_set_otp_timing,
+	.fuse_nums = 64 * 4,
+	.words_per_bank = 4,
+	.set_otp_timing = imx8m_set_otp_timing,
 };
 
 static struct fsl_otp_devtype_data imx8mm_data = {
 	.devtype = FSL_OTP_MX8MM,
 	.bank_desc = (const char **)imx8mm_otp_desc,
-	/* 14 banks of 4 words each */
-	.fuse_nums = 14 * 4,
-	/* timing is same as imx6 */
-	.set_otp_timing = imx6_set_otp_timing,
+	.fuse_nums = 15 * 4,
+	.words_per_bank = 4,
+	.set_otp_timing = imx8m_set_otp_timing,
 };
 
 static int otp_wait_busy(u32 flags)
@@ -480,6 +578,7 @@ static int otp_wait_busy(u32 flags)
 	return 0;
 }
 
+#ifndef USE_FUSE_SENSE_FOR_READING
 static ssize_t fsl_otp_show(struct kobject *kobj, struct kobj_attribute *attr,
 			    char *buf)
 {
@@ -490,6 +589,12 @@ static ssize_t fsl_otp_show(struct kobject *kobj, struct kobj_attribute *attr,
 
 	if (!fsl_otp)
 		return -ENODEV;
+
+#ifdef FIX_IMX8M_OFFSET_INDEX_AFTER_RELOAD
+	if(fsl_otp->devtype == FSL_OTP_MX8MQ || fsl_otp->devtype == FSL_OTP_MX8MM){
+		index += offset_index_after_reload;
+	}
+#endif /* FIX_IMX8M_OFFSET_INDEX_AFTER_RELOAD */
 
 	ret = clk_prepare_enable(otp_clk);
 	if (ret)
@@ -521,10 +626,12 @@ out:
 	clk_disable_unprepare(otp_clk);
 	return ret ? 0 : sprintf(buf, "0x%x\n", value);
 }
+#endif /* USE_FUSE_SENSE_FOR_READING */
 
 static int imx6_otp_write_bits(int addr, u32 data, u32 magic)
 {
 	u32 c; /* for control register */
+	int ret; /* for return value */
 
 	/* init the control register */
 	c = __raw_readl(otp_base + HW_OCOTP_CTRL);
@@ -535,16 +642,17 @@ static int imx6_otp_write_bits(int addr, u32 data, u32 magic)
 
 	/* init the data register */
 	__raw_writel(data, otp_base + HW_OCOTP_DATA);
-	otp_wait_busy(0);
+	ret = otp_wait_busy(0);
 
 	mdelay(2); /* Write Postamble */
 
-	return 0;
+	return ret;
 }
 
 static int imx7ulp_otp_write_bits(int addr, u32 data, u32 magic)
 {
 	u32 c; /* for control register */
+	int ret; /* for return value */
 
 	/* init the control register */
 	c = __raw_readl(otp_base + HW_OCOTP_CTRL);
@@ -555,16 +663,17 @@ static int imx7ulp_otp_write_bits(int addr, u32 data, u32 magic)
 
 	/* init the data register */
 	__raw_writel(data, otp_base + HW_OCOTP_DATA);
-	otp_wait_busy(0);
+	ret = otp_wait_busy(0);
 
 	mdelay(2); /* Write Postamble */
 
-	return 0;
+	return ret;
 }
 
 static int imx7_otp_write_bits(int addr, u32 data, u32 magic)
 {
 	u32 c; /* for control register */
+	int ret; /* for return value */
 
 	/* init the control register */
 	c = __raw_readl(otp_base + HW_OCOTP_CTRL);
@@ -601,13 +710,34 @@ static int imx7_otp_write_bits(int addr, u32 data, u32 magic)
 		__raw_writel(0, otp_base + HW_OCOTP_DATA0_MX7D);
 		break;
 	}
-	__raw_writel(data, otp_base + HW_OCOTP_DATA);
-	otp_wait_busy(0);
+	//BUG???? __raw_writel(data, otp_base + HW_OCOTP_DATA);
+	ret = otp_wait_busy(0);
 
 	mdelay(2); /* Write Postamble */
 
-	return 0;
+	return ret;
 
+}
+
+static int imx8m_otp_write_bits(int addr, u32 data, u32 magic)
+{
+	u32 c; /* for control register */
+	int ret; /* for return value */
+
+	/* init the control register */
+	c = __raw_readl(otp_base + HW_OCOTP_CTRL);
+	c &= ~BM_OCOTP_CTRL_ADDR_MX8M;
+	c |= BF(addr, OCOTP_CTRL_ADDR_MX8M);
+	c |= BF(magic, OCOTP_CTRL_WR_UNLOCK);
+	__raw_writel(c, otp_base + HW_OCOTP_CTRL);
+
+	/* init the data register */
+	__raw_writel(data, otp_base + HW_OCOTP_DATA);
+	ret = otp_wait_busy(0);
+
+	mdelay(2); /* Write Postamble */
+
+	return ret;
 }
 
 static ssize_t fsl_otp_store(struct kobject *kobj, struct kobj_attribute *attr,
@@ -664,26 +794,41 @@ static ssize_t fsl_otp_store(struct kobject *kobj, struct kobj_attribute *attr,
 
 	/* writes the bits to the fuse */
 	if (fsl_otp->devtype == FSL_OTP_MX7D)
-		imx7_otp_write_bits(index, value, 0x3e77);
+		ret = imx7_otp_write_bits(index, value, 0x3e77);
 	else if (fsl_otp->devtype == FSL_OTP_MX7ULP)
-		imx7ulp_otp_write_bits(index, value, 0x3e77);
+		ret = imx7ulp_otp_write_bits(index, value, 0x3e77);
+	else if (fsl_otp->devtype == FSL_OTP_MX8MQ)
+		ret = imx8m_otp_write_bits(index, value, 0x3e77);
+	else if (fsl_otp->devtype == FSL_OTP_MX8MM)
+		ret = imx8m_otp_write_bits(index, value, 0x3e77);
 	else
-		/* fall through for imx8m write bits, and is the same as imx6 */
-		imx6_otp_write_bits(index, value, 0x3e77);
+		ret = imx6_otp_write_bits(index, value, 0x3e77);
+
+	if (ret){
+		printk("write bits failed\n");
+	}
 
 	if (fsl_otp->devtype == FSL_OTP_MX7ULP) {
 		value = __raw_readl(otp_base + HW_OCOTP_OUT_STATUS_ULP);
 		if (value & (BM_OUT_STATUS_LOCKED | BM_OUT_STATUS_PROGFAIL))
 			printk("ulp prog fail\n");
 
-		otp_wait_busy(0);
+		ret = otp_wait_busy(0);
 	}
-
+#ifdef USE_SHADOWS_REGISTER_RELOAD
 	/* Reload all the shadow registers */
 	__raw_writel(BM_OCOTP_CTRL_RELOAD_SHADOWS,
 		     otp_base + HW_OCOTP_CTRL_SET);
 	udelay(1);
-	otp_wait_busy(BM_OCOTP_CTRL_RELOAD_SHADOWS);
+	ret = otp_wait_busy(BM_OCOTP_CTRL_RELOAD_SHADOWS);
+	if (ret){
+		printk("Reload all the shadow registers failed\n");
+	}
+#endif /* USE_SHADOWS_REGISTER_RELOAD */
+
+#ifdef FIX_IMX8M_OFFSET_INDEX_AFTER_RELOAD
+	offset_index_after_reload = +1;
+#endif /* FIX_IMX8M_OFFSET_INDEX_AFTER_RELOAD */
 
 	if (fsl_otp->devtype == FSL_OTP_MX7ULP) {
 		__raw_writel(1, otp_base + HW_OCOTP_PDN_ULP);
@@ -694,6 +839,62 @@ out:
 	clk_disable_unprepare(otp_clk);
 	return ret ? ret : count;
 }
+
+#ifdef USE_FUSE_SENSE_FOR_READING
+static int imx8m_otp_read_bits(int addr, u32* data)
+{
+	u32 c; /* for control register */
+	int ret; /* for return value */
+
+	/* init the control register */
+	c = __raw_readl(otp_base + HW_OCOTP_CTRL);
+	c &= ~BM_OCOTP_CTRL_ADDR_MX8M;
+	c |= BF(addr, OCOTP_CTRL_ADDR_MX8M);
+	c |= BF(0x0000, OCOTP_CTRL_WR_UNLOCK);
+	__raw_writel(c, otp_base + HW_OCOTP_CTRL);
+
+	/* set read fuse operation */
+	__raw_writel(BM_OCOTP_READ_CTRL_FUSE, otp_base + HW_OCOTP_READ_CTRL);
+	udelay(1);
+	ret = otp_wait_busy(0);
+
+	if(ret)
+	    return ret;
+
+	/* read the data register */
+	*data = __raw_readl(otp_base + HW_OCOTP_READ_DATA);
+
+	return ret;
+}
+
+static ssize_t fsl_otp_sense(struct kobject *kobj, struct kobj_attribute *attr,
+			    char *buf)
+{
+	unsigned int index = attr - otp_kattr;
+	u32 value = 0;
+	int ret;
+
+	if (!fsl_otp)
+		return -ENODEV;
+
+	ret = clk_prepare_enable(otp_clk);
+	if (ret)
+		return -ENODEV;
+
+	mutex_lock(&otp_mutex);
+
+	fsl_otp->set_otp_timing();
+	ret = otp_wait_busy(0);
+	if (ret)
+		goto out;
+
+	ret = imx8m_otp_read_bits(index, &value);
+out:
+	mutex_unlock(&otp_mutex);
+	clk_disable_unprepare(otp_clk);
+	return ret ? 0 : sprintf(buf, "0x%x\n", value);
+}
+#endif /* USE_FUSE_SENSE_FOR_READING */
 
 static const struct of_device_id fsl_otp_dt_ids[] = {
 	{ .compatible = "fsl,imx6q-ocotp", .data = (void *)&imx6q_data, },
@@ -743,6 +944,10 @@ static int fsl_otp_probe(struct platform_device *pdev)
 	desc = fsl_otp->bank_desc;
 	num = fsl_otp->fuse_nums;
 
+#ifdef FIX_IMX8M_OFFSET_INDEX_AFTER_RELOAD
+	offset_index_after_reload = 0;
+#endif /* FIX_IMX8M_OFFSET_INDEX_AFTER_RELOAD */
+
 	/* The last one is NULL, which is used to detect the end */
 	attrs = devm_kzalloc(&pdev->dev, (num + 1) * sizeof(*attrs),
 			     GFP_KERNEL);
@@ -757,7 +962,11 @@ static int fsl_otp_probe(struct platform_device *pdev)
 		sysfs_attr_init(&otp_kattr[i].attr);
 		otp_kattr[i].attr.name = desc[i];
 		otp_kattr[i].attr.mode = 0600;
+#ifdef USE_FUSE_SENSE_FOR_READING
+		otp_kattr[i].show = fsl_otp_sense;
+#else /* ! USE_FUSE_SENSE_FOR_READING */
 		otp_kattr[i].show = fsl_otp_show;
+#endif /* ! USE_FUSE_SENSE_FOR_READING */
 		otp_kattr[i].store = fsl_otp_store;
 		attrs[i] = &otp_kattr[i].attr;
 	}
