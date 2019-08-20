@@ -200,6 +200,13 @@
 				MX8MQ_IOMUXC_GPIO1_IO12_GPIO1_IO12	0x41 /* irq */
 			>;
 		};
+
+		pinctrl_nfc_ctrl: nfc_ctrl {
+			fsl,pins = <
+				MX8MQ_IOMUXC_ECSPI1_MOSI_GPIO5_IO7		0x19	/* PIN_ENABLE */
+				MX8MQ_IOMUXC_NAND_ALE_GPIO3_IO0			0x19	/* PIN_INT */
+			>;
+		};
 	};
 };
 
@@ -253,6 +260,18 @@
 	rtc_ds1337: ds1337@68 {
 		compatible = "dallas,ds1337";
 		reg = <0x68>;
+	};
+
+	pn547: pn547@2a {
+		compatible = "nxp,pn547";
+		reg = <0x2a>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_nfc_ctrl>;
+		clock-frequency = <100000>;
+		interrupt-gpios = <&gpio3 0 0>;
+		enable-gpios = <&gpio5 7 0>;
+		/* When you enable NFC, you must to disable ov5645_mipi2 device */
+		status = "okay";
 	};
 };
 
