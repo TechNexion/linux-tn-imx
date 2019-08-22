@@ -73,9 +73,7 @@
 			"Speaker", "SPK_LN",
 			"Speaker", "SPK_RP",
 			"Speaker", "SPK_RN",
-			"LINPUT1", "Mic Jack",
-			"LINPUT3", "Mic Jack",
-			"Mic Jack", "MICB";
+			"LINPUT1", "Mic Jack";
 		simple-audio-card,cpu {
 			sound-dai = <&AXON_AUD_A_I2S_CHANNEL>;
 		};
