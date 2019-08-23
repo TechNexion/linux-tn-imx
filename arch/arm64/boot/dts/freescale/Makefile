@@ -117,6 +117,7 @@ dtb-$(CONFIG_ARCH_FSL_IMX8MQ) += fsl-imx8mq-ddr3l-arm2.dtb \
 				 fsl-imx8mq-evk-dp.dtb \
 				 fsl-imx8mq-evk-edp.dtb \
 				 imx8mq-edm-fairy.dtb \
+				 imx8mq-edm-gnome.dtb \
 				 imx8mq-edm-wizard.dtb \
 				 imx8mq-edm-wizard-dcss-g080uan01.dtb \
 				 imx8mq-edm-wizard-dcss-g101uan02.dtb \
