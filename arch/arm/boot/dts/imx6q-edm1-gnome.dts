@@ -19,7 +19,7 @@
 #include "baseboard_edm1_gnome.dtsi"
 
 / {
-	model = "TechNexion EDM1-IMX6 Quad/Dual and FAIRY baseboard";
+	model = "TechNexion EDM1-IMX6 Quad/Dual and GNOME baseboard";
 	compatible = "fsl,edm-imx6q", "fsl,imx6q";
 };
 
