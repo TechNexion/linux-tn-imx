@@ -1,0 +1,24 @@
+/*
+ * Copyright 2019 Technexion Ltd.
+ *
+ * Author: Tapani Utriainen <tapani@technexion.com>
+ *         Richard Hu <richard.hu@technexion.com>
+ *         John Weber <john.weber@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ */
+/dts-v1/;
+
+#include "imx6dl.dtsi"
+#include "imx6qdl-axon.dtsi"
+#include "imx6qdl-axon-loopbacktest.dtsi"
+#include <dt-bindings/sound/fsl-imx-audmux.h>
+#include "tnmacro.h"
+
+/ {
+	model = "TechNexion AXON-IMX6 Dual Lite Loopback Test";
+	compatible = "fsl,axon-imx6dl", "fsl,imx6dl";
+};

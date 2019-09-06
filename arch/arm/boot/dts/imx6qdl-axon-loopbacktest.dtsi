@@ -1,0 +1,237 @@
+/*
+ * Copyright 2019 Technexion Ltd.
+ *
+ * Author:  John Weber <john.weber@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * Axon device tree configurations for i.MX6QDL for internal
+ * loopback testing between the axon fabric and the i.MX6 SOC.
+ *
+ */
+
+/ {
+
+	aliases {
+		i2c0 = &AXON_I2C_A;
+		i2c1 = &AXON_I2C_B;
+		i2c2 = &AXON_I2C_C;
+		i2c3 = &AXON_I2C_D;
+		i2c4 = &AXON_I2C_BRD_CONF;
+		uart0 = &AXON_UART_A;
+		uart1 = &AXON_UART_B;
+		uart3 = &AXON_UART_C;
+		uart4 = &AXON_UART_BT;
+    };
+
+	regulators {
+
+		reg_usb_otg_vbus: usb_otg_vbus {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_otg_vbus>;
+			compatible = "regulator-fixed";
+			regulator-name = "usb_otg_vbus";
+			regulator-min-microvolt = <5000000>;
+			regulator-max-microvolt = <5000000>;
+			gpio = <AXON_EXT_GPIO_X1_P66 GPIO_ACTIVE_LOW>;
+			enable-active-low;
+		};
+	};
+
+	sound-hdmi {
+		status = "disabled";
+	};
+
+	backlight_lvds {
+		status = "disabled";
+	};
+
+	/* Turn off LCD interface as we do not support this on Axon-Pi */
+	lcd@0 {
+        	status = "disabled";
+	};
+};
+
+&iomuxc {
+	imx6qdl-axon {
+
+		pinctrl_otg_vbus: otgvbusgrp {
+			fsl,pins = <
+				MX6QDL_PAD_EIM_A24__GPIO5_IO04	    0x4001b0b5  /* GPIO_X1_P66 */
+			>;
+		};
+
+		pinctrl_loopback_test: loopbacktestgrp {
+			fsl,pins = <
+				MX6QDL_PAD_GPIO_9__GPIO1_IO09	    0x4001b0b5  /* PWM_X1_P39 */
+				MX6QDL_PAD_GPIO_1__GPIO1_IO01	    0x4001b0b5  /* PWM_X2_P79 */
+				MX6QDL_PAD_SD4_DAT1__GPIO2_IO09		0x4001b0b5  /* PWM_X4_P1 */
+				MX6QDL_PAD_SD4_DAT2__GPIO2_IO10		0x4001b0b5  /* PWM_X4_P2 */
+				MX6QDL_PAD_SD4_DAT7__GPIO2_IO15		0x4001b0b5  /* UART_B_TXD */
+				MX6QDL_PAD_SD4_DAT6__GPIO2_IO14 	0x4001b0b5  /* UART_B_CTS */
+				MX6QDL_PAD_SD4_DAT5__GPIO2_IO13 	0x4001b0b5  /* UART_B_RTS */
+				MX6QDL_PAD_SD4_DAT4__GPIO2_IO12 	0x4001b0b5  /* UART_B_RXD */
+				MX6QDL_PAD_CSI0_DAT12__GPIO5_IO30	0x4001b0b5  /* UART_C_RXD */
+				MX6QDL_PAD_CSI0_DAT13__GPIO5_IO31	0x4001b0b5  /* UART_C_TXD */
+				MX6QDL_PAD_CSI0_DAT14__GPIO6_IO00	0x4001b0b5  /* UART_BT_RXD */
+				MX6QDL_PAD_CSI0_DAT15__GPIO6_IO01	0x4001b0b5  /* UART_BT_TXD */
+				MX6QDL_PAD_CSI0_DAT16__GPIO6_IO02	0x4001b0b5  /* UART_C_CTS */
+				MX6QDL_PAD_CSI0_DAT17__GPIO6_IO03	0x4001b0b5  /* UART_C_RTS */
+				MX6QDL_PAD_CSI0_DAT18__GPIO6_IO04	0x4001b0b5  /* UART_BT_CTS */
+				MX6QDL_PAD_CSI0_DAT19__GPIO6_IO05	0x4001b0b5  /* UART_BT_RTS */
+				MX6QDL_PAD_EIM_CS0__GPIO2_IO23		0x4001b0b5  /* SPI_A_SCLK */
+				MX6QDL_PAD_EIM_CS1__GPIO2_IO24		0x4001b0b5  /* SPI_A_MOSI */
+				MX6QDL_PAD_EIM_OE__GPIO2_IO25 		0x4001b0b5  /* SPI_A_MISO */
+				MX6QDL_PAD_EIM_RW__GPIO2_IO26 		0x4001b0b5  /* SPI_A_CS0 */
+				MX6QDL_PAD_EIM_LBA__GPIO2_IO27 		0x4001b0b5  /* SPI_A_CS1 */
+				MX6QDL_PAD_EIM_D21__GPIO3_IO21 		0x4001b0b5  /* SPI_B_SCLK */
+				MX6QDL_PAD_EIM_D28__GPIO3_IO28 		0x4001b0b5  /* SPI_B_MOSI */
+				MX6QDL_PAD_EIM_D22__GPIO3_IO22 		0x4001b0b5  /* SPI_B_MISO */
+				MX6QDL_PAD_EIM_D29__GPIO3_IO29 		0x4001b0b5  /* SPI_B_CS0 */
+				MX6QDL_PAD_EIM_A25__GPIO5_IO02 		0x4001b0b5  /* SPI_B_CS1 */
+				MX6QDL_PAD_CSI0_DAT4__GPIO5_IO22    0x4001b0b5  /* AUD_A_TXCLK */
+				MX6QDL_PAD_CSI0_DAT5__GPIO5_IO23    0x4001b0b5  /* AUD_A_TXD */
+				MX6QDL_PAD_CSI0_DAT6__GPIO5_IO24    0x4001b0b5  /* AUD_A_TXFS */
+				MX6QDL_PAD_CSI0_DAT7__GPIO5_IO25    0x4001b0b5  /* AUD_A_RXD */
+				MX6QDL_PAD_KEY_COL0__GPIO4_IO06     0x4001b0b5  /* AUD_B_TXC */
+				MX6QDL_PAD_KEY_ROW0__GPIO4_IO07     0x4001b0b5  /* AUD_B_TXD */
+				MX6QDL_PAD_KEY_COL1__GPIO4_IO08     0x4001b0b5  /* AUD_B_TXFS */
+				MX6QDL_PAD_KEY_ROW1__GPIO4_IO09     0x4001b0b5  /* AUD_B_RXD */
+				MX6QDL_PAD_EIM_D24__GPIO3_IO24      0x4001b0b5  /* AUD_B_RXFS */
+				MX6QDL_PAD_EIM_D25__GPIO3_IO25      0x4001b0b5  /* AUD_B_RXC */
+				MX6QDL_PAD_GPIO_0__GPIO1_IO00       0x4001b0b5  /* AUD_B_MCLK */
+			>;
+		};
+	};
+};
+
+&reg_usb_otg_vbus {
+	status = "disabled";
+};
+
+&usbotg {
+	status = "disabled";
+};
+
+&AXON_I2C_A {
+	status = "okay";
+};
+
+&AXON_I2C_B {
+  	status = "okay";
+};
+
+&AXON_I2C_C {
+	status = "okay";
+};
+
+&AXON_I2C_D {
+	status = "okay";
+};
+
+&axonfabric {
+	pinctrl-0 = <&pinctrl_fabric_reset
+				&pinctrl_gpio_x1_p66
+				&pinctrl_gpio_x1_p68
+				&pinctrl_gpio_x1_p70
+				&pinctrl_gpio_x1_p72
+				&pinctrl_gpio_x1_p74
+				&pinctrl_gpio_x1_p76
+				&pinctrl_gpio_x1_p78
+				&pinctrl_gpio_x1_p80
+				&pinctrl_loopback_test
+				>;
+//                                0    1    2    3    4    5    6    7    8    9   10   11   12
+	iob-enable =      /bits/ 8 <0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00>;
+	iob-pushpull =    /bits/ 8 <0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF>;
+	iob-direction =   /bits/ 8 <0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF>;
+	iob-selection-0 = /bits/ 8 <0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF>;
+	iob-selection-1 = /bits/ 8 <0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF>;
+ 	lock-direction;
+};
+
+&AXON_I2C_BRD_CONF {
+	status = "okay";
+
+	eeprom_baseboard: eeprom@51 {
+		compatible = "at,24c02";
+		reg = <0x51>;
+	};
+};
+
+&AXON_UART_B {
+	status = "disabled";
+};
+
+&AXON_UART_C {
+	status = "disabled";
+};
+
+&AXON_UART_BT {
+	status = "disabled";
+};
+
+&AXON_CAN_A {
+	status = "disabled";
+};
+
+&AXON_CAN_B {
+	status = "disabled";
+};
+
+&AXON_SPI_A {
+	status = "disabled";
+};
+
+&AXON_SPI_B {
+	status = "disabled";
+};
+
+&ldb {
+	status = "disabled";
+};
+
+&hdmi_audio {
+	status = "disabled";
+};
+
+&hdmi_core {
+	status = "disabled";
+};
+
+&hdmi_video {
+	status = "disabled";
+};
+
+/* Baseboard microSD slot */
+&reg_usdhc1_vmmc {
+	status = "okay";
+};
+
+&usdhc1 {
+	vmmc-supply = <&reg_usdhc1_vmmc>;
+	status = "okay";
+};
+
+&pcie {
+	status = "disabled";
+};
+
+&pwm1  {
+	status = "disabled";
+};
+
+&pwm2 {
+	status = "disabled";
+};
+
+&pwm3  {
+	status = "disabled";
+};
+
+&pwm4  {
+	status = "disabled";
+};
+
