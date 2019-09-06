@@ -18,7 +18,7 @@
 #include "baseboard_edm2_gremlin.dtsi"
 
 / {
-	model = "TechNexion EDM2-IMX6PMIC Quad/Dual and Gremlin baseboard";
+	model = "TechNexion EDM2-IMX6 Quad/Dual and GREMLIN baseboard";
 	compatible = "fsl,edm2-imx6q", "fsl,imx6q";
 };
 
