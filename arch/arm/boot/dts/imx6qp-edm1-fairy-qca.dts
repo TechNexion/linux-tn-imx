@@ -12,12 +12,15 @@
  * http://www.gnu.org/copyleft/gpl.html
  */
 
-#include "imx6q-edm1-fairy-qca.dts"
+/dts-v1/;
+#include <dt-bindings/interrupt-controller/irq.h>
 #include "imx6qp.dtsi"
+#include "imx6qdl-edm-qca.dtsi"
+#include "baseboard_edm1_fairy.dtsi"
 
 / {
 	model = "TechNexion EDM1-IMX6 Quad Plus with QCA WLAN and FAIRY baseboard";
-	compatible = "fsl,edm-imx6q", "fsl,imx6q";
+	compatible = "fsl,edm-imx6qp", "fsl,imx6qp";
 };
 
 &ldb {
