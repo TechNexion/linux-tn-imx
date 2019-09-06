@@ -32,8 +32,7 @@
 #include <linux/slab.h>
 #include <linux/mfd/axonfabric.h>
 #include <asm/byteorder.h>
-
-//#include "axonfabric.h"
+#include <linux/debugfs.h>
 
 #include <asm/unaligned.h>
 
@@ -43,9 +42,13 @@
 #define AXONF_IOB_DIRECTION			0x2
 #define AXONF_IOB_SEL0				0x3
 #define AXONF_IOB_SEL1				0x4
+#define AXONF_IOB_IRQ_EN			0x5
+#define AXONF_IOB_IRQ_TYPE			0x6
+#define AXONF_IOB_IRQ_POLARITY		0x7
 #define AXONF_IOB_OUTPUT			0x8
 #define AXONF_IOB_EXT_INPUT			0x9
 #define AXONF_IOB_INT_INPUT			0xA
+#define AXONF_IOB_IRQ_ISCR			0xB
 
 /* IO Block definitions */
 #define AXONF_IOB_SEL_PASSTHROUGH   0x0
@@ -54,6 +57,7 @@
 #define AXONF_IOB_SEL_ALT1          0x2
 
 /* I2C commands */
+#define AXONF_CMD_IRQSTATUS_READ	0x10
 #define AXONF_CMD_WRITE_IOBANK		0x21
 #define AXONF_CMD_READ_IOBANK		0x23
 #define AXONF_CMD_SET_READ_ADDR		0x22
@@ -90,6 +94,10 @@
 
 #define AXONF_CHIP_TYPE(x)	((x) & AXONF_TYPE_MASK)
 #define AXONF_SOC_TYPE(x)	((x) & AXONF_SOC_MASK)
+
+#define AXONF_NBANKS					13
+
+#define CONFIG_AXONF_DEBUGFS
 
 /*
  * Bank Masks: Tell driver which I/O banks can be used as I2C GPIO
@@ -140,18 +148,28 @@ struct axonf_reg_config {
 	int direction;
 	int sel0;
 	int sel1;
+	int irq_en;
+	int irq_type;
+	int irq_polarity;
 	int output;
 	int input;
+	int int_input;
+	int irq_iscr;
 };
 
 static const struct axonf_reg_config axonf_regs = {
-	.enable = AXONF_IOB_ENABLE,
-	.pushpull = AXONF_IOB_PUSHPULL,
-	.direction = AXONF_IOB_DIRECTION,
-	.sel0 = AXONF_IOB_SEL0,
-	.sel1 = AXONF_IOB_SEL1,
-	.output = AXONF_IOB_OUTPUT,
-	.input = AXONF_IOB_EXT_INPUT,
+	.enable =       AXONF_IOB_ENABLE,
+	.pushpull =     AXONF_IOB_PUSHPULL,
+	.direction =    AXONF_IOB_DIRECTION,
+	.sel0 =         AXONF_IOB_SEL0,
+	.sel1 =         AXONF_IOB_SEL1,
+	.irq_en =       AXONF_IOB_IRQ_EN,
+	.irq_type =     AXONF_IOB_IRQ_TYPE,
+	.irq_polarity = AXONF_IOB_IRQ_POLARITY,
+	.output =       AXONF_IOB_OUTPUT,
+	.input =        AXONF_IOB_EXT_INPUT,
+	.int_input =    AXONF_IOB_INT_INPUT,
+	.irq_iscr =     AXONF_IOB_IRQ_ISCR
 };
 
 struct axonf_chip {
@@ -161,8 +179,13 @@ struct axonf_chip {
 	u8 reg_direction[MAX_BANK];
 	u8 reg_sel0[MAX_BANK];
 	u8 reg_sel1[MAX_BANK];
+	u8 reg_irq_en[MAX_BANK];
+	u8 reg_irq_type[MAX_BANK];
+	u8 reg_irq_polarity[MAX_BANK];
+	u8 reg_irq_iscr[MAX_BANK];
 	u8 reg_output[MAX_BANK];
 	u8 reg_input[MAX_BANK];
+	u8 reg_int_input[MAX_BANK];
 	u8 bank_mask[MAX_BANK];
 	u8 allocated[MAX_BANK];
 	u8 fw_version[FW_VERSION_SZ];
@@ -176,11 +199,16 @@ struct axonf_chip {
 	u8 irq_trig_fall[MAX_BANK];
 #endif
 
+#ifdef CONFIG_AXONF_DEBUGFS
+	struct dentry *debugfs_top_dir;
+#endif
+
 	struct i2c_client *client;
 	struct gpio_chip gpio_chip;
 	const char *const *names;
 	unsigned long driver_data;
 	struct regulator *regulator;
+	u8 dir_lock;
 
 	const struct axonf_reg_config *regs;
 
@@ -191,6 +219,14 @@ struct axonf_chip {
 	int (*write_regs)(struct axonf_chip *, int, u8 *);
 	int (*read_regs)(struct axonf_chip *, int, u8 *);
 };
+
+/*
+ * HACK - need to figure out how to push the pointer to this struct through
+ * the inode private data.
+ */
+#ifdef CONFIG_AXONF_DEBUGFS
+struct axonf_chip* g_chip;
+#endif // CONFIG_AXONF_DEBUGFS
 
 /*
  * Returns the value of the requested register (reg) containing the data
@@ -423,6 +459,9 @@ static int axonf_gpio_direction_input(struct gpio_chip *gc, unsigned off)
 	u8 reg_val;
 	int ret;
 
+	if(chip->dir_lock)
+		return 0;
+
 	mutex_lock(&chip->i2c_lock);
 	reg_val = chip->reg_direction[off / BANK_SZ] | (1u << (off % BANK_SZ));
 
@@ -443,7 +482,7 @@ static int axonf_gpio_direction_output(struct gpio_chip *gc,
 {
 	struct axonf_chip *chip = gpiochip_get_data(gc);
 	u8 reg_val;
-	int ret;
+	int ret = 0;
 
 	mutex_lock(&chip->i2c_lock);
 	/* set output level */
@@ -461,6 +500,9 @@ static int axonf_gpio_direction_output(struct gpio_chip *gc,
 	}
 
 	chip->reg_output[off / BANK_SZ] = reg_val;
+
+	if(chip->dir_lock)
+		goto exit;
 
 	/* then direction */
 	reg_val = chip->reg_direction[off / BANK_SZ] & ~(1u << (off % BANK_SZ));
@@ -527,13 +569,19 @@ static int axonf_gpio_get_direction(struct gpio_chip *gc, unsigned off)
 	u8 reg_val;
 	int ret;
 
+	if(chip->dir_lock)
+		goto exit;
+
 	mutex_lock(&chip->i2c_lock);
 	ret = axonf_iob_read_single(chip, chip->regs->direction, &reg_val, off);
 	mutex_unlock(&chip->i2c_lock);
 	if (ret < 0)
 		return ret;
 
-	return !!(reg_val & (1u << (off % BANK_SZ)));
+	ret = !!(reg_val & (1u << (off % BANK_SZ)));
+exit:
+	ret = 0;
+	return ret;
 }
 
 /*
@@ -1331,41 +1379,34 @@ static int axonf_irq_setup(struct axonf_chip *chip,
 
 static void axonf_print_iob_regs(struct axonf_chip *chip)
 {
+	u8 msg [ AXONF_NBANKS * 3 ];
+	int i;
 
-	dev_info(&chip->client->dev,"enable= %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
-		chip->reg_enable[0], chip->reg_enable[1], chip->reg_enable[2], chip->reg_enable[3],
-		chip->reg_enable[4], chip->reg_enable[5], chip->reg_enable[6], chip->reg_enable[7],
-		chip->reg_enable[8], chip->reg_enable[9], chip->reg_enable[10], chip->reg_enable[11],
-		chip->reg_enable[12]
-		);
+#define STRINGIFY_BANK_REGS(array)\
+	sprintf(msg, "%02x ", array[0]); \
+	for(i = 1; i<AXONF_NBANKS; i++) { \
+		sprintf(msg, "%s%02x ", msg, array[i]); \
+	}
 
-	dev_info(&chip->client->dev,"pushpull= %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
-		chip->reg_pushpull[0], chip->reg_pushpull[1], chip->reg_pushpull[2], chip->reg_pushpull[3],
-		chip->reg_pushpull[4], chip->reg_pushpull[5], chip->reg_pushpull[6], chip->reg_pushpull[7],
-		chip->reg_pushpull[8], chip->reg_pushpull[9], chip->reg_pushpull[10], chip->reg_pushpull[11],
-		chip->reg_pushpull[12]
-		);
+	STRINGIFY_BANK_REGS(chip->reg_enable);
 
-	dev_info(&chip->client->dev,"direction= %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
-		chip->reg_direction[0], chip->reg_direction[1], chip->reg_direction[2], chip->reg_direction[3],
-		chip->reg_direction[4], chip->reg_direction[5], chip->reg_direction[6], chip->reg_direction[7],
-		chip->reg_direction[8], chip->reg_direction[9], chip->reg_direction[10], chip->reg_direction[11],
-		chip->reg_direction[12]
-		);
+	dev_info(&chip->client->dev,"enable=    %s\n",msg);
 
-	dev_info(&chip->client->dev,"sel0= %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
-		chip->reg_sel0[0], chip->reg_sel0[1], chip->reg_sel0[2], chip->reg_sel0[3],
-		chip->reg_sel0[4], chip->reg_sel0[5], chip->reg_sel0[6], chip->reg_sel0[7],
-		chip->reg_sel0[8], chip->reg_sel0[9], chip->reg_sel0[10], chip->reg_sel0[11],
-		chip->reg_sel0[12]
-		);
+	STRINGIFY_BANK_REGS(chip->reg_pushpull);
 
-	dev_info(&chip->client->dev,"sel1= %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
-		chip->reg_sel1[0], chip->reg_sel1[1], chip->reg_sel1[2], chip->reg_sel1[3],
-		chip->reg_sel1[4], chip->reg_sel1[5], chip->reg_sel1[6], chip->reg_sel1[7],
-		chip->reg_sel1[8], chip->reg_sel1[9], chip->reg_sel1[10], chip->reg_sel1[11],
-		chip->reg_sel1[12]
-		);
+	dev_info(&chip->client->dev,"pushpull=  %s\n",msg);
+
+	STRINGIFY_BANK_REGS(chip->reg_direction);
+
+	dev_info(&chip->client->dev,"direction= %s\n",msg);
+
+	STRINGIFY_BANK_REGS(chip->reg_sel0);
+
+	dev_info(&chip->client->dev,"sel0=      %s\n",msg);
+
+	STRINGIFY_BANK_REGS(chip->reg_sel1);
+
+	dev_info(&chip->client->dev,"sel1=      %s\n",msg);
 
 }
 
@@ -1441,11 +1482,6 @@ static int device_axonf_init(struct axonf_chip *chip, u32 invert)
 		goto out;
 	}
 
-	ret = axonf_iob_write_regs(chip, chip->regs->enable,
-				chip->reg_enable);
-	if (ret)
-		goto out;
-
 	ret = axonf_iob_write_regs(chip, chip->regs->pushpull,
 				chip->reg_pushpull);
 	if (ret)
@@ -1466,8 +1502,13 @@ static int device_axonf_init(struct axonf_chip *chip, u32 invert)
 	if (ret)
 		goto out;
 
-	ret = axonf_iob_read_regs(chip, chip->regs->output,
+	ret = axonf_iob_write_regs(chip, chip->regs->output,
 				chip->reg_output);
+	if (ret)
+		goto out;
+
+	ret = axonf_iob_write_regs(chip, chip->regs->enable,
+				chip->reg_enable);
 	if (ret)
 		goto out;
 
@@ -1494,6 +1535,139 @@ out:
 	return ret;
 }
 
+//
+// debugfs enablement
+//
+
+static int axonf_iobregs_debug_show(struct seq_file *m, void *unused)
+{
+	struct axonf_chip *chip = g_chip;
+
+	u8 msg [ AXONF_NBANKS * 3 ];
+	int i;
+
+#define STRINGIFY_BANK_REGS_DEBUGFS(array)\
+	sprintf(msg, "%02x ", array[0]); \
+	for(i = 1; i<AXONF_NBANKS; i++) { \
+		sprintf(msg, "%s%02x ", msg, array[i]); \
+	}
+
+	if(axonf_iob_read_regs(chip, chip->regs->enable, chip->reg_enable)) goto out;
+	STRINGIFY_BANK_REGS_DEBUGFS(chip->reg_enable);
+	seq_printf(m,"enable=       %s\n",msg);
+
+	if(axonf_iob_read_regs(chip, chip->regs->pushpull, chip->reg_pushpull)) goto out;
+	STRINGIFY_BANK_REGS_DEBUGFS(chip->reg_pushpull);
+	seq_printf(m,"pushpull=     %s\n",msg);
+
+	if(axonf_iob_read_regs(chip, chip->regs->direction,	chip->reg_direction)) goto out;
+	STRINGIFY_BANK_REGS_DEBUGFS(chip->reg_direction);
+	seq_printf(m,"direction=    %s\n",msg);
+
+	if(axonf_iob_read_regs(chip, chip->regs->sel0, chip->reg_sel0))	goto out;
+	STRINGIFY_BANK_REGS_DEBUGFS(chip->reg_sel0);
+	seq_printf(m,"sel0=         %s\n",msg);
+
+	if(axonf_iob_read_regs(chip, chip->regs->sel1, chip->reg_sel1)) goto out;
+	STRINGIFY_BANK_REGS_DEBUGFS(chip->reg_sel1);
+	seq_printf(m,"sel1=         %s\n",msg);
+
+	if(axonf_iob_read_regs(chip, chip->regs->output, chip->reg_output)) goto out;
+	STRINGIFY_BANK_REGS_DEBUGFS(chip->reg_output);
+	seq_printf(m,"output=       %s\n",msg);
+
+	if(axonf_iob_read_regs(chip, chip->regs->input, chip->reg_input)) goto out;
+	STRINGIFY_BANK_REGS_DEBUGFS(chip->reg_input);
+	seq_printf(m,"ext input=    %s\n",msg);
+
+	if(axonf_iob_read_regs(chip, chip->regs->int_input, chip->reg_int_input)) goto out;
+	STRINGIFY_BANK_REGS_DEBUGFS(chip->reg_int_input);
+	seq_printf(m,"int input=    %s\n",msg);
+
+	if(axonf_iob_read_regs(chip, chip->regs->irq_en, chip->reg_irq_en)) goto out;
+	STRINGIFY_BANK_REGS_DEBUGFS(chip->reg_irq_en);
+	seq_printf(m,"iqr_en=       %s\n",msg);
+
+	if(axonf_iob_read_regs(chip, chip->regs->irq_type, chip->reg_irq_type)) goto out;
+	STRINGIFY_BANK_REGS_DEBUGFS(chip->reg_irq_type);
+	seq_printf(m,"irq_type=     %s\n",msg);
+
+	if(axonf_iob_read_regs(chip, chip->regs->irq_polarity, chip->reg_irq_polarity))	goto out;
+	STRINGIFY_BANK_REGS_DEBUGFS(chip->reg_irq_polarity);
+	seq_printf(m,"irq_polarity= %s\n",msg);
+
+	if(axonf_iob_read_regs(chip, chip->regs->irq_iscr, chip->reg_irq_iscr)) goto out;
+	STRINGIFY_BANK_REGS_DEBUGFS(chip->reg_irq_iscr);
+	seq_printf(m,"irq_iscr=     %s\n",msg);
+
+out:
+	return 0;
+}
+
+
+static int axonf_iobregs_debug_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, axonf_iobregs_debug_show,
+					&inode->i_private);
+}
+
+static const struct file_operations axonf_iobregs_debug_fops = {
+	.open		= axonf_iobregs_debug_open,
+	.read		= seq_read,
+	.llseek		= seq_lseek,
+	.release	= single_release,
+};
+
+static int axonf_init_debugfs(struct axonf_chip *chip) {
+	struct dentry* ret;
+	long err;
+
+	chip->debugfs_top_dir = NULL;
+
+	dev_info(&chip->client->dev,
+			"Initializing debugfs, chip address: %p\n", chip);
+
+	ret = debugfs_create_dir("axonfabric", NULL);
+
+	if(IS_ERR(ret)) goto exit_err;
+
+	chip->debugfs_top_dir = ret;
+
+	ret = debugfs_create_file("iob_regs", S_IRUGO,
+					chip->debugfs_top_dir, (void*) chip,
+					&axonf_iobregs_debug_fops);
+
+	if(IS_ERR(ret)) goto exit_err;
+
+	return 0;
+
+exit_err:
+	err = PTR_ERR(ret);
+	switch (err) {
+		case -ENODEV:
+			dev_err(&chip->client->dev,
+				"Cannot create debugfs entry. Debugfs not compiled in kernel.\n");
+			break;
+		default:
+			dev_err(&chip->client->dev,
+				"Cannot create debugfs entry. Error:%ld\n", err);
+			break;
+	}
+
+	// Clean up
+	if(chip->debugfs_top_dir)
+		debugfs_remove_recursive(chip->debugfs_top_dir);
+
+	return -1;
+}
+
+static void axonf_free_debugfs(struct axonf_chip *chip) {
+
+	// If we have a debugfs, then we need to clean up
+	if(chip->debugfs_top_dir)
+		debugfs_remove_recursive(chip->debugfs_top_dir);
+}
+
 static const struct of_device_id axonf_dt_ids[];
 
 static int axonf_probe(struct i2c_client *client,
@@ -1510,6 +1684,10 @@ static int axonf_probe(struct i2c_client *client,
 			sizeof(struct axonf_chip), GFP_KERNEL);
 	if (chip == NULL)
 		return -ENOMEM;
+
+#ifdef CONFIG_AXONF_DEBUGFS
+	g_chip = chip; // HACK
+#endif // CONFIG_AXONF_DEBUGFS
 
 	pdata = dev_get_platdata(&client->dev);
 	if (pdata) {
@@ -1540,6 +1718,7 @@ static int axonf_probe(struct i2c_client *client,
 	}
 
 	chip->client = client;
+	chip->dir_lock = 0;
 
 	reg = devm_regulator_get_optional(&client->dev, "vcc");
 	if (IS_ERR(reg)) {
@@ -1590,6 +1769,11 @@ static int axonf_probe(struct i2c_client *client,
 	if (ret == -EPROBE_DEFER)
 		return -EPROBE_DEFER;
 
+	if(of_get_property(chip->client->dev.of_node,"lock-direction",NULL)) {
+		chip->dir_lock = 1;
+		dev_warn(&client->dev, "'lock-direction' set. Kernel gpio calls will not change direction of IOs. For QC testing only.\n");
+	}
+
 	/*
 	 * initialize cached registers from their original values.
 	 * we can't share this chip with another i2c master.
@@ -1634,6 +1818,11 @@ static int axonf_probe(struct i2c_client *client,
 		goto err_exit;
 	}
 
+#ifdef CONFIG_AXONF_DEBUGFS
+	/* Create debugfs */
+	axonf_init_debugfs(chip);
+#endif // CONFIG_AXONF_DEBUGFS
+
 	return 0;
 
 err_exit:
@@ -1648,6 +1837,10 @@ static int axonf_remove(struct i2c_client *client)
 	struct axonf_platform_data *pdata = dev_get_platdata(&client->dev);
 	struct axonf_chip *chip = i2c_get_clientdata(client);
 	int ret;
+
+#ifdef CONFIG_AXONF_DEBUGFS
+	axonf_free_debugfs(chip);
+#endif // CONFIG_AXONF_DEBUGFS
 
 	sysfs_remove_groups(&client->dev.kobj, axonf_groups);
 
