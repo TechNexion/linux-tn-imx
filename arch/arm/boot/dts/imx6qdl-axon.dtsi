@@ -360,6 +360,62 @@
 	status = "okay";
 };
 
+&gpio1 {
+	gpio-line-names =
+		"AUD_B_MCLK", "PWM_X2_P79", "", "GPIO_X3_P69", "FABRIC_GPIO_INT0_N", "FABRIC_GPIO_INT1_N", "GPIO_X3_P67", "CAN_A_TX",
+		"CAN_A_RX", "PWM_X1_P39", "", "", "", "", "", "",
+		"", "", "", "", "", "", "", "",
+		"", "", "", "", "", "", "", "";
+};
+
+&gpio2 {
+	gpio-line-names =
+		"BRD_CONF_SCL", "BRD_CONF_SDA", "", "", "", "", "", "",
+		"GPIO_X4_P7", "PWM_X4_P1", "PWM_X4_P2", "DISP0_VDD_EN", "UART_B_RXD", "UART_B_RTS", "UART_B_CTS", "UART_B_TXD",
+		"SDIO_REG_ON", "FABRIC_RESET_N", "", "", "", "WL_REG_ON", "SPI_B_CORE_CS_N", "SPI_A_SCLK",
+		"SPI_A_MOSI", "SPI_A_MISO", "SPI_A_CS0", "SPI_A_CS1", "GPIO_X1_P68", "GPIO_X1_P70", "", "";
+};
+
+&gpio3 {
+	gpio-line-names =
+		"", "", "", "", "", "", "", "",
+		"", "", "", "", "", "", "", "",
+		"", "", "", "UART_A_CTS", "UART_A_RTS", "SPI_B_SCLK", "SPI_B_MISO", "SPI_B_FABRIC_CS_N",
+		"AUD_B_RXFS", "AUD_B_RXC", "GPIO_X1_P74", "GPIO_X1_P76", "SPI_B_MOSI", "SPI_B_CS0", "GPIO_X1_P78", "GPIO_X1_P80";
+};
+
+&gpio4 {
+	gpio-line-names =
+		"", "", "", "", "", "GPIO_X3_P65", "AUD_B_TXC", "AUD_B_TXD",
+		"AUD_B_TXFS", "AUD_B_RXD", "FABRIC_DONE", "", "", "", "CAN_B_TX", "CAN_B_RX",
+		"DISP0_CLK", "DISP0_DE", "DISP0_HSYNC", "DISP0_VSYNC", "DISP0_BLT_EN", "DISP0_DAT0", "DISP0_DAT1", "DISP0_DAT2",
+		"DISP0_DAT3", "DISP0_DAT4", "DISP0_DAT5", "DISP0_DAT6", "DISP0_DAT7", "DISP0_DAT8", "DISP0_DAT9", "DISP0_DAT10";
+};
+
+&gpio5 {
+	gpio-line-names =
+		"GPIO_X1_P72", "", "SPI_B_CS1", "", "GPIO_X1_P66", "DISP0_DAT11", "DISP0_DAT12", "DISP0_DAT13",
+		"DISP0_DAT14", "DISP0_DAT15", "DISP0_DAT16", "DISP0_DAT17", "DISP0_DAT18", "DISP0_DAT19", "DISP0_DAT20", "DISP0_DAT21",
+		"DISP0_DAT22", "DISP0_DAT23", "GPIO_X2_P20", "GPIO_X2_P18", "GPIO_X2_P24", "GPIO_X2_P22", "AUD_A_TXCLK", "AUD_A_TXD",
+		"AUD_A_TXFS", "AUD_A_RXD", "", "", "UART_A_TXD", "UART_A_RXD", "UART_C_RXD", "UART_C_TXD";
+};
+
+&gpio6 {
+	gpio-line-names =
+		"UART_BT_RXD", "UART_BT_TXD", "UART_C_CTS", "UART_C_RTS", "UART_BT_CTS", "UART_BT_RTS", "BT_REG_ON", "GPIO_X4_P20",
+		"GPIO_X4_P19", "", "GPIO_X4_P34", "GPIO_X3_P71", "", "", "SOC_STATUS_LED", "GPIO_X4_P40",
+		"", "", "", "", "", "", "", "",
+		"", "", "", "", "", "", "", "PMIC_INT_N";
+};
+
+&gpio7 {
+	gpio-line-names =
+		"", "", "", "", "", "", "", "",
+		"", "GPIO_X4_P8", "GPIO_X4_P32", "WL_HOST_WAKE", "BT_HOST_WAKE", "", "", "",
+		"", "", "", "", "", "", "", "",
+		"", "", "", "", "", "", "", "";
+};
+
 &AXON_I2C_D {  // I2C_D
 	axonfabric: axonfabric@41 {
 		reg = <0x41>;
@@ -380,7 +436,8 @@
 		"F_GPIO_X1_P74", "F_GPIO_X1_P76", "F_GPIO_X1_P78", "F_GPIO_X1_P80", // Bank 0
 		"F_GPIO_X2_P18", "F_GPIO_X2_P20", "F_GPIO_X2_P22", "F_GPIO_X2_P24", // Bank 1
 		"F_GPIO_X3_P65", "F_GPIO_X3_P67", "F_GPIO_X3_P69", "F_GPIO_X3_P71", // Bank 1
-		"", "", "", "", "", "", "", "",                                     // Bank 2 - unused
+		"F_GPIO_X4_P7", "F_GPIO_X4_P8", "F_GPIO_X4_P19", "F_GPIO_X4_P20",   // Bank 2
+		"F_GPIO_X4_P32", "F_GPIO_X4_P34", "F_GPIO_X4_P40", "",              // Bank 2
 		"F_DISP_DAT00", "F_DISP_DAT01", "F_DIST_DAT02", "F_DISP_DAT03",     // Bank 3
 		"F_DISP_DAT04", "F_DISP_DAT05", "F_DIST_DAT06", "F_DISP_DAT07",     // Bank 3
 		"F_DISP_DAT08", "F_DISP_DAT09", "F_DIST_DAT10", "F_DISP_DAT11",     // Bank 4
@@ -396,8 +453,8 @@
 		"F_SPI_A_MISO", "F_SPI_A_MOSI", "F_SPI_A_SCLK", "F_SPI_A_CS0",      // Bank 9
 		"F_SPI_A_CS1", "F_PWM_X1_P39", "F_PWM_X2_P79", "",                  // Bank 9
 		"F_SPI_B_MISO", "F_SPI_B_MOSI", "F_SPI_B_SCLK", "F_SPI_B_CS0",      // Bank 10
-		"F_SPI_B_CS1", "", "", "",                                          // Bank 10
-		"", "", "", "",                                                     // Bank 11
+		"F_SPI_B_CS1", "F_PWM_X4_P1", "F_PWM_X4_P2", "",                    // Bank 10
+		"F_UART_BT_TXD", "F_UART_BT_RXD", "F_UART_BT_RTS", "F_UART_BT_CTS", // Bank 11
 		"F_CAN_A_TX", "F_CAN_A_RX", "F_CAN_B_TX", "F_CAN_B_RX",             // Bank 11
 		"F_AUD_B_TXD", "F_AUD_B_TXFS", "F_AUD_B_TXCLK", "F_AUD_B_RXD",      // Bank 12
 		"F_AUD_B_RXFS", "F_AUD_B_RXCLK", "F_AUD_B_MCLK", "";                // Bank 12
