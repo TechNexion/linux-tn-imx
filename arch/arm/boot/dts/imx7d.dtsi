@@ -269,7 +269,7 @@
 	};
 
 	csi1: csi@30710000 {
-		compatible = "fsl,imx7d-csi";
+		compatible = "fsl,imx7d-csi", "fsl,imx6s-csi";
 		reg = <0x30710000 0x10000>;
 		interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>;
 		clocks = <&clks IMX7D_CLK_DUMMY>,
