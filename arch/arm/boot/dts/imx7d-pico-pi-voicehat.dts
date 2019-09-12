@@ -1,0 +1,99 @@
+/*
+ * Copyright 2018 Technexion Ltd.
+ *
+ * Author: Tapani Utriainen <tapani@technexion.com>
+ *	   Richard Hu <richard.hu@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ */
+/dts-v1/;
+
+#define PICO_AUD_GPIO_PREV gpio2 5 /* PICO_P34 */
+#define PICO_AUD_GPIO_PLAY gpio5 4 /* PICO_P32 */
+#define PICO_AUD_GPIO_NEXT gpio2 7 /* PICO_P48 */
+#define PICO_AUD_GPIO_UP   gpio5 0
+#define PICO_AUD_GPIO_DOWN gpio6 13
+#define PICO_AUD_GPIO_MUTE gpio6 12
+#define PICO_AUD_GPIO_PAIR gpio6 15
+#define PICO_AUD_GPIO_ACT  gpio6 14
+
+#define PICO_AUD_I2SB_CHANNEL sai3
+#define PICO_AUD_CLKA_SRC clks IMX7D_PLL_AUDIO_MAIN
+#define PICO_AUD_CLKB_SRC clks IMX7D_PLL_AUDIO_MAIN
+
+#include "imx7d.dtsi"
+#include "imx7d-pico.dtsi"
+#include "baseboard_pico_pi.dtsi"
+#include "expansion_pico_pi_voicehat.dtsi"
+
+/ {
+       model = "TechNexion PICO-IMX7D and PI baseboard with VoiceHat";
+       compatible = "fsl,pico-imx7d", "fsl,imx7d";
+};
+
+&epdc {
+       status = "disabled";
+};
+
+&pcie {
+       status = "disabled";
+};
+
+&iomuxc {
+    imx7d-pico {
+
+       pinctrl_sai3: sai3grp {
+         fsl,pins = <
+           MX7D_PAD_SD1_DATA1__SAI3_TX_BCLK   		0x1f
+           MX7D_PAD_SD1_DATA2__SAI3_TX_SYNC   		0x1f
+           MX7D_PAD_SD1_DATA3__SAI3_TX_DATA0   	0x30
+           MX7D_PAD_SD1_DATA0__SAI3_RX_DATA0   	0x1f
+           >;
+       };
+
+       pinctrl_gpio_key_voicehat: gpio_keysgrp {
+         fsl,pins = <
+           MX7D_PAD_SD1_CD_B__GPIO5_IO0			  0x59
+           MX7D_PAD_SD1_CMD__GPIO5_IO4				  0x59
+           MX7D_PAD_SAI1_RX_DATA__GPIO6_IO12		0x59
+           MX7D_PAD_SAI1_TX_BCLK__GPIO6_IO13		0x59
+           MX7D_PAD_SAI1_TX_SYNC__GPIO6_IO14		0x59
+           MX7D_PAD_SAI1_TX_DATA__GPIO6_IO15		0x59
+         >;
+       };
+    };
+};
+
+&sai1 {
+       assigned-clocks = <&clks IMX7D_PLL_AUDIO_MAIN_CLK>,
+           <&clks IMX7D_SAI1_ROOT_SRC>;
+       assigned-clock-parents = <&clks IMX7D_PLL_AUDIO_TEST_DIV>,
+           <&clks IMX7D_PLL_AUDIO_POST_DIV>;
+       assigned-clock-rates = <663552000>, <663552000>;
+       status = "okay";
+};
+
+&sai3 {
+       #sound-dai-cells = <0>;
+       pinctrl-names = "default";
+       pinctrl-0 = <&pinctrl_sai3>;
+       assigned-clocks = <&clks IMX7D_SAI3_ROOT_SRC>,
+                         <&clks IMX7D_SAI3_ROOT_CLK>;
+       assigned-clock-parents = <&clks IMX7D_PLL_AUDIO_POST_DIV>;
+       assigned-clock-rates = <0>, <24576000>;
+       clocks = <&clks IMX7D_SAI3_IPG_CLK>,
+               <&clks IMX7D_CLK_DUMMY>,
+               <&clks IMX7D_SAI3_ROOT_CLK>,
+               <&clks IMX7D_CLK_DUMMY>, <&clks IMX7D_CLK_DUMMY>;
+       clock-names = "bus", "mclk0", "mclk1", "mclk2", "mclk3";
+/*       fsl,sai-synchronous-rx; */
+       status = "okay";
+};
+
+
+&usdhc1 {
+       status = "disabled";
+};
