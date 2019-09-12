@@ -1,0 +1,170 @@
+/*
+ * Copyright 2018 Technexion Ltd.
+ *
+ * Author: Wig Cheng <wig.cheng@technexion.com>
+ *	   Richard Hu <richard.hu@technexion.com>
+ *	   Tapani Utriainen <tapani@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ */
+
+#include "tnmacro.h"
+
+/ {
+	/delete-node/ sound; //Disable SGTL5K on PICO-PI baseboard
+	/delete-node/ gpio-edm;
+
+	sound-tfa9912 {
+		compatible = "nxp,imx-audio-tfa98xx", "nxp,imx-tfa98xx";
+		nxp,model = "TFA9912";
+		cpu-dai = <&PICO_AUDA_I2S_CHANNEL>;
+		ssi-controller = <&PICO_AUDA_I2S_CHANNEL>;
+		nxp,audio-codec = <&tfa98xx_left &tfa98xx_right>;
+		clocks = <&PICO_AUD_CLKA_SRC>;
+		nxp,audio-routing =
+			"Speaker", "OUTL",
+			"DMIC1", "Mic",
+			"DMIC2", "Mic",
+			"DMIC3", "Mic",
+			"DMIC4", "Mic";
+	};
+
+	sound-sph0645 {
+		compatible = "nxp,imx-audio-sph0645", "nxp,imx-sph0645";
+		nxp,model = "SPH0645";
+		cpu-dai = <&PICO_AUD_I2SB_CHANNEL>;
+		ssi-controller = <&PICO_AUD_I2SB_CHANNEL>;
+		nxp,audio-codec = <&sound_record>;
+		clocks = <&PICO_AUD_CLKB_SRC>;
+		no-audmux = "true";
+	};
+
+	sound_record: codec {
+		compatible = "knowles,sph0645";
+	};
+
+	gpio_keys {
+		compatible = "gpio-keys";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_gpio_key_voicehat>;
+
+		prev {
+			gpios = <&PICO_AUD_GPIO_PREV GPIO_ACTIVE_LOW>;
+			label = "KEY PREV";
+			linux,code = <KEY_PREVIOUS>;
+		};
+
+		play {
+			gpios = <&PICO_AUD_GPIO_PLAY GPIO_ACTIVE_LOW>;
+			label = "KEY PLAY";
+			linux,code = <KEY_PLAY>;
+		};
+
+		next {
+			gpios = <&PICO_AUD_GPIO_NEXT GPIO_ACTIVE_LOW>;
+			label = "KEY NEXT";
+			linux,code = <KEY_NEXT>;
+		};
+
+		up {
+			gpios = <&PICO_AUD_GPIO_UP GPIO_ACTIVE_LOW>;
+			label = "KEY UP";
+			linux,code = <KEY_UP>;
+		};
+
+		down {
+			gpios = <&PICO_AUD_GPIO_DOWN GPIO_ACTIVE_LOW>;
+			label = "KEY DOWN";
+			linux,code = <KEY_DOWN>;
+		};
+
+		mute {
+			gpios = <&PICO_AUD_GPIO_MUTE GPIO_ACTIVE_LOW>;
+			label = "KEY MUTE";
+			linux,code = <KEY_MUTE>;
+		};
+
+		pair {
+			gpios = <&PICO_AUD_GPIO_PAIR GPIO_ACTIVE_LOW>;
+			label = "KEY PAIR";
+			linux,code = <KEY_SELECT>;
+		};
+
+		act {
+			gpios = <&PICO_AUD_GPIO_ACT GPIO_ACTIVE_LOW>;
+			label = "KEY ACT";
+			linux,code = <KEY_OK>;
+		};
+	};
+};
+
+&PICO_I2CA {
+	status = "okay";
+
+	tfa98xx_left: tfa98xx_left@34 {
+		compatible = "nxp,tfa98xx";
+		reg = <0x34>;
+		reset-gpio = <&PICO_EXT_GPIO_P28 GPIO_ACTIVE_HIGH>;
+		irq-gpio = <&PICO_EXT_GPIO_P24 GPIO_ACTIVE_HIGH>;
+		clocks = <&PICO_AUD_CLKA_SRC>;
+	};
+	tfa98xx_right: tfa98xx_right@35 {
+		compatible = "nxp,tfa98xx";
+		reg = <0x35>;
+		clocks = <&PICO_AUD_CLKA_SRC>;
+	};
+};
+
+&PICO_I2CC {
+	clock-frequency = <100000>;
+
+	pca9955: pca9955 {
+		compatible = "nxp,pca9955";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg = <0x60>;
+
+		blue@0 {
+			label = "blue0";
+			reg = <0>;
+			linux,default-trigger = "none";
+		};
+		green@1 {
+			label = "green0";
+			reg = <1>;
+			linux,default-trigger = "none";
+		};
+		red@2 {
+			label = "red0";
+			reg = <2>;
+			linux,default-trigger = "none";
+		};
+
+		blue@3 {
+			label = "blue1";
+			reg = <3>;
+			linux,default-trigger = "none";
+		};
+		green@4 {
+			label = "green1";
+			reg = <4>;
+			linux,default-trigger = "none";
+		};
+		red@5 {
+			label = "red1";
+			reg = <5>;
+			linux,default-trigger = "none";
+		};
+	};
+};
+
+&PICO_CANA {
+	status = "disabled";
+};
+
+&PICO_CANB {
+	status = "disabled";
+};
