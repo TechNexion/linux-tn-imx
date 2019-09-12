@@ -438,7 +438,7 @@ config SND_SOC_IMX_SGTL5000
 	  a sgtl5000 codec.
 
 config SND_SOC_IMX_SPH0645
-       tristate "Soc Audio support for i.MX boards with NXP SPH06455"
+       tristate "Soc Audio support for i.MX boards with NXP SPH0645"
        select SND_SOC_SPH0645
        select SND_SOC_IMX_PCM_DMA
        select SND_SOC_IMX_AUDMUX
