@@ -683,9 +683,13 @@ dtb-$(CONFIG_SOC_IMX7D) += \
 	imx7d-pico-nymph-qca.dtb \
 	imx7d-pico-pi.dtb \
 	imx7d-pico-pi-m4.dtb \
-	imx7d-pico-pi-voicehat.dtb \
 	imx7d-pico-pi-qca.dtb \
+	imx7d-pico-pi-c2-qca.dtb \
 	imx7d-pico-pi-qca-m4.dtb \
+	imx7d-pico-pi-qca-voicehat.dtb \
+	imx7d-pico-pi-c2-qca-voicehat.dtb \
+	imx7d-pico-pi-voicehat.dtb \
+	imx7d-pico-pi-c2-voicehat.dtb \
 	imx7d-edm1-gnome-qca.dtb \
 	imx7d-edm1-gnome-qca-m4.dtb \
 	imx7d-sdb.dtb \
