@@ -21,20 +21,11 @@
 			gpios = <&PICO_EXT_GPIO_P24 GPIO_ACTIVE_HIGH>;
 			dir   = "out";
 		};
-
-#ifdef PICO_PI_REVC2
-		gpio_p25 {
-			label = "SWITCH";
-			gpios = <&PICO_EXT_GPIO_P25 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-#else
 		gpio_p28 {
 			label = "GPIO_P28";
 			gpios = <&PICO_EXT_GPIO_P28 GPIO_ACTIVE_HIGH>;
 			dir   = "out";
 		};
-#endif
 		gpio_p26 {
 			label = "GPIO_P26";
 			gpios = <&PICO_EXT_GPIO_P26 GPIO_ACTIVE_HIGH>;
@@ -87,11 +78,7 @@
 
 		led {
 			label = "gpio-led";
-#ifdef PICO_PI_REVC2
-			gpios = <&PICO_EXT_GPIO_P28 GPIO_ACTIVE_HIGH>; /* PICO_P28 */
-#else
 			gpios = <&PICO_EXT_GPIO_P25 GPIO_ACTIVE_HIGH>; /* PICO_P25 */
-#endif
 		};
 	};
 
