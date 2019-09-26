@@ -22,7 +22,7 @@
 #include "imx8mq-edm.dtsi"
 
 / {
-	model = "TechNexion EDM-IMX8MQ and EDM-WIZARD baseboard";
+	model = "TechNexion EDM-IMX8MQ and WIZARD baseboard";
 	compatible = "edm,imx8mq-edm", "fsl,imx8mq";
 
 	regulators {
