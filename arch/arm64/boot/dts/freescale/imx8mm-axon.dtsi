@@ -49,6 +49,8 @@
 #define AXON_EXT_GPIO_SPI_B_FABRIC_CS_N &gpio1 11 /* GPIO1_IO11 */
 #define AXON_EXT_GPIO_SPI_B_CORE_CS_N   &gpio1 10 /* GPIO1_IO10 */
 
+#define AXON_EXT_SD_RESET_B   			&gpio2 19 /* SD_RESET_B */
+
 #define AXON_EXT_GPIO_SPARE1            &gpio4 20 /* SAI1_MCLK */
 
 /* Internal I/O definitions to make life easier */
@@ -432,6 +434,7 @@
 		pinctrl_usdhc2_gpio: usdhc2grpgpio {
 			fsl,pins = <
 				MX8MM_IOMUXC_SD2_CD_B_USDHC2_CD_B	0x1c4
+				MX8MM_IOMUXC_SD2_RESET_B_GPIO2_IO19	0x41
 			>;
 		};
 
