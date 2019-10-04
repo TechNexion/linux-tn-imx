@@ -77,6 +77,9 @@
 };
 
 &iomuxc {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_expansion_gpio>;
+
 	imx8mm-pico {
 		pinctrl_otg_vbus: otgvbusgrp {
 			fsl,pins = <
@@ -104,7 +107,7 @@
 
 		pinctrl_tusb320_irq: tusb320_irqgrp {
 			fsl,pins = <
-				MX8MM_IOMUXC_NAND_CE0_B_GPIO3_IO1		0x41
+				MX8MM_IOMUXC_NAND_CE0_B_GPIO3_IO1		0x41	/* GPIO_P24	*/
 			>;
 		};
 
@@ -123,7 +126,7 @@
 
 		pinctrl_mipi_dsi_rst: mipi_dsi_rst {
 			fsl,pins = <
-				MX8MM_IOMUXC_NAND_DATA03_GPIO3_IO9	0x16   /* DSI RST */
+				MX8MM_IOMUXC_NAND_DATA03_GPIO3_IO9	0x16   /* GPIO_P34, DSI RST */
 			>;
 		};
 
@@ -152,16 +155,23 @@
 			>;
 		};
 
+		/* GPIO on expansion IO J8 connector */
+		pinctrl_expansion_gpio: expansiongpiogrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_NAND_ALE_GPIO3_IO0			0x41 /* GPIO_P25, KEY_PREV on VoiceHat */
+				MX8MM_IOMUXC_NAND_READY_B_GPIO3_IO16    	0x41 /* GPIO_P26, KEY_DOWN on VoiceHat */
+				MX8MM_IOMUXC_NAND_DATA00_GPIO3_IO6		0x41 /* GPIO_P28, KEY_MUTE on VoiceHat */
+				MX8MM_IOMUXC_NAND_DATA01_GPIO3_IO7		0x41 /* GPIO_P30, KEY_UP on VoiceHat */
+				MX8MM_IOMUXC_NAND_DATA02_GPIO3_IO8		0x41 /* GPIO_P32 */
+				MX8MM_IOMUXC_I2C4_SCL_GPIO5_IO20		0x41 /* GPIO_P44, KEY_NEXT on VoiceHat */
+			>;
+		};
+
 		pinctrl_gpio_key_voicehat: gpiokey_voicehatgrp {
 			fsl,pins = <
-				MX8MM_IOMUXC_NAND_ALE_GPIO3_IO0			0x41 /* GPIO_P25, KEY_PREV */
-				MX8MM_IOMUXC_SPDIF_RX_GPIO5_IO4			0x41 /* PWM2, KEY_PLAY */
-				MX8MM_IOMUXC_I2C4_SCL_GPIO5_IO20		0x41 /* GPIO_P44, KEY_NEXT */
-				MX8MM_IOMUXC_NAND_DATA01_GPIO3_IO7		0x41 /* GPIO_P30, KEY_UP */
-				MX8MM_IOMUXC_NAND_READY_B_GPIO3_IO16		0x41 /* GPIO_P26, KEY_DOWN */
-				MX8MM_IOMUXC_NAND_DATA00_GPIO3_IO6		0x41 /* GPIO_P28, KEY_MUTE */
-				MX8MM_IOMUXC_ECSPI2_SS0_GPIO5_IO13		0x41 /* ECSPI2_SS0, KEY_PAIR */
-				MX8MM_IOMUXC_SPDIF_TX_GPIO5_IO3			0x41 /* PWM3, KEY_ACT */
+				MX8MM_IOMUXC_SPDIF_RX_GPIO5_IO4			0x41 /* PWM2, KEY_PLAY on VoiceHat */
+				MX8MM_IOMUXC_ECSPI2_SS0_GPIO5_IO13		0x41 /* ECSPI2_SS0, KEY_PAIR on VoiceHat */
+				MX8MM_IOMUXC_SPDIF_TX_GPIO5_IO3			0x41 /* PWM3, KEY_ACT on VoiceHat */
 			>;
 		};		
 	};
