@@ -1,0 +1,282 @@
+/*
+ * Copyright 2018 TechNexion Ltd.
+ * Copyright 2018 NXP
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *         Ray Chang <ray.chang@technexion.com>
+ *         Andy Lin <andy.lin@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/dts-v1/;
+
+#include "imx8mm-xore.dtsi"
+
+/ {
+	model = "TechNexion XORE-IMX8MM and WIZARD baseboard";
+	compatible = "fsl,imx8mm-xore", "fsl,imx8mm";
+
+	regulators {
+		reg_usdhc2_vmmc: regulator-usdhc2 {
+			compatible = "regulator-fixed";
+			regulator-name = "SD_3V3";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpios = <&gpio2 19 GPIO_ACTIVE_HIGH>;
+			off-on-delay = <20000>;
+			enable-active-high;
+		};
+
+		reg_usb_otg_vbus: usb_otg_vbus {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_otg_vbus>;
+			compatible = "regulator-fixed";
+			regulator-name = "usb_otg_vbus";
+			regulator-min-microvolt = <5000000>;
+			regulator-max-microvolt = <5000000>;
+			gpios = <&gpio1 9 GPIO_ACTIVE_LOW>;
+		};
+
+		reg_backlight_pwr: regulator_blpwr {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_backlight_pwr>;
+			compatible = "regulator-fixed";
+			regulator-name = "backlight_pwr";
+			regulator-min-microvolt = <5000000>;
+			regulator-max-microvolt = <5000000>;
+			gpio = <&gpio1 12 GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+		};
+	};
+
+	backlight_mipi {
+		compatible = "pwm-backlight";
+		pwms = <&pwm1 0 50000 0>;
+		brightness-levels = <0 36 72 108 144 180 216 255>;
+		default-brightness-level = <6>;
+		power-supply = <&reg_backlight_pwr>;
+		status = "disabled";
+	};
+	
+	leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+
+		led {
+			label = "gpio-led";
+			gpios = <&pca9554_1 7 0>;
+			default-state = "on";
+		};
+	};
+};
+
+&clk {
+	assigned-clocks = <&clk IMX8MM_AUDIO_PLL1>, <&clk IMX8MM_AUDIO_PLL2>;
+	assigned-clock-rates = <786432000>, <722534400>;
+};
+
+&iomuxc {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_hog_1>;
+
+	imx8mm-xore {
+		pinctrl_hog_1: hoggrp-1 {
+			fsl,pins = <
+				MX8MM_IOMUXC_GPIO1_IO10_GPIO1_IO10	0x19 /* DSI1_EN */
+				MX8MM_IOMUXC_NAND_DATA02_GPIO3_IO8	0x19 /* USB_OTG_OC */
+				MX8MM_IOMUXC_SAI3_RXFS_GPIO4_IO28	0x19 /* GPIO_P244 */
+				MX8MM_IOMUXC_NAND_DATA00_GPIO3_IO6	0x19 /* GPIO_P242 */
+			>;
+		};
+
+		pinctrl_otg_vbus: otgvbusgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_GPIO1_IO09_GPIO1_IO9	0x19 /* USB OTG VBUS Enable */
+			>;
+		};
+
+		pinctrl_backlight_pwr: backlight_pwrgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_GPIO1_IO12_GPIO1_IO12	0x19
+			>;
+		};
+
+		pinctrl_dsi_pwm: dsi_pwmgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_GPIO1_IO01_GPIO1_IO1	0x16
+			>;
+		};
+
+		pinctrl_tusb320_irq: tusb320_irqgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_SAI5_RXC_GPIO3_IO20	0x41 /* TUSB320 INT*/
+			>;
+		};
+
+		pinctrl_csi_pwn: csi_pwn_grp {
+			fsl,pins = <
+				MX8MM_IOMUXC_GPIO1_IO08_GPIO1_IO8	0x19
+			>;
+		};
+
+		pinctrl_csi_rst: csi_rst_grp {
+			fsl,pins = <
+				MX8MM_IOMUXC_GPIO1_IO05_GPIO1_IO5		0x19
+				MX8MM_IOMUXC_GPIO1_IO14_CCMSRCGPCMIX_CLKO1	0x59
+			>;
+		};
+
+		pinctrl_mipi_dsi_rst: mipi_dsi_rstgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_GPIO1_IO11_GPIO1_IO11	0x16 /* DSI RST */
+			>;
+		};
+
+		pinctrl_touch_irq: touch_irqgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_SPDIF_RX_GPIO5_IO4		0x19 /* GPIO_P254, Touch INT */
+			>;
+		};
+
+		pinctrl_touch_rst: touch_rstgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_SAI1_MCLK_GPIO4_IO20	0x16 /* GPIO_P256, Touch RST */
+			>;
+		};
+
+		pinctrl_gpio_led: gpioledgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_SAI5_RXD3_GPIO3_IO24	0x19 /* GPIO_P248 */
+			>;
+		};
+
+		pinctrl_tfa98xx: tfa98xx_ctrlgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_ECSPI2_SCLK_GPIO5_IO10	0x19 /* RST */
+				MX8MM_IOMUXC_ECSPI2_MISO_GPIO5_IO12	0x19 /* INT */
+			>;
+		};
+
+		pinctrl_gpio_key_voicehat: gpiokey_voicehatgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_GPIO1_IO13_GPIO1_IO13	0x150 /* PWM2, KEY_PLAY */
+				MX8MM_IOMUXC_SAI1_RXD6_GPIO4_IO8	0x150 /* GPIO_P248, KEY_NEXT */
+				MX8MM_IOMUXC_GPIO1_IO06_GPIO1_IO6	0x150 /* KEY_PAIR */
+				MX8MM_IOMUXC_SPDIF_TX_GPIO5_IO3		0x150 /* PWM3, KEY_ACT */
+				MX8MM_IOMUXC_SAI1_TXD7_GPIO4_IO19	0x150 /* KEY_MUTE */
+				MX8MM_IOMUXC_ECSPI2_SS0_GPIO5_IO13	0x150 /* KEY_UP */
+				MX8MM_IOMUXC_SAI1_RXD7_GPIO4_IO9	0x150 /* KEY_PREV */
+				MX8MM_IOMUXC_SAI1_TXD1_GPIO4_IO13	0x150 /* KEY_DOWN */
+
+			>;
+		};
+	};
+};
+
+&i2c2 {
+	clock-frequency = <400000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c2>;
+	status = "okay";
+
+	typec_tusb320:tusb320@67 {
+		compatible = "ti,tusb320";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_tusb320_irq>;
+		reg = <0x67>;
+		vbus-supply = <&reg_usb_otg_vbus>;
+		tusb320,int-gpio = <&gpio3 20 GPIO_ACTIVE_LOW>;
+		tusb320,select-mode = <0>;
+		tusb320,dfp-power = <0>;
+	};
+
+	ov5645_mipi: ov5645_mipi@3c {
+		compatible = "ovti,ov5645_mipi_v2";
+		reg = <0x3c>;
+		status = "okay";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_csi_pwn>, <&pinctrl_csi_rst>;
+		clocks = <&clk IMX8MM_CLK_CLKO1_DIV>;
+		clock-names = "csi_mclk";
+		assigned-clocks = <&clk IMX8MM_CLK_CLKO1_SRC>,
+				  <&clk IMX8MM_CLK_CLKO1_DIV>;
+		assigned-clock-parents = <&clk IMX8MM_CLK_24M>;
+		assigned-clock-rates = <0>, <24000000>;
+		csi_id = <0>;
+		pwn-gpios = <&gpio1 6 GPIO_ACTIVE_LOW>;
+		rst-gpios = <&gpio1 5 GPIO_ACTIVE_HIGH>;
+		mclk = <24000000>;
+		mclk_source = <0>;
+		port {
+			ov5645_mipi1_ep: endpoint {
+				remote-endpoint = <&mipi1_sensor_ep>;
+			};
+		};
+	};
+};
+
+&csi1_bridge {
+	fsl,mipi-mode;
+	status = "okay";
+	port {
+		csi1_ep: endpoint {
+			remote-endpoint = <&csi1_mipi_ep>;
+		};
+	};
+};
+
+&mipi_csi_1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+	port {
+		mipi1_sensor_ep: endpoint1 {
+			remote-endpoint = <&ov5645_mipi1_ep>;
+			data-lanes = <2>;
+			csis-hs-settle = <13>;
+			csis-clk-settle = <2>;
+			csis-wclk;
+		};
+
+		csi1_mipi_ep: endpoint2 {
+			remote-endpoint = <&csi1_ep>;
+		};
+	};
+};
+
+&lcdif {
+	status = "okay";
+};
+
+&usbotg1 {
+	dr_mode = "otg";
+	extcon = <0>, <&typec_tusb320>;
+	status = "okay";
+};
+
+&usbotg2 {
+	dr_mode = "host";
+	status = "okay";
+};
+
+/* Baseboard microSD slot */
+&usdhc2 {
+	vmmc-supply = <&reg_usdhc2_vmmc>;
+	status = "okay";
+};
+
+&pwm1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pwm1>;
+	status = "okay";
+};
+

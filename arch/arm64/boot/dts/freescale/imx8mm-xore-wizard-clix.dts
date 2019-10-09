@@ -1,0 +1,91 @@
+/*
+ * Copyright 2018 TechNexion Ltd.
+ * Copyright 2018 NXP
+ *
+ * Author: Andy Lin <andy.lin@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/dts-v1/;
+
+#include "imx8mm-xore-wizard.dts"
+
+/ {
+	i2c3 {
+		status = "okay";	
+	};
+};
+
+/* CLIX1 EEPROM */
+&i2c2 {
+	clix1_at24c02: eeprom@50 {
+		compatible = "atmel,24c02";
+		reg = <0x50>;
+		pagesize = <32>;
+	};
+};
+
+/* CLIX2 EEPROM */
+&i2c3 {
+	clix2_at24c02: eeprom@55 {
+		compatible = "atmel,24c02";
+		reg = <0x55>;
+		pagesize = <32>;
+	};
+};
+
+&iomuxc {
+	pinctrl-names = "default";
+
+	imx8mm-xore {
+
+		pinctrl_clix_gpio {
+			fsl,pins = <
+				MX8MM_IOMUXC_ECSPI2_SCLK_GPIO5_IO10	0x116
+				MX8MM_IOMUXC_ECSPI2_MOSI_GPIO5_IO11	0x116
+				MX8MM_IOMUXC_ECSPI2_MISO_GPIO5_IO12	0x116
+				MX8MM_IOMUXC_ECSPI2_SS0_GPIO5_IO13	0x116
+
+				/* CLIX1 GPIO */
+				MX8MM_IOMUXC_SAI1_MCLK_GPIO4_IO20	0x116 /* CLIX1_RST */
+				MX8MM_IOMUXC_SAI1_RXFS_GPIO4_IO0	0x116 /* CLIX1_INT0 */
+				MX8MM_IOMUXC_SPDIF_TX_GPIO5_IO3		0x116 /* CLIX1_INT`1 */
+
+				/* CLIX2 GPIO */
+				MX8MM_IOMUXC_SAI1_RXC_GPIO4_IO1		0x116 /* CLIX2_RST */
+				MX8MM_IOMUXC_SAI5_MCLK_GPIO3_IO25	0x116 /* CLIX2_INT0 */
+				MX8MM_IOMUXC_GPIO1_IO15_GPIO1_IO15	0x116 /* CLIX2_INT1 */
+			>;
+		};
+	};
+};
+
+&sai1 {
+	status = "disabled";
+};
+
+&sai5 {
+	status = "disabled";
+};
+
+&pwm3 {
+	status = "disabled";
+};
+
+&pwm4 {
+	status = "disabled";
+};
+
+&ecspi2 {
+	status = "disabled";
+};
+

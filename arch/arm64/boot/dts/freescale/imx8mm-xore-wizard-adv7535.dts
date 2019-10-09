@@ -1,0 +1,53 @@
+/*
+ * Copyright 2019 Technexion Ltd.
+ * Copyright 2018 NXP
+ *
+ * Author: Wig Cheng <wig.cheng@technexion.com>
+ *	   Andy Lin <andy.lin@technexio.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+#include "imx8mm-xore-wizard.dts"
+
+/ {
+	backlight_mipi {
+		status = "okay";
+	};
+};
+
+&mipi_dsi {
+	status = "okay";
+
+		port@1 {
+			dsim_to_adv7535: endpoint {
+				remote-endpoint = <&adv7535_from_dsim>;
+		};
+	};
+};
+
+&i2c3 {
+	adv_bridge: adv7535@3d {
+		compatible = "adi,adv7533";
+		reg = <0x3d>;
+		adi,addr-cec = <0x38>;
+		adi,dsi-lanes = <4>;
+		//pinctrl-0 = <&pinctrl_touch_irq>;
+		interrupt-parent = <&pca9555_1>;
+		interrupts = <4 IRQ_TYPE_EDGE_FALLING>;
+		status = "okay";
+		port {
+			adv7535_from_dsim: endpoint {
+				remote-endpoint = <&dsim_to_adv7535>;
+			};
+		};
+	};
+};
