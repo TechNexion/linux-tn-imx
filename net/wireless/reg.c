@@ -3286,6 +3286,7 @@ int regulatory_hint_user(const char *alpha2,
 
 	return 0;
 }
+EXPORT_SYMBOL(regulatory_hint_user);
 
 void regulatory_hint_indoor(bool is_indoor, u32 portid)
 {
