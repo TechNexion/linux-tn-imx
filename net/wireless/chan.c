@@ -1198,7 +1198,8 @@ static bool cfg80211_secondary_chans_ok(struct wiphy *wiphy,
 			return false;
 		if (c->flags & permitting_flags)
 			continue;
-		if (c->flags & prohibited_flags)
+		if ((c->flags & prohibited_flags) &&
+			!(wiphy->flags & WIPHY_FLAG_DFS_OFFLOAD))
 			return false;
 	}
 
