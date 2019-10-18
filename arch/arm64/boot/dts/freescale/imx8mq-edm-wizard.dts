@@ -325,6 +325,8 @@
 		#gpio-cells = <2>;
 		interrupt-controller;
 		#interrupt-cells = <2>;
+		gpio-line-names =
+			"EXP_PIN13", "EXP_PIN29", "EXP_PIN31", "EXP_PIN37", "EXP_PIN16", "EXP_PIN18", "EXP_PIN22", "EXP_PIN36";
 	};
 };
 
