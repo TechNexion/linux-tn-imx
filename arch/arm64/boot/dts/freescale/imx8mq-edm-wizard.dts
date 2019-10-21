@@ -74,7 +74,7 @@
 			"Ext Spk", "SPK_LN",
 			"Ext Spk", "SPK_RP",
 			"Ext Spk", "SPK_RN",
-			"RINPUT1", "Main MIC",
+			"LINPUT1", "Main MIC",
 			"Main MIC", "MICB";
 		/* JD2: hp detect high for headphone*/
 		hp-det = <2 0>;
