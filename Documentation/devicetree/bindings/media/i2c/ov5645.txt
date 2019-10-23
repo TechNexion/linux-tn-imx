@@ -17,6 +17,9 @@ Required Properties:
 - vdda-supply: Chip analog regulator.
 - vddd-supply: Chip digital core regulator.
 
+Optional Properties:
+- af-mode: Default autofocus mode (0=none, 1=lock after initialization, 2=continuous (default))
+
 The device node must contain one 'port' child node for its digital output
 video port, in accordance with the video interface bindings defined in
 Documentation/devicetree/bindings/media/video-interfaces.txt.
@@ -42,6 +45,8 @@ Example:
 			vdddo-supply = <&camera_dovdd_1v8>;
 			vdda-supply = <&camera_avdd_2v8>;
 			vddd-supply = <&camera_dvdd_1v2>;
+
+			af-mode = <1>;
 
 			port {
 				ov5645_ep: endpoint {
