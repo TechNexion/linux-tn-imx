@@ -129,6 +129,7 @@ struct ov5645 {
 	/* Fields to keep track of loaded settings */
 	enum ov5645_frame_rate loaded_fps;
 	enum ov5645_mode loaded_mode;
+	enum ov5645_af_mode af_mode;
 };
 
 struct ov5645_res {
@@ -2407,14 +2408,14 @@ static int ov5645_regulator_enable(struct device *dev)
 				      OV5645_VOLTAGE_DIGITAL_IO);
 		ret = regulator_enable(io_regulator);
 		if (ret) {
-			pr_err("%s:io set voltage error\n", __func__);
+			dev_err(dev,"%s:io set voltage error\n", __func__);
 			return ret;
 		} else {
 			dev_dbg(dev,
 				"%s:io set voltage ok\n", __func__);
 		}
 	} else {
-		pr_err("%s: cannot get io voltage error\n", __func__);
+		dev_err(dev,"%s: cannot get io voltage error\n", __func__);
 		io_regulator = NULL;
 	}
 
@@ -2425,7 +2426,7 @@ static int ov5645_regulator_enable(struct device *dev)
 				      OV5645_VOLTAGE_DIGITAL_CORE);
 		ret = regulator_enable(core_regulator);
 		if (ret) {
-			pr_err("%s:core set voltage error\n", __func__);
+			dev_err(dev, "%s:core set voltage error\n", __func__);
 			return ret;
 		} else {
 			dev_dbg(dev,
@@ -2433,7 +2434,7 @@ static int ov5645_regulator_enable(struct device *dev)
 		}
 	} else {
 		core_regulator = NULL;
-		pr_err("%s: cannot get core voltage error\n", __func__);
+		dev_err(dev, "%s: cannot get core voltage error\n", __func__);
 	}
 
 	analog_regulator = devm_regulator_get(dev, "AVDD");
@@ -2443,7 +2444,7 @@ static int ov5645_regulator_enable(struct device *dev)
 				      OV5645_VOLTAGE_ANALOG);
 		ret = regulator_enable(analog_regulator);
 		if (ret) {
-			pr_err("%s:analog set voltage error\n",
+			dev_err(dev, "%s:analog set voltage error\n",
 				__func__);
 			return ret;
 		} else {
@@ -2452,7 +2453,7 @@ static int ov5645_regulator_enable(struct device *dev)
 		}
 	} else {
 		analog_regulator = NULL;
-		pr_err("%s: cannot get analog voltage error\n", __func__);
+		dev_err(dev, "%s: cannot get analog voltage error\n", __func__);
 	}
 
 	return ret;
@@ -2467,13 +2468,13 @@ static s32 ov5645_write_reg(struct ov5645 *sensor, u16 reg, u8 val)
 	au8Buf[2] = val;
 
 	if (i2c_master_send(sensor->i2c_client, au8Buf, 3) < 0) {
-		pr_err("%s:write reg error:reg=%x,val=%x, retrying once\n",
+		dev_err(&sensor->i2c_client->dev,"%s:write reg error:reg=%x,val=%x, retrying once\n",
 			__func__, reg, val);
 
 		msleep(1);
 
 		if (i2c_master_send(sensor->i2c_client, au8Buf, 3) < 0) {
-			pr_err("%s:write reg error:reg=%x,val=%x, failed again, returning\n",
+			dev_err(&sensor->i2c_client->dev,"%s:write reg error:reg=%x,val=%x, failed again, returning\n",
 				__func__, reg, val);
 			return -1;
 		}
@@ -2491,13 +2492,13 @@ static s32 ov5645_read_reg(struct ov5645 *sensor, u16 reg, u8 *val)
 	au8RegBuf[1] = reg & 0xff;
 
 	if (2 != i2c_master_send(sensor->i2c_client, au8RegBuf, 2)) {
-		pr_err("%s:write reg error:reg=%x\n",
+		dev_err(&sensor->i2c_client->dev,"%s:write reg error:reg=%x\n",
 				__func__, reg);
 		return -1;
 	}
 
 	if (1 != i2c_master_recv(sensor->i2c_client, &u8RdVal, 1)) {
-		pr_err("%s:read reg error:reg=%x,val=%x\n",
+		dev_err(&sensor->i2c_client->dev,"%s:read reg error:reg=%x,val=%x\n",
 				__func__, reg, u8RdVal);
 		return -1;
 	}
@@ -2531,22 +2532,37 @@ static void ov5645_lock_af(struct ov5645 *sensor)
 	do {
 		ov5645_read_reg(sensor, 0x3029, &temp);
 		msleep(50);
-		pr_debug("AF reg 0x3029: 0x%02x\n", temp);
+		dev_dbg(&sensor->i2c_client->dev,"AF reg 0x3029: 0x%02x\n", temp);
 		// If the status reg 0x3029 reads 0x10 we have stabilized
 	} while (temp != 0x10 && cnt-- > 0);
 
 	if (temp != 0x10)
-		pr_warning("%s: Failed to enable AF\n", __func__);
+		dev_warn(&sensor->i2c_client->dev, "%s: Failed to enable AF\n", __func__);
+}
+
+static int ov5645_enable_af(struct ov5645 *sensor)
+{
+	dev_info(&sensor->i2c_client->dev, "%s: af_mode = %d \n", __func__, sensor->af_mode);
+	switch (sensor->af_mode) {
+		case ov5645_af_release: ov5645_release_af(sensor); break;
+		case ov5645_af_lock:    ov5645_lock_af(sensor); break;
+		case ov5645_af_cont:    ov5645_enable_cont_af(sensor); break;
+		default:
+			dev_warn(&sensor->i2c_client->dev, "%s: Incorrect value for af_mode: %d\n", __func__, sensor->af_mode);
+	}
+
+	return 0;
 }
 
 static int prev_sysclk, prev_HTS;
 static int AE_low, AE_high, AE_Target = 52;
+static int AF_mode = ov5645_af_cont;
 
 static void OV5645_stream_on(struct ov5645 *sensor)
 {
 	ov5645_write_reg(sensor, 0x3008, 0x02);
 	ov5645_write_reg(sensor, 0x4202, 0x00);
-	ov5645_enable_cont_af(sensor);
+	ov5645_enable_af(sensor);
 }
 
 static void OV5645_stream_off(struct ov5645 *sensor)
@@ -2685,6 +2701,8 @@ static int OV5645_get_gain16(struct ov5645 *sensor)
 	int gain16;
 	u8 temp;
 
+	dev_info(&sensor->i2c_client->dev, "%s called\n", __func__);
+
 	gain16 = ov5645_read_reg(sensor, 0x350a, &temp) & 0x03;
 	gain16 = (gain16<<8) + ov5645_read_reg(sensor, 0x350b, &temp);
 
@@ -2795,13 +2813,12 @@ static void OV5645_turn_on_AE_AG(struct ov5645 *sensor, int enable)
 {
 	u8 ae_ag_ctrl;
 
-	ov5645_read_reg(sensor, 0x3503, &ae_ag_ctrl);
 	if (enable) {
 		/* turn on auto AE/AG */
-		ae_ag_ctrl = ae_ag_ctrl & ~(0x03);
+		ae_ag_ctrl = 0x00;
 	} else {
 		/* turn off AE/AG */
-		ae_ag_ctrl = ae_ag_ctrl | 0x03;
+		ae_ag_ctrl = 0x03;
 	}
 	ov5645_write_reg(sensor, 0x3503, ae_ag_ctrl);
 }
@@ -2881,7 +2898,7 @@ static void ov5645_dnld_af_fw(struct ov5645 *sensor)
 	} while (temp != 0x70 && --cnt > 0);
 
 	if (temp != 0x70)
-		pr_warning("%s: Failed to download AF firmware\n", __func__);
+		dev_warn(&sensor->i2c_client->dev,"%s: Failed to download AF firmware\n", __func__);
 }
 
 /* sensor changes between scaling and subsampling
@@ -2916,7 +2933,7 @@ static int ov5645_change_mode_exposure_calc(struct ov5645 *sensor, enum ov5645_f
 		return -EINVAL;
 
 	/* auto focus */
-	/* OV5645_auto_focus();//if no af function, just skip it */
+	/* ov5645_enable_af(sensor); //if no af function, just skip it */
 
 	/* turn off AE/AG */
 	OV5645_turn_on_AE_AG(sensor, 0);
@@ -3009,6 +3026,9 @@ static int ov5645_change_mode_exposure_calc(struct ov5645 *sensor, enum ov5645_f
 	}
 	OV5645_set_shutter(sensor, cap_shutter);
 
+	/* turn on AE/AG */
+	OV5645_turn_on_AE_AG(sensor, 1);
+
 err:
 	return retval;
 }
@@ -3065,7 +3085,7 @@ static int ov5645_init_mode(struct ov5645 *sensor, enum ov5645_frame_rate frame_
 
 	if ((mode > ov5645_mode_MAX || mode < ov5645_mode_MIN)
 		&& (mode != ov5645_mode_INIT)) {
-		pr_err("Wrong ov5645 mode detected!\n");
+		dev_err(&sensor->i2c_client->dev, "Wrong ov5645 mode detected!\n");
 		return -1;
 	}
 
@@ -3087,6 +3107,8 @@ static int ov5645_init_mode(struct ov5645 *sensor, enum ov5645_frame_rate frame_
 		pModeSetting = ov5645_setting_15fps_QSXGA_2592_1944;
 		ArySize = ARRAY_SIZE(ov5645_setting_15fps_QSXGA_2592_1944);
 		retval = ov5645_download_firmware(sensor, pModeSetting, ArySize);
+		if (retval < 0)
+			goto err;
 
 		ov5645_dnld_af_fw(sensor);
 
@@ -3202,7 +3224,7 @@ static int ov5645_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *a)
 		break;
 
 	default:
-		pr_debug("   type is unknown - %d\n", a->type);
+		dev_err(&client->dev,"   type is unknown - %d\n", a->type);
 		ret = -EINVAL;
 		break;
 	}
@@ -3261,16 +3283,25 @@ static int ov5645_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *a)
 		else if (tgt_fps == 60)
 			frame_rate = ov5645_60_fps;
 		else {
-			pr_err(" The camera frame rate is not supported!\n");
+			dev_err(&client->dev," The camera frame rate is not supported!\n");
 			return -EINVAL;
 		}
 
 		orig_mode = sensor->loaded_mode;
+#ifdef OV5645_MIPI_FASTER_INIT
+		/* 640x480 resolution has been known to hang on stream
+		   startup if ov5645_init_mode() is not called every time.
+		   It is faster to skip calling it, however this is buggy.
+		   More work needed here. Define OV5645_MIPI_FASTER_INIT
+		   in order to skip sensor init unless the mode changes */
 		if ((orig_mode != (u32)a->parm.capture.capturemode) ||
 				(frame_rate != sensor->loaded_fps)) {
+#endif // OV5645_MIPI_FASTER_INIT
 			ret = ov5645_init_mode(sensor, frame_rate,
 					(u32)a->parm.capture.capturemode, orig_mode);
+#ifdef OV5645_MIPI_FASTER_INIT
 		}
+#endif // OV5645_MIPI_FASTER_INIT
 		if (ret < 0)
 			return ret;
 
@@ -3288,14 +3319,14 @@ static int ov5645_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *a)
 	case V4L2_BUF_TYPE_VBI_OUTPUT:
 	case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
 	case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
-		pr_debug("   type is not " \
+		dev_dbg(&client->dev, "   type is not " \
 			"V4L2_BUF_TYPE_VIDEO_CAPTURE but %d\n",
 			a->type);
 		ret = -EINVAL;
 		break;
 
 	default:
-		pr_debug("   type is unknown - %d\n", a->type);
+		dev_err(&client->dev, "   type is unknown - %d\n", a->type);
 		ret = -EINVAL;
 		break;
 	}
@@ -3412,6 +3443,7 @@ static int ov5645_enum_frameintervals(struct v4l2_subdev *sd,
 		struct v4l2_subdev_pad_config *cfg,
 		struct v4l2_subdev_frame_interval_enum *fie)
 {
+	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	int i, j, count = 0;
 
 	if (fie->index < 0 || fie->index > ov5645_mode_MAX)
@@ -3419,7 +3451,7 @@ static int ov5645_enum_frameintervals(struct v4l2_subdev *sd,
 
 	if (fie->width == 0 || fie->height == 0 ||
 	    fie->code == 0) {
-		pr_warning("Please assign pixel format, width and height.\n");
+		dev_warn(&client->dev, "%s, Please assign pixel format, width and height.\n", __func__);
 		return -EINVAL;
 	}
 
@@ -3464,7 +3496,7 @@ static int init_device(struct ov5645 *sensor)
 	tgt_xclk = max(tgt_xclk, (u32)OV5645_XCLK_MIN);
 	sensor->mclk = tgt_xclk;
 
-	pr_debug("   Setting mclk to %d MHz\n", tgt_xclk / 1000000);
+	dev_dbg(&sensor->i2c_client->dev,"   Setting mclk to %d MHz\n", tgt_xclk / 1000000);
 
 	/* Default camera frame rate is set in probe */
 	tgt_fps = sensor->streamcap.timeperframe.denominator /
@@ -3562,7 +3594,7 @@ static int ov5645_set_regs(struct ov5645 *sensor, const char *buffer, struct ker
 		if (cnt != 1)
 			break;
 
-		pr_warning("%s: Writing Reg = %04x, val = %02x\n", __func__,
+		dev_warn(&sensor->i2c_client->dev,"%s: Writing Reg = %04x, val = %02x\n", __func__,
 			(unsigned int)reg_addr, (unsigned int)value);
 		retval = ov5645_write_reg(sensor, reg_addr & 0xffff, value & 0xff);
 
@@ -3570,7 +3602,7 @@ static int ov5645_set_regs(struct ov5645 *sensor, const char *buffer, struct ker
 			break;
 	}
 	if (retval < 0)
-		pr_err("%s: Failed to write register: %s\n", __func__, reg);
+		dev_err(&sensor->i2c_client->dev,"%s: Failed to write register: %s\n", __func__, reg);
 	return 0;
 }
 
@@ -3599,43 +3631,72 @@ static int ov5645_get_print_reg(struct ov5645 *sensor, char *buffer, struct kern
 	return cnt;
 }
 
-static int ov5645_set_af_mode(struct ov5645 *sensor, const char *buffer, struct kernel_param *kp)
+static int ov5645_set_af_mode_value(struct ov5645 *sensor, enum ov5645_af_mode mode)
 {
-	int cnt, val;
-	cnt = sscanf(buffer, "%d", &val);
 
-	switch (val) {
-	case ov5645_af_release:
-		ov5645_release_af(sensor);
-		break;
-	case ov5645_af_lock:
-		ov5645_lock_af(sensor);
-		break;
-	case ov5645_af_cont:
-		ov5645_enable_cont_af(sensor);
-		break;
-	default:
-		pr_warning("%s: Incorrect value written to sysfs node\n", __func__);
+	switch (mode) {
+		case ov5645_af_release:
+		case ov5645_af_lock:
+		case ov5645_af_cont:
+			sensor->af_mode = mode;
+			dev_dbg(&sensor->i2c_client->dev, "%s: af_mode = %d \n", __func__, sensor->af_mode);
+			break;
+		default:
+			dev_warn(&sensor->i2c_client->dev,"%s: Incorrect value for ov5645_af_mode\n", __func__);
 	}
 
 	return 0;
 }
 
-static int ov5645_read_af(struct ov5645 *sensor, char *buffer, struct kernel_param *kp)
+static ssize_t ov5645_store_af_mode(struct device *dev, struct device_attribute *attr,
+					const char *buf, size_t count)
 {
-	int cnt, retval;
-	u8 val;
-	retval = ov5645_read_reg(sensor, 0x3029, &val);
+	int cnt, val;
+	struct ov5645 *sensor = dev_get_drvdata(dev);
 
-	cnt = sprintf(buffer, "%d", (unsigned int)val & 0xff);
+	cnt = sscanf(buf, "%d", &val);
+
+	ov5645_set_af_mode_value(sensor, val);
+
+	return count;
+}
+
+static ssize_t ov5645_show_af_mode(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	int cnt;
+
+	struct ov5645 *sensor = dev_get_drvdata(dev);
+
+	cnt = sprintf(buf, "%d\n", sensor->af_mode);
+
 	return cnt;
 }
+
+static DEVICE_ATTR(
+		af_mode,
+		S_IRUGO | S_IWUSR,
+		ov5645_show_af_mode,
+		ov5645_store_af_mode);
+
+static struct attribute *ov5645_attrs[] = {
+    &dev_attr_af_mode.attr,
+    NULL
+};
+
+static const struct attribute_group ov5645_group = {
+	.name = NULL,
+	.attrs = ov5645_attrs,
+};
+
+static const struct attribute_group *ov5645_groups[] = {
+	&ov5645_group,
+	NULL,
+};
 
 /*
 module_param_call(ov5645_set_regs, ov5645_set_regs, NULL, NULL, 0644);
 module_param_call(ov5645_print_reg, ov5645_set_print_reg, ov5645_get_print_reg,
 		NULL, 0644);
-module_param_call(ov5645_af, ov5645_set_af_mode, ov5645_read_af, NULL, 0644);
 */
 
 /*!
@@ -3730,6 +3791,15 @@ static int ov5645_probe(struct i2c_client *client,
 			 AE_Target);
 	}
 
+	retval = of_property_read_u32(dev->of_node, "af_mode", &(AF_mode));
+	if (retval) {
+		dev_warn(dev,
+			 "af_mode missing in dev tree, using default mode: %d\n",
+			 AF_mode);
+	}
+
+	ov5645_set_af_mode_value(sensor, AF_mode);
+
 	clk_prepare_enable(sensor->sensor_clk);
 
 	sensor->io_init = ov5645_reset;
@@ -3751,14 +3821,14 @@ static int ov5645_probe(struct i2c_client *client,
 
 	retval = ov5645_read_reg(sensor, OV5645_CHIP_ID_HIGH_BYTE, &chip_id_high);
 	if (retval < 0 || chip_id_high != 0x56) {
-		pr_warning("camera ov5645_mipi is not found\n");
+		dev_warn(dev,"camera ov5645_mipi is not found\n");
 		clk_disable_unprepare(sensor->sensor_clk);
 		retval = -ENODEV;
 		goto err;
 	}
 	retval = ov5645_read_reg(sensor, OV5645_CHIP_ID_LOW_BYTE, &chip_id_low);
 	if (retval < 0 || chip_id_low != 0x45) {
-		pr_warning("camera ov5645_mipi is not found\n");
+		dev_warn(dev,"camera ov5645_mipi is not found\n");
 		clk_disable_unprepare(sensor->sensor_clk);
 		retval = -ENODEV;
 		goto err;
@@ -3767,7 +3837,7 @@ static int ov5645_probe(struct i2c_client *client,
 	retval = init_device(sensor);
 	if (retval < 0) {
 		clk_disable_unprepare(sensor->sensor_clk);
-		pr_warning("camera ov5645 init failed\n");
+		dev_warn(dev,"camera ov5645 init failed\n");
 		ov5645_power_down(sensor, 1);
 		retval = retval;
 		goto err;
@@ -3782,7 +3852,14 @@ static int ov5645_probe(struct i2c_client *client,
 					"%s--Async register failed, ret=%d\n", __func__, retval);
 
 	OV5645_stream_off(sensor);
-	pr_info("camera ov5645_mipi is found\n");
+
+	/* Create sysfs group for other attributes */
+	retval = sysfs_create_groups(&client->dev.kobj,ov5645_groups);
+	if(retval) {
+		dev_err(&client->dev, "sysfs creation failed.\n");
+	}
+
+	dev_info(&client->dev,"camera ov5645_mipi is found\n");
 	return retval;
 
 err:
