@@ -64,6 +64,7 @@
 			gpio = <&gpio3 1 GPIO_ACTIVE_HIGH>;
 			off-on-delay = <20000>;
 			startup-delay-us = <100>;
+			regulator-always-on;
 			enable-active-high;
 		};
 	};
@@ -675,6 +676,7 @@
 	phy-reset-gpios = <&gpio2 10 GPIO_ACTIVE_LOW>;
 	phy-supply = <&reg_fec_supply>;
 	fsl,magic-packet;
+	fsl,ar8031-phy-fixup;
 	status = "okay";
 
 	mdio {

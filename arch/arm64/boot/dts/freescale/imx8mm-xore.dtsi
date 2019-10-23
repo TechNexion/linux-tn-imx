@@ -65,6 +65,7 @@
 			gpio = <&gpio3 1 GPIO_ACTIVE_HIGH>;
 			off-on-delay = <20000>;
 			startup-delay-us = <100>;
+			regulator-always-on;
 			enable-active-high;
 		};
 	};
@@ -143,8 +144,8 @@
 
 		pinctrl_fec1: fec1grp {
 			fsl,pins = <
-				MX8MM_IOMUXC_ENET_MDC_ENET1_MDC				0x3
-				MX8MM_IOMUXC_ENET_MDIO_ENET1_MDIO			0x3
+				MX8MM_IOMUXC_ENET_MDC_ENET1_MDC			0x3
+				MX8MM_IOMUXC_ENET_MDIO_ENET1_MDIO		0x3
 				MX8MM_IOMUXC_ENET_TD3_ENET1_RGMII_TD3		0x1f
 				MX8MM_IOMUXC_ENET_TD2_ENET1_RGMII_TD2		0x1f
 				MX8MM_IOMUXC_ENET_TD1_ENET1_RGMII_TD1		0x1f
@@ -157,8 +158,8 @@
 				MX8MM_IOMUXC_ENET_RXC_ENET1_RGMII_RXC		0x91
 				MX8MM_IOMUXC_ENET_RX_CTL_ENET1_RGMII_RX_CTL	0x91
 				MX8MM_IOMUXC_ENET_TX_CTL_ENET1_RGMII_TX_CTL	0x1f
-				MX8MM_IOMUXC_SD1_RESET_B_GPIO2_IO10			0x19 /* ENET_nRST */
-				MX8MM_IOMUXC_SD1_STROBE_GPIO2_IO11			0x41 /* ENET_nINT */
+				MX8MM_IOMUXC_SD1_RESET_B_GPIO2_IO10		0x19 /* ENET_nRST */
+				MX8MM_IOMUXC_SD1_STROBE_GPIO2_IO11		0x41 /* ENET_nINT */
 			>;
 		};
 
@@ -204,8 +205,8 @@
 
 		pinctrl_sai1: sai1grp {
 			fsl,pins = <
-				MX8MM_IOMUXC_SAI1_TXFS_SAI1_TX_SYNC		0xd6
-				MX8MM_IOMUXC_SAI1_TXC_SAI1_TX_BCLK		0xd6
+				MX8MM_IOMUXC_SAI1_TXFS_SAI1_TX_SYNC	0xd6
+				MX8MM_IOMUXC_SAI1_TXC_SAI1_TX_BCLK	0xd6
 				MX8MM_IOMUXC_SAI1_TXD0_SAI1_TX_DATA0	0xd6
 				MX8MM_IOMUXC_SAI1_TXD1_SAI1_TX_DATA1	0xd6
 				MX8MM_IOMUXC_SAI1_TXD2_SAI1_TX_DATA2	0xd6
@@ -227,9 +228,9 @@
 
 		pinctrl_sai2: sai2grp {
 			fsl,pins = <
-				MX8MM_IOMUXC_SAI2_TXFS_SAI2_TX_SYNC		0xd6
-				MX8MM_IOMUXC_SAI2_TXC_SAI2_TX_BCLK		0xd6
-				MX8MM_IOMUXC_SAI2_MCLK_SAI2_MCLK		0xd6
+				MX8MM_IOMUXC_SAI2_TXFS_SAI2_TX_SYNC	0xd6
+				MX8MM_IOMUXC_SAI2_TXC_SAI2_TX_BCLK	0xd6
+				MX8MM_IOMUXC_SAI2_MCLK_SAI2_MCLK	0xd6
 				MX8MM_IOMUXC_SAI2_TXD0_SAI2_TX_DATA0	0xd6
 				MX8MM_IOMUXC_SAI2_RXD0_SAI2_RX_DATA0	0xd6
 			>;
@@ -478,15 +479,15 @@
 		};
 
 		pinctrl_pca9554_1: pca9554_1grp {
-				fsl,pins = <
-					MX8MM_IOMUXC_SPDIF_EXT_CLK_GPIO5_IO5	0x150 /* irq */
-				>;
+			fsl,pins = <
+				MX8MM_IOMUXC_SPDIF_EXT_CLK_GPIO5_IO5	0x150 /* irq */
+			>;
 		};
 		
 		pinctrl_pca9555_1: pca9555_1grp {
-				fsl,pins = <
-					MX8MM_IOMUXC_SAI5_RXD0_GPIO3_IO21	0x150 /* irq */
-				>;
+			fsl,pins = <
+				MX8MM_IOMUXC_SAI5_RXD0_GPIO3_IO21	0x150 /* irq */
+			>;
 		};
 	};
 };
@@ -525,13 +526,13 @@
 
         codec_wm8960: wm8960@1a {
                 compatible = "wlf,wm8960";
-				#sound-dai-cells = <0>;
+		#sound-dai-cells = <0>;
                 reg = <0x1a>;
                 clocks = <&codec_osc>;  /* Note:  XORE-WIZARD the clock is external osc */
                 clock-names = "mclk";
                 wlf,shared-lrclk;
                 wlf,fixed-mclk;
-				status = "okay";
+		status = "okay";
        };
 
         pca9554_1: pca9554_1@21 {
@@ -721,8 +722,8 @@
 &sai1 {
         pinctrl-names = "default";
         pinctrl-0 = <&pinctrl_sai1>;
-		#sound-dai-cells = <0>;
-		assigned-clocks = <&clk IMX8MM_CLK_SAI1_SRC>,
+	#sound-dai-cells = <0>;
+	assigned-clocks = <&clk IMX8MM_CLK_SAI1_SRC>,
                         <&clk IMX8MM_CLK_SAI1_DIV>;
         assigned-clock-parents = <&clk IMX8MM_AUDIO_PLL1_OUT>;
         assigned-clock-rates = <0>, <24576000>;
@@ -747,7 +748,7 @@
                 <&clk IMX8MM_AUDIO_PLL2_OUT>;
         clock-names = "bus", "mclk0", "mclk1", "mclk2", "mclk3", "pll8k", "pll11k";
         #sound-dai-cells = <0>;
-		status = "okay";
+	status = "okay";
 };
 
 &sai3 {
@@ -767,6 +768,7 @@
 	phy-handle = <&ethphy0>;
 	phy-reset-gpios = <&gpio2 10 GPIO_ACTIVE_LOW>;
 	phy-supply = <&reg_fec_supply>;
+	fsl,ar8031-phy-fixup;
 	fsl,magic-packet;
 	status = "okay";
 
@@ -821,7 +823,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart1>;
 	assigned-clocks = <&clk IMX8MM_CLK_UART1_SRC>;
-	assigned-clock-parents = <&clk >;
+	assigned-clock-parents = <&clk IMX8MM_SYS_PLL1_80M>;
 	fsl,uart-has-rtscts;
 	resets = <&bt_reg_on>;
 	status = "okay";
