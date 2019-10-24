@@ -134,11 +134,6 @@
 	};
 };
 
-/* CSI_nRST pin conflicts with KEY_NEXT button */
-&ov5645_mipi2 {
-	status = "disabled";
-};
-
 &sai3 {
 	#sound-dai-cells = <0>;
 	pinctrl-names = "default";
