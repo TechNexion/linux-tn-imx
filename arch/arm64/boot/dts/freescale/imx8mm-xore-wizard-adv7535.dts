@@ -22,6 +22,22 @@
 	backlight_mipi {
 		status = "okay";
 	};
+
+	sound-adv7535 {
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "adv7535-hdmi-audio";
+		simple-audio-card,format = "i2s";
+		simple-audio-card,bitclock-master = <&sound_master>;
+		simple-audio-card,frame-master = <&sound_master>;
+
+		sound_master: simple-audio-card,cpu {
+			sound-dai = <&sai3>;
+		};
+
+		simple-audio-card,codec {
+			sound-dai = <&adv_bridge>;
+		};
+	};
 };
 
 &mipi_dsi {
@@ -40,11 +56,12 @@
 		reg = <0x3d>;
 		adi,addr-cec = <0x38>;
 		adi,dsi-lanes = <4>;
-		//pinctrl-0 = <&pinctrl_touch_irq>;
 		interrupt-parent = <&pca9555_1>;
 		interrupts = <4 IRQ_TYPE_EDGE_FALLING>;
 		status = "okay";
-		port {
+		#sound-dai-cells = <0>;
+
+		port@0 {
 			adv7535_from_dsim: endpoint {
 				remote-endpoint = <&dsim_to_adv7535>;
 			};

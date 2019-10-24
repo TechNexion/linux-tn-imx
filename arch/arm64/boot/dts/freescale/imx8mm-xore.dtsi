@@ -85,7 +85,7 @@
 
         sound_wm8960: sound-wm8960 {
                 compatible = "simple-audio-card";
-                simple-audio-card,name = "xore-wizard-wm8960-audio";
+                simple-audio-card,name = "xore-wm8960-audio";
                 simple-audio-card,format = "i2s";
                 simple-audio-card,bitclock-master = <&dailink_master>;
                 simple-audio-card,frame-master = <&dailink_master>;
@@ -104,6 +104,7 @@
                         "RINPUT1", "Mic Jack",
                         "Mic Jack", "MICB";
 				status = "okay";
+
                 simple-audio-card,cpu {
                         sound-dai = <&sai2>;
                 };
@@ -758,6 +759,7 @@
 			<&clk IMX8MM_CLK_SAI3_DIV>;
 	assigned-clock-parents = <&clk IMX8MM_AUDIO_PLL1_OUT>;
 	assigned-clock-rates = <0>, <24576000>;
+	#sound-dai-cells = <0>;
 	status = "okay";
 };
 
