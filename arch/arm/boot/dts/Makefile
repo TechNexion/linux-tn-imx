@@ -694,6 +694,8 @@ dtb-$(CONFIG_SOC_IMX7D) += \
 	imx7d-pico-pi-c2-voicehat.dtb \
 	imx7d-edm1-gnome-qca.dtb \
 	imx7d-edm1-gnome-qca-m4.dtb \
+	imx7d-tep1.dtb \
+	imx7d-tep1-a2.dtb \
 	imx7d-sdb.dtb \
 	imx7d-sdb-epdc.dtb \
 	imx7d-sdb-gpmi-weim.dtb \
