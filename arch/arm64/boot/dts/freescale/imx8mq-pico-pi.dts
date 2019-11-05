@@ -254,6 +254,12 @@
 		/* When you enable NFC, you must to disable ov5645_mipi2 device */
 		status = "disabled";
 	};
+
+	bme680@77 {
+		compatible = "bme,bme680";
+		reg = <0x77>;
+		status = "okay";
+	};
 };
 
 &usb3_phy0 {
