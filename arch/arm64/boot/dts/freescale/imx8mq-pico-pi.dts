@@ -260,6 +260,12 @@
 		reg = <0x77>;
 		status = "okay";
 	};
+
+	bno055@28 {
+		compatible = "bno,bno055";
+		reg = <0x28>;
+		status = "okay";
+	};
 };
 
 &usb3_phy0 {
