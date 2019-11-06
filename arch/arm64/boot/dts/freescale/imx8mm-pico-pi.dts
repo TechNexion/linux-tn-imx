@@ -219,6 +219,15 @@
 	};
 };
 
+&i2c3 {
+	status = "okay";
+	bme680@77 {
+		compatible = "bme,bme680";
+		reg = <0x77>;
+		status = "okay";
+	};
+};
+
 &csi1_bridge {
 	fsl,mipi-mode;
 	status = "okay";
