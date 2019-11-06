@@ -233,6 +233,12 @@
 		reg = <0x28>;
 		status = "okay";
 	};
+
+	bmp388@76 {
+		compatible = "bosch,bmp380";
+		reg = <0x76>;
+		status = "okay";
+	};
 };
 
 &csi1_bridge {
