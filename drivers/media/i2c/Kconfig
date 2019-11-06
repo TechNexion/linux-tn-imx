@@ -629,6 +629,15 @@ config VIDEO_OV5670
 	  To compile this driver as a module, choose M here: the
 	  module will be called ov5670.
 
+config VIDEO_OV7251
+	tristate "OmniVision OV7251 sensor support"
+	depends on I2C && MEDIA_CAMERA_SUPPORT && VIDEO_V4L2 && V4L2_FWNODE
+	depends on OF && GPIOLIB
+	default n
+	---help---
+	  This is a Video4Linux2 sensor-level driver for the OmniVision
+	  OV7251 camera.
+
 config VIDEO_OV7640
 	tristate "OmniVision OV7640 sensor support"
 	depends on I2C && VIDEO_V4L2
