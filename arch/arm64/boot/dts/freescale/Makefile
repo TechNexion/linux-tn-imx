@@ -142,11 +142,13 @@ dtb-$(CONFIG_ARCH_FSL_IMX8MQ) += fsl-imx8mq-ddr3l-arm2.dtb \
 				 imx8mq-pico-pi-nfc.dtb
 dtb-$(CONFIG_ARCH_FSL_IMX8MM) += imx8mm-axon-pi.dtb \
 				 imx8mm-axon-pi-voicehat.dtb \
+				 imx8mm-axon-pi-ov7251.dtb \
 				 imx8mm-axon-loopbacktest.dtb \
 				 imx8mm-axon-wizard-adv7535.dtb \
 				 imx8mm-axon-wizard-ili9881c.dtb \
 				 imx8mm-axon-wizard-g080uan01.dtb \
 				 imx8mm-axon-wizard-g101uan02.dtb \
+				 imx8mm-axon-wizard-ov7251.dtb \
 				 imx8mm-axon-wizard.dtb \
 				 imx8mm-pico-pi.dtb \
 				 imx8mm-pico-pi-nfc.dtb \
@@ -157,6 +159,7 @@ dtb-$(CONFIG_ARCH_FSL_IMX8MM) += imx8mm-axon-pi.dtb \
 				 imx8mm-pico-pi-sn65dsi84-hj070na.dtb \
 				 imx8mm-pico-pi-sn65dsi84-m101nwwb.dtb \
 				 imx8mm-pico-pi-voicehat.dtb \
+				 imx8mm-pico-pi-ov7251.dtb \
 				 imx8mm-flex-pi.dtb \
 				 imx8mm-flex-pi-m4.dtb \
 				 imx8mm-flex-pi-ili9881c.dtb \
@@ -168,6 +171,7 @@ dtb-$(CONFIG_ARCH_FSL_IMX8MM) += imx8mm-axon-pi.dtb \
 				 imx8mm-xore-wizard-g080uan01.dtb \
 				 imx8mm-xore-wizard-g101uan02.dtb \
 				 imx8mm-xore-wizard-adv7535.dtb \
+				 imx8mm-xore-wizard-ov7251.dtb \
 				 imx8mm-xore-wizard-m4.dtb \
 				 imx8mm-xore-wizard.dtb \
 				 fsl-imx8mm-evk.dtb \
