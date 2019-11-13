@@ -58,6 +58,8 @@
 			regulator-name = "usb_otg1_vbus";
 			regulator-min-microvolt = <5000000>;
 			regulator-max-microvolt = <5000000>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_usbotg1_pwr>;
 			gpio = <&gpio1 5 GPIO_ACTIVE_LOW>;
 			enable-active-low;
 		};
@@ -91,6 +93,8 @@
 			reg = <0>;
 			regulator-min-microvolt = <3300000>;
 			regulator-max-microvolt = <3300000>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_lcd_vdden>;
 			gpio = <&gpio3 4 GPIO_ACTIVE_HIGH>;
 			enable-active-high;
 			regulator-boot-on;
@@ -172,7 +176,7 @@
 
 &iomuxc {
 	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_gpio &pinctrl_lcd_vdden>;
+	pinctrl-0 = <&pinctrl_hog_1>;
 	tep1-imx7d {
 		pinctrl_ecspi1: ecspi1grp {
 			fsl,pins = <
@@ -453,7 +457,7 @@
 			>;
 		};
 
-		pinctrl_gpio: gpio_ctrlgrp {
+		pinctrl_hog_1: gpio_ctrlgrp {
 			fsl,pins = <
 				MX7D_PAD_SD2_CMD__GPIO5_IO13		0x15
 				MX7D_PAD_SD1_RESET_B__GPIO5_IO2		0x15
@@ -773,15 +777,9 @@
 
 &iomuxc_lpsr {
 	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_hog_2 &pinctrl_enet_refclk &pinctrl_usbotg1_pwr>;
+	pinctrl-0 = <&pinctrl_hog_2>;
 
-	imx7d-edm1-miscpins {
-		pinctrl_enet_refclk: enet_refclk {
-			fsl,pins = <
-				MX7D_PAD_LPSR_GPIO1_IO01__ANATOP_24M_OUT	0x80000000
-			>;
-		};
-
+	tep1-imx7d-miscpins {
 		pinctrl_wdog: wdoggrp {
 			fsl,pins = <
 				MX7D_PAD_LPSR_GPIO1_IO00__WDOG1_WDOG_B	0x74
