@@ -33,6 +33,8 @@
 #include <media/v4l2-event.h>
 #include <media/v4l2-fwnode.h>
 #include <media/i2c/tc358743.h>
+#include <sound/core.h>
+#include <sound/soc.h>
 
 #include "tc358743_regs.h"
 
@@ -111,6 +113,19 @@ struct _res tc358743_support_res[] =
 	{.x = 1280, .y=720},
 	{.x = 1920, .y=1080},
 };
+
+#define TC358743_FORMATS (SNDRV_PCM_FMTBIT_S32_LE)
+static struct snd_soc_dai_driver tc358743_dai = {
+	.name = "tc358743",
+	.capture = {
+		.stream_name = "Capture",
+		.channels_min = 2,
+		.channels_max = 2,
+		.rates = SNDRV_PCM_RATE_48000,
+		.formats = TC358743_FORMATS,
+	},
+};
+static struct snd_soc_codec_driver tc358743_codec_driver;
 
 static void tc358743_enable_interrupts(struct v4l2_subdev *sd,
 		bool cable_connected);
@@ -2479,6 +2494,8 @@ static int tc358743_probe(struct i2c_client *client)
 	err = v4l2_ctrl_handler_setup(sd->ctrl_handler);
 	if (err)
 		goto err_work_queues;
+
+	snd_soc_register_codec(&client->dev, &tc358743_codec_driver, &tc358743_dai, 1);
 
 	v4l2_info(sd, "%s found @ 0x%x (%s)\n", client->name,
 		  client->addr << 1, client->adapter->name);
