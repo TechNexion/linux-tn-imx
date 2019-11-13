@@ -33,6 +33,8 @@
 #include <media/v4l2-event.h>
 #include <media/v4l2-fwnode.h>
 #include <media/i2c/tc358743.h>
+#include <sound/core.h>
+#include <sound/soc.h>
 
 #include "tc358743_regs.h"
 
@@ -98,6 +100,32 @@ struct tc358743_state {
 
 	struct cec_adapter *cec_adap;
 };
+
+struct _res
+{
+	u16 x;
+	u16 y;
+};
+
+struct _res tc358743_support_res[] =
+{
+	{.x = 1024, .y=768},
+	{.x = 1280, .y=720},
+	{.x = 1920, .y=1080},
+};
+
+#define TC358743_FORMATS (SNDRV_PCM_FMTBIT_S32_LE)
+static struct snd_soc_dai_driver tc358743_dai = {
+	.name = "tc358743",
+	.capture = {
+		.stream_name = "Capture",
+		.channels_min = 2,
+		.channels_max = 2,
+		.rates = SNDRV_PCM_RATE_48000,
+		.formats = TC358743_FORMATS,
+	},
+};
+static struct snd_soc_codec_driver tc358743_codec_driver;
 
 static void tc358743_enable_interrupts(struct v4l2_subdev *sd,
 		bool cable_connected);
@@ -634,7 +662,7 @@ static void tc358743_set_csi_color_space(struct v4l2_subdev *sd)
 	struct tc358743_state *state = to_state(sd);
 
 	switch (state->mbus_fmt_code) {
-	case MEDIA_BUS_FMT_UYVY8_1X16:
+	case MEDIA_BUS_FMT_UYVY8_2X8:
 		v4l2_dbg(2, debug, sd, "%s: YCbCr 422 16-bit\n", __func__);
 		i2c_wr8_and_or(sd, VOUT_SET2,
 				~(MASK_SEL422 | MASK_VOUT_422FIL_100) & 0xff,
@@ -665,15 +693,18 @@ static void tc358743_set_csi_color_space(struct v4l2_subdev *sd)
 
 static unsigned tc358743_num_csi_lanes_needed(struct v4l2_subdev *sd)
 {
+/*
 	struct tc358743_state *state = to_state(sd);
 	struct v4l2_bt_timings *bt = &state->timings.bt;
 	struct tc358743_platform_data *pdata = &state->pdata;
 	u32 bits_pr_pixel =
-		(state->mbus_fmt_code == MEDIA_BUS_FMT_UYVY8_1X16) ?  16 : 24;
+		(state->mbus_fmt_code == MEDIA_BUS_FMT_UYVY8_2X8) ?  16 : 24;
 	u32 bps = bt->width * bt->height * fps(bt) * bits_pr_pixel;
 	u32 bps_pr_lane = (pdata->refclk_hz / pdata->pll_prd) * pdata->pll_fbd;
 
 	return DIV_ROUND_UP(bps, bps_pr_lane);
+*/
+	return 4;
 }
 
 static void tc358743_set_csi(struct v4l2_subdev *sd)
@@ -787,7 +818,7 @@ static void tc358743_set_hdmi_audio(struct v4l2_subdev *sd)
 	i2c_wr8(sd, ACR_MODE, MASK_CTS_MODE);
 	i2c_wr8(sd, ACR_MDF0, MASK_ACR_L2MDF_1976_PPM | MASK_ACR_L1MDF_976_PPM);
 	i2c_wr8(sd, ACR_MDF1, MASK_ACR_L3MDF_3906_PPM);
-	i2c_wr8(sd, SDO_MODE1, MASK_SDO_FMT_I2S);
+	i2c_wr8(sd, SDO_MODE1, MASK_SDO_FMT_I2S); /* output I2S format, 16bit */
 	i2c_wr8(sd, DIV_MODE, SET_DIV_DLY_MS(100));
 
 	mutex_lock(&state->confctl_mutex);
@@ -834,7 +865,7 @@ static void tc358743_initial_setup(struct v4l2_subdev *sd)
 
 	i2c_wr8_and_or(sd, DDC_CTL, ~MASK_DDC5V_MODE,
 			pdata->ddc5v_delay & MASK_DDC5V_MODE);
-	i2c_wr8_and_or(sd, EDID_MODE, ~MASK_EDID_MODE, MASK_EDID_MODE_E_DDC);
+	i2c_wr8_and_or(sd, EDID_MODE, ~MASK_EDID_MODE, MASK_EDID_MODE_DDC2B);
 
 	tc358743_set_hdmi_phy(sd);
 	tc358743_set_hdmi_hdcp(sd, pdata->enable_hdcp);
@@ -847,6 +878,9 @@ static void tc358743_initial_setup(struct v4l2_subdev *sd)
 	i2c_wr8_and_or(sd, VOUT_SET2, ~MASK_VOUTCOLORMODE,
 			MASK_VOUTCOLORMODE_AUTO);
 	i2c_wr8(sd, VOUT_SET3, MASK_VOUT_EXTCNT);
+
+	/* sleep some time let tc358743 chip run initial process */
+	msleep(20);
 }
 
 /* --------------- CEC --------------- */
@@ -1309,7 +1343,7 @@ static int tc358743_log_status(struct v4l2_subdev *sd)
 			(i2c_rd16(sd, CSI_STATUS) & MASK_S_HLT) ?
 			"yes" : "no");
 	v4l2_info(sd, "Color space: %s\n",
-			state->mbus_fmt_code == MEDIA_BUS_FMT_UYVY8_1X16 ?
+			state->mbus_fmt_code == MEDIA_BUS_FMT_UYVY8_2X8 ?
 			"YCbCr 422 16-bit" :
 			state->mbus_fmt_code == MEDIA_BUS_FMT_RGB888_1X24 ?
 			"RGB 888 24-bit" : "Unsupported");
@@ -1606,9 +1640,40 @@ static int tc358743_dv_timings_cap(struct v4l2_subdev *sd,
 	return 0;
 }
 
-static int tc358743_get_mbus_config(struct v4l2_subdev *sd,
-				    unsigned int pad,
-				    struct v4l2_mbus_config *cfg)
+static int tc358743_enum_frame_size(struct v4l2_subdev *sd,
+		struct v4l2_subdev_pad_config *cfg,
+		struct v4l2_subdev_frame_size_enum *fse)
+{
+	if (fse->index >= (sizeof(tc358743_support_res) / sizeof(tc358743_support_res[0])))
+		return -EINVAL;
+
+	fse->min_width = fse->max_width = tc358743_support_res[fse->index].x;
+	fse->min_height = fse->max_height = tc358743_support_res[fse->index].y;
+
+	return 0;
+}
+
+static int tc358743_enum_frame_interval(struct v4l2_subdev *sd,
+		struct v4l2_subdev_pad_config *cfg,
+		struct v4l2_subdev_frame_interval_enum *fie)
+{
+	if (fie->index != 0)
+		return -EINVAL;
+
+	if (fie->width == 0 || fie->height == 0 || fie->code == 0)
+	{
+		v4l2_err(sd, "Please assign pixel format, width and height.\n");
+		return -EINVAL;
+	}
+
+	fie->interval.numerator = 1;
+	fie->interval.denominator = 60;
+
+	return 0;
+}
+
+static int tc358743_g_mbus_config(struct v4l2_subdev *sd,
+			     struct v4l2_mbus_config *cfg)
 {
 	struct tc358743_state *state = to_state(sd);
 
@@ -1618,6 +1683,24 @@ static int tc358743_get_mbus_config(struct v4l2_subdev *sd,
 	cfg->bus.mipi_csi2.flags = 0;
 	cfg->bus.mipi_csi2.num_data_lanes = state->csi_lanes_in_use;
 
+	return 0;
+}
+
+static int tc358743_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *a)
+{
+	struct v4l2_captureparm *cparm = &a->parm.capture;
+
+	a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	cparm->capability = V4L2_CAP_TIMEPERFRAME;
+	cparm->timeperframe.denominator = 60;
+	cparm->timeperframe.numerator = 1;
+	cparm->capturemode = 0x21;
+
+	return 0;
+}
+
+static int tc358743_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *a)
+{
 	return 0;
 }
 
@@ -1638,16 +1721,12 @@ static int tc358743_enum_mbus_code(struct v4l2_subdev *sd,
 		struct v4l2_subdev_state *sd_state,
 		struct v4l2_subdev_mbus_code_enum *code)
 {
-	switch (code->index) {
-	case 0:
-		code->code = MEDIA_BUS_FMT_RGB888_1X24;
-		break;
-	case 1:
-		code->code = MEDIA_BUS_FMT_UYVY8_1X16;
-		break;
-	default:
+	struct tc358743_state *state = to_state(sd);
+
+	if (code->index != 0)
 		return -EINVAL;
-	}
+
+	code->code = state->mbus_fmt_code;
 	return 0;
 }
 
@@ -1662,8 +1741,6 @@ static int tc358743_get_fmt(struct v4l2_subdev *sd,
 		return -EINVAL;
 
 	format->format.code = state->mbus_fmt_code;
-	format->format.width = state->timings.bt.width;
-	format->format.height = state->timings.bt.height;
 	format->format.field = V4L2_FIELD_NONE;
 
 	switch (vi_rep & MASK_VOUT_COLOR_SEL) {
@@ -1696,14 +1773,14 @@ static int tc358743_set_fmt(struct v4l2_subdev *sd,
 	u32 code = format->format.code; /* is overwritten by get_fmt */
 	int ret = tc358743_get_fmt(sd, sd_state, format);
 
-	format->format.code = code;
-
 	if (ret)
 		return ret;
+	
+	format->format.code = code;	
 
 	switch (code) {
 	case MEDIA_BUS_FMT_RGB888_1X24:
-	case MEDIA_BUS_FMT_UYVY8_1X16:
+	case MEDIA_BUS_FMT_UYVY8_2X8:
 		break;
 	default:
 		return -EINVAL;
@@ -1749,6 +1826,279 @@ static int tc358743_g_edid(struct v4l2_subdev *sd,
 
 	i2c_rd(sd, EDID_RAM + (edid->start_block * EDID_BLOCK_SIZE), edid->edid,
 			edid->blocks * EDID_BLOCK_SIZE);
+
+	return 0;
+}
+
+static int __tc358743_s_edid(struct v4l2_subdev *sd)
+{
+	struct tc358743_state *state = to_state(sd);
+	tc358743_disable_edid(sd);
+
+	i2c_wr8(sd, 0x85CA, 0x00); // EDID_LEN1
+	i2c_wr8(sd, 0x85CB, 0x01); // EDID_LEN2
+
+	// EDID Data
+	i2c_wr8(sd, 0x8C00,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C01,0xFF); // EDID_RAM
+	i2c_wr8(sd, 0x8C02,0xFF); // EDID_RAM
+	i2c_wr8(sd, 0x8C03,0xFF); // EDID_RAM
+	i2c_wr8(sd, 0x8C04,0xFF); // EDID_RAM
+	i2c_wr8(sd, 0x8C05,0xFF); // EDID_RAM
+	i2c_wr8(sd, 0x8C06,0xFF); // EDID_RAM
+	i2c_wr8(sd, 0x8C07,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C08,0x52); // EDID_RAM
+	i2c_wr8(sd, 0x8C09,0x62); // EDID_RAM
+	i2c_wr8(sd, 0x8C0A,0x88); // EDID_RAM
+	i2c_wr8(sd, 0x8C0B,0x88); // EDID_RAM
+	i2c_wr8(sd, 0x8C0C,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C0D,0x88); // EDID_RAM
+	i2c_wr8(sd, 0x8C0E,0x88); // EDID_RAM
+	i2c_wr8(sd, 0x8C0F,0x88); // EDID_RAM
+	i2c_wr8(sd, 0x8C10,0x1C); // EDID_RAM
+	i2c_wr8(sd, 0x8C11,0x15); // EDID_RAM
+	i2c_wr8(sd, 0x8C12,0x01); // EDID_RAM
+	i2c_wr8(sd, 0x8C13,0x03); // EDID_RAM
+	i2c_wr8(sd, 0x8C14,0x80); // EDID_RAM
+	i2c_wr8(sd, 0x8C15,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C16,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C17,0x78); // EDID_RAM
+	i2c_wr8(sd, 0x8C18,0x0A); // EDID_RAM
+	i2c_wr8(sd, 0x8C19,0x0D); // EDID_RAM
+	i2c_wr8(sd, 0x8C1A,0xC9); // EDID_RAM
+	i2c_wr8(sd, 0x8C1B,0xA0); // EDID_RAM
+	i2c_wr8(sd, 0x8C1C,0x57); // EDID_RAM
+	i2c_wr8(sd, 0x8C1D,0x47); // EDID_RAM
+	i2c_wr8(sd, 0x8C1E,0x98); // EDID_RAM
+	i2c_wr8(sd, 0x8C1F,0x27); // EDID_RAM
+	i2c_wr8(sd, 0x8C20,0x12); // EDID_RAM
+	i2c_wr8(sd, 0x8C21,0x48); // EDID_RAM
+	i2c_wr8(sd, 0x8C22,0x4C); // EDID_RAM
+	i2c_wr8(sd, 0x8C23,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C24,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C25,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C26,0x01); // EDID_RAM
+	i2c_wr8(sd, 0x8C27,0x01); // EDID_RAM
+	i2c_wr8(sd, 0x8C28,0x01); // EDID_RAM
+	i2c_wr8(sd, 0x8C29,0x01); // EDID_RAM
+	i2c_wr8(sd, 0x8C2A,0x01); // EDID_RAM
+	i2c_wr8(sd, 0x8C2B,0x01); // EDID_RAM
+	i2c_wr8(sd, 0x8C2C,0x01); // EDID_RAM
+	i2c_wr8(sd, 0x8C2D,0x01); // EDID_RAM
+	i2c_wr8(sd, 0x8C2E,0x01); // EDID_RAM
+	i2c_wr8(sd, 0x8C2F,0x01); // EDID_RAM
+	i2c_wr8(sd, 0x8C30,0x01); // EDID_RAM
+	i2c_wr8(sd, 0x8C31,0x01); // EDID_RAM
+	i2c_wr8(sd, 0x8C32,0x01); // EDID_RAM
+	i2c_wr8(sd, 0x8C33,0x01); // EDID_RAM
+	i2c_wr8(sd, 0x8C34,0x01); // EDID_RAM
+	i2c_wr8(sd, 0x8C35,0x01); // EDID_RAM
+	i2c_wr8(sd, 0x8C36,0x64); // EDID_RAM
+	i2c_wr8(sd, 0x8C37,0x19); // EDID_RAM
+	i2c_wr8(sd, 0x8C38,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C39,0x40); // EDID_RAM
+	i2c_wr8(sd, 0x8C3A,0x41); // EDID_RAM
+	i2c_wr8(sd, 0x8C3B,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C3C,0x26); // EDID_RAM
+	i2c_wr8(sd, 0x8C3D,0x30); // EDID_RAM
+	i2c_wr8(sd, 0x8C3E,0x18); // EDID_RAM
+	i2c_wr8(sd, 0x8C3F,0x88); // EDID_RAM
+	i2c_wr8(sd, 0x8C40,0x36); // EDID_RAM
+	i2c_wr8(sd, 0x8C41,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C42,0x66); // EDID_RAM
+	i2c_wr8(sd, 0x8C43,0x4C); // EDID_RAM
+	i2c_wr8(sd, 0x8C44,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C45,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C46,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C47,0x18); // EDID_RAM
+	i2c_wr8(sd, 0x8C48,0x01); // EDID_RAM
+	i2c_wr8(sd, 0x8C49,0x1D); // EDID_RAM
+	i2c_wr8(sd, 0x8C4A,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C4B,0x72); // EDID_RAM
+	i2c_wr8(sd, 0x8C4C,0x51); // EDID_RAM
+	i2c_wr8(sd, 0x8C4D,0xD0); // EDID_RAM
+	i2c_wr8(sd, 0x8C4E,0x1E); // EDID_RAM
+	i2c_wr8(sd, 0x8C4F,0x20); // EDID_RAM
+	i2c_wr8(sd, 0x8C50,0x6E); // EDID_RAM
+	i2c_wr8(sd, 0x8C51,0x28); // EDID_RAM
+	i2c_wr8(sd, 0x8C52,0x55); // EDID_RAM
+	i2c_wr8(sd, 0x8C53,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C54,0x66); // EDID_RAM
+	i2c_wr8(sd, 0x8C55,0x4C); // EDID_RAM
+	i2c_wr8(sd, 0x8C56,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C57,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C58,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C59,0x1E); // EDID_RAM
+	i2c_wr8(sd, 0x8C5A,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C5B,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C5C,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C5D,0xFC); // EDID_RAM
+	i2c_wr8(sd, 0x8C5E,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C5F,0x54); // EDID_RAM
+	i2c_wr8(sd, 0x8C60,0x6F); // EDID_RAM
+	i2c_wr8(sd, 0x8C61,0x73); // EDID_RAM
+	i2c_wr8(sd, 0x8C62,0x68); // EDID_RAM
+	i2c_wr8(sd, 0x8C63,0x69); // EDID_RAM
+	i2c_wr8(sd, 0x8C64,0x62); // EDID_RAM
+	i2c_wr8(sd, 0x8C65,0x61); // EDID_RAM
+	i2c_wr8(sd, 0x8C66,0x2D); // EDID_RAM
+	i2c_wr8(sd, 0x8C67,0x48); // EDID_RAM
+	i2c_wr8(sd, 0x8C68,0x32); // EDID_RAM
+	i2c_wr8(sd, 0x8C69,0x43); // EDID_RAM
+	i2c_wr8(sd, 0x8C6A,0x0A); // EDID_RAM
+	i2c_wr8(sd, 0x8C6B,0x20); // EDID_RAM
+	i2c_wr8(sd, 0x8C6C,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C6D,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C6E,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C6F,0xFD); // EDID_RAM
+	i2c_wr8(sd, 0x8C70,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C71,0x14); // EDID_RAM
+	i2c_wr8(sd, 0x8C72,0x78); // EDID_RAM
+	i2c_wr8(sd, 0x8C73,0x01); // EDID_RAM
+	i2c_wr8(sd, 0x8C74,0xFF); // EDID_RAM
+	i2c_wr8(sd, 0x8C75,0x10); // EDID_RAM
+	i2c_wr8(sd, 0x8C76,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C77,0x0A); // EDID_RAM
+	i2c_wr8(sd, 0x8C78,0x20); // EDID_RAM
+	i2c_wr8(sd, 0x8C79,0x20); // EDID_RAM
+	i2c_wr8(sd, 0x8C7A,0x20); // EDID_RAM
+	i2c_wr8(sd, 0x8C7B,0x20); // EDID_RAM
+	i2c_wr8(sd, 0x8C7C,0x20); // EDID_RAM
+	i2c_wr8(sd, 0x8C7D,0x20); // EDID_RAM
+	i2c_wr8(sd, 0x8C7E,0x01); // EDID_RAM
+	i2c_wr8(sd, 0x8C7F,0x0E); // EDID_RAM
+	i2c_wr8(sd, 0x8C80,0x02); // EDID_RAM
+	i2c_wr8(sd, 0x8C81,0x03); // EDID_RAM
+	i2c_wr8(sd, 0x8C82,0x1A); // EDID_RAM
+	i2c_wr8(sd, 0x8C83,0x77); // EDID_RAM
+	i2c_wr8(sd, 0x8C84,0x47); // EDID_RAM
+	i2c_wr8(sd, 0x8C85,0xEE); // EDID_RAM
+	i2c_wr8(sd, 0x8C86,0x84); // EDID_RAM
+	i2c_wr8(sd, 0x8C87,0x90); // EDID_RAM
+	i2c_wr8(sd, 0x8C88,0x90); // EDID_RAM
+	i2c_wr8(sd, 0x8C89,0x90); // EDID_RAM
+	i2c_wr8(sd, 0x8C8A,0x90); // EDID_RAM
+	i2c_wr8(sd, 0x8C8B,0x90); // EDID_RAM
+	i2c_wr8(sd, 0x8C8C,0x23); // EDID_RAM
+	i2c_wr8(sd, 0x8C8D,0x09); // EDID_RAM
+	i2c_wr8(sd, 0x8C8E,0x07); // EDID_RAM
+	i2c_wr8(sd, 0x8C8F,0x01); // EDID_RAM
+	i2c_wr8(sd, 0x8C90,0x83); // EDID_RAM
+	i2c_wr8(sd, 0x8C91,0x01); // EDID_RAM
+	i2c_wr8(sd, 0x8C92,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C93,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C94,0x65); // EDID_RAM
+	i2c_wr8(sd, 0x8C95,0x03); // EDID_RAM
+	i2c_wr8(sd, 0x8C96,0x0C); // EDID_RAM
+	i2c_wr8(sd, 0x8C97,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C98,0x10); // EDID_RAM
+	i2c_wr8(sd, 0x8C99,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8C9A,0x02); // EDID_RAM
+	i2c_wr8(sd, 0x8C9B,0x3A); // EDID_RAM
+	i2c_wr8(sd, 0x8C9C,0x80); // EDID_RAM
+	i2c_wr8(sd, 0x8C9D,0x18); // EDID_RAM
+	i2c_wr8(sd, 0x8C9E,0x71); // EDID_RAM
+	i2c_wr8(sd, 0x8C9F,0x38); // EDID_RAM
+	i2c_wr8(sd, 0x8CA0,0x2D); // EDID_RAM
+	i2c_wr8(sd, 0x8CA1,0x40); // EDID_RAM
+	i2c_wr8(sd, 0x8CA2,0x58); // EDID_RAM
+	i2c_wr8(sd, 0x8CA3,0x2C); // EDID_RAM
+	i2c_wr8(sd, 0x8CA4,0x45); // EDID_RAM
+	i2c_wr8(sd, 0x8CA5,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CA6,0x66); // EDID_RAM
+	i2c_wr8(sd, 0x8CA7,0x4C); // EDID_RAM
+	i2c_wr8(sd, 0x8CA8,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CA9,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CAA,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CAB,0x1E); // EDID_RAM
+	i2c_wr8(sd, 0x8CAC,0x02); // EDID_RAM
+	i2c_wr8(sd, 0x8CAD,0x3A); // EDID_RAM
+	i2c_wr8(sd, 0x8CAE,0x80); // EDID_RAM
+	i2c_wr8(sd, 0x8CAF,0x18); // EDID_RAM
+	i2c_wr8(sd, 0x8CB0,0x71); // EDID_RAM
+	i2c_wr8(sd, 0x8CB1,0x38); // EDID_RAM
+	i2c_wr8(sd, 0x8CB2,0x2D); // EDID_RAM
+	i2c_wr8(sd, 0x8CB3,0x40); // EDID_RAM
+	i2c_wr8(sd, 0x8CB4,0x58); // EDID_RAM
+	i2c_wr8(sd, 0x8CB5,0x2C); // EDID_RAM
+	i2c_wr8(sd, 0x8CB6,0x45); // EDID_RAM
+	i2c_wr8(sd, 0x8CB7,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CB8,0x66); // EDID_RAM
+	i2c_wr8(sd, 0x8CB9,0x4C); // EDID_RAM
+	i2c_wr8(sd, 0x8CBA,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CBB,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CBC,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CBD,0x1E); // EDID_RAM
+	i2c_wr8(sd, 0x8CBE,0x02); // EDID_RAM
+	i2c_wr8(sd, 0x8CBF,0x3A); // EDID_RAM
+	i2c_wr8(sd, 0x8CC0,0x80); // EDID_RAM
+	i2c_wr8(sd, 0x8CC1,0x18); // EDID_RAM
+	i2c_wr8(sd, 0x8CC2,0x71); // EDID_RAM
+	i2c_wr8(sd, 0x8CC3,0x38); // EDID_RAM
+	i2c_wr8(sd, 0x8CC4,0x2D); // EDID_RAM
+	i2c_wr8(sd, 0x8CC5,0x40); // EDID_RAM
+	i2c_wr8(sd, 0x8CC6,0x58); // EDID_RAM
+	i2c_wr8(sd, 0x8CC7,0x2C); // EDID_RAM
+	i2c_wr8(sd, 0x8CC8,0x45); // EDID_RAM
+	i2c_wr8(sd, 0x8CC9,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CCA,0x66); // EDID_RAM
+	i2c_wr8(sd, 0x8CCB,0x4C); // EDID_RAM
+	i2c_wr8(sd, 0x8CCC,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CCD,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CCE,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CCF,0x1E); // EDID_RAM
+	i2c_wr8(sd, 0x8CD0,0x02); // EDID_RAM
+	i2c_wr8(sd, 0x8CD1,0x3A); // EDID_RAM
+	i2c_wr8(sd, 0x8CD2,0x80); // EDID_RAM
+	i2c_wr8(sd, 0x8CD3,0x18); // EDID_RAM
+	i2c_wr8(sd, 0x8CD4,0x71); // EDID_RAM
+	i2c_wr8(sd, 0x8CD5,0x38); // EDID_RAM
+	i2c_wr8(sd, 0x8CD6,0x2D); // EDID_RAM
+	i2c_wr8(sd, 0x8CD7,0x40); // EDID_RAM
+	i2c_wr8(sd, 0x8CD8,0x58); // EDID_RAM
+	i2c_wr8(sd, 0x8CD9,0x2C); // EDID_RAM
+	i2c_wr8(sd, 0x8CDA,0x45); // EDID_RAM
+	i2c_wr8(sd, 0x8CDB,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CDC,0x66); // EDID_RAM
+	i2c_wr8(sd, 0x8CDD,0x4C); // EDID_RAM
+	i2c_wr8(sd, 0x8CDE,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CDF,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CE0,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CE1,0x1E); // EDID_RAM
+	i2c_wr8(sd, 0x8CE2,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CE3,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CE4,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CE5,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CE6,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CE7,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CE8,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CE9,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CEA,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CEB,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CEC,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CED,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CEE,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CEF,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CF0,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CF1,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CF2,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CF3,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CF4,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CF5,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CF6,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CF7,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CF8,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CF9,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CFA,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CFB,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CFC,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CFD,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CFE,0x00); // EDID_RAM
+	i2c_wr8(sd, 0x8CFF,0x99); // EDID_RAM
+
+	state->edid_blocks_written = 2;
+	if (tx_5v_power_present(sd))
+		tc358743_enable_edid(sd);
 
 	return 0;
 }
@@ -1826,6 +2176,8 @@ static const struct v4l2_subdev_video_ops tc358743_video_ops = {
 	.g_dv_timings = tc358743_g_dv_timings,
 	.query_dv_timings = tc358743_query_dv_timings,
 	.s_stream = tc358743_s_stream,
+	.g_parm = tc358743_g_parm,
+	.s_parm = tc358743_s_parm,
 };
 
 static const struct v4l2_subdev_pad_ops tc358743_pad_ops = {
@@ -1836,7 +2188,8 @@ static const struct v4l2_subdev_pad_ops tc358743_pad_ops = {
 	.set_edid = tc358743_s_edid,
 	.enum_dv_timings = tc358743_enum_dv_timings,
 	.dv_timings_cap = tc358743_dv_timings_cap,
-	.get_mbus_config = tc358743_get_mbus_config,
+	.enum_frame_size = tc358743_enum_frame_size,
+	.enum_frame_interval = tc358743_enum_frame_interval,
 };
 
 static const struct v4l2_subdev_ops tc358743_ops = {
@@ -1875,9 +2228,9 @@ static const struct v4l2_ctrl_config tc358743_ctrl_audio_present = {
 static void tc358743_gpio_reset(struct tc358743_state *state)
 {
 	usleep_range(5000, 10000);
-	gpiod_set_value(state->reset_gpio, 1);
-	usleep_range(1000, 2000);
 	gpiod_set_value(state->reset_gpio, 0);
+	usleep_range(1000, 2000);
+	gpiod_set_value(state->reset_gpio, 1);
 	msleep(20);
 }
 
@@ -1886,17 +2239,8 @@ static int tc358743_probe_of(struct tc358743_state *state)
 	struct device *dev = &state->i2c_client->dev;
 	struct v4l2_fwnode_endpoint endpoint = { .bus_type = 0 };
 	struct device_node *ep;
-	struct clk *refclk;
 	u32 bps_pr_lane;
 	int ret;
-
-	refclk = devm_clk_get(dev, "refclk");
-	if (IS_ERR(refclk)) {
-		if (PTR_ERR(refclk) != -EPROBE_DEFER)
-			dev_err(dev, "failed to get refclk: %ld\n",
-				PTR_ERR(refclk));
-		return PTR_ERR(refclk);
-	}
 
 	ep = of_graph_get_next_endpoint(dev->of_node, NULL);
 	if (!ep) {
@@ -1926,32 +2270,16 @@ static int tc358743_probe_of(struct tc358743_state *state)
 
 	state->bus = endpoint.bus.mipi_csi2;
 
-	ret = clk_prepare_enable(refclk);
-	if (ret) {
-		dev_err(dev, "Failed! to enable clock\n");
-		goto free_endpoint;
-	}
-
-	state->pdata.refclk_hz = clk_get_rate(refclk);
+	state->pdata.refclk_hz = 27000000; //use fix external clock source
 	state->pdata.ddc5v_delay = DDC5V_DELAY_100_MS;
 	state->pdata.enable_hdcp = false;
 	/* A FIFO level of 16 should be enough for 2-lane 720p60 at 594 MHz. */
-	state->pdata.fifo_level = 16;
+	state->pdata.fifo_level = 0x190;
 	/*
 	 * The PLL input clock is obtained by dividing refclk by pll_prd.
 	 * It must be between 6 MHz and 40 MHz, lower frequency is better.
 	 */
-	switch (state->pdata.refclk_hz) {
-	case 26000000:
-	case 27000000:
-	case 42000000:
-		state->pdata.pll_prd = state->pdata.refclk_hz / 6000000;
-		break;
-	default:
-		dev_err(dev, "unsupported refclk rate: %u Hz\n",
-			state->pdata.refclk_hz);
-		goto disable_clk;
-	}
+	state->pdata.pll_prd = state->pdata.refclk_hz / 6000000;
 
 	/*
 	 * The CSI bps per lane must be between 62.5 Mbps and 1 Gbps.
@@ -2002,7 +2330,7 @@ static int tc358743_probe_of(struct tc358743_state *state)
 	goto free_endpoint;
 
 disable_clk:
-	clk_disable_unprepare(refclk);
+
 free_endpoint:
 	v4l2_fwnode_endpoint_free(&endpoint);
 put_node:
@@ -2091,7 +2419,7 @@ static int tc358743_probe(struct i2c_client *client)
 	if (err < 0)
 		goto err_hdl;
 
-	state->mbus_fmt_code = MEDIA_BUS_FMT_RGB888_1X24;
+	state->mbus_fmt_code = MEDIA_BUS_FMT_UYVY8_2X8;
 
 	sd->dev = &client->dev;
 	err = v4l2_async_register_subdev(sd);
@@ -2115,6 +2443,8 @@ static int tc358743_probe(struct i2c_client *client)
 #endif
 
 	tc358743_initial_setup(sd);
+
+	__tc358743_s_edid(sd);
 
 	tc358743_s_dv_timings(sd, &default_timing);
 
@@ -2154,6 +2484,7 @@ static int tc358743_probe(struct i2c_client *client)
 	if (err)
 		goto err_work_queues;
 
+	snd_soc_register_codec(&client->dev, &tc358743_codec_driver, &tc358743_dai, 1);
 	v4l2_info(sd, "%s found @ 0x%x (%s)\n", client->name,
 		  client->addr << 1, client->adapter->name);
 
