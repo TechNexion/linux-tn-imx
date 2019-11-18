@@ -50,6 +50,16 @@
 			gpio = <&gpio1 8 GPIO_ACTIVE_HIGH>;
 			enable-active-high;
 		};
+
+		reg_pcie_rst: regulator_pcierst {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_pcie0_rst>;
+			compatible = "regulator-fixed";
+			regulator-name = "pcie0_rst";
+			gpio = <&gpio1 6 GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+			regulator-always-on;
+		};
 	};
 
 	backlight_mipi {
@@ -155,6 +165,11 @@
 		pinctrl_pcie0: pcie0grp {
 			fsl,pins = <
 				MX8MQ_IOMUXC_SAI5_RXD2_GPIO3_IO23	0x76 /* PCIE_A_CLKREQn, open drain, pull up */
+			>;
+		};
+
+		pinctrl_pcie0_rst: pcie1rstgrp {
+			fsl,pins = <
 				MX8MQ_IOMUXC_GPIO1_IO06_GPIO1_IO6	0x16 /* PCIE_A_PERSTn */
 			>;
 		};
@@ -440,7 +455,6 @@
 	pinctrl-0 = <&pinctrl_pcie0>;
 	clkreq-gpio = <&gpio3 23 GPIO_ACTIVE_LOW>;
 	disable-gpio = <&pca9555_1 5 GPIO_ACTIVE_LOW>;
-	reset-gpio = <&gpio1 6 GPIO_ACTIVE_LOW>;
 	ext_osc = <1>;
 	status = "okay";
 };
