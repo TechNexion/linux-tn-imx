@@ -32,6 +32,8 @@
 	};
 };
 
+EDM_FAIRY_GPIO_DEFS();
+
 &EDM_I2CA {
 	status = "okay";
 };
