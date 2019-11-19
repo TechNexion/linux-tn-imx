@@ -13,40 +13,6 @@
 #include "tnmacro.h"
 
 / {
-	gpio-edm {
-		compatible = "gpio-edm";
-
-		gpio_p256 {
-			label = "GPIO_P256";
-			gpios = <&EDM_EXT_GPIO_P256 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-
-		gpio_p257 {
-			label = "GPIO_P257";
-			gpios = <&EDM_EXT_GPIO_P257 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-
-		gpio_p258 {
-			label = "GPIO_P258";
-			gpios = <&EDM_EXT_GPIO_P258 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-
-		gpio_p260 {
-			label = "GPIO_P260";
-			gpios = <&EDM_EXT_GPIO_P260 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-
-		gpio_p262 {
-			label = "GPIO_P262";
-			gpios = <&EDM_EXT_GPIO_P262 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-	};
-
 	sound {
 		compatible = "fsl,imx-sgtl5000",
 			     "fsl,imx-audio-sgtl5000";
