@@ -26,6 +26,37 @@
 #define EDM_EXT_LVDS_PWR  gpio5 31
 #define EDM_EXT_USB_HUB_RESET gpio7 12
 
+#define EDM_FAIRY_GPIO_DEFS()									\
+&gpio1 {											\
+	gpio-line-names =									\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "",							\
+		"GPIO_P262", "", "", "", "", "", "", "";					\
+												\
+	pinctrl-0 = <&pinctrl_gpio1>;								\
+};												\
+												\
+&gpio3 {											\
+	gpio-line-names =									\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "GPIO_P259", "GPIO_P258", "", "", "", "";				\
+												\
+	pinctrl-0 = <&pinctrl_gpio3>;								\
+};												\
+												\
+&gpio6 {											\
+	gpio-line-names =									\
+		"", "", "GPIO_P256", "", "GPIO_P257", "GPIO_P255", "", "",			\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "GPIO_P260";					\
+												\
+	pinctrl-0 = <&pinctrl_gpio6>;								\
+}
+
 /* SAI */
 #define EDM_AUDA_I2S_CHANNEL ssi1
 #define EDM_AUDA_MUX_INT 1
@@ -408,14 +439,7 @@
 				MX6QDL_PAD_GPIO_3__CCM_CLKO2			0x000b0		/* ov5640 mclk */
 				MX6QDL_PAD_EIM_D29__GPIO3_IO29			0x1f0b1		/* RGMII PHY reset */
 				MX6QDL_PAD_ENET_RXD0__XTALOSC_REF_CLK_32K	0x000b0		/* wifi LPO 32K Hz clock */
-				MX6QDL_PAD_CSI0_DAT19__GPIO6_IO05		0x4001b0b5	/* GPIO6_05 EDM pin 255 */
-				MX6QDL_PAD_CSI0_DAT16__GPIO6_IO02		0x4001b0b5	/* GPIO6_02 EDM pin 256 */
-				MX6QDL_PAD_CSI0_DAT18__GPIO6_IO04		0x4001b0b5	/* GPIO6_04 EDM pin 257 */
-				MX6QDL_PAD_EIM_D27__GPIO3_IO27			0x4001b0b5	/* GPIO3_27 EDM pin 258 */
-				MX6QDL_PAD_EIM_D26__GPIO3_IO26			0x0001c840	/* GPIO3_26 EDM pin 259 */
-				MX6QDL_PAD_EIM_BCLK__GPIO6_IO31			0x4001b0b5	/* GPIO6_31 EDM pin 260 */
 				MX6QDL_PAD_CSI0_DAT17__GPIO6_IO03		0x4001b0b5	/* GPIO6_03 EDM pin 261, touch irq */
-				MX6QDL_PAD_ENET_RX_ER__GPIO1_IO24		0x4001b0b5	/* GPIO1_24 EDM pin 262 */
 				MX6QDL_PAD_GPIO_4__GPIO1_IO04			0x4001b0b5	/* GPIO1_04 EDM pin 263 touch irq */
 				MX6QDL_PAD_SD3_RST__GPIO7_IO08			0x4001b0b5	/* GPIO7_08 EDM pin 264, touch reset */
 				MX6QDL_PAD_CSI0_DAT13__GPIO5_IO31		0x4001b0b5	/* GPIO5_31 LVDS POWER */
@@ -672,6 +696,28 @@
 		pinctrl_hdmi_cec: hdmicecgrp {
 			fsl,pins = <
 				MX6QDL_PAD_EIM_A25__HDMI_TX_CEC_LINE	0x1f8b0
+			>;
+		};
+
+		pinctrl_gpio1: gpio1grp {
+			fsl,pins = <
+				MX6QDL_PAD_ENET_RX_ER__GPIO1_IO24		0x4001b0b5	/* GPIO1_24 EDM pin 262 */
+			>;
+		};
+
+		pinctrl_gpio3: gpio3grp {
+			fsl,pins = <
+				MX6QDL_PAD_EIM_D27__GPIO3_IO27			0x4001b0b5	/* GPIO3_27 EDM pin 258 */
+				MX6QDL_PAD_EIM_D26__GPIO3_IO26			0x0001c840	/* GPIO3_26 EDM pin 259 */
+			>;
+		};
+
+		pinctrl_gpio6: gpio6grp {
+			fsl,pins = <
+				MX6QDL_PAD_CSI0_DAT19__GPIO6_IO05		0x4001b0b5	/* GPIO6_05 EDM pin 255 */
+				MX6QDL_PAD_CSI0_DAT16__GPIO6_IO02		0x4001b0b5	/* GPIO6_02 EDM pin 256 */
+				MX6QDL_PAD_CSI0_DAT18__GPIO6_IO04		0x4001b0b5	/* GPIO6_04 EDM pin 257 */
+				MX6QDL_PAD_EIM_BCLK__GPIO6_IO31			0x4001b0b5	/* GPIO6_31 EDM pin 260 */
 			>;
 		};
 	};
