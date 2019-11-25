@@ -116,11 +116,6 @@
 	};
 };
 
-&clk {
-	assigned-clocks = <&clk IMX8MQ_AUDIO_PLL1>;
-	assigned-clock-rates = <786432000>;
-};
-
 &iomuxc {
 	imx8mq-pico {
 		pinctrl_otg_vbus: otgvbusgrp {
