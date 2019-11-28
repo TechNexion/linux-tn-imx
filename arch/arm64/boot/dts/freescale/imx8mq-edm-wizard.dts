@@ -60,6 +60,16 @@
 			enable-active-high;
 			regulator-always-on;
 		};
+
+		reg_pcie_clkreq: regulator_clkreq {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_pcie0>;
+			compatible = "regulator-fixed";
+			regulator-name = "pcie0_clkreq";
+			gpio = <&gpio3 23 GPIO_ACTIVE_LOW>;
+			enable-active-low;
+			regulator-always-on;
+		};
 	};
 
 	backlight_mipi {
@@ -447,8 +457,6 @@
 
 &pcie0{
 	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_pcie0>;
-	clkreq-gpio = <&gpio3 23 GPIO_ACTIVE_LOW>;
 	disable-gpio = <&pca9555_1 5 GPIO_ACTIVE_LOW>;
 	ext_osc = <1>;
 	status = "okay";
