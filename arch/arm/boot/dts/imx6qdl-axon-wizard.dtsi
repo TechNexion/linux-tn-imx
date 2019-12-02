@@ -1,0 +1,293 @@
+/*
+ * Copyright 2019 Technexion Ltd.
+ *
+ * Author: Tapani Utriainen <tapani@technexion.com>
+ *         Richard Hu <richard.hu@technexion.com>
+ *         John Weber <john.weber@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ */
+
+#include "imx6qdl-axon.dtsi"
+#include <dt-bindings/sound/fsl-imx-audmux.h>
+#include "tnmacro.h"
+
+/ {
+
+	aliases {
+		i2c0 = &AXON_I2C_A;
+		i2c1 = &AXON_I2C_B;
+		i2c2 = &AXON_I2C_C;
+		i2c3 = &AXON_I2C_D;
+		i2c4 = &AXON_I2C_BRD_CONF;
+		uart0 = &AXON_UART_A;
+		uart1 = &AXON_UART_B;
+		uart3 = &AXON_UART_C;
+		uart4 = &AXON_UART_BT;
+    };
+
+	regulators {
+
+		reg_usb_otg_vbus: usb_otg_vbus {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_otg_vbus>;
+			compatible = "regulator-fixed";
+			regulator-name = "usb_otg_vbus";
+			regulator-min-microvolt = <5000000>;
+			regulator-max-microvolt = <5000000>;
+			gpio = <AXON_EXT_GPIO_X1_P66 GPIO_ACTIVE_LOW>;
+			enable-active-low;
+		};
+	};
+
+	sound-hdmi {
+		status = "okay";
+	};
+
+	backlight_lvds {
+		status = "disabled";
+	};
+
+	sound: sound {
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "axon-pi-wm8960-audio";
+		simple-audio-card,format = "i2s";
+		simple-audio-card,bitclock-master = <&dailink_master>;
+		simple-audio-card,frame-master = <&dailink_master>;
+		simple-audio-card,widgets =
+			"Microphone", "Mic Jack",
+			"Speaker", "Speaker",
+			"Headphone", "Headphone Jack";
+		simple-audio-card,routing =
+			"Headphone Jack", "HP_L",
+			"Headphone Jack", "HP_R",
+			"Speaker", "SPK_LP",
+			"Speaker", "SPK_LN",
+			"Speaker", "SPK_RP",
+			"Speaker", "SPK_RN",
+			"LINPUT1", "Mic Jack",
+			"Mic Jack", "MICB";
+		simple-audio-card,cpu {
+			sound-dai = <&AXON_AUD_A_I2S_CHANNEL>;
+		};
+
+		dailink_master: simple-audio-card,codec {
+			sound-dai = <&codec>;
+			clocks = <&codec_osc>;
+		};
+	};
+
+	clocks {
+		codec_osc: aud_mclk {  /* Note - on AXON pi rev 0.1 MCLK comes from external osc */
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <24000000>;
+			clock-output-names = "wm8960-mclk";
+		};
+	};
+
+	/* Turn off LCD interface as we do not support this on Axon-Pi */
+	lcd@0 {
+        	status = "disabled";
+	};
+};
+
+&iomuxc {
+	imx6qdl-axon {
+
+		pinctrl_otg_vbus: otgvbusgrp {
+			fsl,pins = <
+				MX6QDL_PAD_EIM_A24__GPIO5_IO04	    0x4001b0b5  /* GPIO_X1_P66 */
+			>;
+		};
+	};
+};
+
+&audmux {
+	status = "okay";
+
+	/* Source port */
+	ssi1 {
+		fsl,audmux-port = <0>;
+		fsl,port-config = <
+			(IMX_AUDMUX_V2_PTCR_TFSDIR |
+			IMX_AUDMUX_V2_PTCR_TFSEL(2) |
+			IMX_AUDMUX_V2_PTCR_TCLKDIR |
+			IMX_AUDMUX_V2_PTCR_TCSEL(2) |
+			IMX_AUDMUX_V2_PTCR_SYN)
+			IMX_AUDMUX_V2_PDCR_RXDSEL(2)
+		>;
+	};
+
+	/* External port */
+	pins3 {
+		fsl,audmux-port = <2>;
+		fsl,port-config = <
+			IMX_AUDMUX_V2_PTCR_SYN
+			IMX_AUDMUX_V2_PDCR_RXDSEL(0)
+        >;
+	};
+};
+
+&AXON_I2C_A {
+	status = "okay";
+
+	codec: wm8960@1a {
+		compatible = "wlf,wm8960";
+		reg = <0x1a>;
+		#sound-dai-cells = <0>;
+		clocks = <&codec_osc>;  /* Note:  AXON-PI the clock is external osc */
+		clock-names = "mclk";
+		wlf,shared-lrclk;
+		wlf,fixed-mclk;
+	};
+
+	typec_tusb322:tusb320@47 {
+		compatible = "ti,tusb320";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_gpio_x2_p32>;
+		reg = <0x47>;
+		vbus-supply = <&reg_usb_otg_vbus>;
+		tusb320,int-gpio = <AXON_EXT_GPIO_X2_P32 GPIO_ACTIVE_LOW>;
+		tusb320,select-mode = <0>;
+		tusb320,dfp-power = <0>;
+	};
+
+	rtc: ds1337 {
+		compatible = "dallas,ds1337";
+		reg = <0x68>;
+	};
+};
+
+&AXON_I2C_B {
+  status = "okay";
+	ov5645_mipi: ov5645_mipi@3c {
+		compatible = "ovti,ov5645_mipi";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_mipi_csi>;
+		reg = <0x3c>;
+		clocks = <&clks IMX6QDL_CLK_CKO2>;
+		clock-names = "csi_mclk";
+//		assigned-clocks = <&clks IMX6QDL_CLK_CKO2>;
+//		assigned-clock-parents = <&clks IMX8MQ_SYS2_PLL_200M>;
+//		assigned-clock-rates = <24000000>;
+		DOVDD-supply = <&reg_2p5v>;
+		AVDD-supply = <&reg_2p5v>;
+		DVDD-supply = <&reg_1p8v>;
+		pwn-gpios = <AXON_EXT_GPIO_X3_P67 GPIO_ACTIVE_HIGH>;
+		rst-gpios = <AXON_EXT_GPIO_X3_P65 GPIO_ACTIVE_LOW>;
+		ipu_id = <0>;
+		csi_id = <0>;
+		mclk = <24000000>;
+		mclk_source = <0>;
+	};
+};
+
+&AXON_I2C_C {
+	status = "okay";
+};
+
+&AXON_I2C_D {
+	status = "okay";
+
+	/* Power monitor for 3.3V SOM output supply */
+	ina219@45 {
+		compatible = "ti,ina219";
+		reg = <0x45>;
+		shunt-resistor = <200000>; /* .2 Ohm resistor = 200000 uOhms*/
+	};
+
+	/* Power monitor for 1.8V SOM output supply */
+	ina219@40 {
+		compatible = "ti,ina219";
+		reg = <0x40>;
+		shunt-resistor = <200000>; /* .2 Ohm resistor = 200000 uOhms*/
+	};
+
+	/* Power monitor for 5V SOM input supply */
+	ina219@44 {
+		compatible = "ti,ina219";
+		reg = <0x44>;
+		shunt-resistor = <200000>; /* .2 Ohm resistor = 200000 uOhms*/
+	};
+};
+
+&axonfabric {
+//                                0    1    2    3    4    5    6    7    8    9   10   11   12
+	iob-enable =      /bits/ 8 <0xFF 0xFF 0x00 0xFC 0x1F 0x00 0x00 0xF0 0xF0 0x7E 0x1E 0x0F 0x0F>;
+	iob-pushpull =    /bits/ 8 <0xFF 0xF6 0x00 0xFF 0x07 0x00 0x00 0xF0 0xFF 0x7F 0x1F 0xFF 0x0F>;
+	iob-direction =   /bits/ 8 <0xFA 0x02 0x00 0x03 0x18 0x00 0x00 0xEC 0xE6 0x01 0x01 0x06 0x0E>;
+	iob-selection-0 = /bits/ 8 <0x04 0x80 0x00 0xFF 0x10 0xFF 0x1F 0x00 0x00 0x00 0x00 0xF0 0x00>;
+	iob-selection-1 = /bits/ 8 <0x04 0x00 0x00 0xFF 0x10 0xFF 0x1F 0x00 0x00 0x00 0x00 0xF0 0x00>;
+};
+
+&AXON_I2C_BRD_CONF {
+	status = "okay";
+
+	eeprom_baseboard: eeprom@51 {
+		compatible = "at,24c02";
+		reg = <0x51>;
+	};
+};
+
+&AXON_UART_B {
+	status = "okay";
+};
+
+&AXON_UART_C {
+	pinctrl-0 = <&pinctrl_axon_uart_c_rtscts>;
+	fsl,uart-has-rtscts;
+	status = "okay";
+};
+
+&AXON_CAN_A {
+	status = "disabled";
+};
+
+&AXON_CAN_B {
+	status = "disabled";
+};
+
+&AXON_SPI_A {
+	status = "okay";
+
+	spidev@1 {
+		compatible = "rohm,dh2228fv";
+		spi-max-frequency = <60000000>;
+		reg = <0>;
+	};
+};
+
+&ldb {
+	status = "disabled";
+};
+
+&hdmi_audio {
+	status = "okay";
+};
+
+&hdmi_core {
+	status = "okay";
+};
+
+&hdmi_video {
+	status = "okay";
+};
+
+/* Baseboard microSD slot */
+&reg_usdhc1_vmmc {
+	status = "okay";
+};
+
+&usdhc1 {
+	vmmc-supply = <&reg_usdhc1_vmmc>;
+	status = "okay";
+};
+
+&pcie {
+	status = "disabled";
+};
+
