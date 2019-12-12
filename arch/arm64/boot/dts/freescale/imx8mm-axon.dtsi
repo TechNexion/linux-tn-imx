@@ -117,7 +117,7 @@
 		pinctrl-0 = <&pinctrl_bt_ctrl>;
 		reset-gpios = <AXON_INT_GPIO_BT_REG_ON GPIO_ACTIVE_LOW>;
 		reset-delay-us = <2000>;
-		reset-post-delay-ms = <40>;
+		reset-post-delay-ms = <200>;
 		#reset-cells = <0>;
 	};
 
@@ -365,9 +365,9 @@
 		pinctrl_uart4: uart4grp {
 			fsl,pins = <
 				MX8MM_IOMUXC_ECSPI2_SCLK_UART4_DCE_RX		0x140
-				MX8MM_IOMUXC_ECSPI2_MISO_UART4_DTE_RTS_B	0x140
+				MX8MM_IOMUXC_ECSPI2_MISO_UART4_DCE_CTS_B	0x140
 				MX8MM_IOMUXC_ECSPI2_MOSI_UART4_DCE_TX		0x140
-				MX8MM_IOMUXC_ECSPI2_SS0_UART4_DTE_CTS_B		0x140
+				MX8MM_IOMUXC_ECSPI2_SS0_UART4_DCE_RTS_B		0x140
 			>;
 		};
 
@@ -434,7 +434,7 @@
 		pinctrl_usdhc2_gpio: usdhc2grpgpio {
 			fsl,pins = <
 				MX8MM_IOMUXC_SD2_CD_B_USDHC2_CD_B	0x1c4
-				MX8MM_IOMUXC_SD2_RESET_B_GPIO2_IO19	0x41
+				MX8MM_IOMUXC_SD2_RESET_B_USDHC2_RESET_B	0x1d0
 			>;
 		};
 
@@ -895,7 +895,7 @@
 
 &AXON_UART_BT { /* BT */
 	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_uart4_2wire>;
+	pinctrl-0 = <&pinctrl_uart4>;
 	assigned-clocks = <&clk IMX8MM_CLK_UART4_SRC>;
 	assigned-clock-parents = <&clk IMX8MM_SYS_PLL1_80M>;
 	fsl,uart-has-rtscts;
