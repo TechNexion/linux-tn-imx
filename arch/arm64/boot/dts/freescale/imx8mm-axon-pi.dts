@@ -46,18 +46,6 @@
 			gpio = <&axonfabric 27 GPIO_ACTIVE_HIGH>;
 			enable-active-high;
 		};
-
-		reg_usdhc2_vmmc: regulator-usdhc2 {
-			compatible = "regulator-fixed";
-			pinctrl-names = "default";
-			pinctrl-0 = <&pinctrl_usdhc2_pwr>;
-			regulator-name = "SD_3V3";
-			regulator-min-microvolt = <3300000>;
-			regulator-max-microvolt = <3300000>;
-			gpio = <AXON_EXT_SD_RESET_B GPIO_ACTIVE_HIGH>;
-			off-on-delay = <20000>;
-			enable-active-high;
-		};
 	};
 
 	backlight_mipi {
@@ -169,12 +157,6 @@
 		pinctrl_ft5336_touch_rst: ft5336_rstgrp {
 			fsl,pins = <
 				MX8MM_IOMUXC_SAI2_MCLK_GPIO4_IO27	0x16   /* GPIO_X2_P22, Touch RST */
-			>;
-		};
-
-		pinctrl_usdhc2_pwr: usdhc2rstgrp {
-			fsl,pins = <
-				MX8MM_IOMUXC_SAI2_TXC_GPIO4_IO25	0x41   /* GPIO_X2_P24 */
 			>;
 		};
 	};
@@ -328,12 +310,6 @@
 
 &usbotg2 {
 	dr_mode = "host";
-	status = "okay";
-};
-
-/* Baseboard microSD slot */
-&usdhc2 {
-	vmmc-supply = <&reg_usdhc2_vmmc>;
 	status = "okay";
 };
 

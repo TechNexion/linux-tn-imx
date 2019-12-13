@@ -33,8 +33,8 @@
 
 #define AXON_EXT_GPIO_X2_P18            &gpio4  5 /* SAI1_RXD3 */
 #define AXON_EXT_GPIO_X2_P20            &gpio4  9 /* SAI1_RXD7 */
-#define AXON_EXT_GPIO_X2_P22            &gpio4 27 /* SAI2_MCLK */
-#define AXON_EXT_GPIO_X2_P24            &gpio4 25 /* SAI2_TXC */
+#define AXON_EXT_GPIO_X2_P22            &gpio4  0 /* SAI1_RXFS */
+#define AXON_EXT_GPIO_X2_P24            &gpio4  1 /* SAI1_RXC */
 
 #define AXON_EXT_GPIO_X3_P65            &gpio4 26 /* SAI2_TXD0 */
 #define AXON_EXT_GPIO_X3_P67            &gpio5  1 /* SAI3_TXD */
@@ -54,8 +54,8 @@
 #define AXON_EXT_GPIO_SPARE1            &gpio4 20 /* SAI1_MCLK */
 
 /* Internal I/O definitions to make life easier */
-#define AXON_I2C_BRD_CONF_SCL           &gpio4 0  /* SAI1_RXFS */
-#define AXON_I2C_BRD_CONF_SDA           &gpio4 1  /* SAI1_RXC */
+#define AXON_I2C_BRD_CONF_SCL           &gpio4 27  /* SAI2_MCLK */
+#define AXON_I2C_BRD_CONF_SDA           &gpio4 25  /* SAI2_TXC */
 
 #define AXON_INT_GPIO_WL_REG_ON         &gpio3  6 /* NAND_DATA00 */
 #define AXON_INT_GPIO_BT_REG_ON         &gpio3  7 /* NAND_DATA01 */
@@ -161,6 +161,18 @@
 			enable-active-high;
 			regulator-always-on;
 		};
+
+		reg_usdhc2_vmmc: regulator-usdhc2 {
+			compatible = "regulator-fixed";
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_usdhc2_pwr>;
+			regulator-name = "SD_3V3";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <AXON_EXT_SD_RESET_B GPIO_ACTIVE_HIGH>;
+			off-on-delay = <20000>;
+			enable-active-high;
+		};
 	};
 
 	i2c_gpio_brd_conf: i2c@0 {
@@ -186,8 +198,8 @@
 
 		pinctrl_axon_i2c_brd_conf: i2cbrdconfgrp {
 			fsl,pins = <
-				MX8MM_IOMUXC_SAI1_RXFS_GPIO4_IO0	0x1c3  /* BRD_CONF_SCL, bitbang */
-				MX8MM_IOMUXC_SAI1_RXC_GPIO4_IO1 	0x1c3  /* BRD_CONF_SDA, bitbang */
+				MX8MM_IOMUXC_SAI2_MCLK_GPIO4_IO27	0x1c3  /* BRD_CONF_SCL, bitbang */
+				MX8MM_IOMUXC_SAI2_TXC_GPIO4_IO25 	0x1c3  /* BRD_CONF_SDA, bitbang */
 			>;
 		};
 
@@ -242,6 +254,12 @@
 		pinctrl_fabric_reset: fabricresetgrp {
 			fsl,pins = <
 				MX8MM_IOMUXC_GPIO1_IO01_GPIO1_IO1		0x11
+			>;
+		};
+
+		pinctrl_usdhc2_pwr: usdhc2rstgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_SD2_RESET_B_GPIO2_IO19	0x1d0   /* SD_RESET_B */
 			>;
 		};
 
@@ -433,8 +451,7 @@
 
 		pinctrl_usdhc2_gpio: usdhc2grpgpio {
 			fsl,pins = <
-				MX8MM_IOMUXC_SD2_CD_B_USDHC2_CD_B	0x1c4
-				MX8MM_IOMUXC_SD2_RESET_B_USDHC2_RESET_B	0x1d0
+				MX8MM_IOMUXC_SD2_CD_B_GPIO2_IO12	0x1c4
 			>;
 		};
 
@@ -937,6 +954,7 @@
 	pinctrl-2 = <&pinctrl_usdhc2_200mhz>, <&pinctrl_usdhc2_gpio>;
 	cd-gpios = <&gpio2 12 GPIO_ACTIVE_LOW>;
 	bus-width = <4>;
+	vmmc-supply = <&reg_usdhc2_vmmc>;
 	status = "okay";
 };
 
