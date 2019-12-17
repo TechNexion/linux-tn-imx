@@ -1,6 +1,6 @@
 /*
- * Copyright 2018 TechNexion Ltd.
- * Copyright 2018 NXP
+ * Copyright 2019 TechNexion Ltd.
+ * Copyright 2017 NXP
  *
  * Author: Richard Hu <richard.hu@technexion.com>
  *         Ray Chang <ray.chang@technexion.com>
@@ -337,7 +337,6 @@
 
 		pinctrl_usdhc2_gpio: usdhc2grpgpio {
 			fsl,pins = <
-				MX8MM_IOMUXC_SD2_CD_B_GPIO2_IO12	0x1c4
 				MX8MM_IOMUXC_SD2_RESET_B_GPIO2_IO19	0x41
 			>;
 		};
@@ -350,6 +349,7 @@
 				MX8MM_IOMUXC_SD2_DATA1_USDHC2_DATA1	0x1d0
 				MX8MM_IOMUXC_SD2_DATA2_USDHC2_DATA2	0x1d0
 				MX8MM_IOMUXC_SD2_DATA3_USDHC2_DATA3	0x1d0
+				MX8MM_IOMUXC_SD2_CD_B_GPIO2_IO12	0x1c4
 				MX8MM_IOMUXC_GPIO1_IO04_USDHC2_VSELECT	0x1d0
 			>;
 		};
@@ -362,6 +362,7 @@
 				MX8MM_IOMUXC_SD2_DATA1_USDHC2_DATA1	0x1d4
 				MX8MM_IOMUXC_SD2_DATA2_USDHC2_DATA2	0x1d4
 				MX8MM_IOMUXC_SD2_DATA3_USDHC2_DATA3	0x1d4
+				MX8MM_IOMUXC_SD2_CD_B_GPIO2_IO12	0x1c4
 				MX8MM_IOMUXC_GPIO1_IO04_USDHC2_VSELECT	0x1d0
 			>;
 		};
@@ -374,6 +375,7 @@
 				MX8MM_IOMUXC_SD2_DATA1_USDHC2_DATA1	0x1d6
 				MX8MM_IOMUXC_SD2_DATA2_USDHC2_DATA2	0x1d6
 				MX8MM_IOMUXC_SD2_DATA3_USDHC2_DATA3	0x1d6
+				MX8MM_IOMUXC_SD2_CD_B_GPIO2_IO12	0x1c4
 				MX8MM_IOMUXC_GPIO1_IO04_USDHC2_VSELECT	0x1d0
 			>;
 		};
@@ -781,9 +783,9 @@
 /* Baseboard microSD slot */
 &usdhc2 {
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
-	pinctrl-0 = <&pinctrl_usdhc2>, <&pinctrl_usdhc2_gpio>;
-	pinctrl-1 = <&pinctrl_usdhc2_100mhz>, <&pinctrl_usdhc2_gpio>;
-	pinctrl-2 = <&pinctrl_usdhc2_200mhz>, <&pinctrl_usdhc2_gpio>;
+	pinctrl-0 = <&pinctrl_usdhc2>;
+	pinctrl-1 = <&pinctrl_usdhc2_100mhz>;
+	pinctrl-2 = <&pinctrl_usdhc2_200mhz>;
 	cd-gpios = <&gpio2 12 GPIO_ACTIVE_LOW>;
 	bus-width = <4>;
 	status = "okay";

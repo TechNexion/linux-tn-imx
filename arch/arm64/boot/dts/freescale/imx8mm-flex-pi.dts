@@ -1,6 +1,6 @@
 /*
- * Copyright 2018 TechNexion Ltd.
- * Copyright 2018 NXP
+ * Copyright 2019 TechNexion Ltd.
+ * Copyright 2017 NXP
  *
  * Author: Richard Hu <richard.hu@technexion.com>
  *         Ray Chang <ray.chang@technexion.com>
@@ -26,6 +26,8 @@
 
 	regulators {
 		reg_usdhc2_vmmc: regulator-usdhc2 {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_usdhc2_gpio>;
 			compatible = "regulator-fixed";
 			regulator-name = "SD_3V3";
 			regulator-min-microvolt = <3300000>;
