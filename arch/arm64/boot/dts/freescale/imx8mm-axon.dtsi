@@ -556,24 +556,24 @@
 	gpio-line-names =
 		"", "ENET_PWR_EN", "", "", "", "", "WL_REG_ON", "BT_REG_ON",
 		"", "SOC_STATUS_LED", "", "", "", "", "", "",
-		"BT_HOST_WAKE", "", "", "", "", "", "", "",
-		"", "", "", "", "", "", "", "";
+		"BT_HOST_WAKE", "", "", "AUD_B_RXFS", "AUD_B_RXCLK", "AUD_B_RXD", "AUD_B_TXFS", "AUD_B_TXCLK",
+		"AUD_B_TXD", "AUD_B_MCLK", "", "", "", "", "", "";
 };
 
 &gpio4 {
 	gpio-line-names =
-		"BRD_CONF_SCL", "BRD_CONF_SDA", "", "GPIO_X1_P78", "GPIO_X1_P80", "GPIO_X2_P18", "", "",
-		"", "GPIO_X2_P20", "", "", "", "GPIO_X1_P66", "GPIO_X1_P68", "GPIO_X1_P70",
-		"GPIO_X1_P72", "", "GPIO_X1_P74", "GPIO_X1_P76", "GPIO_SPARE1", "", "", "",
-		"", "GPIO_X2_P24", "GPIO_X3_P65", "GPIO_X2_P22", "GPIO_X3_P71", "", "", "";
+		"GPIO_X2_P22", "GPIO_X2_P24", "AUD_A_RXD", "GPIO_X1_P78", "GPIO_X1_P80", "GPIO_X2_P18", "AUD_BT_TXCLK", "AUD_BT_TXD",
+		"AUD_BT_TXFS", "GPIO_X2_P20", "AUD_A_TXFS", "AUD_A_TXCLK", "AUD_A_TXD", "GPIO_X1_P66", "GPIO_X1_P68", "GPIO_X1_P70",
+		"GPIO_X1_P72", "AUD_BT_RXD", "GPIO_X1_P74", "GPIO_X1_P76", "GPIO_SPARE1", "", "", "UART_A_RTS",
+		"UART_A_CTS", "BRD_CONF_SDA", "GPIO_X3_P65", "BRD_CONF_SCL", "GPIO_X3_P71", "UART_B_CTS", "UART_B_RTS", "UART_B_RXD";
 };
 
 &gpio5 {
 	gpio-line-names =
-		"", "GPIO_X3_P67", "", "", "", "", "", "",
-		"", "SPI_A_CS0", "", "", "", "", "", "",
-		"", "", "", "", "", "", "", "",
-		"", "SPI_B_CS0", "", "", "PCIE_A_WAKE", "PCIE_A_RESET", "", "";
+		"UART_B_TXD", "GPIO_X3_P67", "PWM4", "PWM3", "PWM2", "PWM1", "SPI_A_SCLK", "SPI_A_MOSI",
+		"SPI_A_MISO", "SPI_A_CS0", "UART_BT_RXD", "UART_BT_TXD", "UART_BT_CTS", "UART_BT_RTS", "", "",
+		"", "", "", "", "", "", "SPI_B_SCLK", "SPI_B_MOSI",
+		"SPI_B_MISO", "SPI_B_CS0", "UART_C_RXD", "UART_C_TXD", "PCIE_A_WAKE", "PCIE_A_RESET", "", "";
 };
 
 &AXON_I2C_A {  // I2C_A
@@ -638,7 +638,7 @@
 		"F_SPI_A_CS1", "F_PWM_X1_P39", "F_PWM_X2_P79", "",                  // Bank 9
 		"F_SPI_B_MISO", "F_SPI_B_MOSI", "F_SPI_B_SCLK", "F_SPI_B_CS0",      // Bank 10
 		"F_SPI_B_CS1", "", "", "",                                          // Bank 10
-		"", "", "", "",                                                     // Bank 11
+		"F_UART_BT_TXD", "F_UART_BT_RXD", "F_UART_BT_RTS", "F_UART_BT_CTS", // Bank 11
 		"F_CAN_A_TX", "F_CAN_A_RX", "F_CAN_B_TX", "F_CAN_B_RX",             // Bank 11
 		"F_AUD_B_TXD", "F_AUD_B_TXFS", "F_AUD_B_TXCLK", "F_AUD_B_RXD",      // Bank 12
 		"F_AUD_B_RXFS", "F_AUD_B_RXCLK", "F_AUD_B_MCLK", "";                // Bank 12
@@ -922,7 +922,6 @@
 
 &usbotg1 {
 	dr_mode = "otg";
-	extcon = <0>, <&typec_tusb320>;
 	picophy,pre-emp-curr-control = <3>;
 	picophy,dc-vol-level-adjust = <7>;
 	status = "okay";
@@ -970,12 +969,6 @@
 	pm-ignore-notify;
 	keep-power-in-suspend;
 	non-removable;
-	status = "okay";
-};
-
-&pwm1 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_dsi_pwm>;
 	status = "okay";
 };
 
