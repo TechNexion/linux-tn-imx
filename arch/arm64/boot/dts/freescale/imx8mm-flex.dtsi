@@ -676,7 +676,6 @@
 	phy-reset-gpios = <&gpio2 10 GPIO_ACTIVE_LOW>;
 	phy-supply = <&reg_fec_supply>;
 	fsl,magic-packet;
-	fsl,ar8031-phy-fixup;
 	status = "okay";
 
 	mdio {
