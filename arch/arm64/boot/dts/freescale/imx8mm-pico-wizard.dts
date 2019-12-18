@@ -301,6 +301,14 @@
 	};
 };
 
+&pcie0{
+	clkreq-gpio = <&pca9555_23 7 GPIO_ACTIVE_LOW>; /* FIXME: It should be connected to M2_CLKREQn instead of PCIE1_CLKRQ */
+	disable-gpio = <&pca9555_23 9 GPIO_ACTIVE_LOW>;
+	reset-gpio = <&pca9555_23 13 GPIO_ACTIVE_LOW>;
+	ext_osc = <1>;
+	status = "okay";
+};
+
 &lcdif {
 	status = "okay";
 };
