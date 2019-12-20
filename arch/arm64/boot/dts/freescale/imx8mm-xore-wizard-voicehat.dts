@@ -109,7 +109,7 @@
 };
 
 &sound_wm8960 {
-		status = "disabled";
+	status = "disabled";
 };
 
 &sai1 {

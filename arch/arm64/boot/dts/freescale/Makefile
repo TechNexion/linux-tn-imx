@@ -161,7 +161,6 @@ dtb-$(CONFIG_ARCH_FSL_IMX8MM) += imx8mm-axon-pi.dtb \
 				 imx8mm-xore-wizard-adv7535.dtb \
 				 imx8mm-xore-wizard-m4.dtb \
 				 imx8mm-xore-wizard.dtb \
-				 imx8mm-xore-wizard-clix.dtb \
 				 fsl-imx8mm-evk.dtb \
 				 fsl-imx8mm-evk-ak4497.dtb \
 				 fsl-imx8mm-evk-m4.dtb \

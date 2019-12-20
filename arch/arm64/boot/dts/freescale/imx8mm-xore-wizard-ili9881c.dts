@@ -50,8 +50,9 @@
 		compatible = "edt,edt-ft5x06";
 		reg = <0x38>;
 		pinctrl-names = "default";
-		interrupt-parent = <&pca9555_1>;
-		interrupts = <4 IRQ_TYPE_EDGE_FALLING>;
+		pinctrl-0 = <&pinctrl_touch_irq>;
+		interrupt-parent = <&gpio3>;
+		interrupts = <22 IRQ_TYPE_EDGE_FALLING>;
 		reset-gpios = <&pca9555_1 5 GPIO_ACTIVE_LOW>;
 		touchscreen-size-x = <720>;
 		touchscreen-size-y = <1280>;
