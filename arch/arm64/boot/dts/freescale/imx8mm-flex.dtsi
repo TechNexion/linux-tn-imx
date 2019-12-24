@@ -62,9 +62,7 @@
 			regulator-min-microvolt = <3300000>;
 			regulator-max-microvolt = <3300000>;
 			gpio = <&gpio3 1 GPIO_ACTIVE_HIGH>;
-			off-on-delay = <20000>;
-			startup-delay-us = <100>;
-			regulator-always-on;
+			startup-delay-us = <10000>;
 			enable-active-high;
 		};
 	};
