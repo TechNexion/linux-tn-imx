@@ -226,6 +226,10 @@
 	};
 };
 
+&rpmsg{
+	status = "disabled";
+};
+
 &csi1_bridge {
 	fsl,mipi-mode;
 	status = "okay";
