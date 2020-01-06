@@ -61,12 +61,16 @@
 
 	leds {
 		compatible = "gpio-leds";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_gpio_led>;
 
 		led {
 			label = "gpio-led";
-			gpios = <&gpio5 5 GPIO_ACTIVE_HIGH>;
+			gpios = <&pca9555_26 7 GPIO_ACTIVE_LOW>;
+			/*
+			 * FIXME: GPIO LED share the same GPIO with USB HUB reset from PCA9555_26
+			 * GPIO LED will change to use independent GPIO from IO expander - PCA9555.
+			 * To expand GPIO number from 8 to 16 IOs, PCA9554 will be replaced with PCA9555
+			 * in the next HW revision.
+			 */
 		};
 	};
 
