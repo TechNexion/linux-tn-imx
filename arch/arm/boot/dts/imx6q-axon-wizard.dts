@@ -21,6 +21,117 @@
 	model = "TechNexion AXON-IMX6 Quad and WIZARD baseboard";
 	compatible = "fsl,axon-imx6q", "fsl,imx6q";
 
+	regulators {
+                compatible = "simple-bus";
+                #address-cells = <1>;
+                #size-cells = <0>;
+
+                reg_backlight_pwr: regulator_blpwr {
+                        pinctrl-names = "default";
+                        pinctrl-0 = <&pinctrl_backlight_pwr>;
+                        compatible = "regulator-fixed";
+                        regulator-name = "backlight_pwr";
+                        regulator-min-microvolt = <5000000>;
+                        regulator-max-microvolt = <5000000>;
+                        gpio = <&gpio2 8 GPIO_ACTIVE_HIGH>;
+                        enable-active-high;
+                };
+
+                reg_lvds_pwr: regulator_lvdspwr {
+                        pinctrl-names = "default";
+                        compatible = "regulator-fixed";
+                        regulator-name = "lvds_pwr_en";
+                        regulator-min-microvolt = <3300000>;
+                        regulator-max-microvolt = <3300000>;
+                        gpio = <&pca9554 6 GPIO_ACTIVE_HIGH>;
+                        enable-active-high;
+			regulator-always-on;
+                };
+	};
+
+	backlight_lvds {
+                power-supply = <&reg_backlight_pwr>;
+		status = "okay";
+	};
+};
+
+&iomuxc {
+        pinctrl-names = "default";
+
+        imx6qdl-axon {
+
+                pinctrl_backlight_pwr: backlight_pwrgrp {
+                        fsl,pins = <
+                                MX6QDL_PAD_SD4_DAT0__GPIO2_IO08		0x000b0
+                        >;
+                };
+	};
+};
+
+&ldb {
+	status = "okay";
+	split-mode;
+        lvds-channel@0 {
+                fsl,data-mapping = "spwg";
+                fsl,data-width = <24>;
+                primary;
+		crtc = "ipu1-di0";
+                status = "okay";
+
+                display-timings {
+                        native-mode = <&timing0>;
+                        timing0: g215hvn01 {
+                                clock-frequency = <144000000>;
+                                hactive = <1920>;
+                                vactive = <1080>;
+                                hfront-porch = <20>;
+                                hsync-len = <10>;
+                                hback-porch = <20>;
+                                vfront-porch = <40>;
+                                vsync-len = <10>;
+                                vback-porch = <40>;
+                        };
+
+                };
+        };
+
+        lvds-channel@1 {
+                fsl,data-mapping = "spwg";
+                fsl,data-width = <24>;
+                primary;
+		crtc = "ipu1-di1";
+                status = "okay";
+
+                display-timings {
+                        native-mode = <&timing1>;
+                        timing1: g215hvn01 {
+                                clock-frequency = <144000000>;
+                                hactive = <1920>;
+                                vactive = <1080>;
+                                hfront-porch = <20>;
+                                hsync-len = <10>;
+                                hback-porch = <20>;
+                                vfront-porch = <40>;
+                                vsync-len = <10>;
+                                vback-porch = <40>;
+                        };
+
+                };
+        };
+};
+
+&AXON_I2C_C {
+        pca9554: pca9554@23 {
+                compatible = "nxp,pca9554";
+                pinctrl-names = "default";
+                reg =<0x23>;
+                gpio-controller;
+                #gpio-cells = <2>;
+        };
+};
+
+&pcie {
+	status= "okay";
 };
 
 &sata {

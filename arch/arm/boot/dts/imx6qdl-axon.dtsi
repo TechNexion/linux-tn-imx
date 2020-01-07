@@ -920,7 +920,7 @@
 	fsl,phy_reg_cksymtx = <0x800d>;
 	status = "okay";
 };
-
+/* This is for 7" LVDS panel
 &ldb {
 	status = "okay";
 	lvds-channel@0 {
@@ -945,7 +945,7 @@
 		};
 	};
 };
-
+*/
 &mipi_csi {
 	ipu_id = <0>;
 	csi_id = <0>;
