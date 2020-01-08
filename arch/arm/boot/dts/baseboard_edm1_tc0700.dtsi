@@ -14,30 +14,6 @@
 #include "tnmacro.h"
 
 / {
-	gpio-edm {
-		compatible = "gpio-edm";
-		gpio_p259 {
-			label = "GPIO_P259";
-			gpios = <&EDM_EXT_GPIO_P259 GPIO_ACTIVE_HIGH>;
-			dir   = "in";
-		};
-		gpio_p260 {
-			label = "GPIO_P260";
-			gpios = <&EDM_EXT_GPIO_P260 GPIO_ACTIVE_HIGH>;
-			dir   = "in";
-		};
-		gpio_p261 {
-			label = "GPIO_P261";
-			gpios = <&EDM_EXT_GPIO_P261 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-		gpio_p262 {
-			label = "GPIO_P262";
-			gpios = <&EDM_EXT_GPIO_P262 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-	};
-
 	sound {
 		compatible = "fsl,imx-sgtl5000",
 			     "fsl,imx-audio-sgtl5000";
@@ -52,6 +28,8 @@
 		mux-ext-port = <EDM_AUDA_MUX_EXT>;
 	};
 };
+
+EDM_TC700_GPIO_DEFS();
 
 &EDM_I2CA {
 	status = "okay";
