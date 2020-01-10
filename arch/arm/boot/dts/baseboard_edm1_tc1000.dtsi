@@ -11,119 +11,7 @@
 
 #include "tnmacro.h"
 
-#define EDM_EXT_GPIO_EXP0 pca9555 0
-#define EDM_EXT_GPIO_EXP1 pca9555 1
-#define EDM_EXT_GPIO_EXP2 pca9555 2
-#define EDM_EXT_GPIO_EXP3 pca9555 3
-#define EDM_EXT_GPIO_EXP4 pca9555 4
-#define EDM_EXT_GPIO_EXP5 pca9555 5
-#define EDM_EXT_GPIO_EXP6 pca9555 6
-#define EDM_EXT_GPIO_EXP7 pca9555 7
-#define EDM_EXT_GPIO_EXP8 pca9555 8
-#define EDM_EXT_GPIO_EXP9 pca9555 9
-#define EDM_EXT_GPIO_EXP10 pca9555 10
-#define EDM_EXT_GPIO_EXP11 pca9555 11
-
 / {
-	gpio-edm {
-		compatible = "gpio-edm";
-		gpio_p255 {
-			label = "GPIO_P255";
-			gpios = <&EDM_EXT_GPIO_P255 1>;
-			dir   = "out";
-		};
-		gpio_p256 {
-			label = "GPIO_P256";
-			gpios = <&EDM_EXT_GPIO_P256 1>;
-			dir   = "out";
-		};
-		gpio_p257 {
-			label = "GPIO_P257";
-			gpios = <&EDM_EXT_GPIO_P257 1>;
-			dir   = "out";
-		};
-		gpio_p259 {
-			label = "GPIO_P259";
-			gpios = <&EDM_EXT_GPIO_P259 0>;
-			dir   = "in";
-		};
-		gpio_p260 {
-			label = "GPIO_P260";
-			gpios = <&EDM_EXT_GPIO_P260 0>;
-			dir   = "in";
-		};
-		gpio_p261 {
-			label = "GPIO_P261";
-			gpios = <&EDM_EXT_GPIO_P261 0>;
-			dir   = "out";
-		};
-		gpio_p262 {
-			label = "GPIO_P262";
-			gpios = <&EDM_EXT_GPIO_P262 0>;
-			dir   = "out";
-		};
-		gpio_exp0 {
-			label = "GPIO_EXP0";
-			gpios = <&EDM_EXT_GPIO_EXP0 0>;
-			dir   = "out";
-		};
-		gpio_exp1 {
-			label = "GPIO_EXP1";
-			gpios = <&EDM_EXT_GPIO_EXP1 0>;
-			dir   = "out";
-		};
-		gpio_exp2 {
-			label = "GPIO_EXP2";
-			gpios = <&EDM_EXT_GPIO_EXP2 0>;
-			dir   = "in";
-		};
-		gpio_exp3 {
-			label = "GPIO_EXP3";
-			gpios = <&EDM_EXT_GPIO_EXP3 0>;
-			dir   = "in";
-		};
-		gpio_exp4 {
-			label = "GPIO_EXP4";
-			gpios = <&EDM_EXT_GPIO_EXP4 0>;
-			dir   = "out";
-		};
-		gpio_exp5 {
-			label = "GPIO_EXP5";
-			gpios = <&EDM_EXT_GPIO_EXP5 0>;
-			dir   = "out";
-		};
-		gpio_exp6 {
-			label = "GPIO_EXP6";
-			gpios = <&EDM_EXT_GPIO_EXP6 0>;
-			dir   = "in";
-		};
-		gpio_exp7 {
-			label = "GPIO_EXP7";
-			gpios = <&EDM_EXT_GPIO_EXP7 0>;
-			dir   = "in";
-		};
-		gpio_exp8 {
-			label = "GPIO_EXP8";
-			gpios = <&EDM_EXT_GPIO_EXP8 0>;
-			dir   = "out";
-		};
-		gpio_exp9 {
-			label = "GPIO_EXP9";
-			gpios = <&EDM_EXT_GPIO_EXP9 0>;
-			dir   = "out";
-		};
-		gpio_exp10 {
-			label = "GPIO_EXP10";
-			gpios = <&EDM_EXT_GPIO_EXP10 0>;
-			dir   = "in";
-		};
-		gpio_exp11 {
-			label = "GPIO_EXP11";
-			gpios = <&EDM_EXT_GPIO_EXP11 0>;
-			dir   = "in";
-		};
-	};
-
 #ifdef EDM_EXT_LVDS_PWR
 	regulators {
 		compatible = "simple-bus";
@@ -156,6 +44,8 @@
 	};
 };
 
+EDM_TC1000_GPIO_DEFS();
+
 &EDM_I2CA {
 	status = "okay";
 };
@@ -173,6 +63,8 @@
 		interrupts = <8 IRQ_TYPE_EDGE_FALLING>;
 		#interrupt-cells = <2>;
 		#endif
+		gpio-line-names = "GPIO_EXP0", "GPIO_EXP1", "GPIO_EXP2", "GPIO_EXP3", "GPIO_EXP4", "GPIO_EXP5", "GPIO_EXP6", "GPIO_EXP7", 
+							"GPIO_EXP8", "GPIO_EXP9", "GPIO_EXP10", "GPIO_EXP11", "", "", "", "";
 	};
 
 	codec: sgtl5000@0a {
