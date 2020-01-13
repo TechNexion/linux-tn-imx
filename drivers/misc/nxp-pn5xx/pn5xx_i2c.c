@@ -142,7 +142,7 @@ static int pn544_enable(struct pn54x_dev *dev, int mode)
 	}
 
 	if (MODE_RUN == mode) {
-		pr_info("%s power on\n", __func__);
+		//pr_info("%s power on\n", __func__);
 		if (gpio_is_valid(dev->firm_gpio))
 			gpio_set_value_cansleep(dev->firm_gpio, 0);
 		gpio_set_value_cansleep(dev->ven_gpio, 1);
