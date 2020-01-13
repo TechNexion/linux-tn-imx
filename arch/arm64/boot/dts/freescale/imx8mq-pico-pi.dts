@@ -238,18 +238,6 @@
 		status = "okay";
 	};
 
-	pn547: pn547@2a {
-		compatible = "nxp,pn547";
-		reg = <0x2a>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_nfc_ctrl>;
-		clock-frequency = <100000>;
-		interrupt-gpios = <&gpio3 4 0>;
-		enable-gpios = <&gpio5 7 0>;
-		/* When you enable NFC, you must to disable ov5645_mipi2 device */
-		status = "disabled";
-	};
-
 	bme680@77 {
 		compatible = "bme,bme680";
 		reg = <0x77>;

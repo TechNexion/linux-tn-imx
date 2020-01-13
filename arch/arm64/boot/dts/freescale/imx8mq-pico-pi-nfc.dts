@@ -1,0 +1,38 @@
+/*
+ * Copyright 2018 Technexion Ltd.
+ * Copyright 2017 NXP
+ *
+ * Author: Hank Chang <hank.chang@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+#include "imx8mq-pico-pi.dts"
+
+/* When you enable NFC, you must to disable ov5645_mipi2 device */
+&ov5645_mipi2 {
+	status = "disabled";
+};
+
+&i2c3 {
+	status = "okay";
+
+	pn547: pn547@2a {
+		compatible = "nxp,pn547";
+		reg = <0x2a>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_nfc_ctrl>;
+		clock-frequency = <100000>;
+		interrupt-gpios = <&gpio3 4 0>;
+		enable-gpios = <&gpio5 7 0>;
+		status = "okay";
+	};
+};
