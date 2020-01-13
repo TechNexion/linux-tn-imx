@@ -152,12 +152,6 @@
 			>;
 		};
 
-		pinctrl_mipi_dsi_rst: mipi_dsi_rst {
-			fsl,pins = <
-				MX8MM_IOMUXC_SPDIF_RX_GPIO5_IO4	    0x16   /* PWM2 / DSI RST */
-			>;
-		};
-
 		pinctrl_ft5336_touch_irq: ft5336_irqgrp {
 			fsl,pins = <
 				MX8MM_IOMUXC_SAI1_RXD7_GPIO4_IO9	0x19   /* GPIO_X2_P20, Touch INT */
