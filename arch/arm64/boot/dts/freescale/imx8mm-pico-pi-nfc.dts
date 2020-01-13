@@ -1,0 +1,63 @@
+/*
+ * Copyright 2018 Technexion Ltd.
+ * Copyright 2018 NXP
+ *
+ * Author: Hank Chang <richard.hu@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+#include <dt-bindings/input/input.h>
+#include "imx8mm-pico-pi.dts"
+
+&iomuxc {
+	imx8mm-pico {
+		/delete-node/ pinctrl_expansion_gpio;
+	};
+};
+
+&iomuxc {
+	imx8mm-pico {
+		pinctrl_expansion_gpio: expansiongpiogrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_NAND_ALE_GPIO3_IO0			0x41 /* GPIO_P25, KEY_PREV on VoiceHat */
+				MX8MM_IOMUXC_NAND_DATA00_GPIO3_IO6		0x41 /* GPIO_P28, KEY_MUTE on VoiceHat */
+				MX8MM_IOMUXC_NAND_DATA01_GPIO3_IO7		0x41 /* GPIO_P30, KEY_UP on VoiceHat */
+				MX8MM_IOMUXC_NAND_DATA02_GPIO3_IO8		0x41 /* GPIO_P32 */
+				MX8MM_IOMUXC_I2C4_SCL_GPIO5_IO20		0x41 /* GPIO_P44, KEY_NEXT on VoiceHat */
+			>;
+		};
+
+		pinctrl_nfc_ctrl: nfc_ctrl {
+			fsl,pins = <
+				MX8MM_IOMUXC_NAND_READY_B_GPIO3_IO16	0x41	/* PIN_ENABLE */
+				MX8MM_IOMUXC_ECSPI1_MOSI_GPIO5_IO7		0x41	/* PIN_INT */
+			>;
+		};
+	};
+};
+
+&i2c3 {
+	pn547: pn547@2a {
+		compatible = "nxp,pn547";
+		reg = <0x2a>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_nfc_ctrl>;
+		clock-frequency = <100000>;
+		interrupt-gpios = <&gpio3 16 0>;
+		enable-gpios = <&gpio5 7 0>;
+		status = "okay";
+	};
+};
+
+&uart3 {
+	status = "disabled";
+};

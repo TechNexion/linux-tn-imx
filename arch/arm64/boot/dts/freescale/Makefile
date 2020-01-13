@@ -143,6 +143,7 @@ dtb-$(CONFIG_ARCH_FSL_IMX8MQ) += fsl-imx8mq-ddr3l-arm2.dtb \
 dtb-$(CONFIG_ARCH_FSL_IMX8MM) += imx8mm-axon-pi.dtb \
 				 imx8mm-axon-loopbacktest.dtb \
 				 imx8mm-pico-pi.dtb \
+				 imx8mm-pico-pi-nfc.dtb \
 				 imx8mm-pico-pi-m4.dtb \
 				 imx8mm-pico-pi-g080uan01.dtb \
 				 imx8mm-pico-pi-g101uan02.dtb \
