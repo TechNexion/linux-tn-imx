@@ -307,7 +307,7 @@
 };
 
 &pcie0{
-	status = "disabled";
+	status = "okay";
 };
 
 &usbotg1 {

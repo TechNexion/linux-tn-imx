@@ -227,7 +227,9 @@
 
 		pinctrl_pcie0: pcie0grp {
 			fsl,pins = <
-				MX8MM_IOMUXC_I2C4_SCL_PCIE1_CLKREQ_B	0x61 /* open drain, pull up */
+				MX8MM_IOMUXC_SAI3_RXFS_GPIO4_IO28	0x61	/* clock request */
+				MX8MM_IOMUXC_UART4_RXD_GPIO5_IO28	0x41	/* PCIe wakeup */
+				MX8MM_IOMUXC_UART4_TXD_GPIO5_IO29	0x19	/* PCIe reset */
 			>;
 		};
 
@@ -809,9 +811,10 @@
 &pcie0{
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_pcie0>;
-	disable-gpio = <&gpio1 5 GPIO_ACTIVE_LOW>;
-	reset-gpio = <&gpio4 21 GPIO_ACTIVE_LOW>;
-	ext_osc = <0>;
+	clkreq-gpio = <&gpio4 28 GPIO_ACTIVE_LOW>;
+	disable-gpio = <&gpio5 28 GPIO_ACTIVE_LOW>;
+	reset-gpio = <&gpio5 29 GPIO_ACTIVE_LOW>;
+	ext_osc = <1>;
 	status = "disabled";
 };
 
@@ -846,7 +849,7 @@
 	assigned-clock-parents = <&clk IMX8MM_SYS_PLL1_80M>;
 	fsl,uart-has-rtscts;
 	resets = <&bt_reg_on>;
-	status = "okay";
+	status = "disabled";
 };
 
 &usbotg1 {
