@@ -624,7 +624,7 @@
 	pinctrl-0 = <&pinctrl_enet>;
 	phy-reset-gpios = <&gpio3 29 GPIO_ACTIVE_LOW>;
 	phy-supply = <&reg_3v3_phy>;
-	phy-mode = "rgmii";
+	phy-mode = "rgmii-id";
 	status = "okay";
 };
 
