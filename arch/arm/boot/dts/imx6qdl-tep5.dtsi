@@ -13,6 +13,66 @@
 
 #include <dt-bindings/gpio/gpio.h>
 
+/* External GPIO */
+#define TEP_GPIO_P233 gpio1 1
+#define TEP_GPIO_P235 gpio4 6
+#define TEP_GPIO_P237 gpio2 10
+#define TEP_GPIO_P239 gpio6 1
+#define TEP_GPIO_P241 gpio6 2
+#define TEP_GPIO_P243 gpio6 3
+#define TEP_GPIO_P245 gpio6 4
+#define TEP_GPIO_P247 gpio6 5
+#define TEP_GPIO_P133 gpio1 3
+#define TEP_GPIO_P135 gpio1 4
+#define TEP_GPIO_P137 gpio1 6
+#define TEP_GPIO_P139 gpio5 27
+
+#define TEP_GPIO_DEFS()									\
+&gpio1 {											\
+	gpio-line-names =									\
+		"", "GPIO_P233", "", "GPIO_P133", "GPIO_P135", "", "GPIO_P137", "",		\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "";							\
+												\
+};												\
+												\
+&gpio2 {											\
+	gpio-line-names =									\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "GPIO_P237", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "";							\
+												\
+};												\
+												\
+&gpio4 {											\
+	gpio-line-names =									\
+		"", "", "", "", "", "", "GPIO_P235", "",					\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "";							\
+												\
+};												\
+												\
+&gpio5 {											\
+	gpio-line-names =									\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "GPIO_P139", "", "", "", "";					\
+												\
+};												\
+												\
+&gpio6 {											\
+	gpio-line-names =									\
+		"", "GPIO_P239", "GPIO_P241", "GPIO_P243", "GPIO_P245", "GPIO_P247", "", "",	\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "";							\
+												\
+}
+
 / {
 	aliases {
 		mxcfb0 = &mxcfb1;
@@ -90,71 +150,6 @@
 			regulator-min-microvolt = <5000000>;
 			regulator-max-microvolt = <5000000>;
 			gpio = <&gpio3 22 0>;
-		};
-	};
-
-	gpio-edm {
-		compatible = "gpio-edm";
-
-		gpio_p233 {
-			label = "GPIO_P233";
-			gpios = <&gpio1 1 1>;
-			dir   = "out";
-		};
-		gpio_p235 {
-			label = "GPIO_P235";
-			gpios = <&gpio4 6 1>;
-			dir   = "out";
-		};
-		gpio_p237 {
-			label = "GPIO_P237";
-			gpios = <&gpio2 10 1>;
-			dir   = "in";
-		};
-		gpio_p239 {
-			label = "GPIO_P239";
-			gpios = <&gpio6 1 1>;
-			dir   = "in";
-		};
-		gpio_p241 {
-			label = "GPIO_P241";
-			gpios = <&gpio6 2 1>;
-			dir   = "out";
-		};
-		gpio_p243 {
-			label = "GPIO_P243";
-			gpios = <&gpio6 3 1>;
-			dir   = "out";
-		};
-		gpio_p245 {
-			label = "GPIO_P245";
-			gpios = <&gpio6 4 1>;
-			dir   = "in";
-		};
-		gpio_p247 {
-			label = "GPIO_P247";
-			gpios = <&gpio6 5 1>;
-			dir   = "in";
-		};
-		gpio_p133 {
-			label = "GPIO_P133";
-			gpios = <&gpio1 3 1>;
-			dir   = "out";
-		};
-		gpio_p135 {
-			label = "GPIO_P135";
-			gpios = <&gpio1 4 1>;
-			dir   = "out";
-		};
-		gpio_p137 {
-			label = "GPIO_P137";
-			gpios = <&gpio1 6 1>;
-			dir   = "out";
-		};
-		gpio_p139 {
-			label = "GPIO_P139";
-			gpios = <&gpio5 27 1>;
-			dir   = "out";
 		};
 	};
 
@@ -398,6 +393,7 @@
 	};
 };
 
+TEP_GPIO_DEFS();
 
 &iomuxc {
 	pinctrl-names = "default";
