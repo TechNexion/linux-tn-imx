@@ -28,4 +28,11 @@ struct axonf_platform_data {
 	const char	*const *names;
 };
 
+#define AXONF_ADDR_MAGIC   0x0000
+#define AXONF_ADDR_VERSION 0x0004
+#define AXONF_ADDR_CONFIG  0x0008
+#define AXONF_ADDR_CTRLREG 0x0010
+#define AXONF_ADDR_RGBLED  0x0020
+#define AXONF_ADDR_IOBLOCK 0x0100
+
 #endif /* _LINUX_AXONFABRIC_H */
