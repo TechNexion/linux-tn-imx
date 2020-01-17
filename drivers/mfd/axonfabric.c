@@ -36,19 +36,27 @@
 
 #include <asm/unaligned.h>
 
-/* IO Bank register addresses */
-#define AXONF_IOB_ENABLE			0x0
-#define AXONF_IOB_PUSHPULL			0x1
-#define AXONF_IOB_DIRECTION			0x2
-#define AXONF_IOB_SEL0				0x3
-#define AXONF_IOB_SEL1				0x4
-#define AXONF_IOB_IRQ_EN			0x5
-#define AXONF_IOB_IRQ_TYPE			0x6
-#define AXONF_IOB_IRQ_POLARITY		0x7
-#define AXONF_IOB_OUTPUT			0x8
-#define AXONF_IOB_EXT_INPUT			0x9
-#define AXONF_IOB_INT_INPUT			0xA
-#define AXONF_IOB_IRQ_ISCR			0xB
+/* For Axon Fabric Firmware version 0.2.0 and later */
+
+#define AXONF_IOB_OFFSET_EN			0
+#define AXONF_IOB_OFFSET_PP			1
+#define AXONF_IOB_OFFSET_DIR		2
+#define AXONF_IOB_OFFSET_SEL		3
+#define AXONF_IOB_OFFSET_ODR		5
+#define AXONF_IOB_OFFSET_IDR		6
+#define AXONF_IOB_OFFSET_INT_IDR	7
+
+#define AXONF_IOB_MASK_ENABLE		(0x01 << AXONF_IOB_OFFSET_EN)
+#define AXONF_IOB_MASK_PP			(0x01 << AXONF_IOB_OFFSET_PP)
+#define AXONF_IOB_MASK_DIR			(0x01 << AXONF_IOB_OFFSET_DIR)
+#define AXONF_IOB_MASK_SEL			(0x03 << AXONF_IOB_OFFSET_SEL)
+#define AXONF_IOB_MASK_ODR			(0x01 << AXONF_IOB_OFFSET_ODR)
+#define AXONF_IOB_MASK_IDR			(0x01 << AXONF_IOB_OFFSET_IDR)
+#define AXONF_IOB_MASK_INT_IDR		(0x01 << AXONF_IOB_OFFSET_INT_IDR)
+
+#define AXONF_IOB_REG_CTRLSTATUS	0x00
+#define AXONF_IOB_REG_IRQ			0x08
+
 
 /* IO Block definitions */
 #define AXONF_IOB_SEL_PASSTHROUGH   0x0
@@ -109,7 +117,7 @@ const u8 axonf_imx6_bank_mask[] = {
 
 const u8 axonf_imx8mm_bank_mask[] = {
 	0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF, 0x1F, 0xFC,
-	0xFF, 0x7F, 0x1F, 0x0F, 0x7F
+	0xFF, 0x7F, 0x1F, 0xFF, 0x7F
 	};
 
 /*
@@ -143,49 +151,19 @@ MODULE_DEVICE_TABLE(i2c, axonf_id);
 #define NBANK(chip) DIV_ROUND_UP(chip->gpio_chip.ngpio, BANK_SZ)
 
 struct axonf_reg_config {
-	int enable;
-	int pushpull;
-	int direction;
-	int sel0;
-	int sel1;
-	int irq_en;
-	int irq_type;
-	int irq_polarity;
-	int output;
-	int input;
-	int int_input;
-	int irq_iscr;
+	int ctrl_status;
+	int irq;
 };
 
 static const struct axonf_reg_config axonf_regs = {
-	.enable =       AXONF_IOB_ENABLE,
-	.pushpull =     AXONF_IOB_PUSHPULL,
-	.direction =    AXONF_IOB_DIRECTION,
-	.sel0 =         AXONF_IOB_SEL0,
-	.sel1 =         AXONF_IOB_SEL1,
-	.irq_en =       AXONF_IOB_IRQ_EN,
-	.irq_type =     AXONF_IOB_IRQ_TYPE,
-	.irq_polarity = AXONF_IOB_IRQ_POLARITY,
-	.output =       AXONF_IOB_OUTPUT,
-	.input =        AXONF_IOB_EXT_INPUT,
-	.int_input =    AXONF_IOB_INT_INPUT,
-	.irq_iscr =     AXONF_IOB_IRQ_ISCR
+	.ctrl_status =       AXONF_IOB_REG_CTRLSTATUS,
+	.irq =     			 AXONF_IOB_REG_IRQ
 };
 
 struct axonf_chip {
 	unsigned gpio_start;
-	u8 reg_enable[MAX_BANK];
-	u8 reg_pushpull[MAX_BANK];
-	u8 reg_direction[MAX_BANK];
-	u8 reg_sel0[MAX_BANK];
-	u8 reg_sel1[MAX_BANK];
-	u8 reg_irq_en[MAX_BANK];
-	u8 reg_irq_type[MAX_BANK];
-	u8 reg_irq_polarity[MAX_BANK];
-	u8 reg_irq_iscr[MAX_BANK];
-	u8 reg_output[MAX_BANK];
-	u8 reg_input[MAX_BANK];
-	u8 reg_int_input[MAX_BANK];
+	u8 reg_ctrl_status[MAX_BANK*8];
+	u8 reg_irq[MAX_BANK*8];
 	u8 bank_mask[MAX_BANK];
 	u8 allocated[MAX_BANK];
 	u8 fw_version[FW_VERSION_SZ];
@@ -229,6 +207,79 @@ struct axonf_chip* g_chip;
 #endif // CONFIG_AXONF_DEBUGFS
 
 /*
+ * Reads a block of data from a designated address
+ */
+
+#define MAX_AXON_I2C_XFER_SIZE 256
+
+static int axonf_read_i2c_data(struct axonf_chip *chip, u16 addr, u8* buf, size_t count) {
+
+	u8 addr_be[2];
+	int ret;
+
+	if(count > MAX_AXON_I2C_XFER_SIZE ) {
+		dev_err(&chip->client->dev, "%s: Buffer size %lu exceeds maximum %d", __FUNCTION__, count, MAX_AXON_I2C_XFER_SIZE );
+		return -EINVAL;
+	}
+
+	// Make big endian. The address MSB is transmitted first, the LSB second.
+	addr_be[0] = (addr >> 8) & 0xff;
+	addr_be[1] = addr & 0xff;
+
+	// dev_info(&chip->client->dev, "%s: Reading address: MSB: 0x%02X LSB: 0x%02X\n", __FUNCTION__, addr_be[0], addr_be[1]);
+
+	ret = i2c_master_send(chip->client, (char*)addr_be, 2);
+
+	if(ret < 0) {
+		dev_err(&chip->client->dev, "%s: failed to write the address to i2c", __FUNCTION__);
+		return ret;
+	}
+
+	ret = i2c_master_recv(chip->client, (char*) buf, count);
+
+	if(ret < 0) {
+		dev_err(&chip->client->dev, "%s: failed to read data from i2c", __FUNCTION__);
+		return ret;
+	}
+
+	if (ret < count) {
+		dev_err(&chip->client->dev, "%s: failed to read all data from i2c. Bytes read: %d, expected: %lu", __FUNCTION__, ret, count);
+	}
+
+	return ret;
+}
+
+/*
+ * Writes a block of data from a designated address
+ */
+
+static int axonf_write_i2c_data(struct axonf_chip *chip, u16 addr, u8* buf, size_t count) {
+
+	int ret;
+	u8 msg[ MAX_AXON_I2C_XFER_SIZE + 2];
+
+	if(count > MAX_AXON_I2C_XFER_SIZE ) {
+		dev_err(&chip->client->dev, "%s: Buffer size %lu exceeds maximum %d", __FUNCTION__, count,MAX_AXON_I2C_XFER_SIZE );
+		return ret;
+	}
+
+	// Copy address to buffer
+	msg[0] = (u8)((addr >> 8) & 0xFF);
+	msg[1] = (u8)(addr & 0xFF);
+
+	memcpy(msg+2, buf, count );
+
+	ret = i2c_master_send(chip->client, (char*)msg, count+2);
+
+	if(ret < 0) {
+		dev_err(&chip->client->dev, "%s: failed to write the address to i2c", __FUNCTION__);
+		return ret;
+	}
+
+	return ret;
+}
+
+/*
  * Returns the value of the requested register (reg) containing the data
  * for the signal at the requested offset (off)
  */
@@ -239,20 +290,10 @@ static int axonf_iob_read_single(struct axonf_chip *chip, int reg, u8 *val,
 	int ret;
 	int bank = off / BANK_SZ;
 
+	u16 address = (u16)AXONF_ADDR_IOBLOCK + ((u16)bank << 4) + (u16)reg;
+
 	// Setup the read address
-	ret = i2c_smbus_write_byte_data(chip->client,
-					AXONF_CMD_SET_READ_ADDR,
-					(bank << 4) + reg);
-
-	if (ret < 0) {
-		dev_err(&chip->client->dev, "failed to setup read address\n");
-		return ret;
-	}
-
-	ret = i2c_smbus_read_byte_data(chip->client,
-				AXONF_CMD_READ_IOBANK);
-
-	*val = ret;
+	ret = axonf_read_i2c_data(chip, address, val, 1);
 
 	if (ret < 0) {
 		dev_err(&chip->client->dev, "failed reading register\n");
@@ -270,16 +311,11 @@ static int axonf_iob_write_single(struct axonf_chip *chip, int reg, u8 val,
 {
 
 	int ret;
-	int bank = off / BANK_SZ;
-	const int len = 2;
+	u16 bank = off / BANK_SZ;
 
-	u8 data[len];
-	data[0] = (bank << 4) + reg; // First byte is the address
-	data[1] = val;               // Data to be written
+	u16 address = (u16)AXONF_ADDR_IOBLOCK + (bank << 4) + (u16)reg;
 
-	ret = i2c_smbus_write_i2c_block_data(chip->client,
-					AXONF_CMD_WRITE_IOBANK, len,
-					data);
+	ret = axonf_write_i2c_data(chip, address, &val, 1);
 
 	if (ret < 0) {
 		dev_err(&chip->client->dev, "failed to write data\n");
@@ -299,20 +335,10 @@ static int axonf_iob_read_reg(struct axonf_chip *chip, int reg, u8 *val,
 
 	int ret;
 
+	u16 address = (u16)AXONF_ADDR_IOBLOCK + ((u16)bank << 4) + (u16)reg;
+
 	// Setup the read address
-	ret = i2c_smbus_write_byte_data(chip->client,
-					AXONF_CMD_SET_READ_ADDR,
-					(bank << 4) + reg);
-
-	if (ret < 0) {
-		dev_err(&chip->client->dev, "failed to setup read address\n");
-		return ret;
-	}
-
-	ret = i2c_smbus_read_byte_data(chip->client,
-				AXONF_CMD_READ_IOBANK);
-
-	*val = ret;
+	ret = axonf_read_i2c_data(chip, address, val, 1);
 
 	if (ret < 0) {
 		dev_err(&chip->client->dev, "failed reading register\n");
@@ -330,15 +356,9 @@ static int axonf_iob_write_reg(struct axonf_chip *chip, int reg, u8 val,
 {
 
 	int ret;
-	const int len = 2;
+	u16 address = (u16)AXONF_ADDR_IOBLOCK + (bank << 4) + (u16)reg;
 
-	u8 data[len];
-	data[0] = (bank << 4) + reg; // First byte is the address
-	data[1] = val;               // Data to be written
-
-	ret = i2c_smbus_write_i2c_block_data(chip->client,
-					AXONF_CMD_WRITE_IOBANK, len,
-					data);
+	ret = axonf_write_i2c_data(chip, address, &val, 1);
 
 	if (ret < 0) {
 		dev_err(&chip->client->dev, "failed to write data. reg: %d bank: %d\n", reg, bank);
@@ -349,19 +369,21 @@ static int axonf_iob_write_reg(struct axonf_chip *chip, int reg, u8 val,
 }
 
 /*
- * reads all of the data for the specific register set (all banks)
- * reg: register address
- * val: Pointer to array of values to store the data (must be at least NBANK size)
+ * reads all of the data from one bank
+ * bank: bank address (start address)
+ * val: Pointer to array of values to store the data (must be at least BANK_SZ size)
  */
-static int axonf_iob_read_regs(struct axonf_chip *chip, int reg, u8 *val)
+static int axonf_iob_read_regs(struct axonf_chip *chip, int bank, u8 *val)
 {
 	int ret = 0;
+	int i;
 
-	int bank;
+	for (i = 0; i < BANK_SZ; i++) {
 
-	for (bank = 0; bank < NBANK(chip); bank++) {
-
-		ret = axonf_iob_read_reg(chip, reg, val + bank, bank);
+		// Read the register at address. Address is reg + i (reg is the starting address)
+		// Address to store the data is "val[i]". We also provide the bank, which is calculated
+		// from the reg.
+		ret = axonf_iob_read_reg(chip, i, val+i, bank);
 		if (ret < 0) {
 			dev_err(&chip->client->dev, "failed reading register\n");
 			return ret;
@@ -372,25 +394,27 @@ static int axonf_iob_read_regs(struct axonf_chip *chip, int reg, u8 *val)
 }
 
 /*
- * Writes all of the data for the specific register set (all banks)
- * reg: register address
- * val: Pointer to array of values to be written (must be at least NBANK size)
+ * Writes all of the data for the specific bank
+ * reg: bank address
+ * val: Pointer to array of values to be written (must be at least BANK_SZ size)
  */
-static int axonf_iob_write_regs(struct axonf_chip *chip, int reg, u8 *val)
+static int axonf_iob_write_regs(struct axonf_chip *chip, int bank, u8 *val)
 {
 	int ret = 0;
 
-	int bank;
+	int i;
 
-	for (bank = 0; bank < NBANK(chip); bank++) {
+	for (i = 0; i < BANK_SZ; i++) {
 
-		ret = axonf_iob_write_reg(chip, reg, val[bank], bank);
+		// Weite the register at address. Address is reg + i (reg is the starting address)
+		// Address to store the data is "val[i]". We also provide the bank, which is calculated
+		// from the reg.
+		ret = axonf_iob_write_reg(chip, i, val[i], bank);
 		if (ret < 0) {
-			dev_err(&chip->client->dev, "failed reading register\n");
+			dev_err(&chip->client->dev, "failed writing register\n");
 			return ret;
 		}
 	}
-
 	return 0;
 }
 
@@ -400,18 +424,21 @@ static int axonf_gpio_enable(struct gpio_chip *gc, unsigned off, unsigned val)
 	u8 reg_val;
 	int ret;
 	int bank = off / BANK_SZ;
+	int offset = off % BANK_SZ;
 
 	mutex_lock(&chip->i2c_lock);
 	if(val) /* enable */
-		reg_val = chip->reg_enable[bank] | (1u << (off % BANK_SZ));
+		//reg_val = chip->reg_enable[bank] | (1u << (off % BANK_SZ));
+		reg_val = chip->reg_ctrl_status[bank * BANK_SZ + offset] | AXONF_IOB_MASK_ENABLE;
 	else
-		reg_val = chip->reg_enable[bank] & ~(1u << (off % BANK_SZ));
+		//reg_val = chip->reg_enable[bank] & ~(1u << (off % BANK_SZ));
+		reg_val = chip->reg_ctrl_status[bank * BANK_SZ + offset] & ~AXONF_IOB_MASK_ENABLE;
 
-	ret = axonf_iob_write_reg(chip, chip->regs->enable, reg_val, bank);
+	ret = axonf_iob_write_reg(chip, chip->regs->ctrl_status + offset, reg_val, bank);
 	if (ret)
 		goto exit;
 
-	chip->reg_enable[off / BANK_SZ] = reg_val;
+	chip->reg_ctrl_status[bank * BANK_SZ + offset] = reg_val;
 exit:
 	mutex_unlock(&chip->i2c_lock);
 	return ret;
@@ -421,31 +448,28 @@ static int axonf_gpio_set_select(struct gpio_chip *gc, unsigned off, unsigned va
 {
 	struct axonf_chip *chip = gpiochip_get_data(gc);
 	u8 reg_val;
-	u8 sel0, sel1;
-	int ret, bank, bit;
+	int ret, bank, offset;
 
 	mutex_lock(&chip->i2c_lock);
 
-	sel0 = val & 0x1 ? 1 : 0;
-	sel1 = val & 0x2 ? 1 : 0;
+	// Bank is calculated using the offset (off) within the gpiochip
 	bank = off / BANK_SZ;
-	bit = off % BANK_SZ;
 
-	reg_val = chip->reg_sel0[bank] | (sel0 << bit);
+	// Offset, below, is the gpio index within the axon iobank
+	offset = off % BANK_SZ;
 
-	ret = axonf_iob_write_reg(chip, chip->regs->sel0, reg_val, bank);
+	// The new selection value is in 'val' but needs to be shifted up
+	// and masked.
+	val = (val << AXONF_IOB_OFFSET_SEL) & AXONF_IOB_MASK_SEL;
+
+	// Set the register value (bitwise OR)
+	reg_val = chip->reg_ctrl_status[bank * BANK_SZ + offset] | val;
+
+	ret = axonf_iob_write_reg(chip, chip->regs->ctrl_status + offset, reg_val, bank);
 	if (ret)
 		goto exit;
 
-	chip->reg_sel0[bank] = reg_val;
-
-	reg_val = chip->reg_sel1[bank] | (sel1 << bit);
-
-	ret = axonf_iob_write_reg(chip, chip->regs->sel1, reg_val, bank);
-	if (ret)
-		goto exit;
-
-	chip->reg_sel1[bank] = reg_val;
+	chip->reg_ctrl_status[bank * BANK_SZ + offset] = reg_val;
 
 exit:
 	mutex_unlock(&chip->i2c_lock);
@@ -458,61 +482,74 @@ static int axonf_gpio_direction_input(struct gpio_chip *gc, unsigned off)
 	struct axonf_chip *chip = gpiochip_get_data(gc);
 	u8 reg_val;
 	int ret;
+	int bank, offset;
+
+	// Do the normal bank/offset calculations (see earlier functions for comments)
+	bank = off / BANK_SZ;
+	offset = off % BANK_SZ;
 
 	if(chip->dir_lock)
 		return 0;
 
 	mutex_lock(&chip->i2c_lock);
-	reg_val = chip->reg_direction[off / BANK_SZ] | (1u << (off % BANK_SZ));
 
-	ret = axonf_iob_write_single(chip, chip->regs->direction, reg_val, off);
+	// Setting the axon iobank control_status register DIR bit makes the
+	// IOBLOCK an INPUT.
+	reg_val = chip->reg_ctrl_status[bank * BANK_SZ + offset] | AXONF_IOB_MASK_DIR;
+
+	ret = axonf_iob_write_single(chip, chip->regs->ctrl_status + offset, reg_val, off);
 	if (ret) {
 		dev_err(&chip->client->dev, "failed to set direction input for line %d: err %d\n",off,ret);
 		goto exit;
 	}
 
-	chip->reg_direction[off / BANK_SZ] = reg_val;
+	chip->reg_ctrl_status[bank * BANK_SZ + offset] = reg_val;
+
 exit:
 	mutex_unlock(&chip->i2c_lock);
 	return ret;
 }
 
+// Contrary to the function name, this function sets the output value
+// (1 or 0) for the given GPIO at offset "off". It then set the direction to
+// OUTPUT.
 static int axonf_gpio_direction_output(struct gpio_chip *gc,
 		unsigned off, int val)
 {
 	struct axonf_chip *chip = gpiochip_get_data(gc);
 	u8 reg_val;
 	int ret = 0;
+	int bank, offset;
+
+	// Do the normal bank/offset calculations (see earlier functions for comments)
+	bank = off / BANK_SZ;
+	offset = off % BANK_SZ;
 
 	mutex_lock(&chip->i2c_lock);
-	/* set output level */
-	if (val)
-		reg_val = chip->reg_output[off / BANK_SZ]
-			| (1u << (off % BANK_SZ));
-	else
-		reg_val = chip->reg_output[off / BANK_SZ]
-			& ~(1u << (off % BANK_SZ));
 
-	ret = axonf_iob_write_single(chip, chip->regs->output, reg_val, off);
+	if(val) /* enable */
+		reg_val = chip->reg_ctrl_status[bank * BANK_SZ + offset] | AXONF_IOB_MASK_ODR;
+	else
+		reg_val = chip->reg_ctrl_status[bank * BANK_SZ + offset] & ~AXONF_IOB_MASK_ODR;
+
+	// The direction lock flag is for local loopback test purposes.
+	// When we want to check the IO connectivity between the SOC and the FPGA, it is
+	// very useful to be able to keep the IOblock as an input (when the default)
+	// behavior would be to have it as an output if the IO is in GPIO mode.
+	if(!chip->dir_lock) {
+		// Set the direction to OUTPUT (set the DIR flag to be ZERO/LOW)
+		reg_val &= ~AXONF_IOB_MASK_DIR;
+	}
+
+	ret = axonf_iob_write_single(chip, chip->regs->ctrl_status + offset, reg_val, off);
+
 	if (ret) {
 		dev_err(&chip->client->dev, "failed to set output value for line %d: err %d\n",off,ret);
 		goto exit;
 	}
 
-	chip->reg_output[off / BANK_SZ] = reg_val;
+	chip->reg_ctrl_status[bank * BANK_SZ + offset] = reg_val;
 
-	if(chip->dir_lock)
-		goto exit;
-
-	/* then direction */
-	reg_val = chip->reg_direction[off / BANK_SZ] & ~(1u << (off % BANK_SZ));
-	ret = axonf_iob_write_single(chip, chip->regs->direction, reg_val, off);
-	if (ret) {
-		dev_err(&chip->client->dev, "failed to set direction output for line %d: err %d\n",off,ret);
-		goto exit;
-	}
-
-	chip->reg_direction[off / BANK_SZ] = reg_val;
 exit:
 	mutex_unlock(&chip->i2c_lock);
 	return ret;
@@ -523,9 +560,13 @@ static int axonf_gpio_get_value(struct gpio_chip *gc, unsigned off)
 	struct axonf_chip *chip = gpiochip_get_data(gc);
 	u8 reg_val;
 	int ret;
+	int offset;
+
+	// Do the normal bank/offset calculations (see earlier functions for comments)
+	offset = off % BANK_SZ;
 
 	mutex_lock(&chip->i2c_lock);
-	ret = axonf_iob_read_single(chip, chip->regs->input, &reg_val, off);
+	ret = axonf_iob_read_single(chip, chip->regs->ctrl_status + offset, &reg_val, off);
 	mutex_unlock(&chip->i2c_lock);
 	if (ret < 0) {
 		/* NOTE:  diagnostic already emitted; that's all we should
@@ -536,29 +577,34 @@ static int axonf_gpio_get_value(struct gpio_chip *gc, unsigned off)
 		return 0;
 	}
 
-	return (reg_val & (1u << (off % BANK_SZ))) ? 1 : 0;
+	return (reg_val & AXONF_IOB_MASK_IDR) ? 1 : 0;
 }
 
 static void axonf_gpio_set_value(struct gpio_chip *gc, unsigned off, int val)
 {
 	struct axonf_chip *chip = gpiochip_get_data(gc);
 	u8 reg_val;
-	int ret;
+	int ret, offset, bank;
+
+	// Calculate the bank
+	bank = off / BANK_SZ;
+
+	// Calculate the offset within the bank
+	offset = off % BANK_SZ;
 
 	mutex_lock(&chip->i2c_lock);
-	if (val)
-		reg_val = chip->reg_output[off / BANK_SZ]
-			| (1u << (off % BANK_SZ));
-	else
-		reg_val = chip->reg_output[off / BANK_SZ]
-			& ~(1u << (off % BANK_SZ));
 
-	ret = axonf_iob_write_single(chip, chip->regs->output, reg_val, off);
+	if(val)
+		reg_val = chip->reg_ctrl_status[bank * BANK_SZ + offset] | AXONF_IOB_MASK_ODR;
+	else
+		reg_val = chip->reg_ctrl_status[bank * BANK_SZ + offset] & ~AXONF_IOB_MASK_ODR;
+
+	ret = axonf_iob_write_single(chip, chip->regs->ctrl_status + offset, reg_val, off);
 
 	if (ret)
 		goto exit;
 
-	chip->reg_output[off / BANK_SZ] = reg_val;
+	chip->reg_ctrl_status[bank * BANK_SZ + offset] = reg_val;
 exit:
 	mutex_unlock(&chip->i2c_lock);
 }
@@ -567,21 +613,18 @@ static int axonf_gpio_get_direction(struct gpio_chip *gc, unsigned off)
 {
 	struct axonf_chip *chip = gpiochip_get_data(gc);
 	u8 reg_val;
-	int ret;
+	int ret, offset;
 
-	if(chip->dir_lock)
-		goto exit;
+	offset = off % BANK_SZ;
 
 	mutex_lock(&chip->i2c_lock);
-	ret = axonf_iob_read_single(chip, chip->regs->direction, &reg_val, off);
+	ret = axonf_iob_read_single(chip, chip->regs->ctrl_status + offset, &reg_val, off);
 	mutex_unlock(&chip->i2c_lock);
 	if (ret < 0)
 		return ret;
 
-	ret = !!(reg_val & (1u << (off % BANK_SZ)));
-exit:
-	ret = 0;
-	return ret;
+	return (reg_val & AXONF_IOB_MASK_DIR) ? 1 : 0;
+
 }
 
 /*
@@ -596,8 +639,7 @@ static int axonf_read_magic(struct axonf_chip *chip)
 
 	mutex_lock(&chip->i2c_lock);
 
-	ret = i2c_smbus_read_i2c_block_data(chip->client, AXONF_CMD_READ_MAGIC,
-			FW_MAGIC_SZ, magic);
+	ret = axonf_read_i2c_data(chip, AXONF_ADDR_MAGIC, magic, FW_MAGIC_SZ );
 
 	if(ret < 0) {
 		dev_err(&chip->client->dev, "failed reading magic %d\n",ret);
@@ -606,7 +648,9 @@ static int axonf_read_magic(struct axonf_chip *chip)
 
 	if(strncmp(magic, axonf_magic, FW_MAGIC_SZ)) {
 		dev_err(&chip->client->dev,
-				"magic value incorrect. read: %s, expected %s\n", magic, axonf_magic);
+				"Bad magic. Read 0x%02X 0x%02X 0x%02X 0x%02X (%s)  Expected: 0x%02X 0x%02X 0x%02X 0x%02X (%s) \n",
+				magic[0], magic[1], magic[2], magic[3], magic,
+				axonf_magic[0], axonf_magic[1], axonf_magic[2], axonf_magic[3], axonf_magic);
 
 		ret = -ENODEV;
 		goto exit;
@@ -634,8 +678,7 @@ static int axonf_read_cfgdata(struct axonf_chip *chip)
 
 	mutex_lock(&chip->i2c_lock);
 
-	ret = i2c_smbus_read_i2c_block_data(chip->client, AXONF_CMD_READ_CFGDATA,
-			1, (u8*)&cfgdata);
+	ret = axonf_read_i2c_data(chip, AXONF_ADDR_CONFIG, (u8*)&cfgdata, 1);
 
 	if(ret < 0) {
 		dev_err(&chip->client->dev, "failed reading config data %d\n",ret);
@@ -662,8 +705,7 @@ static int axonf_read_version(struct axonf_chip *chip)
 
 	mutex_lock(&chip->i2c_lock);
 
-	ret = i2c_smbus_read_i2c_block_data(chip->client, AXONF_CMD_READ_VERSION,
-			FW_VERSION_SZ, version);
+	ret = axonf_read_i2c_data(chip, AXONF_ADDR_VERSION, version, FW_VERSION_SZ);
 
 	if(ret < 0) {
 		dev_err(&chip->client->dev, "failed reading version %d\n",ret);
@@ -690,8 +732,7 @@ static int axonf_read_statusled(struct axonf_chip *chip)
 
 	mutex_lock(&chip->i2c_lock);
 
-	ret = i2c_smbus_read_i2c_block_data(chip->client, AXONF_CMD_READ_STATUSLED,
-			FW_STATUSLED_SZ, led_val);
+	ret = axonf_read_i2c_data(chip, AXONF_ADDR_RGBLED, led_val, FW_STATUSLED_SZ);
 
 	if(ret < 0) {
 		dev_err(&chip->client->dev, "failed to read status led %d\n",ret);
@@ -727,8 +768,7 @@ static int axonf_write_statusled(struct axonf_chip *chip, u32 led_rgb)
 
 	mutex_lock(&chip->i2c_lock);
 
-	ret = i2c_smbus_write_i2c_block_data(chip->client, AXONF_CMD_WRITE_STATUSLED,
-			FW_STATUSLED_SZ, led_val);
+	ret = axonf_write_i2c_data(chip, AXONF_ADDR_RGBLED, led_val, FW_STATUSLED_SZ);
 
 	if(ret < 0) {
 		dev_err(&chip->client->dev, "failed to write status led %d\n",ret);
@@ -756,8 +796,7 @@ static int axonf_read_ctrlreg(struct axonf_chip *chip)
 
 	mutex_lock(&chip->i2c_lock);
 
-	ret = i2c_smbus_read_i2c_block_data(chip->client, AXONF_CMD_READ_CTRLREG,
-			FW_CTRLREG_SZ, reg);
+	ret = axonf_read_i2c_data(chip, AXONF_ADDR_CTRLREG, reg, 2);
 
 	if(ret < 0) {
 		dev_err(&chip->client->dev, "failed to read control register %d\n",ret);
@@ -788,12 +827,11 @@ static int axonf_write_ctrlreg(struct axonf_chip *chip, u16 ctrlreg)
 	int ret;
 
 	val[1] = ctrlreg & 0xFF;
-	val[0] = (ctrlreg >> 8) & 0xFF;
+	val[0] = (ctrlreg >> 8) & 0xFF;  // Upper byte will go first
 
 	mutex_lock(&chip->i2c_lock);
 
-	ret = i2c_smbus_write_i2c_block_data(chip->client, AXONF_CMD_WRITE_CTRLREG,
-			FW_CTRLREG_SZ, val);
+	ret = axonf_write_i2c_data(chip, AXONF_ADDR_CTRLREG, val, 2);
 
 	if(ret < 0) {
 		dev_err(&chip->client->dev, "failed to write control register %d\n",ret);
@@ -816,20 +854,18 @@ static int axonf_gpio_request(struct gpio_chip *gc, unsigned off)
 {
 	struct axonf_chip *chip = gpiochip_get_data(gc);
 	u8 bank_mask;
-	int offset, allocated, sel0, sel1;
+	int offset, allocated, bank;
 	unsigned int sel;
 	int ret = 0;
 
 	/* Check to see if this gpio is available */
 	offset = off % BANK_SZ;
+	bank = off / BANK_SZ;
 
-	bank_mask = (chip->bank_mask[off / BANK_SZ] >> offset) & 0x1;
-	allocated = (chip->allocated[off / BANK_SZ] >> offset) & 0x1;
+	bank_mask = (chip->bank_mask[bank] >> offset) & 0x1;
+	allocated = (chip->allocated[bank] >> offset) & 0x1;
 
-	sel0 = (chip->reg_sel0[off / BANK_SZ] >> offset) & 0x1;
-	sel1 = (chip->reg_sel1[off / BANK_SZ] >> offset) & 0x1;
-
-	sel = (sel1 << 1) | sel0;
+	sel = (chip->reg_ctrl_status[bank * BANK_SZ + offset] & AXONF_IOB_MASK_SEL) >> AXONF_IOB_OFFSET_SEL;
 
 	/* check if this pin is available */
 	if (!bank_mask) {
@@ -867,10 +903,10 @@ static int axonf_gpio_request(struct gpio_chip *gc, unsigned off)
 		goto exit;
 	}
 
-	chip->allocated[off / BANK_SZ] |= (1 << offset);
+	chip->allocated[bank] |= (1 << offset);
 
 	/* Change the sel mux to select the ODR */
-	ret = axonf_gpio_set_select(gc, off, 0x3);
+	ret = axonf_gpio_set_select(gc, off, AXONF_IOB_SEL_GPIO);
 	if(ret)
 		goto exit;
 
@@ -887,11 +923,14 @@ static void axonf_gpio_free(struct gpio_chip *gc, unsigned off)
 {
 	struct axonf_chip *chip = gpiochip_get_data(gc);
 	u8 bank_mask;
-	int offset, allocated;
+	int offset, allocated, bank;
+
+	// Bank calculation
+	bank = off / BANK_SZ;
 
 	/* Check to see if this gpio is available */
-	bank_mask = chip->bank_mask[off / BANK_SZ];
-	allocated = chip->allocated[off / BANK_SZ];
+	bank_mask = chip->bank_mask[bank];
+	allocated = chip->allocated[bank];
 	offset = off % BANK_SZ;
 
 	/* check if this pin is available */
@@ -1379,40 +1418,23 @@ static int axonf_irq_setup(struct axonf_chip *chip,
 
 static void axonf_print_iob_regs(struct axonf_chip *chip)
 {
-	u8 msg [ AXONF_NBANKS * 3 ];
-	int i;
+	u8 msg [ 200 ];
+	int i,j;
 
-#define STRINGIFY_BANK_REGS(array)\
-	sprintf(msg, "%02x ", array[0]); \
-	for(i = 1; i<AXONF_NBANKS; i++) { \
-		sprintf(msg, "%s%02x ", msg, array[i]); \
+	// Print out the contents of the IOB registers
+	for (j=0; j<AXONF_NBANKS; j++) {
+		sprintf(msg, "%02x ", chip->reg_ctrl_status[j*BANK_SZ]); \
+		for(i = 1; i<BANK_SZ; i++) { \
+			sprintf(msg, "%s%02x ", msg, chip->reg_ctrl_status[j*BANK_SZ+i]); \
+		}
+		dev_info(&chip->client->dev, "io bank %02d ctrl_status=  %s\n", j, msg);
 	}
-
-	STRINGIFY_BANK_REGS(chip->reg_enable);
-
-	dev_info(&chip->client->dev,"enable=    %s\n",msg);
-
-	STRINGIFY_BANK_REGS(chip->reg_pushpull);
-
-	dev_info(&chip->client->dev,"pushpull=  %s\n",msg);
-
-	STRINGIFY_BANK_REGS(chip->reg_direction);
-
-	dev_info(&chip->client->dev,"direction= %s\n",msg);
-
-	STRINGIFY_BANK_REGS(chip->reg_sel0);
-
-	dev_info(&chip->client->dev,"sel0=      %s\n",msg);
-
-	STRINGIFY_BANK_REGS(chip->reg_sel1);
-
-	dev_info(&chip->client->dev,"sel1=      %s\n",msg);
-
 }
 
 static int device_axonf_init(struct axonf_chip *chip, u32 invert)
 {
-	int ret;
+	int ret,i;
+	char propname[20];
 
 	chip->regs = &axonf_regs;
 
@@ -1452,65 +1474,28 @@ static int device_axonf_init(struct axonf_chip *chip, u32 invert)
 
 	dev_info(&chip->client->dev,"ctrlreg value: 0x%04X\n", chip->ctrlreg);
 
-	ret = of_property_read_u8_array(chip->client->dev.of_node,"iob-enable",chip->reg_enable, MAX_BANK);
-	if(ret){
-		dev_err(&chip->client->dev,"error reading property iob-enable in dev tree\n");
-		goto out;
+	for( i = 0; i<MAX_BANK; i++) {
+
+		// Property name is ioblockN-ctrl where N is the bank number.
+		sprintf(propname, "ioblock%d-ctrl", i);
+
+		ret = of_property_read_u8_array(
+			chip->client->dev.of_node,
+			propname,
+			&chip->reg_ctrl_status[BANK_SZ*i],
+			BANK_SZ);
+
+		if(ret){
+			dev_err(&chip->client->dev,"error reading property %s in dev tree\n",propname);
+			goto out;
+		}
+
+		// Write the values for all of the registers in the bank
+		ret = axonf_iob_write_regs(chip, i, chip->reg_ctrl_status + BANK_SZ*i);
+
+		if (ret)
+			goto out;
 	}
-
-	ret = of_property_read_u8_array(chip->client->dev.of_node,"iob-pushpull",chip->reg_pushpull, MAX_BANK);
-	if(ret){
-		dev_err(&chip->client->dev,"error reading property iob-pushpull in dev tree\n");
-		goto out;
-	}
-
-	ret = of_property_read_u8_array(chip->client->dev.of_node,"iob-direction",chip->reg_direction, MAX_BANK);
-	if(ret){
-		dev_err(&chip->client->dev,"error reading property iob-direction in dev tree\n");
-		goto out;
-	}
-
-	ret = of_property_read_u8_array(chip->client->dev.of_node,"iob-selection-0",chip->reg_sel0, MAX_BANK);
-	if(ret){
-		dev_err(&chip->client->dev,"error reading property iob-selection-0 in dev tree\n");
-		goto out;
-	}
-
-	ret = of_property_read_u8_array(chip->client->dev.of_node,"iob-selection-1",chip->reg_sel1, MAX_BANK);
-	if(ret){
-		dev_err(&chip->client->dev,"error reading property iob-selection-1 in dev tree\n");
-		goto out;
-	}
-
-	ret = axonf_iob_write_regs(chip, chip->regs->pushpull,
-				chip->reg_pushpull);
-	if (ret)
-		goto out;
-
-	ret = axonf_iob_write_regs(chip, chip->regs->direction,
-				chip->reg_direction);
-	if (ret)
-		goto out;
-
-	ret = axonf_iob_write_regs(chip, chip->regs->sel0,
-				chip->reg_sel0);
-	if (ret)
-		goto out;
-
-	ret = axonf_iob_write_regs(chip, chip->regs->sel1,
-				chip->reg_sel1);
-	if (ret)
-		goto out;
-
-	ret = axonf_iob_write_regs(chip, chip->regs->output,
-				chip->reg_output);
-	if (ret)
-		goto out;
-
-	ret = axonf_iob_write_regs(chip, chip->regs->enable,
-				chip->reg_enable);
-	if (ret)
-		goto out;
 
 	memset(chip->allocated, 0, sizeof(chip->allocated));
 
@@ -1542,63 +1527,25 @@ out:
 static int axonf_iobregs_debug_show(struct seq_file *m, void *unused)
 {
 	struct axonf_chip *chip = g_chip;
+	u8 regs[BANK_SZ];
 
-	u8 msg [ AXONF_NBANKS * 3 ];
-	int i;
+	u8 msg [ 200 ];
+	int i,j;
 
-#define STRINGIFY_BANK_REGS_DEBUGFS(array)\
-	sprintf(msg, "%02x ", array[0]); \
-	for(i = 1; i<AXONF_NBANKS; i++) { \
-		sprintf(msg, "%s%02x ", msg, array[i]); \
+	for (j=0; j<AXONF_NBANKS; j++) {
+
+		// Read the registers. The address to read is the second argument. The destination
+		// memory is the third argument (regs)
+		if(axonf_iob_read_regs(chip, j, regs)) goto out;
+
+		// Form the message
+		sprintf(msg, "%02x ", regs[0]);
+		for(i = 1; i<BANK_SZ; i++) {
+			sprintf(msg, "%s%02x ", msg, regs[i]);
+		}
+
+		seq_printf(m,"iobank%d ctrl_status=       %s\n",j,msg);
 	}
-
-	if(axonf_iob_read_regs(chip, chip->regs->enable, chip->reg_enable)) goto out;
-	STRINGIFY_BANK_REGS_DEBUGFS(chip->reg_enable);
-	seq_printf(m,"enable=       %s\n",msg);
-
-	if(axonf_iob_read_regs(chip, chip->regs->pushpull, chip->reg_pushpull)) goto out;
-	STRINGIFY_BANK_REGS_DEBUGFS(chip->reg_pushpull);
-	seq_printf(m,"pushpull=     %s\n",msg);
-
-	if(axonf_iob_read_regs(chip, chip->regs->direction,	chip->reg_direction)) goto out;
-	STRINGIFY_BANK_REGS_DEBUGFS(chip->reg_direction);
-	seq_printf(m,"direction=    %s\n",msg);
-
-	if(axonf_iob_read_regs(chip, chip->regs->sel0, chip->reg_sel0))	goto out;
-	STRINGIFY_BANK_REGS_DEBUGFS(chip->reg_sel0);
-	seq_printf(m,"sel0=         %s\n",msg);
-
-	if(axonf_iob_read_regs(chip, chip->regs->sel1, chip->reg_sel1)) goto out;
-	STRINGIFY_BANK_REGS_DEBUGFS(chip->reg_sel1);
-	seq_printf(m,"sel1=         %s\n",msg);
-
-	if(axonf_iob_read_regs(chip, chip->regs->output, chip->reg_output)) goto out;
-	STRINGIFY_BANK_REGS_DEBUGFS(chip->reg_output);
-	seq_printf(m,"output=       %s\n",msg);
-
-	if(axonf_iob_read_regs(chip, chip->regs->input, chip->reg_input)) goto out;
-	STRINGIFY_BANK_REGS_DEBUGFS(chip->reg_input);
-	seq_printf(m,"ext input=    %s\n",msg);
-
-	if(axonf_iob_read_regs(chip, chip->regs->int_input, chip->reg_int_input)) goto out;
-	STRINGIFY_BANK_REGS_DEBUGFS(chip->reg_int_input);
-	seq_printf(m,"int input=    %s\n",msg);
-
-	if(axonf_iob_read_regs(chip, chip->regs->irq_en, chip->reg_irq_en)) goto out;
-	STRINGIFY_BANK_REGS_DEBUGFS(chip->reg_irq_en);
-	seq_printf(m,"iqr_en=       %s\n",msg);
-
-	if(axonf_iob_read_regs(chip, chip->regs->irq_type, chip->reg_irq_type)) goto out;
-	STRINGIFY_BANK_REGS_DEBUGFS(chip->reg_irq_type);
-	seq_printf(m,"irq_type=     %s\n",msg);
-
-	if(axonf_iob_read_regs(chip, chip->regs->irq_polarity, chip->reg_irq_polarity))	goto out;
-	STRINGIFY_BANK_REGS_DEBUGFS(chip->reg_irq_polarity);
-	seq_printf(m,"irq_polarity= %s\n",msg);
-
-	if(axonf_iob_read_regs(chip, chip->regs->irq_iscr, chip->reg_irq_iscr)) goto out;
-	STRINGIFY_BANK_REGS_DEBUGFS(chip->reg_irq_iscr);
-	seq_printf(m,"irq_iscr=     %s\n",msg);
 
 out:
 	return 0;
