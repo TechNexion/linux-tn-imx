@@ -12,6 +12,25 @@
 #include <dt-bindings/input/input.h>
 #include <dt-bindings/gpio/gpio.h>
 
+#define EDM_TEP1_GPIO_DEFS()							\
+&gpio2 {									\
+	gpio-line-names =							\
+		"", "", "", "", "GPIO_PORT1_IO3", "", "", "",			\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "";					\
+	pinctrl-0 = <&pinctrl_gpio2>;						\
+};										\
+										\
+&gpio5 {									\
+	gpio-line-names =							\
+		"", "", "GPIO_PORT1_IO2", "", "", "", "", "",			\
+		"", "", "", "", "GPIO_PORT1_IO4", "GPIO_PORT1_IO1", "", "",	\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "";					\
+	pinctrl-0 = <&pinctrl_gpio5>;						\
+}
+
 / {
 	aliases {
 		mxcfb0 = &mxcfb1;
@@ -133,30 +152,6 @@
 		};
 	};
 
-	gpio-edm {
-		compatible = "gpio-edm";
-		gpio_p256 {
-			label = "GPIO_PORT1_IO1";
-			gpios = <&gpio5 13 0>;
-			dir   = "out";
-		};
-		gpio_p257 {
-			label = "GPIO_PORT1_IO2";
-			gpios = <&gpio5 2 0>;
-			dir   = "out";
-		};
-		gpio_p258 {
-			label = "GPIO_PORT1_IO3";
-			gpios = <&gpio2 4 0>;
-			dir   = "out";
-		};
-		gpio_p259 {
-			label = "GPIO_PORT1_IO4";
-			gpios = <&gpio5 12 0>;
-			dir   = "out";
-		};
-	};
-
 	mxcfb1: fb@0 {
 		compatible = "fsl,mxc_sdc_fb";
 		disp_dev = "lcdif";
@@ -177,6 +172,8 @@
 		};
 	};
 };
+
+EDM_TEP1_GPIO_DEFS();
 
 &iomuxc {
 	pinctrl-names = "default";
@@ -455,10 +452,6 @@
 
 		pinctrl_hog_1: gpio_ctrlgrp {
 			fsl,pins = <
-				MX7D_PAD_SD2_CMD__GPIO5_IO13		0x15
-				MX7D_PAD_SD1_RESET_B__GPIO5_IO2		0x15
-				MX7D_PAD_EPDC_DATA04__GPIO2_IO4		0x15
-				MX7D_PAD_SD2_CLK__GPIO5_IO12		0x15
 				MX7D_PAD_I2C4_SDA__GPIO4_IO15		0x15	/* fec power */
 			>;
 		};
@@ -478,6 +471,20 @@
 		pinctrl_ft5606_reset: ft5606-touch-reset {
 			fsl,pins = <
 				MX7D_PAD_EPDC_DATA10__GPIO2_IO10	0x59	/* touch rest */
+			>;
+		};
+
+		pinctrl_gpio2: gpio2grp {
+			fsl,pins = <
+				MX7D_PAD_EPDC_DATA04__GPIO2_IO4		0x15
+			>;
+		};
+
+		pinctrl_gpio5: gpio5grp {
+			fsl,pins = <
+				MX7D_PAD_SD2_CMD__GPIO5_IO13		0x15
+				MX7D_PAD_SD1_RESET_B__GPIO5_IO2		0x15
+				MX7D_PAD_SD2_CLK__GPIO5_IO12		0x15
 			>;
 		};
 	};
