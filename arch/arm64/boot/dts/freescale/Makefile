@@ -147,6 +147,7 @@ dtb-$(CONFIG_ARCH_FSL_IMX8MM) += imx8mm-axon-pi.dtb \
 				 imx8mm-axon-wizard-ili9881c.dtb \
 				 imx8mm-axon-wizard-g080uan01.dtb \
 				 imx8mm-axon-wizard-g101uan02.dtb \
+				 imx8mm-axon-wizard.dtb \
 				 imx8mm-pico-pi.dtb \
 				 imx8mm-pico-pi-nfc.dtb \
 				 imx8mm-pico-pi-m4.dtb \
