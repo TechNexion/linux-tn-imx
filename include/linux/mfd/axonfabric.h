@@ -35,4 +35,11 @@ struct axonf_platform_data {
 #define AXONF_ADDR_RGBLED  0x0020
 #define AXONF_ADDR_IOBLOCK 0x0100
 
+#define AXONF_SIZE_MAGIC   4
+#define AXONF_SIZE_VERSION 3
+#define AXONF_SIZE_CONFIG  1
+#define AXONF_SIZE_CTRLREG 2
+#define AXONF_SIZE_RGBLED  3
+#define AXONF_SIZE_IOBLOCK 256
+
 #endif /* _LINUX_AXONFABRIC_H */
