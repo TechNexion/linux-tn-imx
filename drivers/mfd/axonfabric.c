@@ -33,6 +33,7 @@
 #include <linux/mfd/axonfabric.h>
 #include <asm/byteorder.h>
 #include <linux/debugfs.h>
+#include <linux/regmap.h>
 
 #include <asm/unaligned.h>
 
@@ -45,6 +46,8 @@
 #define AXONF_IOB_OFFSET_ODR		5
 #define AXONF_IOB_OFFSET_IDR		6
 #define AXONF_IOB_OFFSET_INT_IDR	7
+
+#define AXONF_REGMAP_NAME	"apds9960_regmap"
 
 #define AXONF_IOB_MASK_ENABLE		(0x01 << AXONF_IOB_OFFSET_EN)
 #define AXONF_IOB_MASK_PP			(0x01 << AXONF_IOB_OFFSET_PP)
@@ -63,21 +66,6 @@
 #define AXONF_IOB_SEL_GPIO          0x3
 #define AXONF_IOB_SEL_ALT0          0x1
 #define AXONF_IOB_SEL_ALT1          0x2
-
-/* I2C commands */
-#define AXONF_CMD_IRQSTATUS_READ	0x10
-#define AXONF_CMD_WRITE_IOBANK		0x21
-#define AXONF_CMD_READ_IOBANK		0x23
-#define AXONF_CMD_SET_READ_ADDR		0x22
-#define AXONF_CMD_GLOBAL_ENABLE		0x30
-#define AXONF_CMD_GLOBAL_DISABLE	0x31
-#define AXONF_CMD_READ_VERSION		0x40
-#define AXONF_CMD_READ_MAGIC		0x41
-#define AXONF_CMD_READ_CFGDATA		0x42
-#define AXONF_CMD_WRITE_CTRLREG		0x43
-#define AXONF_CMD_READ_CTRLREG		0x44
-#define AXONF_CMD_WRITE_STATUSLED	0x45
-#define AXONF_CMD_READ_STATUSLED	0x46
 
 #define AXONF_CTRLREG_GIO_ENABLE				0
 #define AXONF_CTRLREG_SHARED_SYSCONFIG_DISABLE	1
@@ -106,6 +94,10 @@
 #define AXONF_NBANKS					13
 
 #define CONFIG_AXONF_DEBUGFS
+
+#define AXONF_USE_REGMAP
+
+
 
 /*
  * Bank Masks: Tell driver which I/O banks can be used as I2C GPIO
@@ -142,11 +134,6 @@ MODULE_DEVICE_TABLE(i2c, axonf_id);
 
 #define MAX_BANK 		13
 #define BANK_SZ 		8
-#define FW_VERSION_SZ 	3
-#define FW_MAGIC_SZ 	4
-#define FW_CFGDATA_SZ	1
-#define FW_CTRLREG_SZ	2
-#define FW_STATUSLED_SZ	3
 
 #define NBANK(chip) DIV_ROUND_UP(chip->gpio_chip.ngpio, BANK_SZ)
 
@@ -166,8 +153,8 @@ struct axonf_chip {
 	u8 reg_irq[MAX_BANK*8];
 	u8 bank_mask[MAX_BANK];
 	u8 allocated[MAX_BANK];
-	u8 fw_version[FW_VERSION_SZ];
-	struct mutex i2c_lock;
+	u8 fw_version[AXONF_SIZE_VERSION];
+	struct regmap* regmap;
 
 #if 0 // #ifdef CONFIG_GPIO_PCA953X_IRQ
 	struct mutex irq_lock;
@@ -203,6 +190,7 @@ struct axonf_chip {
  * the inode private data.
  */
 #ifdef CONFIG_AXONF_DEBUGFS
+
 struct axonf_chip* g_chip;
 #endif // CONFIG_AXONF_DEBUGFS
 
@@ -212,76 +200,80 @@ struct axonf_chip* g_chip;
 
 #define MAX_AXON_I2C_XFER_SIZE 256
 
-static int axonf_read_i2c_data(struct axonf_chip *chip, u16 addr, u8* buf, size_t count) {
-
-	u8 addr_be[2];
-	int ret;
-
-	if(count > MAX_AXON_I2C_XFER_SIZE ) {
-		dev_err(&chip->client->dev, "%s: Buffer size %lu exceeds maximum %d", __FUNCTION__, count, MAX_AXON_I2C_XFER_SIZE );
-		return -EINVAL;
-	}
-
-	// Make big endian. The address MSB is transmitted first, the LSB second.
-	addr_be[0] = (addr >> 8) & 0xff;
-	addr_be[1] = addr & 0xff;
-
-	// dev_info(&chip->client->dev, "%s: Reading address: MSB: 0x%02X LSB: 0x%02X\n", __FUNCTION__, addr_be[0], addr_be[1]);
-
-	ret = i2c_master_send(chip->client, (char*)addr_be, 2);
-
-	if(ret < 0) {
-		dev_err(&chip->client->dev, "%s: failed to write the address to i2c", __FUNCTION__);
-		return ret;
-	}
-
-	ret = i2c_master_recv(chip->client, (char*) buf, count);
-
-	if(ret < 0) {
-		dev_err(&chip->client->dev, "%s: failed to read data from i2c", __FUNCTION__);
-		return ret;
-	}
-
-	if (ret < count) {
-		dev_err(&chip->client->dev, "%s: failed to read all data from i2c. Bytes read: %d, expected: %lu", __FUNCTION__, ret, count);
-	}
-
-	return ret;
-}
-
-/*
- * Writes a block of data from a designated address
+/**
+ * axonf_reg_read: Read a single axon fabric register.
+ *
+ * @chip: Device to read from.
+ * @reg: Register to read.
  */
-
-static int axonf_write_i2c_data(struct axonf_chip *chip, u16 addr, u8* buf, size_t count) {
-
+int axonf_reg_read(struct axonf_chip *chip, unsigned short reg)
+{
+	unsigned int val;
 	int ret;
-	u8 msg[ MAX_AXON_I2C_XFER_SIZE + 2];
 
-	if(count > MAX_AXON_I2C_XFER_SIZE ) {
-		dev_err(&chip->client->dev, "%s: Buffer size %lu exceeds maximum %d", __FUNCTION__, count,MAX_AXON_I2C_XFER_SIZE );
+	ret = regmap_read(chip->regmap, reg, &val);
+
+	if (ret < 0)
 		return ret;
-	}
-
-	// Copy address to buffer
-	msg[0] = (u8)((addr >> 8) & 0xFF);
-	msg[1] = (u8)(addr & 0xFF);
-
-	memcpy(msg+2, buf, count );
-
-	ret = i2c_master_send(chip->client, (char*)msg, count+2);
-
-	if(ret < 0) {
-		dev_err(&chip->client->dev, "%s: failed to write the address to i2c", __FUNCTION__);
-		return ret;
-	}
-
-	return ret;
+	else
+		return val;
 }
+EXPORT_SYMBOL_GPL(axonf_reg_read);
 
-/*
- * Returns the value of the requested register (reg) containing the data
- * for the signal at the requested offset (off)
+/**
+ * axonf_bulk_read: Read multiple axon fabric registers
+ *
+ * @chip: Device to read from
+ * @reg: First register
+ * @count: Number of registers
+ * @buf: Buffer to fill.
+ */
+int axonf_bulk_read(struct axonf_chip *chip, unsigned short reg,
+		     int count, u8 *buf)
+{
+	return regmap_bulk_read(chip->regmap, reg, buf, count);
+}
+EXPORT_SYMBOL_GPL(axonf_bulk_read);
+
+/**
+ * axonf_reg_write: Write a single axon fabric register.
+ *
+ * @chip: Device to write to.
+ * @reg: Register to write to.
+ * @val: Value to write.
+ */
+int axonf_reg_write(struct axonf_chip *chip, unsigned short reg,
+		    u8 val) {
+
+	return regmap_write(chip->regmap, reg, val);
+
+}
+EXPORT_SYMBOL_GPL(axonf_reg_write);
+
+/**
+ * axonf_bulk_write: Write a sequence of registers
+ *
+ * @chip: Device to write to.
+ * @reg: Register to start from
+ * @count: Number of bytes to write
+ * @buf: Buffer to write
+ */
+int axonf_bulk_write(struct axonf_chip *chip, unsigned short reg, int count,
+		    u8 *buf) {
+
+	return regmap_bulk_write(chip->regmap, reg, buf, count);
+
+}
+EXPORT_SYMBOL_GPL(axonf_bulk_write);
+
+
+/**
+ * axonf_iob_read_single: Returns the value of the requested ioblock register (reg)
+ * containing the data for the signal at the requested offset (off)
+ * @chip: This device
+ * @reg: The ioblock register
+ * @val: Pointer to place the read value
+ * @off: IO offset
  */
 static int axonf_iob_read_single(struct axonf_chip *chip, int reg, u8 *val,
 				int off)
@@ -292,13 +284,14 @@ static int axonf_iob_read_single(struct axonf_chip *chip, int reg, u8 *val,
 
 	u16 address = (u16)AXONF_ADDR_IOBLOCK + ((u16)bank << 4) + (u16)reg;
 
-	// Setup the read address
-	ret = axonf_read_i2c_data(chip, address, val, 1);
+	ret = axonf_reg_read(chip, address);
 
 	if (ret < 0) {
 		dev_err(&chip->client->dev, "failed reading register\n");
 		return ret;
 	}
+
+	*val = ret;
 
 	return 0;
 }
@@ -315,7 +308,7 @@ static int axonf_iob_write_single(struct axonf_chip *chip, int reg, u8 val,
 
 	u16 address = (u16)AXONF_ADDR_IOBLOCK + (bank << 4) + (u16)reg;
 
-	ret = axonf_write_i2c_data(chip, address, &val, 1);
+	ret = axonf_reg_write(chip, address, val);
 
 	if (ret < 0) {
 		dev_err(&chip->client->dev, "failed to write data\n");
@@ -337,13 +330,14 @@ static int axonf_iob_read_reg(struct axonf_chip *chip, int reg, u8 *val,
 
 	u16 address = (u16)AXONF_ADDR_IOBLOCK + ((u16)bank << 4) + (u16)reg;
 
-	// Setup the read address
-	ret = axonf_read_i2c_data(chip, address, val, 1);
+	ret = axonf_reg_read(chip, address);
 
 	if (ret < 0) {
 		dev_err(&chip->client->dev, "failed reading register\n");
 		return ret;
 	}
+
+	*val = ret;
 
 	return 0;
 }
@@ -358,7 +352,7 @@ static int axonf_iob_write_reg(struct axonf_chip *chip, int reg, u8 val,
 	int ret;
 	u16 address = (u16)AXONF_ADDR_IOBLOCK + (bank << 4) + (u16)reg;
 
-	ret = axonf_write_i2c_data(chip, address, &val, 1);
+	ret = axonf_reg_write(chip, address, val);
 
 	if (ret < 0) {
 		dev_err(&chip->client->dev, "failed to write data. reg: %d bank: %d\n", reg, bank);
@@ -418,6 +412,12 @@ static int axonf_iob_write_regs(struct axonf_chip *chip, int bank, u8 *val)
 	return 0;
 }
 
+/**
+ * axonf_gpio_enable: Enable or disable a gpio
+ * @gc: This GPIO chip
+ * @off: GPIO offset
+ * @val: Nonzero to enable, zero to disable
+ */
 static int axonf_gpio_enable(struct gpio_chip *gc, unsigned off, unsigned val)
 {
 	struct axonf_chip *chip = gpiochip_get_data(gc);
@@ -426,12 +426,9 @@ static int axonf_gpio_enable(struct gpio_chip *gc, unsigned off, unsigned val)
 	int bank = off / BANK_SZ;
 	int offset = off % BANK_SZ;
 
-	mutex_lock(&chip->i2c_lock);
 	if(val) /* enable */
-		//reg_val = chip->reg_enable[bank] | (1u << (off % BANK_SZ));
 		reg_val = chip->reg_ctrl_status[bank * BANK_SZ + offset] | AXONF_IOB_MASK_ENABLE;
 	else
-		//reg_val = chip->reg_enable[bank] & ~(1u << (off % BANK_SZ));
 		reg_val = chip->reg_ctrl_status[bank * BANK_SZ + offset] & ~AXONF_IOB_MASK_ENABLE;
 
 	ret = axonf_iob_write_reg(chip, chip->regs->ctrl_status + offset, reg_val, bank);
@@ -440,17 +437,21 @@ static int axonf_gpio_enable(struct gpio_chip *gc, unsigned off, unsigned val)
 
 	chip->reg_ctrl_status[bank * BANK_SZ + offset] = reg_val;
 exit:
-	mutex_unlock(&chip->i2c_lock);
 	return ret;
 }
 
+/**
+ * axonf_gpio_set_select: Set the selection for an ioblock (gpio)
+ * Normally used to set the ioblock as a gpio.
+ * @gc: This gpiochip
+ * @off: GPIO offset for this chip
+ * @val: The selection for this gpio
+ */
 static int axonf_gpio_set_select(struct gpio_chip *gc, unsigned off, unsigned val)
 {
 	struct axonf_chip *chip = gpiochip_get_data(gc);
 	u8 reg_val;
 	int ret, bank, offset;
-
-	mutex_lock(&chip->i2c_lock);
 
 	// Bank is calculated using the offset (off) within the gpiochip
 	bank = off / BANK_SZ;
@@ -472,11 +473,15 @@ static int axonf_gpio_set_select(struct gpio_chip *gc, unsigned off, unsigned va
 	chip->reg_ctrl_status[bank * BANK_SZ + offset] = reg_val;
 
 exit:
-	mutex_unlock(&chip->i2c_lock);
 
 	return ret;
 }
 
+/**
+ * axonf_gpio_direction_input: Set the direction of the GPIO as input
+ * @gc: This gpiochip
+ * @off: GPIO offset
+ */
 static int axonf_gpio_direction_input(struct gpio_chip *gc, unsigned off)
 {
 	struct axonf_chip *chip = gpiochip_get_data(gc);
@@ -491,8 +496,6 @@ static int axonf_gpio_direction_input(struct gpio_chip *gc, unsigned off)
 	if(chip->dir_lock)
 		return 0;
 
-	mutex_lock(&chip->i2c_lock);
-
 	// Setting the axon iobank control_status register DIR bit makes the
 	// IOBLOCK an INPUT.
 	reg_val = chip->reg_ctrl_status[bank * BANK_SZ + offset] | AXONF_IOB_MASK_DIR;
@@ -506,13 +509,18 @@ static int axonf_gpio_direction_input(struct gpio_chip *gc, unsigned off)
 	chip->reg_ctrl_status[bank * BANK_SZ + offset] = reg_val;
 
 exit:
-	mutex_unlock(&chip->i2c_lock);
+
 	return ret;
 }
 
-// Contrary to the function name, this function sets the output value
-// (1 or 0) for the given GPIO at offset "off". It then set the direction to
-// OUTPUT.
+/**
+ * axonf_gpio_direction_output: Set the output value of the gpio, then sets
+ * the direction to output.
+ * @gc: This gpiochip
+ * @off: GPIO offset
+ * @val: nonzero sets output high, zero sets output low
+ */
+
 static int axonf_gpio_direction_output(struct gpio_chip *gc,
 		unsigned off, int val)
 {
@@ -524,8 +532,6 @@ static int axonf_gpio_direction_output(struct gpio_chip *gc,
 	// Do the normal bank/offset calculations (see earlier functions for comments)
 	bank = off / BANK_SZ;
 	offset = off % BANK_SZ;
-
-	mutex_lock(&chip->i2c_lock);
 
 	if(val) /* enable */
 		reg_val = chip->reg_ctrl_status[bank * BANK_SZ + offset] | AXONF_IOB_MASK_ODR;
@@ -551,10 +557,15 @@ static int axonf_gpio_direction_output(struct gpio_chip *gc,
 	chip->reg_ctrl_status[bank * BANK_SZ + offset] = reg_val;
 
 exit:
-	mutex_unlock(&chip->i2c_lock);
+
 	return ret;
 }
 
+/**
+ * axonf_gpio_get_value: Returns the value of the requested GPIO
+ * @gc: The gpiochip
+ * @off: The GPIO offset
+ */
 static int axonf_gpio_get_value(struct gpio_chip *gc, unsigned off)
 {
 	struct axonf_chip *chip = gpiochip_get_data(gc);
@@ -565,9 +576,8 @@ static int axonf_gpio_get_value(struct gpio_chip *gc, unsigned off)
 	// Do the normal bank/offset calculations (see earlier functions for comments)
 	offset = off % BANK_SZ;
 
-	mutex_lock(&chip->i2c_lock);
 	ret = axonf_iob_read_single(chip, chip->regs->ctrl_status + offset, &reg_val, off);
-	mutex_unlock(&chip->i2c_lock);
+
 	if (ret < 0) {
 		/* NOTE:  diagnostic already emitted; that's all we should
 		 * do unless gpio_*_value_cansleep() calls become different
@@ -580,6 +590,12 @@ static int axonf_gpio_get_value(struct gpio_chip *gc, unsigned off)
 	return (reg_val & AXONF_IOB_MASK_IDR) ? 1 : 0;
 }
 
+/**
+ * axonf_gpio_set_value: Sets the value of the requested GPIO
+ * @gc: This gpiochip
+ * @off: The offset of the GPIO
+ * @val: Nonzero to set the GPIO high, zero to set it low
+ */
 static void axonf_gpio_set_value(struct gpio_chip *gc, unsigned off, int val)
 {
 	struct axonf_chip *chip = gpiochip_get_data(gc);
@@ -591,8 +607,6 @@ static void axonf_gpio_set_value(struct gpio_chip *gc, unsigned off, int val)
 
 	// Calculate the offset within the bank
 	offset = off % BANK_SZ;
-
-	mutex_lock(&chip->i2c_lock);
 
 	if(val)
 		reg_val = chip->reg_ctrl_status[bank * BANK_SZ + offset] | AXONF_IOB_MASK_ODR;
@@ -606,9 +620,15 @@ static void axonf_gpio_set_value(struct gpio_chip *gc, unsigned off, int val)
 
 	chip->reg_ctrl_status[bank * BANK_SZ + offset] = reg_val;
 exit:
-	mutex_unlock(&chip->i2c_lock);
+
+	return;
 }
 
+/**
+ * axonf_gpio_get_direction: gets the direction of the GPIO
+ * @gc: this GPIO chip
+ * @off: the offset of the GPIO
+ */
 static int axonf_gpio_get_direction(struct gpio_chip *gc, unsigned off)
 {
 	struct axonf_chip *chip = gpiochip_get_data(gc);
@@ -617,9 +637,8 @@ static int axonf_gpio_get_direction(struct gpio_chip *gc, unsigned off)
 
 	offset = off % BANK_SZ;
 
-	mutex_lock(&chip->i2c_lock);
 	ret = axonf_iob_read_single(chip, chip->regs->ctrl_status + offset, &reg_val, off);
-	mutex_unlock(&chip->i2c_lock);
+
 	if (ret < 0)
 		return ret;
 
@@ -627,228 +646,6 @@ static int axonf_gpio_get_direction(struct gpio_chip *gc, unsigned off)
 
 }
 
-/*
- * axonf_read_magic: Read magic data of fabric
- */
-static int axonf_read_magic(struct axonf_chip *chip)
-{
-	u8 magic[FW_MAGIC_SZ+1];
-	int ret;
-
-	memset(magic, 0, FW_MAGIC_SZ+1);
-
-	mutex_lock(&chip->i2c_lock);
-
-	ret = axonf_read_i2c_data(chip, AXONF_ADDR_MAGIC, magic, FW_MAGIC_SZ );
-
-	if(ret < 0) {
-		dev_err(&chip->client->dev, "failed reading magic %d\n",ret);
-		goto exit;
-	}
-
-	if(strncmp(magic, axonf_magic, FW_MAGIC_SZ)) {
-		dev_err(&chip->client->dev,
-				"Bad magic. Read 0x%02X 0x%02X 0x%02X 0x%02X (%s)  Expected: 0x%02X 0x%02X 0x%02X 0x%02X (%s) \n",
-				magic[0], magic[1], magic[2], magic[3], magic,
-				axonf_magic[0], axonf_magic[1], axonf_magic[2], axonf_magic[3], axonf_magic);
-
-		ret = -ENODEV;
-		goto exit;
-	}
-
-	ret = 0;
-
-exit:
-	mutex_unlock(&chip->i2c_lock);
-
-	return ret;
-}
-
-/*
- * axonf_read_cfgdata: Read configuration data
- * Configuration data tells us SOM and fabric-specific details regarding
- * the firmware loaded into the fabric. Currently it reads the fabric
- * level and the SOM type, but should be extended to read fabric capabilities
- * and OEM-specific data for customizations.
- */
-static int axonf_read_cfgdata(struct axonf_chip *chip)
-{
-	u8 cfgdata;
-	int ret;
-
-	mutex_lock(&chip->i2c_lock);
-
-	ret = axonf_read_i2c_data(chip, AXONF_ADDR_CONFIG, (u8*)&cfgdata, 1);
-
-	if(ret < 0) {
-		dev_err(&chip->client->dev, "failed reading config data %d\n",ret);
-		goto exit;
-	}
-
-	chip->cfgdata = cfgdata;
-
-	ret = 0;
-
-exit:
-	mutex_unlock(&chip->i2c_lock);
-
-	return ret;
-}
-
-/*
- * axonf_read_version: Read version of fabric
- */
-static int axonf_read_version(struct axonf_chip *chip)
-{
-	u8 version[3];
-	int ret;
-
-	mutex_lock(&chip->i2c_lock);
-
-	ret = axonf_read_i2c_data(chip, AXONF_ADDR_VERSION, version, FW_VERSION_SZ);
-
-	if(ret < 0) {
-		dev_err(&chip->client->dev, "failed reading version %d\n",ret);
-		goto exit;
-	}
-
-	memcpy(chip->fw_version, version, FW_VERSION_SZ);
-	ret = 0;
-
-exit:
-	mutex_unlock(&chip->i2c_lock);
-
-	return ret;
-}
-
-/*
- * axonf_read_status_led: Read status LED value
- */
-static int axonf_read_statusled(struct axonf_chip *chip)
-{
-	u8 led_val[FW_STATUSLED_SZ+1];
-	int ret;
-	u32 led_rgb = 0;
-
-	mutex_lock(&chip->i2c_lock);
-
-	ret = axonf_read_i2c_data(chip, AXONF_ADDR_RGBLED, led_val, FW_STATUSLED_SZ);
-
-	if(ret < 0) {
-		dev_err(&chip->client->dev, "failed to read status led %d\n",ret);
-		goto exit;
-	}
-
-	led_rgb = 	(( led_val[0] << 16) & 0xFF0000 ) |  // R
-				(( led_val[1] << 8)  & 0x00FF00 ) |  // G
-				(  led_val[2]        & 0x0000FF );   // B
-
-	chip->statusled_rgb_color = led_rgb;
-
-	ret = 0;
-
-exit:
-	mutex_unlock(&chip->i2c_lock);
-
-	return ret;
-}
-
-/*
- * axonf_write_status_led: Writes new value to status LED
- */
-
-static int axonf_write_statusled(struct axonf_chip *chip, u32 led_rgb)
-{
-	u8 led_val[FW_STATUSLED_SZ+1];
-	int ret;
-
-	led_val[0] = led_rgb >> 16 & 0xFF;  // R
-	led_val[1] = led_rgb >> 8  & 0xFF;  // G
-	led_val[2] = led_rgb & 0xFF;        // B
-
-	mutex_lock(&chip->i2c_lock);
-
-	ret = axonf_write_i2c_data(chip, AXONF_ADDR_RGBLED, led_val, FW_STATUSLED_SZ);
-
-	if(ret < 0) {
-		dev_err(&chip->client->dev, "failed to write status led %d\n",ret);
-		goto exit;
-	}
-
-	chip->statusled_rgb_color = led_rgb & 0x00FFFFFF;
-
-	ret = 0;
-
-exit:
-	mutex_unlock(&chip->i2c_lock);
-
-	return ret;
-}
-
-/*
- * axonf_read_ctrlreg: Read control register
- */
-static int axonf_read_ctrlreg(struct axonf_chip *chip)
-{
-	u8 reg[FW_CTRLREG_SZ+1];
-	int ret;
-	u16 ctrlreg = 0;
-
-	mutex_lock(&chip->i2c_lock);
-
-	ret = axonf_read_i2c_data(chip, AXONF_ADDR_CTRLREG, reg, 2);
-
-	if(ret < 0) {
-		dev_err(&chip->client->dev, "failed to read control register %d\n",ret);
-		goto exit;
-	}
-
-	ctrlreg =  (reg[0] << 8) | reg[1] ;
-
-	dev_info(&chip->client->dev, "Read control register: %04X\n",ctrlreg);
-
-	chip->ctrlreg = ctrlreg;
-
-	ret = 0;
-
-exit:
-	mutex_unlock(&chip->i2c_lock);
-
-	return ret;
-}
-
-/*
- * axonf_write_ctrlreg: Writes new value to control register
- */
-
-static int axonf_write_ctrlreg(struct axonf_chip *chip, u16 ctrlreg)
-{
-	u8 val[FW_CTRLREG_SZ+1];
-	int ret;
-
-	val[1] = ctrlreg & 0xFF;
-	val[0] = (ctrlreg >> 8) & 0xFF;  // Upper byte will go first
-
-	mutex_lock(&chip->i2c_lock);
-
-	ret = axonf_write_i2c_data(chip, AXONF_ADDR_CTRLREG, val, 2);
-
-	if(ret < 0) {
-		dev_err(&chip->client->dev, "failed to write control register %d\n",ret);
-		goto exit;
-	}
-
-	dev_info(&chip->client->dev, "Wrote control register: %04X\n",ctrlreg);
-
-	chip->ctrlreg = ctrlreg;
-
-	ret = 0;
-
-exit:
-	mutex_unlock(&chip->i2c_lock);
-
-	return ret;
-}
 
 static int axonf_gpio_request(struct gpio_chip *gc, unsigned off)
 {
@@ -966,6 +763,215 @@ static void axonf_setup_gpio(struct axonf_chip *chip, int gpios)
 	gc->parent = &chip->client->dev;
 	gc->owner = THIS_MODULE;
 	gc->names = chip->names;
+}
+
+
+/**
+ * axonf_read_magic: Read magic data of fabric. Store it into the
+ * the chip device data.
+ * @chip: This chip
+ */
+static int axonf_read_magic(struct axonf_chip *chip)
+{
+	u8 magic[AXONF_SIZE_MAGIC+1];
+	int ret;
+
+	memset(magic, 0, AXONF_SIZE_MAGIC+1);
+
+	ret = axonf_bulk_read(chip, AXONF_ADDR_MAGIC, AXONF_SIZE_MAGIC, magic);
+
+	if(ret < 0) {
+		dev_err(&chip->client->dev, "failed reading magic %d\n",ret);
+		goto exit;
+	}
+
+	if(strncmp(magic, axonf_magic, AXONF_SIZE_MAGIC)) {
+		dev_err(&chip->client->dev,
+				"Bad magic. Read 0x%02X 0x%02X 0x%02X 0x%02X (%s)  Expected: 0x%02X 0x%02X 0x%02X 0x%02X (%s) \n",
+				magic[0], magic[1], magic[2], magic[3], magic,
+				axonf_magic[0], axonf_magic[1], axonf_magic[2], axonf_magic[3], axonf_magic);
+
+		ret = -ENODEV;
+		goto exit;
+	}
+
+	ret = 0;
+
+exit:
+
+	return ret;
+}
+
+/**
+ * axonf_read_cfgdata: Read configuration data
+ * Configuration data tells us SOM and fabric-specific details regarding
+ * the firmware loaded into the fabric. Currently it reads the fabric
+ * level and the SOM type, but should be extended to read fabric capabilities
+ * and OEM-specific data for customizations.
+ * @chip: Ths device data
+ */
+static int axonf_read_cfgdata(struct axonf_chip *chip)
+{
+	int ret;
+
+	ret = axonf_reg_read(chip, AXONF_ADDR_CONFIG);
+
+	if(ret < 0) {
+		dev_err(&chip->client->dev, "failed reading config data %d\n",ret);
+		goto exit;
+	}
+
+	chip->cfgdata = (u8) ret;
+
+	ret = 0;
+
+exit:
+
+	return ret;
+}
+
+/**
+ * axonf_read_version: Read version of fabric and store it into the device data.
+ * @chip: This device data
+ */
+static int axonf_read_version(struct axonf_chip *chip)
+{
+	u8 version[3];
+	int ret;
+
+	ret = axonf_bulk_read(chip, AXONF_ADDR_VERSION, AXONF_SIZE_VERSION, version);
+
+	if(ret < 0) {
+		dev_err(&chip->client->dev, "failed reading version %d\n",ret);
+		goto exit;
+	}
+
+	memcpy(chip->fw_version, version, AXONF_SIZE_VERSION);
+	ret = 0;
+
+exit:
+
+	return ret;
+}
+
+/**
+ * axonf_read_status_led: Read status LED value
+ * @chip: This device data
+ */
+static int axonf_read_statusled(struct axonf_chip *chip)
+{
+	u8 led_val[AXONF_SIZE_RGBLED+1];
+	int ret;
+	u32 led_rgb = 0;
+
+	ret = axonf_bulk_read(chip, AXONF_ADDR_RGBLED, AXONF_SIZE_RGBLED, led_val);
+
+	if(ret < 0) {
+		dev_err(&chip->client->dev, "failed to read status led %d\n",ret);
+		goto exit;
+	}
+
+	led_rgb = 	(( led_val[0] << 16) & 0xFF0000 ) |  // R
+				(( led_val[1] << 8)  & 0x00FF00 ) |  // G
+				(  led_val[2]        & 0x0000FF );   // B
+
+	chip->statusled_rgb_color = led_rgb;
+
+	ret = 0;
+
+exit:
+
+	return ret;
+}
+
+/**
+ * axonf_write_status_led: Writes new value to status LED
+ * @chip: This device data
+ * @led_rgb: A 32-bit value containing a 24-bit RGB color to set the LED to.
+ */
+static int axonf_write_statusled(struct axonf_chip *chip, u32 led_rgb)
+{
+	u8 led_val[AXONF_SIZE_RGBLED+1];
+	int ret;
+
+	led_val[0] = led_rgb >> 16 & 0xFF;  // R
+	led_val[1] = led_rgb >> 8  & 0xFF;  // G
+	led_val[2] = led_rgb & 0xFF;        // B
+
+	ret = axonf_bulk_write(chip, AXONF_ADDR_RGBLED, AXONF_SIZE_RGBLED, led_val);
+
+	if(ret < 0) {
+		dev_err(&chip->client->dev, "failed to write status led %d\n",ret);
+		goto exit;
+	}
+
+	chip->statusled_rgb_color = led_rgb & 0x00FFFFFF;
+
+	ret = 0;
+
+exit:
+
+	return ret;
+}
+
+/**
+ * axonf_read_ctrlreg: Read control register
+ * @chip: This chip
+ */
+static int axonf_read_ctrlreg(struct axonf_chip *chip)
+{
+	u8 reg[AXONF_SIZE_CTRLREG+1];
+	int ret;
+	u16 ctrlreg = 0;
+
+	ret = axonf_bulk_read(chip, AXONF_ADDR_CTRLREG, AXONF_SIZE_CTRLREG, reg);
+
+	if(ret < 0) {
+		dev_err(&chip->client->dev, "failed to read control register %d\n",ret);
+		goto exit;
+	}
+
+	ctrlreg =  (reg[0] << 8) | reg[1] ;
+
+	dev_info(&chip->client->dev, "Read control register: %04X\n",ctrlreg);
+
+	chip->ctrlreg = ctrlreg;
+
+	ret = 0;
+
+exit:
+
+	return ret;
+}
+
+/*
+ * axonf_write_ctrlreg: Writes new value to control register
+ */
+
+static int axonf_write_ctrlreg(struct axonf_chip *chip, u16 ctrlreg)
+{
+	u8 val[AXONF_SIZE_CTRLREG+1];
+	int ret;
+
+	val[1] = ctrlreg & 0xFF;
+	val[0] = (ctrlreg >> 8) & 0xFF;  // Upper byte will go first
+
+	ret = axonf_bulk_write(chip, AXONF_ADDR_CTRLREG, AXONF_SIZE_CTRLREG, val);
+
+	if(ret < 0) {
+		dev_err(&chip->client->dev, "failed to write control register %d\n",ret);
+		goto exit;
+	}
+
+	dev_info(&chip->client->dev, "Wrote control register: %04X\n",ctrlreg);
+
+	chip->ctrlreg = ctrlreg;
+
+	ret = 0;
+
+exit:
+
+	return ret;
 }
 
 /*
@@ -1615,7 +1621,52 @@ static void axonf_free_debugfs(struct axonf_chip *chip) {
 		debugfs_remove_recursive(chip->debugfs_top_dir);
 }
 
-static const struct of_device_id axonf_dt_ids[];
+static const struct of_device_id axonf_dt_ids[] = {
+	{ .compatible = "technexion,axon-imx6-f01",   .data = (void*)(AXONF_NGPIOS | AXONF_IMX6   | AXONF_FLVL_1), },
+	{ .compatible = "technexion,axon-imx8mm-f01", .data = (void*)(AXONF_NGPIOS | AXONF_IMX8MM | AXONF_FLVL_1), },
+	{ .compatible = "technexion,axon-imx6-f03",   .data = (void*)(AXONF_NGPIOS | AXONF_IMX6   | AXONF_INT | AXONF_FLVL_3), },
+	{ .compatible = "technexion,axon-imx8mm-f03", .data = (void*)(AXONF_NGPIOS | AXONF_IMX8MM | AXONF_INT | AXONF_FLVL_3), },
+	{ }
+};
+
+static const struct regmap_range axonf_readable_ranges[] = {
+	regmap_reg_range(AXONF_ADDR_MAGIC, AXONF_ADDR_CONFIG),
+	regmap_reg_range(AXONF_ADDR_CTRLREG,
+				AXONF_ADDR_CTRLREG + AXONF_SIZE_CTRLREG - 1 ),
+	regmap_reg_range(AXONF_ADDR_RGBLED,
+				AXONF_ADDR_RGBLED + AXONF_SIZE_RGBLED - 1),
+	regmap_reg_range(AXONF_ADDR_IOBLOCK,
+				AXONF_ADDR_IOBLOCK + AXONF_SIZE_IOBLOCK - 1),
+};
+
+static const struct regmap_access_table axonf_readable_table = {
+	.yes_ranges	= axonf_readable_ranges,
+	.n_yes_ranges	= ARRAY_SIZE(axonf_readable_ranges),
+};
+
+static const struct regmap_range axonf_writeable_ranges[] = {
+	regmap_reg_range(AXONF_ADDR_CTRLREG,
+				AXONF_ADDR_CTRLREG + AXONF_SIZE_CTRLREG - 1 ),
+	regmap_reg_range(AXONF_ADDR_RGBLED,
+				AXONF_ADDR_RGBLED + AXONF_SIZE_RGBLED - 1),
+	regmap_reg_range(AXONF_ADDR_IOBLOCK,
+				AXONF_ADDR_IOBLOCK + AXONF_SIZE_IOBLOCK - 1),
+};
+
+static const struct regmap_access_table axonf_writeable_table = {
+	.yes_ranges	= axonf_writeable_ranges,
+	.n_yes_ranges	= ARRAY_SIZE(axonf_writeable_ranges),
+};
+
+struct regmap_config axonf_regmap_config = {
+	.name = AXONF_REGMAP_NAME,
+	.reg_bits = 16,
+	.val_bits = 8,
+
+	.rd_table = &axonf_readable_table,
+	.wr_table = &axonf_writeable_table
+};
+EXPORT_SYMBOL_GPL(axonf_regmap_config);
 
 static int axonf_probe(struct i2c_client *client,
 				   const struct i2c_device_id *i2c_id)
@@ -1635,6 +1686,14 @@ static int axonf_probe(struct i2c_client *client,
 #ifdef CONFIG_AXONF_DEBUGFS
 	g_chip = chip; // HACK
 #endif // CONFIG_AXONF_DEBUGFS
+
+	chip->regmap = devm_regmap_init_i2c(client,&axonf_regmap_config);
+	if (IS_ERR(chip->regmap)) {
+		ret = PTR_ERR(chip->regmap);
+		dev_err(&client->dev,"Failed to allocate register map: %d\n",
+			ret);
+		return ret;
+	}
 
 	pdata = dev_get_platdata(&client->dev);
 	if (pdata) {
@@ -1692,7 +1751,6 @@ static int axonf_probe(struct i2c_client *client,
 		}
 	}
 
-	mutex_init(&chip->i2c_lock);
 	/*
 	 * In case we have an i2c-mux controlled by a GPIO provided by an
 	 * expander using the same driver higher on the device tree, read the
@@ -1807,13 +1865,7 @@ static int axonf_remove(struct i2c_client *client)
 	return ret;
 }
 
-static const struct of_device_id axonf_dt_ids[] = {
-	{ .compatible = "technexion,axon-imx6-f01",   .data = (void*)(AXONF_NGPIOS | AXONF_IMX6   | AXONF_FLVL_1), },
-	{ .compatible = "technexion,axon-imx8mm-f01", .data = (void*)(AXONF_NGPIOS | AXONF_IMX8MM | AXONF_FLVL_1), },
-	{ .compatible = "technexion,axon-imx6-f03",   .data = (void*)(AXONF_NGPIOS | AXONF_IMX6   | AXONF_INT | AXONF_FLVL_3), },
-	{ .compatible = "technexion,axon-imx8mm-f03", .data = (void*)(AXONF_NGPIOS | AXONF_IMX8MM | AXONF_INT | AXONF_FLVL_3), },
-	{ }
-};
+
 
 MODULE_DEVICE_TABLE(of, axonf_dt_ids);
 
