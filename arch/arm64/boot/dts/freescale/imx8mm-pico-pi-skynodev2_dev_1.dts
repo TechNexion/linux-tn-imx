@@ -1,0 +1,80 @@
+/*
+ * Copyright 2020 Auterion AG
+ *
+ * Author: Helge Bahmann <helge@auterion.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/* This defines the features of the first Skynode boards: production batch with
+ * connectors swapped such that neither PCIe nor ethernet connection to switch
+ * is available. */
+
+/dts-v1/;
+
+#include "imx8mm-pico-pi.dts"
+
+/*
+ * Real Time Clock
+ *
+ * We do not use the realtime clock integrated into i.MX8MM security controller,
+ * but have one connected via i2c bus.
+ */
+
+/delete-node/ &snvs_rtc;
+
+&i2c2 {
+	rtc_mcp7940: mcp7940 {
+		compatible = "microchip,mcp7940x";
+		reg = <0x6f>;
+	};
+};
+
+/*
+ * UART
+ *
+ * Flight controller is attached to UART4, using pins normally used for
+ * SPI2 or other purposes (mipi csi controls). This activates UART4 and
+ * maps pins for use by flight controller.
+ */
+
+/* Delete pinctrls with conflicting mappings for ECSPI2_{SCLK|MOSI} */
+/delete-node/ &pinctrl_tfa98xx;
+/delete-node/ &pinctrl_csi_pwn;
+
+/* The pins used by UART4 are multiplexed with MIPI control which thus also
+ * becomes unavailable. */
+/delete-node/ &ov5645_mipi;
+/delete-node/ &mipi_csi_1;
+/delete-node/ &csi1_bridge;
+
+&iomuxc {
+	/* Map UART4 to ECSPI2 pads. */
+	imx8mm-pico {
+		pinctrl_uart4: uart4grp {
+			fsl,pins = <
+				MX8MM_IOMUXC_ECSPI2_SCLK_UART4_DCE_RX	0x140
+				MX8MM_IOMUXC_ECSPI2_MOSI_UART4_DCE_TX	0x140
+				// Remap 'normal' uart pads so they do not accidentally pull
+				// line low in case they are connected to something.
+				MX8MM_IOMUXC_UART4_RXD_GPIO5_IO28	0x19
+				MX8MM_IOMUXC_UART4_TXD_GPIO5_IO29	0x19
+			>;
+		};
+	};
+};
+
+/* Activate UART and link it to pinctrl. */
+&uart4 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart4>;
+	status = "okay";
+};

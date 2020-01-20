@@ -1,0 +1,38 @@
+/*
+ * Copyright 2020 Auterion AG
+ *
+ * Author: Helge Bahmann <helge@auterion.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/* This defines the features of the Skynode "devkit" board, based on imx8mm
+ * devkit with an externally powered RTC. */
+
+/dts-v1/;
+
+#include "imx8mm-pico-pi.dts"
+
+/*
+ * Real Time Clock
+ *
+ * We do not use the realtime clock integrated into i.MX8MM security controller,
+ * but have one connected via i2c bus.
+ */
+
+/delete-node/ &snvs_rtc;
+
+&i2c2 {
+	rtc_ds1307: ds1307 {
+		compatible = "dallas,ds1307";
+		reg = <0x68>;
+	};
+};
