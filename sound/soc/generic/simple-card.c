@@ -35,6 +35,7 @@ struct simple_card_data {
 		unsigned int mclk_fs;
 	} *dai_props;
 	unsigned int mclk_fs;
+	unsigned int mclk_clk_id;
 	struct asoc_simple_jack hp_jack;
 	struct asoc_simple_jack mic_jack;
 	struct snd_soc_dai_link *dai_link;
@@ -144,7 +145,8 @@ static int asoc_simple_card_hw_params(struct snd_pcm_substream *substream,
 	struct simple_card_data *priv = snd_soc_card_get_drvdata(rtd->card);
 	struct simple_dai_props *dai_props =
 		simple_priv_to_props(priv, rtd->num);
-	unsigned int mclk, mclk_fs = 0;
+	unsigned int mclk, mclk_fs = 0, mclk_clk_id = 0;
+
 	int ret = 0;
 
 	if (priv->mclk_fs)
@@ -154,12 +156,16 @@ static int asoc_simple_card_hw_params(struct snd_pcm_substream *substream,
 
 	if (mclk_fs) {
 		mclk = params_rate(params) * mclk_fs;
+
 		ret = snd_soc_dai_set_sysclk(codec_dai, 0, mclk,
 					     SND_SOC_CLOCK_IN);
 		if (ret && ret != -ENOTSUPP)
 			goto err;
 
-		ret = snd_soc_dai_set_sysclk(cpu_dai, 0, mclk,
+		if (priv->mclk_clk_id)
+			mclk_clk_id = priv->mclk_clk_id;
+
+		ret = snd_soc_dai_set_sysclk(cpu_dai, mclk_clk_id, mclk,
 					     SND_SOC_CLOCK_OUT);
 		if (ret && ret != -ENOTSUPP)
 			goto err;
@@ -358,6 +364,7 @@ static int asoc_simple_card_parse_of(struct simple_card_data *priv)
 
 	/* Factor to mclk, used in hw_params() */
 	of_property_read_u32(node, PREFIX "mclk-fs", &priv->mclk_fs);
+	of_property_read_u32(node, PREFIX "mclk-clk-id", &priv->mclk_clk_id);
 
 	/* Single/Muti DAI link(s) & New style of DT node */
 	if (dai_link) {
