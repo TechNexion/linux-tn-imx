@@ -189,7 +189,7 @@ static irqreturn_t edt_ft5x06_ts_isr(int irq, void *dev_id)
 	case M09:
 		cmd = 0x0;
 		offset = 3;
-		tplen = 6;
+		tplen = 4;
 		crclen = 0;
 		break;
 
