@@ -33,8 +33,6 @@
 		"", "", "", "", "", "", "", "",							\
 		"", "", "", "", "", "", "", "",							\
 		"GPIO_P262", "", "", "", "", "", "", "";					\
-												\
-	pinctrl-0 = <&pinctrl_gpio1>;								\
 };												\
 												\
 &gpio3 {											\
@@ -55,6 +53,64 @@
 		"", "", "", "", "", "", "", "GPIO_P260";					\
 												\
 	pinctrl-0 = <&pinctrl_gpio6>;								\
+}
+
+#define EDM_TC700_GPIO_DEFS()									\
+&gpio1 {											\
+	gpio-line-names =									\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "",							\
+		"GPIO_P262", "", "", "", "", "", "", "";					\
+												\
+};												\
+												\
+&gpio3 {											\
+	gpio-line-names =									\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "GPIO_P259", "", "", "", "", "";					\
+												\
+};												\
+												\
+&gpio6 {											\
+	gpio-line-names =									\
+		"", "", "", "GPIO_P261", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "GPIO_P260";					\
+												\
+	pinctrl-0 = <&pinctrl_ext_gpio6_tc0700>;						\
+}
+
+#define EDM_TC1000_GPIO_DEFS()									\
+&gpio1 {											\
+	gpio-line-names =									\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "",							\
+		"GPIO_P262", "", "", "", "", "", "", "";					\
+												\
+};												\
+												\
+&gpio3 {											\
+	gpio-line-names =									\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "GPIO_P259", "", "", "", "", "";					\
+												\
+};												\
+												\
+&gpio6 {											\
+	gpio-line-names =									\
+		"", "", "GPIO_P256", "GPIO_P261", "GPIO_P257", "GPIO_P255", "", "",		\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "GPIO_P260";					\
+												\
+	pinctrl-0 = <&pinctrl_ext_gpio6_tc1000>;						\
 }
 
 /* SAI */
@@ -444,6 +500,9 @@
 				MX6QDL_PAD_SD3_RST__GPIO7_IO08			0x4001b0b5	/* GPIO7_08 EDM pin 264, touch reset */
 				MX6QDL_PAD_CSI0_DAT13__GPIO5_IO31		0x4001b0b5	/* GPIO5_31 LVDS POWER */
 				MX6QDL_PAD_GPIO_17__GPIO7_IO12			0x4001b0b5	/* GPIO7_12 USB Hub reset*/
+				MX6QDL_PAD_EIM_BCLK__GPIO6_IO31			0x4001b0b5	/* GPIO6_31 EDM pin 260 */
+				MX6QDL_PAD_EIM_D26__GPIO3_IO26			0x4001b0b5	/* GPIO3_26 EDM pin 259 */
+				MX6QDL_PAD_ENET_RX_ER__GPIO1_IO24		0x4001b0b5	/* GPIO1_24 EDM pin 262 */
 			>;
 		};
 
@@ -699,16 +758,9 @@
 			>;
 		};
 
-		pinctrl_gpio1: gpio1grp {
-			fsl,pins = <
-				MX6QDL_PAD_ENET_RX_ER__GPIO1_IO24		0x4001b0b5	/* GPIO1_24 EDM pin 262 */
-			>;
-		};
-
 		pinctrl_gpio3: gpio3grp {
 			fsl,pins = <
 				MX6QDL_PAD_EIM_D27__GPIO3_IO27			0x4001b0b5	/* GPIO3_27 EDM pin 258 */
-				MX6QDL_PAD_EIM_D26__GPIO3_IO26			0x0001c840	/* GPIO3_26 EDM pin 259 */
 			>;
 		};
 
@@ -717,7 +769,21 @@
 				MX6QDL_PAD_CSI0_DAT19__GPIO6_IO05		0x4001b0b5	/* GPIO6_05 EDM pin 255 */
 				MX6QDL_PAD_CSI0_DAT16__GPIO6_IO02		0x4001b0b5	/* GPIO6_02 EDM pin 256 */
 				MX6QDL_PAD_CSI0_DAT18__GPIO6_IO04		0x4001b0b5	/* GPIO6_04 EDM pin 257 */
-				MX6QDL_PAD_EIM_BCLK__GPIO6_IO31			0x4001b0b5	/* GPIO6_31 EDM pin 260 */
+			>;
+		};
+
+		pinctrl_ext_gpio6_tc0700: ext-gpio6-grp-tc0700 {
+			fsl,pins = <
+				MX6QDL_PAD_CSI0_DAT17__GPIO6_IO03  0x4001b0b5 /* GPIO6_03 EDM pin 261 , TC0700's four GPIOs cannot be set together */
+			>;
+		};
+
+		pinctrl_ext_gpio6_tc1000: ext-gpio6-grp-tc1000 {
+			fsl,pins = <
+				MX6QDL_PAD_CSI0_DAT19__GPIO6_IO05		0x4001b0b5	/* GPIO6_05 EDM pin 255 */
+				MX6QDL_PAD_CSI0_DAT16__GPIO6_IO02		0x4001b0b5	/* GPIO6_02 EDM pin 256 */
+				MX6QDL_PAD_CSI0_DAT18__GPIO6_IO04		0x4001b0b5	/* GPIO6_04 EDM pin 257 */
+				MX6QDL_PAD_CSI0_DAT17__GPIO6_IO03		0x4001b0b5	/* GPIO6_03 EDM pin 261 , TC0700's four GPIOs cannot be set together */
 			>;
 		};
 	};
