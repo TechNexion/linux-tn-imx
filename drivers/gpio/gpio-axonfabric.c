@@ -18,6 +18,8 @@
 #include <linux/mfd/axonfabric.h>
 
 #define NBANK(chip) DIV_ROUND_UP(chip->gpio_chip.ngpio, BANK_SZ)
+#define GPIO_TO_IOBANK_ADDR(off) ((u16)AXONF_ADDR_IOBLOCK + (((u16)off / BANK_SZ) << 4) + ((u16)off % BANK_SZ))
+
 
 struct axonfabric_gpio {
 	struct axonf_chip *axonf_chip;
@@ -34,26 +36,17 @@ static int axonf_gpio_enable(struct gpio_chip *gc, unsigned off, unsigned val)
 {
 	struct axonfabric_gpio *axonfabric_gpio = gpiochip_get_data(gc);
 	struct axonf_chip *chip = axonfabric_gpio->axonf_chip;
-	u8 reg_val;
 	int ret;
-	int bank = off / BANK_SZ;
-	int offset = off % BANK_SZ;
 
-	dev_info(&chip->client->dev, "%s called for line %d\n",__func__, off);
+	AXONF_DBG_INFO(&chip->client->dev, " called for line %d\n", off);
 
-	if(val) /* enable */
-		reg_val = chip->reg_ctrl_status[bank * BANK_SZ + offset] | AXONF_IOB_MASK_ENABLE;
-	else
-		reg_val = chip->reg_ctrl_status[bank * BANK_SZ + offset] & ~AXONF_IOB_MASK_ENABLE;
+	ret = axonf_reg_update_bits(chip, GPIO_TO_IOBANK_ADDR(off),
+				AXONF_IOB_MASK_ENABLE, val ? 0xFF : 0);
 
-	ret = axonf_iob_write_reg(chip, chip->regs->ctrl_status + offset, reg_val, bank);
 	if (ret < 0) {
 		dev_err(&chip->client->dev, "failed to enable line %d: err %d\n",off,ret);
-		goto exit;
 	}
 
-	chip->reg_ctrl_status[bank * BANK_SZ + offset] = reg_val;
-exit:
 	return ret;
 }
 
@@ -68,33 +61,16 @@ static int axonf_gpio_set_select(struct gpio_chip *gc, unsigned off, unsigned va
 {
 	struct axonfabric_gpio *axonfabric_gpio = gpiochip_get_data(gc);
 	struct axonf_chip *chip =axonfabric_gpio->axonf_chip;
-	u8 reg_val;
-	int ret, bank, offset;
+	int ret = 0;
 
-	dev_info(&chip->client->dev, "%s called for line %d\n",__func__, off);
-
-	// Bank is calculated using the offset (off) within the gpiochip
-	bank = off / BANK_SZ;
-
-	// Offset, below, is the gpio index within the axon iobank
-	offset = off % BANK_SZ;
+	AXONF_DBG_INFO(&chip->client->dev, "called for line %d\n", off);
 
 	// The new selection value is in 'val' but needs to be shifted up
 	// and masked.
 	val = (val << AXONF_IOB_OFFSET_SEL) & AXONF_IOB_MASK_SEL;
 
-	// Set the register value (bitwise OR)
-	reg_val = chip->reg_ctrl_status[bank * BANK_SZ + offset] | val;
-
-	ret = axonf_iob_write_reg(chip, chip->regs->ctrl_status + offset, reg_val, bank);
-	if (ret < 0) {
-		dev_err(&chip->client->dev, "failed to set select for line %d: err %d\n",off,ret);
-		goto exit;
-	}
-
-	chip->reg_ctrl_status[bank * BANK_SZ + offset] = reg_val;
-
-exit:
+	ret = axonf_reg_update_bits(chip, GPIO_TO_IOBANK_ADDR(off),
+				AXONF_IOB_MASK_SEL, val);
 
 	return ret;
 }
@@ -109,32 +85,19 @@ static int axonf_gpio_direction_input(struct gpio_chip *gc, unsigned off)
 	struct axonfabric_gpio *axonfabric_gpio = gpiochip_get_data(gc);
 	struct axonf_chip *chip =axonfabric_gpio->axonf_chip;
 
-	u8 reg_val;
 	int ret;
-	int bank, offset;
 
-	dev_info(&chip->client->dev, "%s called for line %d\n",__func__, off);
+	AXONF_DBG_INFO(&chip->client->dev, " called for line %d\n", off);
 
 	// Do the normal bank/offset calculations (see earlier functions for comments)
-	bank = off / BANK_SZ;
-	offset = off % BANK_SZ;
+	// bank = off / BANK_SZ;
+	// offset = off % BANK_SZ;
 
 	if(chip->dir_lock)
 		return 0;
 
-	// Setting the axon iobank control_status register DIR bit makes the
-	// IOBLOCK an INPUT.
-	reg_val = chip->reg_ctrl_status[bank * BANK_SZ + offset] | AXONF_IOB_MASK_DIR;
-
-	ret = axonf_iob_write_single(chip, chip->regs->ctrl_status + offset, reg_val, off);
-	if (ret < 0) {
-		dev_err(&chip->client->dev, "failed to set direction input for line %d: err %d\n",off,ret);
-		goto exit;
-	}
-
-	chip->reg_ctrl_status[bank * BANK_SZ + offset] = reg_val;
-
-exit:
+	ret = axonf_reg_update_bits(chip, GPIO_TO_IOBANK_ADDR(off),
+				AXONF_IOB_MASK_DIR, AXONF_IOB_MASK_DIR);
 
 	return ret;
 }
@@ -153,40 +116,18 @@ static int axonf_gpio_direction_output(struct gpio_chip *gc,
 	struct axonfabric_gpio *axonfabric_gpio = gpiochip_get_data(gc);
 	struct axonf_chip *chip =axonfabric_gpio->axonf_chip;
 
-	u8 reg_val;
 	int ret = 0;
-	int bank, offset;
 
-	dev_info(&chip->client->dev, "%s called for line %d\n",__func__, off);
+	AXONF_DBG_INFO(&chip->client->dev, "called for line %d, val: %d\n", off, val);
 
-	// Do the normal bank/offset calculations (see earlier functions for comments)
-	bank = off / BANK_SZ;
-	offset = off % BANK_SZ;
+	if(chip->dir_lock)
+		return ret;
 
-	if(val) /* enable */
-		reg_val = chip->reg_ctrl_status[bank * BANK_SZ + offset] | AXONF_IOB_MASK_ODR;
-	else
-		reg_val = chip->reg_ctrl_status[bank * BANK_SZ + offset] & ~AXONF_IOB_MASK_ODR;
+	ret = axonf_reg_update_bits(chip, GPIO_TO_IOBANK_ADDR(off),
+				AXONF_IOB_MASK_DIR | AXONF_IOB_MASK_ODR, val ? AXONF_IOB_MASK_ODR : 0);
 
-	// The direction lock flag is for local loopback test purposes.
-	// When we want to check the IO connectivity between the SOC and the FPGA, it is
-	// very useful to be able to keep the IOblock as an input (when the default)
-	// behavior would be to have it as an output if the IO is in GPIO mode.
-	if(!chip->dir_lock) {
-		// Set the direction to OUTPUT (set the DIR flag to be ZERO/LOW)
-		reg_val &= ~AXONF_IOB_MASK_DIR;
-	}
-
-	ret = axonf_iob_write_single(chip, chip->regs->ctrl_status + offset, reg_val, off);
-
-	if (ret < 0 ) {
+	if (ret < 0 )
 		dev_err(&chip->client->dev, "failed to set output value for line %d: err %d\n",off,ret);
-		goto exit;
-	}
-
-	chip->reg_ctrl_status[bank * BANK_SZ + offset] = reg_val;
-
-exit:
 
 	return ret;
 }
@@ -201,27 +142,27 @@ static int axonf_gpio_get_value(struct gpio_chip *gc, unsigned off)
 	struct axonfabric_gpio *axonfabric_gpio = gpiochip_get_data(gc);
 	struct axonf_chip *chip =axonfabric_gpio->axonf_chip;
 
-	u8 reg_val;
 	int ret;
-	int offset;
+	u16 address;
 
-	dev_info(&chip->client->dev, "%s called for line %d\n",__func__, off);
+	address = GPIO_TO_IOBANK_ADDR(off);
 
-	// Do the normal bank/offset calculations (see earlier functions for comments)
-	offset = off % BANK_SZ;
+	AXONF_DBG_INFO(&chip->client->dev, "Called for line %d, address is %x\n", off, address);
 
-	ret = axonf_iob_read_single(chip, chip->regs->ctrl_status + offset, &reg_val, off);
+	ret = axonf_reg_read(chip, address);
 
 	if (ret < 0) {
-		/* NOTE:  diagnostic already emitted; that's all we should
-		 * do unless gpio_*_value_cansleep() calls become different
-		 * from their nonsleeping siblings (and report faults).
-		 */
 		dev_err(&chip->client->dev, "failed to get value for line %d: err %d\n", off, ret);
 		return 0;
 	}
 
-	return (reg_val & AXONF_IOB_MASK_IDR) ? 1 : 0;
+	if(chip->dir_lock){
+		// If the dir_lock is set, this is used for loopback test mode
+		// Reading the internal IDR is necessary instead of the external IDR
+		return ((u8)ret & AXONF_IOB_MASK_INT_IDR) ? 1 : 0;
+	}
+
+	return ((u8)ret & AXONF_IOB_MASK_IDR) ? 1 : 0;
 }
 
 /**
@@ -234,33 +175,16 @@ static void axonf_gpio_set_value(struct gpio_chip *gc, unsigned off, int val)
 {
 	struct axonfabric_gpio *axonfabric_gpio = gpiochip_get_data(gc);
 	struct axonf_chip *chip = axonfabric_gpio->axonf_chip;
-	u8 reg_val;
-	int ret, offset, bank;
+	int ret;
 
-	dev_info(&chip->client->dev, "%s called for line %d\n",__func__, off);
+	AXONF_DBG_INFO(&chip->client->dev, " called for line %d\n", off);
 
-	// Calculate the bank
-	bank = off / BANK_SZ;
+	ret = axonf_reg_update_bits(chip, GPIO_TO_IOBANK_ADDR(off),
+				AXONF_IOB_MASK_ODR, val ? AXONF_IOB_MASK_ODR : 0);
 
-	// Calculate the offset within the bank
-	offset = off % BANK_SZ;
-
-	if(val)
-		reg_val = chip->reg_ctrl_status[bank * BANK_SZ + offset] | AXONF_IOB_MASK_ODR;
-	else
-		reg_val = chip->reg_ctrl_status[bank * BANK_SZ + offset] & ~AXONF_IOB_MASK_ODR;
-
-	ret = axonf_iob_write_single(chip, chip->regs->ctrl_status + offset, reg_val, off);
-
-	if (ret < 0) {
+	if (ret < 0)
 		dev_err(&chip->client->dev, "failed to set value for line %d: err %d\n",off,ret);
-		goto exit;
-	}
 
-	chip->reg_ctrl_status[bank * BANK_SZ + offset] = reg_val;
-exit:
-
-	return;
 }
 
 /**
@@ -272,27 +196,23 @@ static int axonf_gpio_get_direction(struct gpio_chip *gc, unsigned off)
 {
 	struct axonfabric_gpio *axonfabric_gpio = gpiochip_get_data(gc);
 	struct axonf_chip *chip = axonfabric_gpio->axonf_chip;
-	u8 reg_val;
-	int ret, offset;
 
-	dev_info(&chip->client->dev, "%s called for line %d\n",__func__, off);
+	int ret;
+	u16 address;
 
-	offset = off % BANK_SZ;
+	address = GPIO_TO_IOBANK_ADDR(off);
 
-	ret = axonf_iob_read_single(chip, chip->regs->ctrl_status + offset, &reg_val, off);
+	AXONF_DBG_INFO(&chip->client->dev, " called for line %d, address is  0x%04X\n", off, address);
 
-	if (ret < 0) {
-		dev_err(&chip->client->dev, "failed to get direction for line %d: err %d\n",off,ret);
-		goto exit;
-	}
+	ret = axonf_reg_read(chip, address);
 
-	return (reg_val & AXONF_IOB_MASK_DIR) ? 1 : 0;
+	if(ret >= 0)
+		return ((u8)ret & AXONF_IOB_MASK_DIR) ? 1 : 0;
 
-exit:
+	dev_err(&chip->client->dev, "failed to get direction for line %d: err %d\n",off,ret);
 	return ret;
 
 }
-
 
 static int axonf_gpio_request(struct gpio_chip *gc, unsigned off)
 {
@@ -301,10 +221,10 @@ static int axonf_gpio_request(struct gpio_chip *gc, unsigned off)
 
 	u8 bank_mask;
 	int offset, allocated, bank;
-	unsigned int sel;
+	int sel;
 	int ret = 0;
 
-	dev_info(&chip->client->dev, "%s called for line %d\n",__func__, off);
+	AXONF_DBG_INFO(&chip->client->dev, " called for line %d\n", off);
 
 	/* Check to see if this gpio is available */
 	offset = off % BANK_SZ;
@@ -313,12 +233,18 @@ static int axonf_gpio_request(struct gpio_chip *gc, unsigned off)
 	bank_mask = (chip->bank_mask[bank] >> offset) & 0x1;
 	allocated = (chip->allocated[bank] >> offset) & 0x1;
 
-	sel = (chip->reg_ctrl_status[bank * BANK_SZ + offset] & AXONF_IOB_MASK_SEL) >> AXONF_IOB_OFFSET_SEL;
+	sel = axonf_reg_read(chip, GPIO_TO_IOBANK_ADDR(off));
+
+	if(sel < 0) {
+		dev_err(&chip->client->dev, "%s: select could not be read.\n",__func__);
+	}
+
+	sel = (sel & AXONF_IOB_MASK_SEL) >> AXONF_IOB_OFFSET_SEL;
 
 	/* check if this pin is available */
 	if (!bank_mask) {
 		dev_info(&chip->client->dev,
-			"pin %u cannot be allocated (check mask)\n", off);
+			"pin %u cannot be allocated (check bank mask)\n", off);
 		ret = -EINVAL;
 		goto exit;
 	}
@@ -375,7 +301,7 @@ static void axonf_gpio_free(struct gpio_chip *gc, unsigned off)
 	u8 bank_mask;
 	int offset, allocated, bank;
 
-	dev_info(&chip->client->dev, "%s called for line %d\n",__func__, off);
+	AXONF_DBG_INFO(&chip->client->dev, "called for line %d\n", off);
 
 	// Bank calculation
 	bank = off / BANK_SZ;
