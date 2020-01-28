@@ -38,6 +38,8 @@
 
 #include <asm/unaligned.h>
 
+#define BANK_TO_IOBANK_ADDR(bank) ((u16)AXONF_ADDR_IOBLOCK + ((u16)bank << 4))
+
 static const struct mfd_cell axonfabric_cells[] = {
 	{
 		.name = "axonfabric-gpio",
@@ -85,12 +87,18 @@ int axonf_reg_read(struct axonf_chip *chip, unsigned short reg)
 	unsigned int val;
 	int ret;
 
+	AXONF_DBG_INFO(&chip->client->dev, " called. Addr:%04X\n", reg);
+
+	mutex_lock(&chip->io_lock);
 	ret = regmap_read(chip->regmap, reg, &val);
+	mutex_unlock(&chip->io_lock);
 
 	if (ret < 0)
 		return ret;
-	else
+	else {
+		AXONF_DBG_INFO(&chip->client->dev, " Read value: %02X", val);
 		return val;
+	}
 }
 EXPORT_SYMBOL_GPL(axonf_reg_read);
 
@@ -105,7 +113,15 @@ EXPORT_SYMBOL_GPL(axonf_reg_read);
 int axonf_bulk_read(struct axonf_chip *chip, unsigned short reg,
 		     int count, u8 *buf)
 {
-	return regmap_bulk_read(chip->regmap, reg, buf, count);
+	int ret;
+
+	AXONF_DBG_INFO(&chip->client->dev, " called. Addr:%04X, count: %d\n", reg, count);
+
+	mutex_lock(&chip->io_lock);
+	ret = regmap_bulk_read(chip->regmap, reg, buf, count);
+	mutex_unlock(&chip->io_lock);
+
+	return ret;
 }
 EXPORT_SYMBOL_GPL(axonf_bulk_read);
 
@@ -118,8 +134,15 @@ EXPORT_SYMBOL_GPL(axonf_bulk_read);
  */
 int axonf_reg_write(struct axonf_chip *chip, unsigned short reg,
 		    u8 val) {
+	int ret;
 
-	return regmap_write(chip->regmap, reg, val);
+	AXONF_DBG_INFO(&chip->client->dev, " called. Addr:%04X, val: %02X\n", reg, val);
+
+	mutex_lock(&chip->io_lock);
+	ret = regmap_write(chip->regmap, reg, val);
+	mutex_unlock(&chip->io_lock);
+
+	return ret;
 
 }
 EXPORT_SYMBOL_GPL(axonf_reg_write);
@@ -135,160 +158,42 @@ EXPORT_SYMBOL_GPL(axonf_reg_write);
 int axonf_bulk_write(struct axonf_chip *chip, unsigned short reg, int count,
 		    u8 *buf) {
 
-	return regmap_bulk_write(chip->regmap, reg, buf, count);
+	int ret;
+	AXONF_DBG_INFO(&chip->client->dev, " called. Addr:%04X, count: %d\n", reg, count);
+
+	mutex_lock(&chip->io_lock);
+	ret = regmap_bulk_write(chip->regmap, reg, buf, count);
+	mutex_unlock(&chip->io_lock);
+
+	return ret;
 
 }
 EXPORT_SYMBOL_GPL(axonf_bulk_write);
 
-
 /**
- * axonf_iob_read_single: Returns the value of the requested ioblock register (reg)
- * containing the data for the signal at the requested offset (off)
- * @chip: This device
- * @reg: The ioblock register
- * @val: Pointer to place the read value
- * @off: IO offset
+ * axonf_reg_update_bits: Update register bits
+ *
+ * @chip: Device to write to.
+ * @reg: Register to update.
+ * @mask: Bitmask, with bits to be updated set.
+ * @val: Value of bits to update.
  */
-int axonf_iob_read_single(struct axonf_chip *chip, int reg, u8 *val,
-				int off)
-{
-
-	int ret;
-	int bank = off / BANK_SZ;
-
-	u16 address = (u16)AXONF_ADDR_IOBLOCK + ((u16)bank << 4) + (u16)reg;
-
-	ret = axonf_reg_read(chip, address);
-
-	if (ret < 0) {
-		dev_err(&chip->client->dev, "failed reading register\n");
-		return ret;
-	}
-
-	*val = ret;
-
-	return 0;
-}
-EXPORT_SYMBOL_GPL(axonf_iob_read_single);
-
-/*
- * Writes a byte (val) to the register (reg) of the IOB specified by offset (off)
- */
-int axonf_iob_write_single(struct axonf_chip *chip, int reg, u8 val,
-				int off)
-{
-
-	int ret;
-	u16 bank = off / BANK_SZ;
-
-	u16 address = (u16)AXONF_ADDR_IOBLOCK + (bank << 4) + (u16)reg;
-
-	ret = axonf_reg_write(chip, address, val);
-
-	if (ret < 0) {
-		dev_err(&chip->client->dev, "failed to write data\n");
-		return ret;
-	}
-
-	return 0;
-}
-EXPORT_SYMBOL_GPL(axonf_iob_write_single);
-
-/*
- * Returns the value of the requested register (reg) and the requested
- * bank number (bank)
- */
-int axonf_iob_read_reg(struct axonf_chip *chip, int reg, u8 *val,
-				int bank)
-{
-
+int axonf_reg_update_bits(struct axonf_chip *chip, unsigned short reg, u8 mask,
+		    u8 val) {
 	int ret;
 
-	u16 address = (u16)AXONF_ADDR_IOBLOCK + ((u16)bank << 4) + (u16)reg;
+	AXONF_DBG_INFO(&chip->client->dev, " called. Addr:%04X, mask: %02X, val: %02X\n", reg, mask, val);
 
-	ret = axonf_reg_read(chip, address);
+	mutex_lock(&chip->io_lock);
+	ret = regmap_update_bits(chip->regmap, reg, mask, val);
+	mutex_unlock(&chip->io_lock);
 
-	if (ret < 0) {
-		dev_err(&chip->client->dev, "failed reading register\n");
-		return ret;
-	}
+	if(ret < 0)
+		dev_err(&chip->client->dev, "%s: failed. error: %d\n",__func__, ret);
 
-	*val = ret;
-
-	return 0;
+	return ret;
 }
-EXPORT_SYMBOL_GPL(axonf_iob_read_reg);
-
-/*
- * Writes a byte (val) to the register (reg) of the IOB specified by the bank number
- */
-int axonf_iob_write_reg(struct axonf_chip *chip, int reg, u8 val,
-				int bank)
-{
-
-	int ret;
-	u16 address = (u16)AXONF_ADDR_IOBLOCK + (bank << 4) + (u16)reg;
-
-	ret = axonf_reg_write(chip, address, val);
-
-	if (ret < 0) {
-		dev_err(&chip->client->dev, "failed to write data. reg: %d bank: %d\n", reg, bank);
-		return ret;
-	}
-
-	return 0;
-}
-EXPORT_SYMBOL_GPL(axonf_iob_write_reg);
-
-/*
- * reads all of the data from one bank
- * bank: bank address (start address)
- * val: Pointer to array of values to store the data (must be at least BANK_SZ size)
- */
-static int axonf_iob_read_regs(struct axonf_chip *chip, int bank, u8 *val)
-{
-	int ret = 0;
-	int i;
-
-	for (i = 0; i < BANK_SZ; i++) {
-
-		// Read the register at address. Address is reg + i (reg is the starting address)
-		// Address to store the data is "val[i]". We also provide the bank, which is calculated
-		// from the reg.
-		ret = axonf_iob_read_reg(chip, i, val+i, bank);
-		if (ret < 0) {
-			dev_err(&chip->client->dev, "failed reading register\n");
-			return ret;
-		}
-	}
-
-	return 0;
-}
-
-/*
- * Writes all of the data for the specific bank
- * reg: bank address
- * val: Pointer to array of values to be written (must be at least BANK_SZ size)
- */
-static int axonf_iob_write_regs(struct axonf_chip *chip, int bank, u8 *val)
-{
-	int ret = 0;
-
-	int i;
-
-	for (i = 0; i < BANK_SZ; i++) {
-
-		// Weite the register at address. Address is reg + i (reg is the starting address)
-		// Address to store the data is "val[i]". We also provide the bank, which is calculated
-		// from the reg.
-		ret = axonf_iob_write_reg(chip, i, val[i], bank);
-		if (ret < 0) {
-			dev_err(&chip->client->dev, "failed writing register\n");
-			return ret;
-		}
-	}
-	return 0;
-}
+EXPORT_SYMBOL_GPL(axonf_reg_update_bits);
 
 /**
  * axonf_read_magic: Read magic data of fabric. Store it into the
@@ -677,10 +582,45 @@ static DEVICE_ATTR(
 		axonf_shared_gio_enable_show,
         axonf_shared_gio_enable_store);
 
+static ssize_t axonf_lock_direction_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	int len, val;
+	struct axonf_chip *chip = dev_get_drvdata(dev);
+
+	val = chip->dir_lock ? '1':'0';
+
+	len = sprintf(buf,"%c\n", val);
+
+	return len;
+}
+
+static ssize_t axonf_lock_direction_store(struct device *dev, struct device_attribute *attr,
+					const char *buf, size_t count)
+{
+	int val,ret;
+	struct axonf_chip *chip = dev_get_drvdata(dev);
+
+	ret = sscanf(buf,"%d", &val);
+
+	if(ret <= 0)
+		return ret;
+
+	chip->dir_lock = val ? 1:0;
+
+	return count;
+}
+
+static DEVICE_ATTR(
+		lock_direction,
+		S_IRUGO | S_IWUSR,
+		axonf_lock_direction_show,
+        axonf_lock_direction_store);
+
 static struct attribute *axonf_attrs[] = {
     &dev_attr_statusled_rgbhex.attr,
 	&dev_attr_shared_sysconfig_disable.attr,
 	&dev_attr_gio_enable.attr,
+	&dev_attr_lock_direction.attr,
     NULL
 };
 
@@ -698,12 +638,16 @@ static void axonf_print_iob_regs(struct axonf_chip *chip)
 {
 	u8 msg [ 200 ];
 	int i,j;
+	u8 regs[BANK_SZ];
 
 	// Print out the contents of the IOB registers
 	for (j=0; j<AXONF_NBANKS; j++) {
-		sprintf(msg, "%02x ", chip->reg_ctrl_status[j*BANK_SZ]); \
+
+		if(axonf_bulk_read(chip, BANK_TO_IOBANK_ADDR(j), BANK_SZ, regs)) return;
+
+		sprintf(msg, "%02x ", regs[0]); \
 		for(i = 1; i<BANK_SZ; i++) { \
-			sprintf(msg, "%s%02x ", msg, chip->reg_ctrl_status[j*BANK_SZ+i]); \
+			sprintf(msg, "%s%02x ", msg, regs[i]); \
 		}
 		dev_info(&chip->client->dev, "io bank %02d ctrl_status=  %s\n", j, msg);
 	}
@@ -713,8 +657,7 @@ static int device_axonf_init(struct axonf_chip *chip, u32 invert)
 {
 	int ret,i;
 	char propname[20];
-
-	chip->regs = &axonf_regs;
+	u8 regs[BANK_SZ];
 
 	ret = axonf_read_magic(chip);
 
@@ -760,7 +703,7 @@ static int device_axonf_init(struct axonf_chip *chip, u32 invert)
 		ret = of_property_read_u8_array(
 			chip->client->dev.of_node,
 			propname,
-			&chip->reg_ctrl_status[BANK_SZ*i],
+			regs,
 			BANK_SZ);
 
 		if(ret){
@@ -769,7 +712,7 @@ static int device_axonf_init(struct axonf_chip *chip, u32 invert)
 		}
 
 		// Write the values for all of the registers in the bank
-		ret = axonf_iob_write_regs(chip, i, chip->reg_ctrl_status + BANK_SZ*i);
+		ret = axonf_bulk_write(chip, BANK_TO_IOBANK_ADDR(i), BANK_SZ, regs );
 
 		if (ret)
 			goto out;
@@ -793,8 +736,12 @@ static int device_axonf_init(struct axonf_chip *chip, u32 invert)
 	}
 
 	axonf_print_iob_regs(chip);
-
-	ret = axonf_write_ctrlreg(chip,0x0001);  // Enable global IO
+	if(chip->dir_lock)
+		ret = axonf_write_ctrlreg(chip,
+			(1 << AXONF_CTRLREG_GIO_ENABLE) |
+			(1 << AXONF_CTRLREG_LB_TEST_MODE_ENABLE));  // Put in loopback test mode, and enable global IO
+	else
+		ret = axonf_write_ctrlreg(chip,(1 << AXONF_CTRLREG_GIO_ENABLE));  // Enable global IO
 
 out:
 	return ret;
@@ -816,7 +763,7 @@ static int axonf_iobregs_debug_show(struct seq_file *m, void *unused)
 
 		// Read the registers. The address to read is the second argument. The destination
 		// memory is the third argument (regs)
-		if(axonf_iob_read_regs(chip, j, regs)) goto out;
+		if(axonf_bulk_read(chip, BANK_TO_IOBANK_ADDR(j), BANK_SZ, regs)) goto out;
 
 		// Form the message
 		sprintf(msg, "%02x ", regs[0]);
@@ -824,7 +771,7 @@ static int axonf_iobregs_debug_show(struct seq_file *m, void *unused)
 			sprintf(msg, "%s%02x ", msg, regs[i]);
 		}
 
-		seq_printf(m,"iobank%d ctrl_status=       %s\n",j,msg);
+		seq_printf(m,"io bank %02d ctrl_status=  %s\n",j,msg);
 	}
 
 out:
@@ -924,13 +871,26 @@ static const struct regmap_access_table axonf_writeable_table = {
 	.n_yes_ranges	= ARRAY_SIZE(axonf_writeable_ranges),
 };
 
-struct regmap_config axonf_regmap_config = {
+static const struct regmap_range axonf_volatile_ranges[] = {
+	regmap_reg_range(AXONF_ADDR_IOBLOCK,
+				AXONF_ADDR_IOBLOCK + AXONF_SIZE_IOBLOCK - 1),
+};
+
+static const struct regmap_access_table axonf_volatile_table = {
+	.yes_ranges	= axonf_volatile_ranges,
+	.n_yes_ranges	= ARRAY_SIZE(axonf_volatile_ranges),
+};
+
+static const struct regmap_config axonf_regmap_config = {
 	.name = AXONF_REGMAP_NAME,
 	.reg_bits = 16,
 	.val_bits = 8,
 
+	.cache_type = REGCACHE_RBTREE,
+
 	.rd_table = &axonf_readable_table,
-	.wr_table = &axonf_writeable_table
+	.wr_table = &axonf_writeable_table,
+	.volatile_table = &axonf_volatile_table,
 };
 EXPORT_SYMBOL_GPL(axonf_regmap_config);
 
@@ -973,6 +933,7 @@ static int axonf_probe(struct i2c_client *client,
 	if (chip == NULL)
 		return -ENOMEM;
 
+	mutex_init(&chip->io_lock);
 	i2c_set_clientdata(client, chip);
 
 #ifdef CONFIG_AXONF_DEBUGFS
@@ -1105,6 +1066,8 @@ static int axonf_remove(struct i2c_client *client)
 #ifdef CONFIG_AXONF_DEBUGFS
 	axonf_free_debugfs(chip);
 #endif // CONFIG_AXONF_DEBUGFS
+
+	mfd_remove_devices(&client->dev);
 
 	sysfs_remove_groups(&client->dev.kobj, axonf_groups);
 
