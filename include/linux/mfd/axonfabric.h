@@ -53,6 +53,7 @@
 
 #define AXONF_CTRLREG_GIO_ENABLE				0
 #define AXONF_CTRLREG_SHARED_SYSCONFIG_DISABLE	1
+#define AXONF_CTRLREG_LB_TEST_MODE_ENABLE		15
 
 #define AXONF_NGPIOS					104
 #define AXONF_NBANKS					13
@@ -78,6 +79,10 @@
 
 #define AXONF_CHIP_TYPE(x)	((x) & AXONF_TYPE_MASK)
 #define AXONF_SOC_TYPE(x)	((x) & AXONF_SOC_MASK)
+
+#define EMIT_DEBUG_INFO 0  // Set to 1 to turn on helpful debug messages
+#define AXONF_DBG_INFO(dev, fmt, ...) \
+	do { if (EMIT_DEBUG_INFO) dev_info(dev, "%s: " fmt, __func__, __VA_ARGS__); } while (0)
 
 // Enable DEBUGFS
 #define CONFIG_AXONF_DEBUGFS
@@ -105,19 +110,7 @@ struct axonf_platform_data {
 	const char	*const *names;
 };
 
-struct axonf_reg_config {
-	int ctrl_status;
-	int irq;
-};
-
-static const struct axonf_reg_config axonf_regs = {
-	.ctrl_status =       AXONF_IOB_REG_CTRLSTATUS,
-	.irq =     			 AXONF_IOB_REG_IRQ
-};
-
 struct axonf_chip {
-	u8 reg_ctrl_status[MAX_BANK*8];
-	u8 reg_irq[MAX_BANK*8];
 	u8 bank_mask[MAX_BANK];
 	u8 allocated[MAX_BANK];
 	u8 fw_version[AXONF_SIZE_VERSION];
@@ -139,8 +132,7 @@ struct axonf_chip {
 	unsigned long driver_data;
 	struct regulator *regulator;
 	u8 dir_lock;
-
-	const struct axonf_reg_config *regs;
+	struct mutex io_lock;
 
 	u32 statusled_rgb_color;
 	u16 ctrlreg;
