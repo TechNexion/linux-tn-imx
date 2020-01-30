@@ -1,6 +1,7 @@
 /dts-v1/;
 /plugin/;
 
+#include <dt-bindings/clock/imx8mm-clock.h>
 #include <dt-bindings/interrupt-controller/irq.h>
 #include <dt-bindings/gpio/gpio.h>
 
@@ -11,6 +12,8 @@
 			sound-adv7535 {
 				compatible = "simple-audio-card";
 				simple-audio-card,name = "adv7535-hdmi";
+				simple-audio-card,mclk-fs = <256>;
+				simple-audio-card,mclk-clk-id = <1>;
 				simple-audio-card,format = "i2s";
 				simple-audio-card,bitclock-master = <&sound_master>;
 				simple-audio-card,frame-master = <&sound_master>;
@@ -66,6 +69,11 @@
 	fragment@3 {
 		target = <&sai3>;
 		__overlay__ {
+			clocks = <&clk IMX8MM_CLK_SAI3_IPG>, <&clk IMX8MM_CLK_DUMMY>,
+					<&clk IMX8MM_CLK_SAI3_ROOT>, <&clk IMX8MM_CLK_DUMMY>,
+					<&clk IMX8MM_CLK_DUMMY>, <&clk IMX8MM_AUDIO_PLL1_OUT>,
+					<&clk IMX8MM_AUDIO_PLL2_OUT>;
+			clock-names = "bus", "mclk0", "mclk1", "mclk2", "mclk3", "pll8k", "pll11k";
 			#sound-dai-cells = <0>;
 			status = "okay";
 		};
