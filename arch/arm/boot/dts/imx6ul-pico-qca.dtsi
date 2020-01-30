@@ -48,12 +48,21 @@
 		stdout-path = &uart6;
 	};
 
-	backlight: backlight {
+	backlight {
 		compatible = "pwm-backlight";
 		pwms = <&pwm3 0 50000 0>;
 		brightness-levels = <0 36 72 108 144 180 216 255>;
 		default-brightness-level = <6>;
 		status = "okay";
+	};
+
+	bt_rfkill {
+		compatible = "net,rfkill-gpio";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_bt_ctrl>;
+		name = "bt_rfkill";
+		type = "bluetooth";
+		shutdown-gpios = <&gpio5 9 GPIO_ACTIVE_HIGH>; /* BT_REG_ON: BT enable */
 	};
 
 	regulators {
@@ -94,32 +103,17 @@
 			gpio = <&gpio1 6 0>;
 		};
 
-		wlreg_on: fixedregulator@100 {
+		wlreg_on: wlreg_on {
 			compatible = "regulator-fixed";
-			regulator-min-microvolt = <5000000>;
-			regulator-max-microvolt = <5000000>;
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
 			regulator-name = "wlreg_on";
-			gpio = <&gpio4 8 0>;
-			startup-delay-us = <100>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_wifi_ctrl>;
+			gpio = <&gpio4 8 GPIO_ACTIVE_HIGH>;
 			enable-active-high;
 			regulator-always-on;
 		};
-	};
-
-	bcmdhd_wlan_0: bcmdhd_wlan@0 {
-		compatible = "android,bcmdhd_wlan";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_wifi_ctrl>;
-		wlreg_on-supply = <&wlreg_on>;
-	};
-
-	bt_rfkill {
-		compatible = "net,rfkill-bcm43xx";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_bt_ctrl>;
-		name = "bt_rfkill";
-		type = <2>;     /* bluetooth */
-		bt_rfkill_reset-gpios = <&gpio5 9 0>;
 	};
 
 	sound {
@@ -133,17 +127,6 @@
 			"Mic Jack", "Mic Bias",
 			"Headphone Jack", "HP_OUT";
 	};
-
-	panel {
-		compatible = "vxt,vl050-8048nt-c01";
-		backlight = <&backlight>;
-
-		port {
-			panel_in: endpoint {
-				remote-endpoint = <&display_out>;
-			};
-		};
-	};
 };
 
 &ecspi3 {
@@ -154,7 +137,6 @@
 	status = "okay";
 };
 
->>>>>>> ARM:imx6ul:imx6ull:dts Added pico-imx6ul and pico-imx6ull device trees.
 &can1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexcan1>;
@@ -287,17 +269,36 @@
 &lcdif {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_lcdif_dat &pinctrl_lcdif_ctrl>;
+	display = <&display0>;
 	status = "okay";
 
-	port {
-		display_out: endpoint {
-			remote-endpoint = <&panel_in>;
+	display0: display0 {
+		bits-per-pixel = <32>;
+		bus-width = <24>;
+
+		display-timings {
+			native-mode = <&timing0>;
+
+			timing0: timing0 {
+				clock-frequency = <33200000>;
+				hactive = <800>;
+				vactive = <480>;
+				hfront-porch = <210>;
+				hback-porch = <46>;
+				hsync-len = <1>;
+				vback-porch = <22>;
+				vfront-porch = <23>;
+				vsync-len = <1>;
+				hsync-active = <0>;
+				vsync-active = <0>;
+				de-active = <1>;
+				pixelclk-active = <0>;
+			};
 		};
 	};
 };
 
 &pwm3 {
-	#pwm-cells = <2>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_pwm3>;
 	status = "okay";
@@ -372,9 +373,8 @@
 	no-1-8-v;
 	non-removable;
 	keep-power-in-suspend;
-	cd-post;
-	pm-ignore-notify;
-	wifi-host;
+	wakeup-source;
+	vmmc-supply = <&wlreg_on>;
 	status = "okay";
 };
 
@@ -599,16 +599,16 @@
 
 	pinctrl_wifi_ctrl: wifi_ctrlgrp {
 		fsl,pins = <
-			MX6UL_PAD_NAND_DATA06__GPIO4_IO08 0x03029 /* wifi-reg-on */
-			MX6UL_PAD_NAND_DATA04__GPIO4_IO06 0x79    /* wifi-host-wake */
+			MX6UL_PAD_NAND_DATA06__GPIO4_IO08	0x79 /* wifi-reg-on */
+			MX6UL_PAD_NAND_DATA04__GPIO4_IO06	0x79 /* wifi-host-wake */
 		>;
 	};
 
 	pinctrl_bt_ctrl: bt_ctrlgrp {
 		fsl,pins = <
-			MX6UL_PAD_SNVS_TAMPER9__GPIO5_IO09   0x79   /* bluetooth-reg-on */
-			MX6UL_PAD_SNVS_TAMPER8__GPIO5_IO08   0x79   /* bluetooth-wake */
-			MX6UL_PAD_NAND_DATA05__GPIO4_IO07    0x79   /* bluetooth-host-wake */
+			MX6UL_PAD_SNVS_TAMPER8__GPIO5_IO08	0x79 /* sdio-reg-on */
+			MX6UL_PAD_SNVS_TAMPER9__GPIO5_IO09	0x79 /* bluetooth-wake */
+			MX6UL_PAD_NAND_DATA05__GPIO4_IO07	0x79 /* bluetooth-host-wake */
 		>;
 	};
 };
