@@ -56,6 +56,15 @@
 		status = "okay";
 	};
 
+	bt_rfkill {
+		compatible = "net,rfkill-gpio";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_bt_ctrl>;
+		name = "bt_rfkill";
+		type = "bluetooth";
+		shutdown-gpios = <&gpio5 9 GPIO_ACTIVE_HIGH>; /* BT_REG_ON: BT enable */
+	};
+
 	regulators {
 		compatible = "simple-bus";
 		#address-cells = <1>;
@@ -94,32 +103,17 @@
 			gpio = <&gpio1 6 0>;
 		};
 
-		wlreg_on: fixedregulator@100 {
+		wlreg_on: wlreg_on {
 			compatible = "regulator-fixed";
-			regulator-min-microvolt = <5000000>;
-			regulator-max-microvolt = <5000000>;
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
 			regulator-name = "wlreg_on";
-			gpio = <&gpio4 8 0>;
-			startup-delay-us = <100>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_wifi_ctrl>;
+			gpio = <&gpio4 8 GPIO_ACTIVE_HIGH>;
 			enable-active-high;
 			regulator-always-on;
 		};
-	};
-
-	bcmdhd_wlan_0: bcmdhd_wlan@0 {
-		compatible = "android,bcmdhd_wlan";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_wifi_ctrl>;
-		wlreg_on-supply = <&wlreg_on>;
-	};
-
-	bt_rfkill {
-		compatible = "net,rfkill-bcm43xx";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_bt_ctrl>;
-		name = "bt_rfkill";
-		type = <2>;     /* bluetooth */
-		bt_rfkill_reset-gpios = <&gpio5 9 0>;
 	};
 
 	sound {
@@ -143,7 +137,6 @@
 	status = "okay";
 };
 
->>>>>>> ARM:imx6ul:imx6ull:dts Added pico-imx6ul and pico-imx6ull device trees.
 &can1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexcan1>;
@@ -380,9 +373,8 @@
 	no-1-8-v;
 	non-removable;
 	keep-power-in-suspend;
-	cd-post;
-	pm-ignore-notify;
-	wifi-host;
+	wakeup-source;
+	vmmc-supply = <&wlreg_on>;
 	status = "okay";
 };
 
@@ -607,16 +599,16 @@
 
 	pinctrl_wifi_ctrl: wifi_ctrlgrp {
 		fsl,pins = <
-			MX6UL_PAD_NAND_DATA06__GPIO4_IO08 0x03029 /* wifi-reg-on */
-			MX6UL_PAD_NAND_DATA04__GPIO4_IO06 0x79    /* wifi-host-wake */
+			MX6UL_PAD_NAND_DATA06__GPIO4_IO08	0x79 /* wifi-reg-on */
+			MX6UL_PAD_NAND_DATA04__GPIO4_IO06	0x79 /* wifi-host-wake */
 		>;
 	};
 
 	pinctrl_bt_ctrl: bt_ctrlgrp {
 		fsl,pins = <
-			MX6UL_PAD_SNVS_TAMPER9__GPIO5_IO09   0x79   /* bluetooth-reg-on */
-			MX6UL_PAD_SNVS_TAMPER8__GPIO5_IO08   0x79   /* bluetooth-wake */
-			MX6UL_PAD_NAND_DATA05__GPIO4_IO07    0x79   /* bluetooth-host-wake */
+			MX6UL_PAD_SNVS_TAMPER8__GPIO5_IO08	0x79 /* sdio-reg-on */
+			MX6UL_PAD_SNVS_TAMPER9__GPIO5_IO09	0x79 /* bluetooth-wake */
+			MX6UL_PAD_NAND_DATA05__GPIO4_IO07	0x79 /* bluetooth-host-wake */
 		>;
 	};
 };
