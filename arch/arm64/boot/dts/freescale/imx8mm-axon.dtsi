@@ -899,7 +899,7 @@
 	assigned-clock-parents = <&clk IMX8MM_SYS_PLL1_80M>;
 	fsl,uart-has-rtscts;
 	resets = <&bt_reg_on>;
-	status = "disabled";
+	status = "okay";
 };
 
 &usbotg1 {
