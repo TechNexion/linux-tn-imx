@@ -34,11 +34,14 @@
 #include <linux/mfd/axonfabric.h>
 #include <asm/byteorder.h>
 #include <linux/debugfs.h>
+#include <linux/uaccess.h>
 #include <linux/regmap.h>
 
 #include <asm/unaligned.h>
 
 #define BANK_TO_IOBANK_ADDR(bank) ((u16)AXONF_ADDR_IOBLOCK + ((u16)bank << 4))
+
+//#define USE_SINGLE_REG_TRANS
 
 static const struct mfd_cell axonfabric_cells[] = {
 	{
@@ -110,6 +113,7 @@ EXPORT_SYMBOL_GPL(axonf_reg_read);
  * @count: Number of registers
  * @buf: Buffer to fill.
  */
+#ifndef USE_SINGLE_REG_TRANS
 int axonf_bulk_read(struct axonf_chip *chip, unsigned short reg,
 		     int count, u8 *buf)
 {
@@ -123,6 +127,30 @@ int axonf_bulk_read(struct axonf_chip *chip, unsigned short reg,
 
 	return ret;
 }
+#else
+int axonf_bulk_read(struct axonf_chip *chip, unsigned short reg,
+		     int count, u8 *buf)
+{
+	int ret = 0;
+	unsigned int val;
+	u16 i;
+
+	AXONF_DBG_INFO(&chip->client->dev, " called. Addr:%04X, count: %d, using single transactions.\n", reg, count);
+
+	mutex_lock(&chip->io_lock);
+	for(i=0; i < count; i++) {
+		ret = regmap_read(chip->regmap, reg+i, &val);
+		if(ret < 0){
+			dev_err(&chip->client->dev, "%s: failed. addr: %04X, error: %d\n", __func__, reg + i, ret);
+			return ret;
+		}
+		buf[i] =  (u8)val;
+	}
+	mutex_unlock(&chip->io_lock);
+
+	return ret;
+}
+#endif
 EXPORT_SYMBOL_GPL(axonf_bulk_read);
 
 /**
@@ -155,6 +183,7 @@ EXPORT_SYMBOL_GPL(axonf_reg_write);
  * @count: Number of bytes to write
  * @buf: Buffer to write
  */
+#ifndef USE_SINGLE_REG_TRANS
 int axonf_bulk_write(struct axonf_chip *chip, unsigned short reg, int count,
 		    u8 *buf) {
 
@@ -168,6 +197,29 @@ int axonf_bulk_write(struct axonf_chip *chip, unsigned short reg, int count,
 	return ret;
 
 }
+#else
+int axonf_bulk_write(struct axonf_chip *chip, unsigned short reg, int count,
+		    u8 *buf) {
+
+	int ret = 0;
+	u16 i;
+
+	AXONF_DBG_INFO(&chip->client->dev, " called. Addr:%04X, count: %d, using single transactions.", reg, count);
+
+	mutex_lock(&chip->io_lock);
+	for(i=0; i< count; i++) {
+		ret = regmap_write(chip->regmap, reg+i, buf[i]);
+		if(ret < 0) {
+			dev_err(&chip->client->dev, "%s: failed. addr: %04X, error: %d\n", __func__, reg + i, ret);
+			return ret;
+		}
+	}
+	mutex_unlock(&chip->io_lock);
+
+	return ret;
+
+}
+#endif
 EXPORT_SYMBOL_GPL(axonf_bulk_write);
 
 /**
@@ -655,9 +707,7 @@ static void axonf_print_iob_regs(struct axonf_chip *chip)
 
 static int device_axonf_init(struct axonf_chip *chip, u32 invert)
 {
-	int ret,i;
-	char propname[20];
-	u8 regs[BANK_SZ];
+	int ret;
 
 	ret = axonf_read_magic(chip);
 
@@ -671,10 +721,8 @@ static int device_axonf_init(struct axonf_chip *chip, u32 invert)
 
 	ret = axonf_read_cfgdata(chip);
 
-#if 0 // Temporarily disable return on failure here
 	if (ret)
 		goto out;
-#endif
 
 	dev_info(&chip->client->dev,"cfgdata value: 0x%02X\n", chip->cfgdata);
 
@@ -695,29 +743,6 @@ static int device_axonf_init(struct axonf_chip *chip, u32 invert)
 
 	dev_info(&chip->client->dev,"ctrlreg value: 0x%04X\n", chip->ctrlreg);
 
-	for( i = 0; i<MAX_BANK; i++) {
-
-		// Property name is ioblockN-ctrl where N is the bank number.
-		sprintf(propname, "ioblock%d-ctrl", i);
-
-		ret = of_property_read_u8_array(
-			chip->client->dev.of_node,
-			propname,
-			regs,
-			BANK_SZ);
-
-		if(ret){
-			dev_err(&chip->client->dev,"error reading property %s in dev tree\n",propname);
-			goto out;
-		}
-
-		// Write the values for all of the registers in the bank
-		ret = axonf_bulk_write(chip, BANK_TO_IOBANK_ADDR(i), BANK_SZ, regs );
-
-		if (ret)
-			goto out;
-	}
-
 	memset(chip->allocated, 0, sizeof(chip->allocated));
 
 	/* Assign the bank mask based on the driver data */
@@ -735,7 +760,6 @@ static int device_axonf_init(struct axonf_chip *chip, u32 invert)
 			break;
 	}
 
-	axonf_print_iob_regs(chip);
 	if(chip->dir_lock)
 		ret = axonf_write_ctrlreg(chip,
 			(1 << AXONF_CTRLREG_GIO_ENABLE) |
@@ -792,6 +816,52 @@ static const struct file_operations axonf_iobregs_debug_fops = {
 	.release	= single_release,
 };
 
+static ssize_t axonf_d_debug_read(struct file * file,
+		char __user *user_buf, size_t count, loff_t *ppos) {
+
+	char buf[32];
+	ssize_t len;
+	int val;
+	struct axonf_chip * chip = g_chip;
+
+	val = axonf_reg_read(chip, chip->a);
+	if(val < 0)
+		return val;
+
+	len = sprintf(buf, "0x%02x\n", val);
+
+	return simple_read_from_buffer(user_buf, count, ppos, buf, len);
+}
+
+static ssize_t axonf_d_debug_write(struct file * file,
+		const char __user *user_buf, size_t count, loff_t *ppos) {
+
+	char buf[32];
+	ssize_t len;
+	unsigned int val;
+	struct axonf_chip *chip = g_chip;
+
+	len = min(count, sizeof(buf) -1);
+	if (copy_from_user(buf, user_buf, len))
+		return -EFAULT;
+
+	buf[len] = '\0';
+	if (kstrtouint(buf, 0, &val))
+		return -EINVAL;
+
+	// Write value to address
+	axonf_reg_write(chip, chip->a, (u8)val);
+
+	return count;
+}
+
+
+static const struct file_operations axonf_d_debug_fops = {
+	.read		= axonf_d_debug_read,
+	.write      = axonf_d_debug_write,
+	.llseek		= default_llseek,
+};
+
 static int axonf_init_debugfs(struct axonf_chip *chip) {
 	struct dentry* ret;
 	long err;
@@ -810,6 +880,13 @@ static int axonf_init_debugfs(struct axonf_chip *chip) {
 	ret = debugfs_create_file("iob_regs", S_IRUGO,
 					chip->debugfs_top_dir, (void*) chip,
 					&axonf_iobregs_debug_fops);
+
+	ret = debugfs_create_x16("a", S_IRUGO | S_IWUGO,
+					chip->debugfs_top_dir, &(chip->a));
+
+	ret = debugfs_create_file("d", S_IRUGO | S_IWUGO,
+					chip->debugfs_top_dir, (void*) chip,
+					&axonf_d_debug_fops);
 
 	if(IS_ERR(ret)) goto exit_err;
 
