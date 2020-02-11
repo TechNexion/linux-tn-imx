@@ -49,6 +49,12 @@ config PINCTRL_AMD
 	  Requires ACPI/FDT device enumeration code to set up a platform
 	  device.
 
+config PINCTRL_AXONFABRIC
+	tristate "Pinctrl and GPIO driver for TechNexion Axon Fabic FPGA"
+	depends on MFD_AXONFABRIC
+	help
+	  Say yes to enable pinctrl and GPIO support for the Axon Fabric
+
 config PINCTRL_APPLE_GPIO
 	tristate "Apple SoC GPIO pin controller driver"
 	depends on ARCH_APPLE

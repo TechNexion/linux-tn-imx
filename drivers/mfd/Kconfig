@@ -104,7 +104,7 @@ config MFD_AXONFABRIC
 	select MFD_CORE
 	select REGMAP_I2C
 	select REGMAP_IRQ
-	select GPIO_AXONFABRIC
+	select PINCTRL_AXONFABRIC
 	depends on I2C=y && OF
 	help
 	  The Axon Fabric is an signal bus switch, gpio expander, and external
