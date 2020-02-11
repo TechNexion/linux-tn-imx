@@ -110,6 +110,12 @@ config PINCTRL_AMD
 	  Requires ACPI/FDT device enumeration code to set up a platform
 	  device.
 
+config PINCTRL_AXONFABRIC
+	tristate "Pinctrl and GPIO driver for TechNexion Axon Fabic FPGA"
+	depends on MFD_AXONFABRIC
+	help
+	  Say yes to enable pinctrl and GPIO support for the Axon Fabric
+
 config PINCTRL_BM1880
 	bool "Bitmain BM1880 Pinctrl driver"
 	depends on OF && (ARCH_BITMAIN || COMPILE_TEST)
