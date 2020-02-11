@@ -537,21 +537,8 @@
 		reg = <0x41>;
 		pinctrl-names = "default";
 		compatible = "technexion,axon-imx8mm-f01";
-		pinctrl-0 = <&pinctrl_fabric_reset>;
+		pinctrl-0 = <&pinctrl_fabric_reset>, <&pinmux_axonfabric>;
 		reset-gpios = <AXON_INT_GPIO_FABRIC_RESET_N GPIO_ACTIVE_LOW>;
-		ioblock0-ctrl =  /bits/ 8 <0x03 0x03 0x03 0x03 0x03 0x03 0x03 0x03>;
-		ioblock1-ctrl =  /bits/ 8 <0x01 0x07 0x03 0x03 0x03 0x03 0x03 0x03>;
-		ioblock2-ctrl =  /bits/ 8 <0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00>;
-		ioblock3-ctrl =  /bits/ 8 <0x05 0x05 0x03 0x03 0x03 0x03 0x03 0x03>;
-		ioblock4-ctrl =  /bits/ 8 <0x03 0x03 0x03 0x05 0x1D 0x00 0x00 0x00>;
-		ioblock5-ctrl =  /bits/ 8 <0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00>;
-		ioblock6-ctrl =  /bits/ 8 <0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00>;
-		ioblock7-ctrl =  /bits/ 8 <0x02 0x02 0x02 0x02 0x03 0x07 0x05 0x05>;
-		ioblock8-ctrl =  /bits/ 8 <0x03 0x07 0x07 0x03 0x03 0x07 0x07 0x07>;
-		ioblock9-ctrl =  /bits/ 8 <0x07 0x03 0x03 0x01 0x00 0x03 0x03 0x01>;
-		ioblock10-ctrl = /bits/ 8 <0x07 0x03 0x03 0x01 0x00 0x03 0x03 0x01>;
-		ioblock11-ctrl = /bits/ 8 <0x03 0x07 0x07 0x03 0x03 0x03 0x03 0x03>;
-		ioblock12-ctrl = /bits/ 8 <0x03 0x07 0x07 0x07 0x00 0x00 0x00 0x00>;
 		gpio-controller;
 		#gpio-cells = <2>;
 		gpio-line-names =
@@ -581,7 +568,62 @@
 		"F_AUD_B_TXD", "F_AUD_B_TXFS", "F_AUD_B_TXCLK", "F_AUD_B_RXD",      // Bank 12
 		"F_AUD_B_RXFS", "F_AUD_B_RXCLK", "F_AUD_B_MCLK", "";                // Bank 12
 		status="okay";
+
+		pinmux_axonfabric: pinmux {
+			status = "okay";
+
+ 			// SPI_A
+			pinctrl_af_spi_a_out: pcspia_out {
+				pins = "SPI_A_MOSI", "SPI_A_SCLK", "SPI_A_CS0", "SPI_A_CS1"; function = "passthru_out";
+				drive-push-pull;
+			};
+
+			pinctrl_af_spi_a_in: pcspia_in {
+				pins = "SPI_A_MISO"; function = "passthru_in"; drive-push-pull;
+			};
+
+			// SPI_B
+			pinctrl_af_spi_b_out: pcspib_out {
+				pins = "SPI_B_MOSI", "SPI_B_SCLK", "SPI_B_CS0", "SPI_B_CS1"; function = "passthru_out";
+				drive-push-pull;
+			};
+
+			pinctrl_af_spi_b_in: pcspib_in {
+				pins = "SPI_B_MISO"; function = "passthru_in"; drive-push-pull;
+			};
+
+			// UART_B
+			pinctrl_af_uart_b_txd: pcuartb_txd {
+				pins = "UART_B_TXD"; function = "passthru_out"; drive-push-pull;
+			};
+
+			pinctrl_af_uart_b_rxd: pcuartb_rxd {
+				pins = "UART_B_RXD"; function = "passthru_in"; drive-push-pull;
+			};
+
+			// UART_C
+			pinctrl_af_uart_c_txd: pcuartc_txd {
+				pins = "UART_C_TXD"; function = "passthru_out"; drive-push-pull;
+			};
+
+			pinctrl_af_uart_c_rxd: pcuartc_rxd {
+				pins = "UART_C_RXD"; function = "passthru_in"; drive-push-pull;
+			};
+
+			// UART_BT
+			pinctrl_af_uart_bt_out: pcuartbt_out {
+				pins = "UART_BT_TXD", "UART_BT_CTS"; function = "passthru_out";
+				drive-push-pull;
+			};
+
+			pinctrl_af_uart_bt_in: pcuartbt_in {
+				pins = "UART_BT_RXD", "UART_BT_RTS"; function = "passthru_in";
+				drive-push-pull;
+			};
+		};
 	};
+
+
 
 	pmic: bd71837@4b {
 		reg = <0x4b>;
@@ -931,7 +973,7 @@
 
 	spidevA_0: spidev@0 {
 		compatible = "spidev", "rohm,dh2228fv";
-		spi-max-frequency = <523000000>;
+		spi-max-frequency = <52000000>;
 		reg = <0>;
 		status = "okay";
 		};
