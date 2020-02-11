@@ -126,6 +126,7 @@ struct axonf_chip {
 
 #ifdef CONFIG_AXONF_DEBUGFS
 	struct dentry *debugfs_top_dir;
+	u16 a; // address in fabric to read/write from
 #endif
 
 	struct i2c_client *client;
