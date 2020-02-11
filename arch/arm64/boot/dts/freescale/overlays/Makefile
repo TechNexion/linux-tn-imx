@@ -6,6 +6,7 @@ dtbo-$(CONFIG_ARCH_FSL_IMX8MM) += \
 	imx8mm-flex-pi-m4.dtbo \
 	imx8mm-flex-pi-mipi5.dtbo \
 	imx8mm-flex-pi-voicehat.dtbo \
+	imx8mm-flex-pi-clixwifi.dtbo \
 	imx8mm-flex-wizard-m4.dtbo \
 	imx8mm-flex-wizard-mipi5.dtbo \
 	imx8mm-flex-wizard-mipi8.dtbo \
