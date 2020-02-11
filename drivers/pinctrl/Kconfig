@@ -64,6 +64,12 @@ config PINCTRL_AS3722
 	  open drain configuration for the GPIO pins of AS3722 devices. It also
 	  supports the GPIO functionality through gpiolib.
 
+config PINCTRL_AXONFABRIC
+	tristate "Pinctrl and GPIO driver for TechNexion Axon Fabic FPGA"
+	depends on MFD_AXONFABRIC
+	help
+	  Say yes to enable pinctrl and GPIO support for the Axon Fabric
+
 config PINCTRL_BF54x
 	def_bool y if BF54x
 	select PINCTRL_ADI2
