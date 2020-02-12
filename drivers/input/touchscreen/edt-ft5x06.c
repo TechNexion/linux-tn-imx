@@ -111,6 +111,7 @@ struct edt_ft5x06_ts_data {
 
 	struct edt_reg_addr reg_addr;
 	enum edt_ver version;
+	bool ten_inch_tp;
 };
 
 struct edt_i2c_chip_data {
@@ -189,7 +190,11 @@ static irqreturn_t edt_ft5x06_ts_isr(int irq, void *dev_id)
 	case M09:
 		cmd = 0x0;
 		offset = 3;
-		tplen = 4;
+		if (tsdata->ten_inch_tp) //work around to prevent 5" conflict with 10"
+			tplen = 4;
+		else
+			tplen = 6;
+
 		crclen = 0;
 		break;
 
@@ -902,6 +907,7 @@ static int edt_ft5x06_ts_probe(struct i2c_client *client,
 	unsigned long irq_flags;
 	int error;
 	char fw_version[EDT_NAME_LEN];
+        const struct device_node *np = client->dev.of_node;
 
 	dev_dbg(&client->dev, "probing for EDT FT5x06 I2C\n");
 
@@ -960,6 +966,9 @@ static int edt_ft5x06_ts_probe(struct i2c_client *client,
 	tsdata->client = client;
 	tsdata->input = input;
 	tsdata->factory_mode = false;
+
+	if (of_property_read_bool(np, "ten_inch_tp"))
+		tsdata->ten_inch_tp = true;
 
 	error = edt_ft5x06_ts_identify(client, tsdata, fw_version);
 	if (error) {
