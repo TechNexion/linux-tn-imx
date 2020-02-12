@@ -10,99 +10,7 @@
  */
 
 #include <dt-bindings/gpio/gpio.h>
-
-/* Define GPIO for all I/O on module that may be used as regular GPIO */
-
-#define AXON_EXT_GPIO_X1_P19 &gpio3 20 /* EIM_D20 */
-#define AXON_EXT_GPIO_X1_P21 &gpio3 19 /* EIM_D19 */
-
-#define AXON_EXT_GPIO_X1_P39 &gpio1 9  /* GPIO1_9 */
-
-#define AXON_EXT_GPIO_X1_P66 &gpio5 4  /* EIM_A24 */
-#define AXON_EXT_GPIO_X1_P68 &gpio2 28 /* EIM_EB0 */
-#define AXON_EXT_GPIO_X1_P70 &gpio2 29 /* EIM_EB1 */
-#define AXON_EXT_GPIO_X1_P72 &gpio5 0  /* EIM_WAIT */
-#define AXON_EXT_GPIO_X1_P74 &gpio3 26 /* EIM_D26 */
-#define AXON_EXT_GPIO_X1_P76 &gpio3 27 /* EIM_D27 */
-#define AXON_EXT_GPIO_X1_P78 &gpio3 30 /* EIM_D30 */
-#define AXON_EXT_GPIO_X1_P80 &gpio3 31 /* EIM_D31 */
-
-#define AXON_EXT_GPIO_X2_P18 &gpio5 19 /* CSI0_MCLK */
-#define AXON_EXT_GPIO_X2_P20 &gpio5 18 /* CSI0_PIXCLK */
-#define AXON_EXT_GPIO_X2_P22 &gpio5 21 /* CSI0_VSYNC */
-#define AXON_EXT_GPIO_X2_P24 &gpio5 20 /* CSI0_DATA_EN */
-
-#define AXON_EXT_GPIO_X2_P43 &gpio5 5  /* DISP0_DAT11 */
-#define AXON_EXT_GPIO_X2_P32 &gpio2 14 /* SD4_DAT6 */
-
-#define AXON_EXT_GPIO_X2_P79 &gpio1 1  /* GPIO_1 */
-
-#define AXON_EXT_GPIO_X3_P65 &gpio4 5  /* GPIO_19 */
-#define AXON_EXT_GPIO_X3_P67 &gpio1 6  /* GPIO_6 */
-#define AXON_EXT_GPIO_X3_P69 &gpio1 3  /* GPIO_3 */
-#define AXON_EXT_GPIO_X3_P71 &gpio6 11 /* NANDF_CS0 */
-
-#define AXON_EXT_GPIO_X4_P1  &gpio2 9  /* SD4_DAT1 */
-#define AXON_EXT_GPIO_X4_P2  &gpio2 10 /* SD4_DAT2 */
-#define AXON_EXT_GPIO_X4_P7  &gpio2 8  /* SD4_DAT0 */
-#define AXON_EXT_GPIO_X4_P8  &gpio7 9  /* SD4_CMD */
-#define AXON_EXT_GPIO_X4_P19 &gpio6 8  /* NANDF_ALE */
-#define AXON_EXT_GPIO_X4_P20 &gpio6 7  /* NANDF_CLE */
-#define AXON_EXT_GPIO_X4_P32 &gpio7 10 /* SD4_CLK */
-#define AXON_EXT_GPIO_X4_P34 &gpio6 10 /* NANDF_RB0 */
-#define AXON_EXT_GPIO_X4_P40 &gpio6 15 /* NANDF_CS2 */
-
-#define AXON_EXT_GPIO_SPI_B_CS0         &gpio3 29 /* EIM_D29 */
-#define AXON_EXT_GPIO_SPI_B_CS1         &gpio5  2 /* EIM_A25 */
-#define AXON_EXT_GPIO_SPI_B_FABRIC_CS_N &gpio3 23 /* EIM_D23 */
-#define AXON_EXT_GPIO_SPI_B_CORE_CS_N   &gpio2 22 /* EIM_A16 */
-
-/* Internal I/O definitions to make life easier */
-#define AXON_I2C_BRD_CONF_SCL &gpio2 0  /* NANDF_D0 */
-#define AXON_I2C_BRD_CONF_SDA &gpio2 1  /* NANDF_D1 */
-#define AXON_I2C_D_SCL 	      &gpio6 9  /* NANDF_WP_B */
-#define AXON_I2C_D_SDA        &gpio6 16 /* NANDF_CS3 */
-
-#define AXON_INT_GPIO_WL_REG_ON      &gpio2 21  /* EIM_A17 */
-#define AXON_INT_GPIO_SDIO_REG_ON    &gpio2 16  /* EIM_A22 */
-#define AXON_INT_GPIO_BT_REG_ON      &gpio6 6   /* EIM_A23 */
-#define AXON_INT_GPIO_BT_HOST_WAKE   &gpio7 12  /* GPIO_17 */
-#define AXON_INT_GPIO_SOC_STATUS_LED &gpio6 14  /* NANDF_CS1 */
-#define AXON_INT_GPIO_FABRIC_RESET_N &gpio2 17  /* EIM_A21 */
-#define AXON_INT_GPIO_ENET_PWR_EN    &gpio7 13  /* GPIO_18 */
-#define AXON_INT_FABRIC_GPIO_INT0_N  &gpio1  4  /* GPIO_4  */
-#define AXON_INT_FABRIC_GPIO_INT1_N  &gpio1  5  /* GPIO_5  */
-
-#define AXON_SOM_PINCTRL <&pinctrl_hog_1>
-
-#define AXON_PCIE_A pcie
-#define AXON_EXT_GPIO_PCIE_A_RESET &gpio1 29 /* ENET_TXD1 */
-
-/* audio codec */
-#define AXON_AUD_A_I2S_CHANNEL ssi1
-#define AXON_AUD_A_MUX_INT 1
-#define AXON_AUD_A_MUX_EXT 3
-
-/* I2C bus */
-#define AXON_I2C_A i2c1
-#define AXON_I2C_B i2c2
-#define AXON_I2C_C i2c3
-#define AXON_I2C_D i2c_gpio_d
-#define AXON_I2C_BRD_CONF i2c_gpio_brd_conf
-
-/* UARTs */
-#define AXON_UART_A 	uart1
-#define AXON_UART_B 	uart2
-#define AXON_UART_C 	uart4
-#define AXON_UART_BT 	uart5
-
-/* SPI */
-#define AXON_SPI_A ecspi2
-#define AXON_SPI_B ecspi4
-
-/* CAN */
-#define AXON_CAN_A can1
-#define AXON_CAN_B can2
+#include "imx6qdl-axon-definitions.dtsi"
 
 / {
 	aliases {
@@ -421,21 +329,8 @@
 		reg = <0x41>;
 		pinctrl-names = "default";
 		compatible = "technexion,axon-imx6-f01";
-		pinctrl-0 = <&pinctrl_fabric_reset>;
+		pinctrl-0 = <&pinctrl_fabric_reset>, <&pinmux_axonfabric>;
 		reset-gpios = <AXON_INT_GPIO_FABRIC_RESET_N GPIO_ACTIVE_LOW>;
-		ioblock0-ctrl =  /bits/ 8 <0x03 0x03 0x03 0x03 0x03 0x03 0x03 0x03>;
-		ioblock1-ctrl =  /bits/ 8 <0x01 0x07 0x03 0x03 0x03 0x03 0x03 0x03>;
-		ioblock2-ctrl =  /bits/ 8 <0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00>;
-		ioblock3-ctrl =  /bits/ 8 <0x05 0x05 0x03 0x03 0x03 0x03 0x03 0x03>;
-		ioblock4-ctrl =  /bits/ 8 <0x03 0x03 0x03 0x05 0x1D 0x00 0x00 0x00>;
-		ioblock5-ctrl =  /bits/ 8 <0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00>;
-		ioblock6-ctrl =  /bits/ 8 <0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00>;
-		ioblock7-ctrl =  /bits/ 8 <0x02 0x02 0x02 0x02 0x03 0x07 0x05 0x05>;
-		ioblock8-ctrl =  /bits/ 8 <0x03 0x07 0x07 0x03 0x03 0x07 0x07 0x07>;
-		ioblock9-ctrl =  /bits/ 8 <0x07 0x03 0x03 0x01 0x00 0x03 0x03 0x01>;
-		ioblock10-ctrl = /bits/ 8 <0x07 0x03 0x03 0x01 0x00 0x03 0x03 0x01>;
-		ioblock11-ctrl = /bits/ 8 <0x03 0x07 0x07 0x03 0x03 0x03 0x03 0x03>;
-		ioblock12-ctrl = /bits/ 8 <0x03 0x07 0x07 0x07 0x00 0x00 0x00 0x00>;
 		gpio-controller;
 		#gpio-cells = <2>;
 		gpio-line-names =
@@ -466,6 +361,58 @@
 		"F_AUD_B_TXD", "F_AUD_B_TXFS", "F_AUD_B_TXCLK", "F_AUD_B_RXD",      // Bank 12
 		"F_AUD_B_RXFS", "F_AUD_B_RXCLK", "F_AUD_B_MCLK", "";                // Bank 12
 		status="okay";
+		pinmux_axonfabric: pinmux {
+			status = "okay";
+
+ 			// SPI_A
+			pinctrl_af_spi_a_out: pcspia_out {
+				pins = "F_SPI_A_MOSI", "F_SPI_A_SCLK", "F_SPI_A_CS0", "F_SPI_A_CS1"; function = "passthru_out";
+				drive-push-pull;
+			};
+
+			pinctrl_af_spi_a_in: pcspia_in {
+				pins = "F_SPI_A_MISO"; function = "passthru_in"; drive-push-pull;
+			};
+
+			// SPI_B
+			pinctrl_af_spi_b_out: pcspib_out {
+				pins = "F_SPI_B_MOSI", "F_SPI_B_SCLK", "F_SPI_B_CS0", "F_SPI_B_CS1"; function = "passthru_out";
+				drive-push-pull;
+			};
+
+			pinctrl_af_spi_b_in: pcspib_in {
+				pins = "F_SPI_B_MISO"; function = "passthru_in"; drive-push-pull;
+			};
+
+			// UART_B
+			pinctrl_af_uart_b_txd: pcuartb_txd {
+				pins = "F_UART_B_TXD"; function = "passthru_out"; drive-push-pull;
+			};
+
+			pinctrl_af_uart_b_rxd: pcuartb_rxd {
+				pins = "F_UART_B_RXD"; function = "passthru_in"; drive-push-pull;
+			};
+
+			// UART_C
+			pinctrl_af_uart_c_txd: pcuartc_txd {
+				pins = "F_UART_C_TXD"; function = "passthru_out"; drive-push-pull;
+			};
+
+			pinctrl_af_uart_c_rxd: pcuartc_rxd {
+				pins = "F_UART_C_RXD"; function = "passthru_in"; drive-push-pull;
+			};
+
+			// UART_BT
+			pinctrl_af_uart_bt_out: pcuartbt_out {
+				pins = "F_UART_BT_TXD", "F_UART_BT_CTS"; function = "passthru_out";
+				drive-push-pull;
+			};
+
+			pinctrl_af_uart_bt_in: pcuartbt_in {
+				pins = "F_UART_BT_RXD", "F_UART_BT_RTS"; function = "passthru_in";
+				drive-push-pull;
+			};
+		};
 	};
 };
 
