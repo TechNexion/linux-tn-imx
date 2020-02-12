@@ -74,6 +74,7 @@ enum edt_pmode {
 	EDT_PMODE_HIBERNATE,
 	EDT_PMODE_POWEROFF,
 };
+#define PANEL10I				0x59
 
 enum edt_ver {
 	EDT_M06,
@@ -126,6 +127,7 @@ struct edt_ft5x06_ts_data {
 
 	struct edt_reg_addr reg_addr;
 	enum edt_ver version;
+	unsigned char type;
 };
 
 struct edt_i2c_chip_data {
@@ -207,7 +209,10 @@ static irqreturn_t edt_ft5x06_ts_isr(int irq, void *dev_id)
 	case GENERIC_FT:
 		cmd = 0x0;
 		offset = 3;
-		tplen = 6;
+		if (tsdata->type == PANEL10I) 
+ 			tplen = 4;
+ 		else
+			tplen = 6;
 		crclen = 0;
 		break;
 
@@ -1259,6 +1264,8 @@ static int edt_ft5x06_ts_probe(struct i2c_client *client,
 		client->irq,
 		tsdata->wake_gpio ? desc_to_gpio(tsdata->wake_gpio) : -1,
 		tsdata->reset_gpio ? desc_to_gpio(tsdata->reset_gpio) : -1);
+
+	edt_ft5x06_ts_readwrite(client, 1, "\xA3", 1, &tsdata->type);	
 
 	return 0;
 }
