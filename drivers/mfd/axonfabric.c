@@ -45,6 +45,10 @@
 
 static const struct mfd_cell axonfabric_cells[] = {
 	{
+		.name = "axonfabric-pinctrl",
+		.of_compatible = "technexion,axonfabric-pinctrl",
+	},
+	{
 		.name = "axonfabric-gpio",
 		.of_compatible = "technexion,axonfabric-gpio",
 	},
@@ -686,28 +690,11 @@ static const struct attribute_group *axonf_groups[] = {
 	NULL,
 };
 
-static void axonf_print_iob_regs(struct axonf_chip *chip)
-{
-	u8 msg [ 200 ];
-	int i,j;
-	u8 regs[BANK_SZ];
-
-	// Print out the contents of the IOB registers
-	for (j=0; j<AXONF_NBANKS; j++) {
-
-		if(axonf_bulk_read(chip, BANK_TO_IOBANK_ADDR(j), BANK_SZ, regs)) return;
-
-		sprintf(msg, "%02x ", regs[0]); \
-		for(i = 1; i<BANK_SZ; i++) { \
-			sprintf(msg, "%s%02x ", msg, regs[i]); \
-		}
-		dev_info(&chip->client->dev, "io bank %02d ctrl_status=  %s\n", j, msg);
-	}
-}
-
 static int device_axonf_init(struct axonf_chip *chip, u32 invert)
 {
 	int ret;
+
+	dev_info(&chip->client->dev,"Beginning init.\n");
 
 	ret = axonf_read_magic(chip);
 
@@ -1126,6 +1113,8 @@ static int axonf_probe(struct i2c_client *client,
 	if (ret < 0)
 		goto err_exit;
 
+	dev_info(&client->dev, "Probed.\n");
+
 	return 0;
 
 err_exit:
@@ -1172,7 +1161,7 @@ static int __init axonf_init(void)
 /* register after i2c postcore initcall and before
  * subsys initcalls that may rely on these GPIOs
  */
-subsys_initcall(axonf_init);
+subsys_initcall_sync(axonf_init);
 
 static void __exit axonf_exit(void)
 {

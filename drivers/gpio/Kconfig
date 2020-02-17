@@ -122,6 +122,12 @@ config GPIO_ATH79
 	  Select this option to enable GPIO driver for
 	  Atheros AR71XX/AR724X/AR913X SoC devices.
 
+config GPIO_AXONFABRIC
+	bool "TechNexion Axon Fabric GPIO Support"
+	depends on MFD_AXONFABRIC
+	help
+	  Say yes to enable GPIO support for the TechNexion Axon Fabric
+
 config GPIO_AXP209
 	tristate "X-Powers AXP209 PMIC GPIO Support"
 	depends on MFD_AXP20X
