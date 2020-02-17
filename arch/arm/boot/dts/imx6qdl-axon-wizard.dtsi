@@ -103,6 +103,12 @@
 				MX6QDL_PAD_EIM_A24__GPIO5_IO04	    0x4001b0b5  /* GPIO_X1_P66 */
 			>;
 		};
+
+		pinctrl_tusb320_irq: tusb320_irqgrp {
+			fsl,pins = <
+				MX6QDL_PAD_SD4_DAT6__GPIO2_IO14		0x1b000
+			>;
+		};
 	};
 };
 
@@ -230,10 +236,10 @@
 	typec_tusb322:tusb320@47 {
 		compatible = "ti,tusb320";
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_gpio_x2_p32>;
+		pinctrl-0 = <&pinctrl_tusb320_irq>;
 		reg = <0x47>;
 		vbus-supply = <&reg_usb_otg_vbus>;
-		tusb320,int-gpio = <AXON_EXT_GPIO_X2_P32 GPIO_ACTIVE_LOW>;
+		tusb320,int-gpio = <&gpio2 14 GPIO_ACTIVE_LOW>;
 		tusb320,select-mode = <0>;
 		tusb320,dfp-power = <0>;
 	};
