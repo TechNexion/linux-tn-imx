@@ -111,7 +111,7 @@ config PINCTRL_AMD
 	  device.
 
 config PINCTRL_AXONFABRIC
-	tristate "Pinctrl and GPIO driver for TechNexion Axon Fabic FPGA"
+	bool "Pinctrl and GPIO driver for TechNexion Axon Fabric FPGA"
 	depends on MFD_AXONFABRIC
 	help
 	  Say yes to enable pinctrl and GPIO support for the Axon Fabric
