@@ -100,11 +100,12 @@ config MFD_AS3722
 	  over current monitoring, GPIOs, ADC and a watchdog.
 
 config MFD_AXONFABRIC
-	tristate "TechNexion Axon Fabric"
+	bool "TechNexion Axon Fabric"
 	select MFD_CORE
 	select REGMAP_I2C
 	select REGMAP_IRQ
 	select PINCTRL_AXONFABRIC
+	select GPIO_AXONFABRIC
 	depends on I2C=y && OF
 	help
 	  The Axon Fabric is an signal bus switch, gpio expander, and external
