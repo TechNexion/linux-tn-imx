@@ -49,13 +49,16 @@
 		#reset-cells = <0>;
 	};
 
+	/* Optional use of gpio-reset device to control
+	   the fabric reset. Be aware that using this device
+	   delays the initialization of the axonfabric until
+	   much later in the boot process */
 	fabric_reset: fabric_reset {
 		compatible = "gpio-reset";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_fabric_reset>;
 		reset-gpios = <AXON_INT_GPIO_FABRIC_RESET_N GPIO_ACTIVE_LOW>;
 		reset-delay-us = <2000>;
-		//reset-post-delay-ms = <40>;
 		#reset-cells = <0>;
 		status="disabled";
 	};
@@ -537,7 +540,7 @@
 		reg = <0x41>;
 		pinctrl-names = "default";
 		compatible = "technexion,axon-imx8mm-f01";
-		pinctrl-0 = <&pinctrl_fabric_reset>, <&pinmux_axonfabric>;
+		pinctrl-0 = <&pinctrl_fabric_reset>;
 		reset-gpios = <AXON_INT_GPIO_FABRIC_RESET_N GPIO_ACTIVE_LOW>;
 		gpio-controller;
 		#gpio-cells = <2>;
@@ -620,6 +623,12 @@
 				pins = "F_UART_BT_RXD", "F_UART_BT_RTS"; function = "passthru_in";
 				drive-push-pull;
 			};
+		};
+		gpio_axonfabric: gpio_axonfabric {
+			status = "okay";
+			compatible = "technexion,axonfabric-gpio";
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinmux_axonfabric>;
 		};
 	};
 
