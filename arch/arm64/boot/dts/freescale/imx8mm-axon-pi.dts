@@ -262,6 +262,9 @@
 	rtc_ds1337: ds1337 {
 		compatible = "dallas,ds1337";
 		reg = <0x68>;
+		wakeup-source;
+		interrupt-parent = <&gpio4>;
+		interrupts = <30 0>;
 	};
 
 	typec_tusb320:tusb320@47 {
