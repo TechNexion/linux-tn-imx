@@ -66,10 +66,11 @@
 	adv_bridge: adv7535@3d {
 		compatible = "adi,adv7533";
 		reg = <0x3d>;
+		pinctrl-0 = <&pinctrl_touch_irq>;
 		adi,addr-cec = <0x38>;
 		adi,dsi-lanes = <4>;
-		interrupt-parent = <&pca9555_1>;
-		interrupts = <4 IRQ_TYPE_EDGE_FALLING>;
+		interrupt-parent = <&gpio3>;
+		interrupts = <22 IRQ_TYPE_EDGE_FALLING>;
 		status = "okay";
 		#sound-dai-cells = <0>;
 
