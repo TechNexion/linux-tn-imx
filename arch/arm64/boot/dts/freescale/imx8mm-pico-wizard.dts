@@ -28,6 +28,18 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
+		reg_usdhc2_vmmc: regulator-usdhc2 {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_usdhc2_power>;
+			compatible = "regulator-fixed";
+			regulator-name = "SD_3V3";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio5 20 GPIO_ACTIVE_HIGH>;
+			off-on-delay = <20000>;
+			enable-active-high;
+		};
+
 		reg_usb_otg_vbus: usb_otg_vbus {
 			pinctrl-names = "default";
 			pinctrl-0 = <&pinctrl_otg_vbus>;
@@ -209,6 +221,18 @@
 				MX8MM_IOMUXC_NAND_DATA03_GPIO3_IO9	0x150 /* GPIO_P34, irq */
 			>;
 		};
+
+		pinctrl_rtc_ds1337_irq: pinctrl_rtc_ds1337_irqgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_NAND_CE0_B_GPIO3_IO1	0x150 /* GPIO_P24, irq */
+			>;
+		};
+
+		pinctrl_usdhc2_power: pinctrl_usdhc2_powergrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_I2C4_SCL_GPIO5_IO20	0x41 /* GPIO_P44 */
+			>;
+		};
 	};
 };
 
@@ -231,7 +255,12 @@
 
 	rtc_ds1337: ds1337@68 {
 		compatible = "dallas,ds1337";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_rtc_ds1337_irq>;
 		reg = <0x68>;
+		wakeup-source;
+		interrupt-parent = <&gpio3>;
+		interrupts = <1 0>;
 	};
 
 	ov5645_mipi: ov5645_mipi@3c {
@@ -370,6 +399,7 @@
 
 /* SD card on CLIX connector */
 &usdhc2 {
+	vmmc-supply = <&reg_usdhc2_vmmc>;
 	status = "okay";
 };
 
