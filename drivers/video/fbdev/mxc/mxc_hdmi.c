@@ -253,7 +253,7 @@ static ssize_t mxc_hdmi_show_state(struct device *dev,
 {
 	struct mxc_hdmi *hdmi = dev_get_drvdata(dev);
 
-	if (hdmi->cable_plugin == false)
+	if ( (hdmi->cable_plugin == false) || !(hdmi_readb(HDMI_PHY_STAT0) & HDMI_PHY_HPD) )
 		strcpy(buf, "plugout\n");
 	else
 		strcpy(buf, "plugin\n");
