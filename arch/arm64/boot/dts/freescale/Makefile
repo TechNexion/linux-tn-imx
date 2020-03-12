@@ -146,6 +146,7 @@ dtb-$(CONFIG_ARCH_FSL_IMX8MM) += imx8mm-axon-pi.dtb \
 				 imx8mm-pico-pi-skynodev2_devkit.dtb \
 				 imx8mm-pico-pi-skynodev2_dev_1.dtb \
 				 imx8mm-pico-pi-skynodev2_dev_2.dtb \
+				 imx8mm-pico-pi-skynodev2_dev_3.dtb \
 				 imx8mm-pico-pi-sn65dsi84-hj070na.dtb \
 				 imx8mm-pico-pi-sn65dsi84-m101nwwb.dtb \
 				 imx8mm-pico-pi-voicehat.dtb \

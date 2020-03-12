@@ -1,0 +1,255 @@
+/*
+ * Copyright 2020 Auterion AG
+ *
+ * Author: Helge Bahmann <helge@auterion.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/* This defines the features of the third Skynode boards: production batch
+ * with with fixed connectors, RMII ethernet, USBC connector. */
+
+/dts-v1/;
+
+#include "imx8mm-pico-pi.dts"
+
+/*
+ * Real Time Clock
+ *
+ * We do not use the realtime clock integrated into i.MX8MM security controller,
+ * but have one connected via i2c bus.
+ */
+
+/delete-node/ &snvs_rtc;
+
+&i2c2 {
+	rtc_mcp7940: mcp7940 {
+		compatible = "microchip,mcp7940x";
+		reg = <0x6f>;
+	};
+};
+
+/*
+ * UART
+ *
+ * Flight controller is attached to UART4, using pins normally used for
+ * SPI2 or other purposes (mipi csi controls). This activates UART4 and
+ * maps pins for use by flight controller.
+ */
+
+/* Delete pinctrls with conflicting mappings for ECSPI2_{SCLK|MOSI} */
+/delete-node/ &pinctrl_tfa98xx;
+/delete-node/ &pinctrl_csi_pwn;
+
+/* The pins used by UART4 are multiplexed with MIPI control which thus also
+ * becomes unavailable. */
+/delete-node/ &ov5645_mipi;
+/delete-node/ &mipi_csi_1;
+/delete-node/ &csi1_bridge;
+
+&iomuxc {
+	/* Map UART4 to ECSPI2 pads. */
+	imx8mm-pico {
+		pinctrl_uart4: uart4grp {
+			fsl,pins = <
+				MX8MM_IOMUXC_ECSPI2_SCLK_UART4_DCE_RX	0x140
+				MX8MM_IOMUXC_ECSPI2_MOSI_UART4_DCE_TX	0x140
+				// Remap 'normal' uart pads so they do not accidentally pull
+				// line low in case they are connected to something.
+				MX8MM_IOMUXC_UART4_RXD_GPIO5_IO28	0x19
+				MX8MM_IOMUXC_UART4_TXD_GPIO5_IO29	0x19
+			>;
+		};
+	};
+};
+
+/* Activate UART and link it to pinctrl. */
+&uart4 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart4>;
+	status = "okay";
+};
+
+/*
+ * PCI Express
+ *
+ * Single PCIe link connecting to EHCI host controller. Using internal
+ * oscillator as reference clock.
+ */
+&iomuxc {
+	imx8mm-pico {
+		pinctrl_pcie0: pcie0grp {
+			fsl,pins = <
+				MX8MM_IOMUXC_SAI2_TXD0_GPIO4_IO26   0x016  /* COMP_PCIE_nRST */
+				MX8MM_IOMUXC_NAND_DATA02_GPIO3_IO8  0x016  /* COMP_USB_POWER_EN */
+				MX8MM_IOMUXC_GPIO1_IO01_GPIO1_IO1   0x1D6  /* PCIE_USB_PME_L */
+			>;
+		};
+	};
+};
+
+/{
+    /delete-node/ backlight_mipi;
+};
+/delete-node/ &reg_backlight_pwr;
+
+&pcie0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pcie0>;
+	reset-gpio = <&gpio4 26 GPIO_ACTIVE_HIGH>;
+	power-on-gpio = <&gpio3 8 GPIO_ACTIVE_HIGH>;
+	ext_osc = <0>;
+	status = "okay";
+};
+
+/*
+ * LTE Modem
+ *
+ * The pins used in baseline for tusb320 are required for LTE usb reset
+ * sequence. Delete the declaration getting in the way.
+ */
+/delete-node/ &typec_tusb320;
+&usbotg1 {
+	/delete-property/ extcon;
+};
+
+
+/* 
+ * Ethernet
+ *
+ * Ethernet is connected to ksz8794 via RMII fixed link. No advanced switch
+ * control logic connected.
+ */
+
+/delete-node/ &pinctrl_gpio_key_voicehat;
+
+&iomuxc {
+	imx8mm-pico {
+		pinctrl_fec1: fec1grp {
+			fsl,pins = <
+				MX8MM_IOMUXC_ENET_MDC_ENET1_MDC             0x3
+				MX8MM_IOMUXC_ENET_MDIO_ENET1_MDIO           0x3
+				MX8MM_IOMUXC_ENET_TD1_ENET1_RGMII_TD1       0x1f
+				MX8MM_IOMUXC_ENET_TD0_ENET1_RGMII_TD0       0x1f
+				MX8MM_IOMUXC_ENET_RD1_ENET1_RGMII_RD1       0x91
+				MX8MM_IOMUXC_ENET_RD0_ENET1_RGMII_RD0       0x91
+				MX8MM_IOMUXC_ENET_TD2_ENET1_TX_CLK          0x1f
+				MX8MM_IOMUXC_ENET_RXC_ENET1_RX_ER           0x180 /* Config with Pull Down No connect in HW */
+				MX8MM_IOMUXC_ENET_TXC_ENET1_TX_ER           0x116
+				MX8MM_IOMUXC_ENET_RX_CTL_ENET1_RGMII_RX_CTL 0x91
+				MX8MM_IOMUXC_ENET_TX_CTL_ENET1_RGMII_TX_CTL 0x1f
+				MX8MM_IOMUXC_ENET_RD2_GPIO1_IO28            0x19  /* ENET_nRST */
+				MX8MM_IOMUXC_ENET_RD3_GPIO1_IO29            0x1D0 /* COMP_ETH_SWITCH_INTR_N_2V5 */
+			>;
+		};
+		pinctrl_fec1_nvcc: fec1_nvcc_grp {
+			fsl,pins = <
+				MX8MM_IOMUXC_NAND_DATA01_GPIO3_IO7          0x196 /* ENET Power */
+			>;
+		};
+	};
+};
+
+/ {
+	regulators {
+		reg_fec1_supply: fec1_nvcc {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_fec1_nvcc>;
+			compatible = "regulator-fixed";
+			regulator-name = "fec1_nvcc";
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <1800000>;
+			gpio = <&gpio3 7 GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+		};
+	};
+};
+
+&fec1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_fec1>;
+	phy-supply = <&reg_fec1_supply>;
+	phy-reset-gpios = <&gpio1 28 GPIO_ACTIVE_LOW>;
+	/delete-property/ phy-handle;
+	phy-mode = "rmii";
+	fixed-link {
+		speed = <100>;
+		full-duplex;
+	};
+};
+
+/*
+ * SD card
+ *
+ * Mostly default configuration, but using gpio1 pin4 as regulator control for
+ * sdhc.
+ */
+
+&iomuxc {
+	imx8mm-pico {
+		pinctrl_usdhc2_reg: usdhc2_reg_grp {
+			fsl,pins = <
+				MX8MM_IOMUXC_GPIO1_IO04_GPIO1_IO4	0x40000116
+			>;
+		};
+
+		pinctrl_usdhc2: usdhc2grp {
+			fsl,pins = <
+				MX8MM_IOMUXC_SD2_CLK_USDHC2_CLK		0x190
+				MX8MM_IOMUXC_SD2_CMD_USDHC2_CMD		0x1d0
+				MX8MM_IOMUXC_SD2_DATA0_USDHC2_DATA0	0x1d0
+				MX8MM_IOMUXC_SD2_DATA1_USDHC2_DATA1	0x1d0
+				MX8MM_IOMUXC_SD2_DATA2_USDHC2_DATA2	0x1d0
+				MX8MM_IOMUXC_SD2_DATA3_USDHC2_DATA3	0x1d0
+			>;
+		};
+
+		pinctrl_usdhc2_100mhz: usdhc2grp100mhz {
+			fsl,pins = <
+				MX8MM_IOMUXC_SD2_CLK_USDHC2_CLK		0x194
+				MX8MM_IOMUXC_SD2_CMD_USDHC2_CMD		0x1d4
+				MX8MM_IOMUXC_SD2_DATA0_USDHC2_DATA0	0x1d4
+				MX8MM_IOMUXC_SD2_DATA1_USDHC2_DATA1	0x1d4
+				MX8MM_IOMUXC_SD2_DATA2_USDHC2_DATA2	0x1d4
+				MX8MM_IOMUXC_SD2_DATA3_USDHC2_DATA3	0x1d4
+			>;
+		};
+
+		pinctrl_usdhc2_200mhz: usdhc2grp200mhz {
+			fsl,pins = <
+				MX8MM_IOMUXC_SD2_CLK_USDHC2_CLK		0x196
+				MX8MM_IOMUXC_SD2_CMD_USDHC2_CMD		0x1d6
+				MX8MM_IOMUXC_SD2_DATA0_USDHC2_DATA0	0x1d6
+				MX8MM_IOMUXC_SD2_DATA1_USDHC2_DATA1	0x1d6
+				MX8MM_IOMUXC_SD2_DATA2_USDHC2_DATA2	0x1d6
+				MX8MM_IOMUXC_SD2_DATA3_USDHC2_DATA3	0x1d6
+			>;
+		};
+	};
+};
+
+/ {
+	regulators {
+		reg_usdhc2_vmmc: regulator-usdhc2 {
+			compatible = "regulator-fixed";
+			regulator-name = "VSD_3V3";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio1 4 GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+		};
+	};
+};
+
+&usdhc2 {
+	vmmc-supply = <&reg_usdhc2_vmmc>;
+};
+
