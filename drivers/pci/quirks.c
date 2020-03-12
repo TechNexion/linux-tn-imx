@@ -4853,3 +4853,36 @@ static void quirk_no_ats(struct pci_dev *pdev)
 /* AMD Stoney platform GPU */
 DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_ATI, 0x98e4, quirk_no_ats);
 #endif /* CONFIG_PCI_ATS */
+
+static void quirk_pericom_bridge_rxeq(struct pci_dev *pdev)
+{
+	u32 plctl2;
+	int err;
+
+	err = pci_read_config_dword(pdev, 0xbc, &plctl2);
+	if (err) {
+		dev_err(&pdev->dev, "Error reading physical layer control 2 register\n");
+		return;
+	}
+
+	plctl2 = plctl2 & ~(0xf << 22);
+	plctl2 = plctl2 | (0x4 << 22);
+
+	err = pci_write_config_dword(pdev, 0xbc, plctl2);
+	if (err) {
+		dev_err(&pdev->dev, "Error writing physical layer control 2 register\n");
+		return;
+	}
+
+	dev_info(&pdev->dev, "Increase rxeq for pericom bridge");
+}
+DECLARE_PCI_FIXUP_EARLY(0x12d8, 0x400c, quirk_pericom_bridge_rxeq);
+
+/*
+ * Designware PCIe host bridge on i.mx8mm.
+ *
+ * Technically, this fixup is wrong: The bridge supports MSIs just fine, but
+ * there are problems with devices attached to the host bridge that rely on
+ * INT{A|B|C|D} virtual line interrupts.
+ */
+DECLARE_PCI_FIXUP_EARLY(0x16c3, 0xabcd, quirk_disable_all_msi);

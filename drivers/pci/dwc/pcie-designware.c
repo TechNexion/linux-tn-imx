@@ -17,6 +17,9 @@
 
 #include "pcie-designware.h"
 
+#define CREATE_TRACE_POINTS
+#include <trace/events/pcidwc.h>
+
 /* PCIe Port Logic registers */
 #define PLR_OFFSET			0x700
 #define PCIE_PHY_DEBUG_R1		(PLR_OFFSET + 0x2c)
@@ -67,12 +70,16 @@ u32 __dw_pcie_read_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg,
 	int ret;
 	u32 val;
 
-	if (pci->ops->read_dbi)
-		return pci->ops->read_dbi(pci, base, reg, size);
-
-	ret = dw_pcie_read(base + reg, size, &val);
-	if (ret)
+	if (pci->ops->read_dbi) {
+		ret = pci->ops->read_dbi(pci, base, reg, size);
+	} else {
+		ret = dw_pcie_read(base + reg, size, &val);
+	}
+	if (ret) {
 		dev_err(pci->dev, "read DBI address failed\n");
+	} else {
+		trace_dbi_read(reg, size, val);
+	}
 
 	return val;
 }
@@ -82,6 +89,7 @@ void __dw_pcie_write_dbi(struct dw_pcie *pci, void __iomem *base, u32 reg,
 {
 	int ret;
 
+	trace_dbi_write(reg, size, val);
 	if (pci->ops->write_dbi) {
 		pci->ops->write_dbi(pci, base, reg, size, val);
 		return;
