@@ -39,7 +39,7 @@
 		pinctrl_nfc_ctrl: nfc_ctrl {
 			fsl,pins = <
 				MX8MM_IOMUXC_NAND_READY_B_GPIO3_IO16	0x41	/* PIN_INT */
-				MX8MM_IOMUXC_ECSPI1_MISO_GPIO5_IO8	0x41	/* PIN_ENABLE */
+				MX8MM_IOMUXC_ECSPI2_MOSI_GPIO5_IO11	0x41	/* PIN_ENABLE */
 			>;
 		};
 	};
@@ -53,11 +53,13 @@
 		pinctrl-0 = <&pinctrl_nfc_ctrl>;
 		clock-frequency = <100000>;
 		interrupt-gpios = <&gpio3 16 0>;
-		enable-gpios = <&gpio5 8 0>;
+		enable-gpios = <&gpio5 11 0>;
 		status = "okay";
 	};
 };
 
-&uart3 {
-	status = "disabled";
+&i2c2 {
+	ov5645_mipi: ov5645_mipi@3c {
+		status = "disabled";
+	};
 };
