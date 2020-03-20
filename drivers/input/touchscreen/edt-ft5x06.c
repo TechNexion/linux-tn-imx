@@ -69,6 +69,8 @@
 #define EDT_RAW_DATA_RETRIES		100
 #define EDT_RAW_DATA_DELAY		1000 /* usec */
 
+#define PANEL10I				0x59
+
 enum edt_ver {
 	M06,
 	M09,
@@ -111,7 +113,7 @@ struct edt_ft5x06_ts_data {
 
 	struct edt_reg_addr reg_addr;
 	enum edt_ver version;
-	bool ten_inch_tp;
+	unsigned char type;
 };
 
 struct edt_i2c_chip_data {
@@ -190,7 +192,7 @@ static irqreturn_t edt_ft5x06_ts_isr(int irq, void *dev_id)
 	case M09:
 		cmd = 0x0;
 		offset = 3;
-		if (tsdata->ten_inch_tp) //work around to prevent 5" conflict with 10"
+		if (tsdata->type == PANEL10I) 
 			tplen = 4;
 		else
 			tplen = 6;
@@ -907,7 +909,6 @@ static int edt_ft5x06_ts_probe(struct i2c_client *client,
 	unsigned long irq_flags;
 	int error;
 	char fw_version[EDT_NAME_LEN];
-        const struct device_node *np = client->dev.of_node;
 
 	dev_dbg(&client->dev, "probing for EDT FT5x06 I2C\n");
 
@@ -966,9 +967,6 @@ static int edt_ft5x06_ts_probe(struct i2c_client *client,
 	tsdata->client = client;
 	tsdata->input = input;
 	tsdata->factory_mode = false;
-
-	if (of_property_read_bool(np, "ten_inch_tp"))
-		tsdata->ten_inch_tp = true;
 
 	error = edt_ft5x06_ts_identify(client, tsdata, fw_version);
 	if (error) {
@@ -1033,6 +1031,9 @@ static int edt_ft5x06_ts_probe(struct i2c_client *client,
 		client->irq,
 		tsdata->wake_gpio ? desc_to_gpio(tsdata->wake_gpio) : -1,
 		tsdata->reset_gpio ? desc_to_gpio(tsdata->reset_gpio) : -1);
+
+	//Andy 2020.03.20 After initialize we get panel type here
+	edt_ft5x06_ts_readwrite(client, 1, "\xA3", 1, &tsdata->type);
 
 	return 0;
 
