@@ -61,7 +61,7 @@
 	};
 
 	fragment@2 {
-		target = <&i2c1>;
+		target = <&i2c3>;
 		__overlay__ {
 			#address-cells = <1>;
 			#size-cells = <0>;
