@@ -47,7 +47,6 @@
 				reset-gpios = <&gpio4 20 GPIO_ACTIVE_LOW>;
 				touchscreen-size-x = <1920>;
 				touchscreen-size-y = <1200>;
-				ten_inch_tp;
 				status = "okay";
 			};
 		};
