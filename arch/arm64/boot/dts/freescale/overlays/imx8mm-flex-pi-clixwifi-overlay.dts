@@ -37,8 +37,8 @@
 					regulator-min-microvolt = <3300000>;
 					regulator-max-microvolt = <3300000>;
 					gpio = <&gpio4 28 GPIO_ACTIVE_HIGH>;
-					off-on-delay = <20000>;
 					enable-active-high;
+					regulator-always-on;
 				};
 			};
 		};
@@ -77,7 +77,6 @@
 		target = <&usdhc2>;
 		__overlay__ {
 			vdd-supply = <&clix_wl_reg_on>;
-			vmmc-supply = <&clix_rst>;
 			keep-power-in-suspend;
 			non-removable;
 			status = "okay";
