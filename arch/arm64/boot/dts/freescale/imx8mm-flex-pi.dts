@@ -20,6 +20,33 @@
 
 #include "imx8mm-flex.dtsi"
 
+&gpio1 {
+	pinctrl-0 = <&pinctrl_gpio1>;
+	gpio-line-names =	\
+		"WL_REG_ON", "PWM1", "", "BT_REG_ON", "", "CSI_P1_nRST", "CSI_P1_PWDN", "USB_HUB_RESET",	\
+		"GPIO_P258", "USB_OTG_PWR_EN", "DSI1_EN", "DSI1_RST", "DSI1_VDDEN", "PWM2", "CSI_P1_CLK", "",	\
+		"", "", "", "", "", "", "", "",	\
+		"", "", "", "", "", "", "", "";
+};
+
+&gpio3 {
+	pinctrl-0 = <&pinctrl_gpio3>;
+	gpio-line-names =	\
+		"WL_WAKE_HOST", "ENET_PWR_EN", "", "", "", "", "GPIO_P242", "PMIC_nINT",	\
+		"USB_OTG_OC", "GPIO_P246", "", "", "", "", "", "",	\
+		"BT_WAKE_HOST", "", "", "GPIO_P252", "GPIO_P240", "", "", "",	\
+		"GPIO_P248", "GPIO_P250", "", "", "", "", "", "";
+};
+
+&gpio4 {
+	pinctrl-0 = <&pinctrl_gpio4>;
+	gpio-line-names =	\
+		"BRD_CONF_SCL", "BRD_CONF_SDA", "", "", "", "", "", "",	\
+		"", "", "", "", "", "", "", "",	\
+		"", "", "", "", "GPIO_P256", "", "", "",	\
+		"", "", "", "", "GPIO_P244", "", "", "";
+};
+
 / {
 	model = "TechNexion FLEX-IMX8MM and PI baseboard";
 	compatible = "fsl,imx8mm-flex", "fsl,imx8mm";
@@ -88,20 +115,27 @@
 };
 
 &iomuxc {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_hog_1>;
-
 	imx8mm-flex {
-		pinctrl_hog_1: hoggrp-1 {
+		pinctrl_gpio1: gpio1grp {
 			fsl,pins = <
 				MX8MM_IOMUXC_GPIO1_IO10_GPIO1_IO10	0x19 /* DSI1_EN */
-				MX8MM_IOMUXC_NAND_DATA02_GPIO3_IO8	0x19 /* USB_OTG_OC */
-				MX8MM_IOMUXC_SAI3_RXFS_GPIO4_IO28	0x19 /* GPIO_P244 */
-				MX8MM_IOMUXC_SAI5_RXFS_GPIO3_IO19	0x19 /* GPIO_P252, KEY_MUTE */
-				MX8MM_IOMUXC_SAI5_RXC_GPIO3_IO20	0x19 /* GPIO_P240, KEY_UP */
+			>;
+		};
+
+		pinctrl_gpio3: gpio3grp {
+			fsl,pins = <
 				MX8MM_IOMUXC_NAND_DATA00_GPIO3_IO6	0x19 /* GPIO_P242 */
 				MX8MM_IOMUXC_NAND_DATA03_GPIO3_IO9	0x19 /* GPIO_P246, KEY_PREV */
+				MX8MM_IOMUXC_NAND_DATA02_GPIO3_IO8	0x19 /* USB_OTG_OC */
+				MX8MM_IOMUXC_SAI5_RXFS_GPIO3_IO19	0x19 /* GPIO_P252, KEY_MUTE */
+				MX8MM_IOMUXC_SAI5_RXC_GPIO3_IO20	0x19 /* GPIO_P240, KEY_UP */
 				MX8MM_IOMUXC_SAI5_MCLK_GPIO3_IO25	0x19 /* GPIO_P250, KEY_DOWN */
+			>;
+		};
+
+		pinctrl_gpio4: gpio4grp {
+			fsl,pins = <
+				MX8MM_IOMUXC_SAI3_RXFS_GPIO4_IO28	0x19 /* GPIO_P244 */
 			>;
 		};
 
