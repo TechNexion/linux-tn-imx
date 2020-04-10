@@ -43,6 +43,7 @@
 	};
 };
 
+/* "csi_pwn pin" conflicts with "PIN_ENABLE of NFC" */
 &i2c2 {
 	ov5645_mipi: ov5645_mipi@3c {
 		status = "disabled";

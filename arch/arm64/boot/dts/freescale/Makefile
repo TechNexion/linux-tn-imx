@@ -166,7 +166,8 @@ dtb-$(CONFIG_ARCH_FSL_IMX8MM) += imx8mm-axon-pi.dtb \
 				 imx8mm-pico-wizard-g101uan02.dtb \
 				 imx8mm-pico-wizard-adv7535.dtb \
 				 imx8mm-pico-wizard-voicehat.dtb \
-				 imx8mm-pico-wizard-nfc.dtb \
+				 imx8mm-pico-wizard-nfc-clix1.dtb \
+				 imx8mm-pico-wizard-nfc-clix2.dtb \
 				 imx8mm-pico-wizard-sn65dsi84-m101nwwb.dtb \
 				 imx8mm-pico-wizard-sn65dsi84-g215hvn01.dtb \
 				 imx8mm-flex-pi.dtb \
