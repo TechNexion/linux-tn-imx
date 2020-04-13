@@ -139,7 +139,8 @@ dtb-$(CONFIG_ARCH_FSL_IMX8MQ) += fsl-imx8mq-ddr3l-arm2.dtb \
 				 imx8mq-pico-pi-dual.dtb \
 				 imx8mq-pico-pi-dual-sn65dsi84.dtb \
 				 imx8mq-pico-pi-voicehat.dtb \
-				 imx8mq-pico-pi-nfc.dtb
+				 imx8mq-pico-pi-nfc.dtb \
+				 imx8mq-pico-wizard.dtb
 dtb-$(CONFIG_ARCH_FSL_IMX8MM) += imx8mm-axon-pi.dtb \
 				 imx8mm-axon-pi-voicehat.dtb \
 				 imx8mm-axon-pi-ov7251.dtb \
