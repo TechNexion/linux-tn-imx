@@ -115,7 +115,7 @@
 
 		pinctrl_tusb320_irq: tusb320_irqgrp {
 			fsl,pins = <
-				MX8MQ_IOMUXC_NAND_CE0_B_GPIO3_IO1	0x41
+				MX8MQ_IOMUXC_NAND_DATA00_GPIO3_IO6	0x41	/* GPIO_P48 */
 			>;
 		};
 
@@ -141,21 +141,27 @@
 			>;
 		};
 
-		pinctrl_mipi_dsi_rst: mipi_dsi_rst {
-			fsl,pins = <
-				MX8MQ_IOMUXC_NAND_WE_B_GPIO3_IO17	0x16   /* DSI RST */
-			>;
-		};
-
 		pinctrl_touch_irq: touch_irqgrp {
 			fsl,pins = <
 				MX8MQ_IOMUXC_GPIO1_IO07_GPIO1_IO7	0x41
 			>;
 		};
 
-		pinctrl_touch_rst: touch_rstgrp {
+		pinctrl_pca9554: pca9554grp {
 			fsl,pins = <
-				MX8MQ_IOMUXC_NAND_WP_B_GPIO3_IO18	0x16
+				MX8MQ_IOMUXC_NAND_CE2_B_GPIO3_IO3	0x19 /* GPIO_P25, irq */
+			>;
+		};
+
+		pinctrl_pca9555_23: pca9555_23grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_NAND_WP_B_GPIO3_IO18	0x19 /* GPIO_P42, irq */
+			>;
+		};
+
+		pinctrl_pca9555_26: pca9555_26grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_NAND_WE_B_GPIO3_IO17	0x19 /* GPIO_P34, irq */
 			>;
 		};
 
@@ -176,7 +182,7 @@
 		pinctrl-0 = <&pinctrl_tusb320_irq>;
 		reg = <0x67>;
 		vbus-supply = <&reg_usb_otg_vbus>;
-		tusb320,int-gpio = <&gpio3 1 GPIO_ACTIVE_LOW>;
+		tusb320,int-gpio = <&gpio3 6 GPIO_ACTIVE_LOW>;
 		tusb320,select-mode = <0>;
 		tusb320,dfp-power = <0>;
 	};
@@ -229,6 +235,45 @@
 				remote-endpoint = <&mipi2_sensor_ep>;
 			};
 		};
+	};
+
+	pca9554: pca9554@25 {
+		compatible = "nxp,pca9554";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pca9554>;
+		interrupt-parent = <&gpio3>;
+		interrupts = <3 IRQ_TYPE_EDGE_FALLING>;
+		reg =<0x21>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+	};
+
+	pca9555_23: pca9555_23@23 {
+		compatible = "nxp,pca9555";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pca9555_23>;
+		interrupt-parent = <&gpio3>;
+		interrupts = <18 IRQ_TYPE_EDGE_FALLING>;
+		reg =<0x23>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+	};
+
+	pca9555_26: pca9555_26@26 {
+		compatible = "nxp,pca9555";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pca9555_26>;
+		interrupt-parent = <&gpio3>;
+		interrupts = <17 IRQ_TYPE_EDGE_FALLING>;
+		reg =<0x26>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
 	};
 
 	at24@57 {
