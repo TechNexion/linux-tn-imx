@@ -401,6 +401,7 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6dl-pico-nymph-qca.dtb \
 	imx6dl-pico-pi.dtb \
 	imx6dl-pico-pi-qca.dtb \
+	imx6dl-pico-wizard-qca.dtb \
 	imx6dl-rex-basic.dtb \
 	imx6dl-riotboard.dtb \
 	imx6dl-sabreauto.dtb \
@@ -500,6 +501,7 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6q-pico-nymph-qca.dtb \
 	imx6q-pico-pi.dtb \
 	imx6q-pico-pi-qca.dtb \
+	imx6q-pico-wizard-qca.dtb \
 	imx6q-rex-pro.dtb \
 	imx6q-sabreauto.dtb \
 	imx6q-sabreauto-ecspi.dtb \
