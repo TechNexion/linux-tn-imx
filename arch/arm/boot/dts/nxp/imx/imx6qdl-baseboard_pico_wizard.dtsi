@@ -1,0 +1,146 @@
+/*
+ * Copyright 2020 Technexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ */
+
+/ {
+	/delete-node/ backlight_lcd;
+	/delete-node/ backlight_lvds;
+
+	backlight_lvds {
+		compatible = "pwm-backlight";
+		pwms = <&pwm4 0 50000>;
+		brightness-levels = <0 36 72 108 144 180 216 255>;
+		power-supply = <&reg_lvds_bl_en>;
+		default-brightness-level = <6>;
+	};
+
+	regulators {
+		reg_lvds_bl_en: lvds_bl_en {
+				compatible = "regulator-fixed";
+				pinctrl-names = "default";
+				regulator-name = "fixed-supply";
+				regulator-min-microvolt = <5000000>;
+				regulator-max-microvolt = <5000000>;
+				gpio = <&pca9555_23 1 0>;
+				enable-active-high;
+				regulator-always-on;
+				regulator-boot-on;
+		};
+
+		reg_lvds_vdd: lvds_vdd {
+				compatible = "regulator-fixed";
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_lvds_vdd>;
+				regulator-name = "fixed-supply";
+				regulator-min-microvolt = <5000000>;
+				regulator-max-microvolt = <5000000>;
+				gpio = <&gpio2 11 0>;
+				enable-active-high;
+				regulator-always-on;
+				regulator-boot-on;
+		};
+	};
+};
+
+&iomuxc {
+	pinctrl_pca9554: pca9554grp {
+		fsl,pins = <
+			MX6QDL_PAD_CSI0_PIXCLK__GPIO5_IO18	0x80000000 /* GPIO_P25, irq */
+		>;
+	};
+
+	pinctrl_pca9555_23: pca9555_23grp {
+		fsl,pins = <
+			MX6QDL_PAD_CSI0_DAT12__GPIO5_IO30	0x80000000 /* GPIO_P42, irq */
+		>;
+	};
+
+	pinctrl_pca9555_26: pca9555_26grp {
+		fsl,pins = <
+			MX6QDL_PAD_CSI0_DAT14__GPIO6_IO00	0x80000000 /* GPIO_P34, irq */
+		>;
+	};
+
+	pinctrl_lvds_vdd: lvds_vddgrp {
+		fsl,pins = <
+			MX6QDL_PAD_SD4_DAT3__GPIO2_IO11		0x80000000 /* DISP0_VDD_EN */
+		>;
+	};
+};
+
+&i2c3 {
+	pca9554: pca9554@25 {
+		compatible = "nxp,pca9554";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pca9554>;
+		interrupt-parent = <&gpio5>;
+		interrupts = <18 IRQ_TYPE_EDGE_FALLING>;
+		reg =<0x21>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+	};
+
+	pca9555_23: pca9555_23@23 {
+		compatible = "nxp,pca9555";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pca9555_23>;
+		interrupt-parent = <&gpio5>;
+		interrupts = <30 IRQ_TYPE_EDGE_FALLING>;
+		reg =<0x23>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+	};
+
+	pca9555_26: pca9555_26@26 {
+		compatible = "nxp,pca9555";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pca9555_26>;
+		interrupt-parent = <&gpio6>;
+		interrupts = <0 IRQ_TYPE_EDGE_FALLING>;
+		reg =<0x26>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+	};
+};
+
+&ldb {
+	status = "okay";
+	lvds-channel@0 {
+		fsl,data-mapping = "spwg";
+		fsl,data-width = <24>;
+		primary;
+		status = "okay";
+
+		/delete-node/ display-timings;
+		
+		display-timings {
+			native-mode = <&timing0>;
+			timing0: VL101-12880YL {
+				clock-frequency = <68900000>;
+				hactive = <1280>;
+				vactive = <800>;
+				hfront-porch = <40>;
+				hsync-len = <80>;
+				hback-porch = <40>;
+				vfront-porch = <3>;
+				vsync-len = <10>;
+				vback-porch = <10>;
+				vsync-active = <1>;
+				hsync-active = <1>;
+			};
+		};
+	};
+};
