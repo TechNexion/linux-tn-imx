@@ -1,0 +1,30 @@
+/*
+ * Copyright 2016,2017,2018 Technexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ */
+/dts-v1/;
+
+#include "imx6dl.dtsi"
+#include "imx6qdl-pico-qca.dtsi"
+#include "imx6qdl-baseboard_pico_wizard.dtsi"
+
+/ {
+	model = "TechNexion PICO-IMX6  DualLite/Solo with QCA WLAN module and WIZARD baseboard";
+	compatible = "fsl,pico-imx6dl", "fsl,imx6dl";
+};
+
+&ldb {
+	lvds-channel@0 {
+		crtc = "ipu1-di0";
+	};
+};
+
+&epdc {
+	status = "disabled";
+};
