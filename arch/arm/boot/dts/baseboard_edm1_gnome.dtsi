@@ -165,14 +165,6 @@
 &EDM_I2CC {
 	status = "okay";
 
-	typec_tusb320:tusb320@67 {
-		compatible = "ti,tusb320";
-		reg = <0x67>;
-		tusb320,int-gpio = <&EXGPIO_7 GPIO_ACTIVE_LOW>;
-		tusb320,select-mode = <0>;
-		tusb320,dfp-power = <0>;
-	};
-
 	ds1337: rtc@68 {
 		compatible = "mxim,ds1337";
 		reg = <0x68>;
