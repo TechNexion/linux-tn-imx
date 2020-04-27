@@ -156,12 +156,6 @@
 			>;
 		};
 
-		pinctrl_csi_pwn: csi_pwn_grp {
-			fsl,pins = <
-				MX8MM_IOMUXC_ECSPI2_MOSI_GPIO5_IO11		0x19
-			>;
-		};
-
 		pinctrl_csi_rst: csi_rst_grp {
 			fsl,pins = <
 				MX8MM_IOMUXC_GPIO1_IO05_GPIO1_IO5		0x19
@@ -268,7 +262,7 @@
 		reg = <0x3c>;
 		status = "okay";
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_csi_pwn>, <&pinctrl_csi_rst>;
+		pinctrl-0 = <&pinctrl_csi_rst>;
 		clocks = <&clk IMX8MM_CLK_CLKO1_DIV>;
 		clock-names = "csi_mclk";
 		assigned-clocks = <&clk IMX8MM_CLK_CLKO1_SRC>,
@@ -276,7 +270,7 @@
 		assigned-clock-parents = <&clk IMX8MM_CLK_24M>;
 		assigned-clock-rates = <0>, <24000000>;
 		csi_id = <0>;
-		pwn-gpios = <&gpio5 11 GPIO_ACTIVE_LOW>;
+		pwn-gpios = <&pca9555_26 15 GPIO_ACTIVE_LOW>;
 		rst-gpios = <&gpio1 5 GPIO_ACTIVE_HIGH>;
 		mclk = <24000000>;
 		mclk_source = <0>;
