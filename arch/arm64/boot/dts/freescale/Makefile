@@ -179,6 +179,8 @@ dtb-$(CONFIG_ARCH_FSL_IMX8MM) += imx8mm-axon-pi.dtb \
 				 imx8mm-flex-pi-ili9881c-m4.dtb \
 				 imx8mm-flex-pi-voicehat.dtb \
 				 imx8mm-flex-wizard.dtb \
+				 imx8mm-xore-wizard-sn65dsi84-m101nwwb.dtb	\
+				 imx8mm-xore-wizard-sn65dsi84-g156xw01.dtb	\
 				 imx8mm-xore-wizard-sn65dsi84-g215hvn01.dtb \
 				 imx8mm-xore-wizard-voicehat.dtb \
 				 imx8mm-xore-wizard-ili9881c.dtb \
