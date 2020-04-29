@@ -130,6 +130,26 @@ config CRYPTO_DEV_FSL_CAAM_PKC_API
           To compile this as a module, choose M here: the module
           will be called caam_pkc.
 
+config CRYPTO_DEV_FSL_CAAM_ECDSA_API
+        tristate "Register ECDSA primitives implementations using CAAM"
+        depends on CRYPTO_DEV_FSL_CAAM_JR
+        default n
+        help
+          Selecting this will allow CAAM Public key support for ECDSA.
+          Exported cryptographic primitives: sign, verify and key pair generation
+		  with black key support.
+          To compile this as a module, choose M here: the module
+          will be called caam_ecdsa.
+
+config CRYPTO_DEV_FSL_CAAM_BK_DEV
+        tristate "Register caam device for black key management"
+        depends on CRYPTO_DEV_FSL_CAAM_JR
+        default n
+        help
+          Selecting this will register a char device /dev/kb to manages black blobs and black keys.
+          To compile this as a module, choose M here: the module
+          will be called caam_bk.
+
 config CRYPTO_DEV_FSL_CAAM_RNG_API
 	tristate "Register caam device for hwrng API"
 	depends on CRYPTO_DEV_FSL_CAAM_JR
