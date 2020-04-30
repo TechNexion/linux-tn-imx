@@ -182,6 +182,9 @@
 /* Length in bytes */
 #define KEY_LENGTH_MASK		0x000003ff
 
+/* Key can be stored in plaintext form later */
+#define KEY_PTS			0x00004000
+
 /*
  * LOAD/SEQ_LOAD/STORE/SEQ_STORE Command Constructs
  */

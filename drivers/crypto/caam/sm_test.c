@@ -27,6 +27,13 @@
 #include "error.h"
 #include "jr.h"
 #include "sm.h"
+#include "caam_desc.h"
+#include "caam_util.h"
+
+#define SECMEM_KEYMOD_LEN 8
+#define GENMEM_KEYMOD_LEN 16
+
+#define INITIAL_DESCSZ 16	/* size of tmp buffer for descriptor const. */
 
 /* Fixed known pattern for a key modifier */
 static u8 skeymod[] = {
@@ -70,9 +77,143 @@ static u8 clrkey[] = {
 	0xf8, 0xf9, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff
 };
 
+/*
+ * Blacken a clear key in a slot. Operates "in place".
+ * Limited to class 1 keys at the present time
+ */
+static int sm_keystore_cover_key(struct device *dev, u32 unit, u32 slot,
+				 u16 key_length, u8 keyauth)
+{
+	int retval = 0;
+	struct device *jrdev;
+	void *slotphys;
+	size_t black_key_length;
+
+	if (!dev)
+		return -EINVAL;
+
+	jrdev = caam_jr_alloc();
+	if (IS_ERR(jrdev))
+		return -ENOMEM;
+
+	slotphys = sm_keystore_get_slot_phys_addr(dev, unit, slot);
+	if (!slotphys) {
+		retval = -ENOMEM;
+		goto free_jr;
+	}
+
+	black_key_length = sm_keystore_get_slot_size(dev, unit, slot);
+	if (!black_key_length) {
+		retval = -ENOMEM;
+		goto free_jr;
+	}
+
+	retval = caam_black_key(jrdev,
+				slotphys, key_length, DATA_SECMEM,
+				slotphys, &black_key_length, DATA_SECMEM,
+				keyauth, UNTRUSTED_KEY);
+
+free_jr:
+	caam_jr_free(jrdev);
+
+	return retval;
+}
+
+/* Export a black/red key to a blob in external memory */
+static int sm_keystore_slot_export(struct device *ksdev, u32 unit, u32 slot,
+				   u8 keycolor, u8 keyauth,
+				   u8 *outbuf, u16 keylen, u8 *keymod)
+{
+	struct device *jrdev;
+	int retval = 0;
+	u8 __iomem *slotphys;
+	size_t blob_len;
+	size_t keymod_len = KEYMOD_SIZE_SM;
+	u8 blob_color = (keycolor == BLACK_KEY) ? BLACK_BLOB : RED_BLOB;
+
+	if (!ksdev || !outbuf || !keymod)
+		return -EINVAL;
+
+	jrdev = caam_jr_alloc();
+	if (IS_ERR(jrdev))
+		return -ENOMEM;
+
+	slotphys = sm_keystore_get_slot_phys_addr(ksdev, unit, slot);
+	if (!slotphys) {
+		retval = -ENOMEM;
+		goto free_jr;
+	}
+
+	blob_len = sm_keystore_get_slot_size(ksdev, unit, slot);
+	if (!blob_len) {
+		retval = -ENOMEM;
+		goto free_jr;
+	}
+
+	retval = caam_blob_encap(jrdev,
+				 slotphys, keylen, DATA_SECMEM,
+				 keycolor, keylen,
+				 keyauth, UNTRUSTED_KEY,
+				 keymod, &keymod_len, DATA_GENMEM,
+				 outbuf, &blob_len,
+				 DATA_GENMEM, blob_color);
+
+free_jr:
+	caam_jr_free(jrdev);
+
+	return retval;
+}
+
+/* Import a black/red key from a blob residing in external memory */
+static int sm_keystore_slot_import(struct device *ksdev, u32 unit, u32 slot,
+				   u8 keycolor, u8 keyauth,
+				   u8 *inbuf, u16 keylen, u8 *keymod)
+{
+	struct device *jrdev;
+	int retval = 0;
+	u8 __iomem *slotphys;
+	size_t keymod_len = KEYMOD_SIZE_SM;
+	size_t key_len;
+	size_t secret_size = 0;
+	u8 blob_color = (keycolor == BLACK_KEY) ? BLACK_BLOB : RED_BLOB;
+
+	if (!ksdev || !inbuf || !keymod)
+		return -EINVAL;
+
+	jrdev = caam_jr_alloc();
+	if (IS_ERR(jrdev))
+		return -ENOMEM;
+
+	slotphys = sm_keystore_get_slot_phys_addr(ksdev, unit, slot);
+	if (!slotphys) {
+		retval = -ENOMEM;
+		goto free_jr;
+	}
+
+	key_len = sm_keystore_get_slot_size(ksdev, unit, slot);
+	if (!key_len) {
+		retval = -ENOMEM;
+		goto free_jr;
+	}
+
+	retval = caam_blob_decap(jrdev,
+				 inbuf, keylen + BLOB_OVERHEAD,
+				 DATA_GENMEM, blob_color,
+				 keymod, &keymod_len, DATA_GENMEM,
+				 slotphys, &key_len, DATA_SECMEM,
+				 keycolor, &secret_size,
+				 keyauth, UNTRUSTED_KEY);
+
+free_jr:
+	caam_jr_free(jrdev);
+
+	return retval;
+}
+
+
 static void key_display(struct device *dev, u8 *label, u16 size, u8 *key)
 {
-	unsigned i;
+	int i;
 
 	dev_info(dev, label);
 	for (i = 0; i < size; i += 8)
@@ -88,7 +229,7 @@ int caam_sm_example_init(struct platform_device *pdev)
 	struct caam_drv_private *ctrlpriv;
 	struct caam_drv_private_sm *kspriv;
 	u32 unit, units;
-	int rtnval = 0;
+	int rtnval = -EIO;
 	u8 clrkey8[8], clrkey16[16], clrkey24[24], clrkey32[32];
 	u8 blkkey8[AES_BLOCK_PAD(8)], blkkey16[AES_BLOCK_PAD(16)];
 	u8 blkkey24[AES_BLOCK_PAD(24)], blkkey32[AES_BLOCK_PAD(32)];
@@ -208,22 +349,22 @@ int caam_sm_example_init(struct platform_device *pdev)
 	 * Cover keys in-place
 	 */
 	if (sm_keystore_cover_key(ksdev, unit, keyslot8, 8, KEY_COVER_ECB)) {
-		dev_info(ksdev, "blkkey_ex: can't cover 64-bit key\n");
+		dev_err(ksdev, "blkkey_ex: can't cover 64-bit key\n");
 		goto dealloc;
 	}
 
 	if (sm_keystore_cover_key(ksdev, unit, keyslot16, 16, KEY_COVER_ECB)) {
-		dev_info(ksdev, "blkkey_ex: can't cover 128-bit key\n");
+		dev_err(ksdev, "blkkey_ex: can't cover 128-bit key\n");
 		goto dealloc;
 	}
 
 	if (sm_keystore_cover_key(ksdev, unit, keyslot24, 24, KEY_COVER_ECB)) {
-		dev_info(ksdev, "blkkey_ex: can't cover 192-bit key\n");
+		dev_err(ksdev, "blkkey_ex: can't cover 192-bit key\n");
 		goto dealloc;
 	}
 
 	if (sm_keystore_cover_key(ksdev, unit, keyslot32, 32, KEY_COVER_ECB)) {
-		dev_info(ksdev, "blkkey_ex: can't cover 256-bit key\n");
+		dev_err(ksdev, "blkkey_ex: can't cover 256-bit key\n");
 		goto dealloc;
 	}
 
@@ -239,46 +380,46 @@ int caam_sm_example_init(struct platform_device *pdev)
 
 	if (sm_keystore_slot_read(ksdev, unit, keyslot8, AES_BLOCK_PAD(8),
 				  blkkey8)) {
-		dev_info(ksdev, "blkkey_ex: can't read 64-bit black key\n");
+		dev_err(ksdev, "blkkey_ex: can't read 64-bit black key\n");
 		goto dealloc;
 	}
 
 	if (sm_keystore_slot_read(ksdev, unit, keyslot16, AES_BLOCK_PAD(16),
 				  blkkey16)) {
-		dev_info(ksdev, "blkkey_ex: can't read 128-bit black key\n");
+		dev_err(ksdev, "blkkey_ex: can't read 128-bit black key\n");
 		goto dealloc;
 	}
 
 	if (sm_keystore_slot_read(ksdev, unit, keyslot24, AES_BLOCK_PAD(24),
 				  blkkey24)) {
-		dev_info(ksdev, "blkkey_ex: can't read 192-bit black key\n");
+		dev_err(ksdev, "blkkey_ex: can't read 192-bit black key\n");
 		goto dealloc;
 	}
 
 	if (sm_keystore_slot_read(ksdev, unit, keyslot32, AES_BLOCK_PAD(32),
 				  blkkey32)) {
-		dev_info(ksdev, "blkkey_ex: can't read 256-bit black key\n");
+		dev_err(ksdev, "blkkey_ex: can't read 256-bit black key\n");
 		goto dealloc;
 	}
 
 
 	if (!memcmp(blkkey8, clrkey8, 8)) {
-		dev_info(ksdev, "blkkey_ex: 64-bit key cover failed\n");
+		dev_err(ksdev, "blkkey_ex: 64-bit key cover failed\n");
 		goto dealloc;
 	}
 
 	if (!memcmp(blkkey16, clrkey16, 16)) {
-		dev_info(ksdev, "blkkey_ex: 128-bit key cover failed\n");
+		dev_err(ksdev, "blkkey_ex: 128-bit key cover failed\n");
 		goto dealloc;
 	}
 
 	if (!memcmp(blkkey24, clrkey24, 24)) {
-		dev_info(ksdev, "blkkey_ex: 192-bit key cover failed\n");
+		dev_err(ksdev, "blkkey_ex: 192-bit key cover failed\n");
 		goto dealloc;
 	}
 
 	if (!memcmp(blkkey32, clrkey32, 32)) {
-		dev_info(ksdev, "blkkey_ex: 256-bit key cover failed\n");
+		dev_err(ksdev, "blkkey_ex: 256-bit key cover failed\n");
 		goto dealloc;
 	}
 
@@ -308,25 +449,25 @@ int caam_sm_example_init(struct platform_device *pdev)
 
 	if (sm_keystore_slot_export(ksdev, unit, keyslot8, BLACK_KEY,
 				    KEY_COVER_ECB, blob8, 8, skeymod)) {
-		dev_info(ksdev, "blkkey_ex: can't encapsulate 64-bit key\n");
+		dev_err(ksdev, "blkkey_ex: can't encapsulate 64-bit key\n");
 		goto dealloc;
 	}
 
 	if (sm_keystore_slot_export(ksdev, unit, keyslot16, BLACK_KEY,
 				    KEY_COVER_ECB, blob16, 16, skeymod)) {
-		dev_info(ksdev, "blkkey_ex: can't encapsulate 128-bit key\n");
+		dev_err(ksdev, "blkkey_ex: can't encapsulate 128-bit key\n");
 		goto dealloc;
 	}
 
 	if (sm_keystore_slot_export(ksdev, unit, keyslot24, BLACK_KEY,
 				    KEY_COVER_ECB, blob24, 24, skeymod)) {
-		dev_info(ksdev, "blkkey_ex: can't encapsulate 192-bit key\n");
+		dev_err(ksdev, "blkkey_ex: can't encapsulate 192-bit key\n");
 		goto dealloc;
 	}
 
 	if (sm_keystore_slot_export(ksdev, unit, keyslot32, BLACK_KEY,
 				    KEY_COVER_ECB, blob32, 32, skeymod)) {
-		dev_info(ksdev, "blkkey_ex: can't encapsulate 256-bit key\n");
+		dev_err(ksdev, "blkkey_ex: can't encapsulate 256-bit key\n");
 		goto dealloc;
 	}
 
@@ -345,25 +486,25 @@ int caam_sm_example_init(struct platform_device *pdev)
 	 */
 	if (sm_keystore_slot_import(ksdev, unit, keyslot8, BLACK_KEY,
 				    KEY_COVER_ECB, blob8, 8, skeymod)) {
-		dev_info(ksdev, "blkkey_ex: can't decapsulate 64-bit blob\n");
+		dev_err(ksdev, "blkkey_ex: can't decapsulate 64-bit blob\n");
 		goto dealloc;
 	}
 
 	if (sm_keystore_slot_import(ksdev, unit, keyslot16, BLACK_KEY,
 				    KEY_COVER_ECB, blob16, 16, skeymod)) {
-		dev_info(ksdev, "blkkey_ex: can't decapsulate 128-bit blob\n");
+		dev_err(ksdev, "blkkey_ex: can't decapsulate 128-bit blob\n");
 		goto dealloc;
 	}
 
 	if (sm_keystore_slot_import(ksdev, unit, keyslot24, BLACK_KEY,
 				    KEY_COVER_ECB, blob24, 24, skeymod)) {
-		dev_info(ksdev, "blkkey_ex: can't decapsulate 196-bit blob\n");
+		dev_err(ksdev, "blkkey_ex: can't decapsulate 196-bit blob\n");
 		goto dealloc;
 	}
 
 	if (sm_keystore_slot_import(ksdev, unit, keyslot32, BLACK_KEY,
 				    KEY_COVER_ECB, blob32, 32, skeymod)) {
-		dev_info(ksdev, "blkkey_ex: can't decapsulate 256-bit blob\n");
+		dev_err(ksdev, "blkkey_ex: can't decapsulate 256-bit blob\n");
 		goto dealloc;
 	}
 
@@ -374,28 +515,28 @@ int caam_sm_example_init(struct platform_device *pdev)
 	 */
 	if (sm_keystore_slot_read(ksdev, unit, keyslot8, AES_BLOCK_PAD(8),
 				  rstkey8)) {
-		dev_info(ksdev,
+		dev_err(ksdev,
 			"blkkey_ex: can't read restored 64-bit black key\n");
 		goto dealloc;
 	}
 
 	if (sm_keystore_slot_read(ksdev, unit, keyslot16, AES_BLOCK_PAD(16),
 				  rstkey16)) {
-		dev_info(ksdev,
+		dev_err(ksdev,
 			 "blkkey_ex: can't read restored 128-bit black key\n");
 		goto dealloc;
 	}
 
 	if (sm_keystore_slot_read(ksdev, unit, keyslot24, AES_BLOCK_PAD(24),
 				  rstkey24)) {
-		dev_info(ksdev,
+		dev_err(ksdev,
 			 "blkkey_ex: can't read restored 196-bit black key\n");
 		goto dealloc;
 	}
 
 	if (sm_keystore_slot_read(ksdev, unit, keyslot32, AES_BLOCK_PAD(32),
 				  rstkey32)) {
-		dev_info(ksdev,
+		dev_err(ksdev,
 			 "blkkey_ex: can't read restored 256-bit black key\n");
 		goto dealloc;
 	}
@@ -423,21 +564,22 @@ int caam_sm_example_init(struct platform_device *pdev)
 	 */
 
 	if (memcmp(rstkey16, blkkey16, AES_BLOCK_PAD(16))) {
-		dev_info(ksdev, "blkkey_ex: 128-bit restored key mismatch\n");
-		rtnval--;
+		dev_err(ksdev, "blkkey_ex: 128-bit restored key mismatch\n");
+		goto dealloc;
 	}
 
 	/* Only first AES block will match, remainder subject to padding */
 	if (memcmp(rstkey24, blkkey24, 16)) {
-		dev_info(ksdev, "blkkey_ex: 192-bit restored key mismatch\n");
-		rtnval--;
+		dev_err(ksdev, "blkkey_ex: 192-bit restored key mismatch\n");
+		goto dealloc;
 	}
 
 	if (memcmp(rstkey32, blkkey32, AES_BLOCK_PAD(32))) {
-		dev_info(ksdev, "blkkey_ex: 256-bit restored key mismatch\n");
-		rtnval--;
+		dev_err(ksdev, "blkkey_ex: 256-bit restored key mismatch\n");
+		goto dealloc;
 	}
 
+	rtnval = 0;
 
 	/* Remove keys from keystore */
 dealloc:
@@ -458,6 +600,9 @@ freemem:
 
 	/* Disconnect from keystore and leave */
 	sm_release_keystore(ksdev, unit);
+
+	if (rtnval)
+		dev_err(ksdev, "Test failed\n");
 
 	return rtnval;
 }
@@ -485,7 +630,6 @@ void caam_sm_example_shutdown(void)
 		return;
 
 	of_node_get(dev_node);
-
 }
 
 static int __init caam_sm_test_init(void)
@@ -510,9 +654,7 @@ static int __init caam_sm_test_init(void)
 
 	of_node_put(dev_node);
 
-	caam_sm_example_init(pdev);
-
-	return 0;
+	return caam_sm_example_init(pdev);
 }
 
 

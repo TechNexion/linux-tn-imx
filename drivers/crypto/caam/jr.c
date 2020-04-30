@@ -9,6 +9,7 @@
 #include <linux/of_irq.h>
 #include <linux/of_address.h>
 
+#include "caam.h"
 #include "compat.h"
 #include "ctrl.h"
 #include "regs.h"
@@ -472,6 +473,50 @@ int caam_jr_enqueue(struct device *dev, u32 *desc,
 	return 0;
 }
 EXPORT_SYMBOL(caam_jr_enqueue);
+
+/* Structure to wait for the job to complete */
+struct jr_job_result {
+	int error;
+	struct completion completion;
+};
+
+/* Callback when a job has been completed
+ * It expects the context to be a pointer on jr_job_result
+ */
+static void jr_job_done_cb(struct device *jrdev, u32 *desc, u32 err,
+			   void *context)
+{
+	struct jr_job_result *res = context;
+
+	dev_dbg(jrdev, "jobs %p done: %x", desc, err);
+	if (err)
+		caam_jr_strstatus(jrdev, err);
+
+	res->error = err; /* save off the error for postprocessing */
+
+	complete(&res->completion);	/* mark us complete */
+}
+
+/* Run a job and wait for its completion */
+int jr_run_job_and_wait_completion(struct device *jrdev, u32 *jobdesc)
+{
+	struct jr_job_result jobres = {0};
+	int rtn = 0;
+
+	init_completion(&jobres.completion);
+
+	dev_dbg(jrdev, "Enqueing job %p", jobdesc);
+	rtn = caam_jr_enqueue(jrdev, jobdesc, jr_job_done_cb, &jobres);
+	if (rtn)
+		goto exit;
+
+	wait_for_completion_interruptible(&jobres.completion);
+	rtn = jobres.error;
+
+exit:
+	return rtn;
+}
+EXPORT_SYMBOL(jr_run_job_and_wait_completion);
 
 static void caam_jr_init_hw(struct device *dev, dma_addr_t inpbusaddr,
 			    dma_addr_t outbusaddr)

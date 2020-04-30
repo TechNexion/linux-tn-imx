@@ -19,6 +19,11 @@ obj-$(CONFIG_CRYPTO_DEV_FSL_CAAM_SM_TEST) += sm_test.o
 obj-$(CONFIG_CRYPTO_DEV_FSL_CAAM_SECVIO) += secvio.o
 obj-$(CONFIG_CRYPTO_DEV_FSL_CAAM_BK_DEV) += caam_bk.o
 obj-$(CONFIG_CRYPTO_DEV_FSL_CAAM_ECDSA_API) += caam_ecdsa.o
+obj-$(CONFIG_CRYPTO_DEV_FSL_CAAM_DESC) += caam_desc.o
+obj-$(CONFIG_CRYPTO_DEV_FSL_CAAM_UTIL) += caam_util.o
+obj-$(CONFIG_CRYPTO_DEV_FSL_CAAM_UTIL_BLACK_KEY) += black_keys.o
+obj-$(CONFIG_CRYPTO_DEV_FSL_CAAM_UTIL_BLOB) += blob.o
+obj-$(CONFIG_CRYPTO_DEV_FSL_CAAM_KEY_BLOB) += key_blob.o
 
 caam-objs := ctrl.o
 caam_jr-objs := jr.o key_gen.o error.o inst_rng.o

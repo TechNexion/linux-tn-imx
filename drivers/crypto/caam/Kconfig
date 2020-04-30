@@ -207,7 +207,7 @@ config CRYPTO_DEV_FSL_CAAM_SM_SLOTSIZE
 
 config CRYPTO_DEV_FSL_CAAM_SM_TEST
 	tristate "CAAM Secure Memory - Keystore Test/Example (EXPERIMENTAL)"
-	depends on CRYPTO_DEV_FSL_CAAM_SM
+	depends on CRYPTO_DEV_FSL_CAAM_SM && CRYPTO_DEV_FSL_CAAM_UTIL_BLACK_KEY && CRYPTO_DEV_FSL_CAAM_UTIL_BLOB
 	default n
 	help
 	  Example thread to exercise the Keystore API and to verify that
@@ -233,3 +233,46 @@ config CRYPTO_DEV_FSL_CAAM_DEBUG
 config CRYPTO_DEV_FSL_CAAM_CRYPTO_API_DESC
 	def_tristate (CRYPTO_DEV_FSL_CAAM_CRYPTO_API || \
 		      CRYPTO_DEV_FSL_CAAM_CRYPTO_API_QI)
+
+
+config CRYPTO_DEV_FSL_CAAM_DESC
+	bool "Add descriptor constructor for common operation"
+	default n
+	help
+	  Selecting this will add generic descriptor constructor. These
+	  descriptor constructor can help to produce a valid descriptor which
+	  can be provided to CAAM. The constructor available are for example:
+	  covering of key, encapsulation and decapsulation of blobs
+
+config CRYPTO_DEV_FSL_CAAM_UTIL
+	def_bool (CRYPTO_DEV_FSL_CAAM_UTIL_BLACK_KEY || \
+		      CRYPTO_DEV_FSL_CAAM_UTIL_BLOB)
+
+config CRYPTO_DEV_FSL_CAAM_UTIL_BLACK_KEY
+	bool "Enable utility function to cover keys"
+	default n
+	depends on CRYPTO_DEV_FSL_CAAM_DESC && CRYPTO_DEV_FSL_CAAM_JR
+	help
+	  Selecting this will add utility functions to easily create red and
+	  black keys using the CAAM and test their loading by the CAAM.
+	  Using these functions reduce the code needed to do these operations.
+	  The utility functions does not handle batch of operations hence are
+	  not optimal for performance.
+
+config CRYPTO_DEV_FSL_CAAM_UTIL_BLOB
+	bool "Enable utility function to create blobs"
+	default n
+	depends on CRYPTO_DEV_FSL_CAAM_DESC && CRYPTO_DEV_FSL_CAAM_JR
+	help
+	  Selecting this will add utility functions to easily encapsulate or
+	  decapsulate red and black blobs.
+	  Using these functions reduce the code needed to do these operations.
+	  The utility functions does not handle batch of operations hence are
+	  not optimal for performance.
+
+config CRYPTO_DEV_FSL_CAAM_KEY_BLOB
+	bool "Enable black key blob encryption/decryption demo"
+	default n
+	depends on CRYPTO_DEV_FSL_CAAM_JR
+	help
+	  Selecting this will add the demo functionality
