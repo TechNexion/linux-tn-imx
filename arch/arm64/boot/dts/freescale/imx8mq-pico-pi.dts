@@ -144,7 +144,7 @@
 
 		pinctrl_ecspi1_cs: ecspi1cs {
 			fsl,pins = <
-				MX8MQ_IOMUXC_ECSPI1_SS0_GPIO5_IO9	0x40000
+				MX8MQ_IOMUXC_ECSPI1_SS0_GPIO5_IO9	0x16
 			>;
 		};
 
