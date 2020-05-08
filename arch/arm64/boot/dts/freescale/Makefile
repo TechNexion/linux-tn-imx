@@ -146,11 +146,13 @@ dtb-$(CONFIG_ARCH_FSL_IMX8MM) += imx8mm-axon-pi.dtb \
 				 imx8mm-axon-pi-voicehat.dtb \
 				 imx8mm-axon-pi-ov7251.dtb \
 				 imx8mm-axon-loopbacktest.dtb \
-				 imx8mm-axon-wizard-adv7535.dtb \
 				 imx8mm-axon-wizard-ili9881c.dtb \
 				 imx8mm-axon-wizard-g080uan01.dtb \
 				 imx8mm-axon-wizard-g101uan02.dtb \
 				 imx8mm-axon-wizard-ov7251.dtb \
+				 imx8mm-axon-wizard-sn65dsi84-m101nwwb.dtb	\
+				 imx8mm-axon-wizard-sn65dsi84-g156xw01.dtb	\
+				 imx8mm-axon-wizard-sn65dsi84-g215hvn01.dtb	\
 				 imx8mm-axon-wizard.dtb \
 				 imx8mm-pico-pi.dtb \
 				 imx8mm-pico-pi-nfc.dtb \
