@@ -241,13 +241,13 @@
 
 		pinctrl_pca9555_1: pca9555_1grp {
 			fsl,pins = <
-				MX8MM_IOMUXC_SAI5_RXD3_GPIO3_IO24	0x140 /* GPIO_P248 */
+				MX8MM_IOMUXC_SAI5_RXD3_GPIO3_IO24	0x19 /* GPIO_P248 */
 			>;
 		};
 
 		pinctrl_pca9555_2: pca9555_2grp {
 			fsl,pins = <
-				MX8MM_IOMUXC_SAI5_MCLK_GPIO3_IO25	0x140 /* GPIO_P250 */
+				MX8MM_IOMUXC_SAI5_MCLK_GPIO3_IO25	0x19 /* GPIO_P250 */
 			>;
 		};
 
@@ -308,6 +308,7 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_rtc_irq>;
 		reg = <0x68>;
+		wakeup-source;
 		interrupt-parent = <&gpio3>;
 		interrupts = <19 IRQ_TYPE_EDGE_FALLING>;
 	};
