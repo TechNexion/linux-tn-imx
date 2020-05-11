@@ -143,6 +143,7 @@ dtb-$(CONFIG_ARCH_FSL_IMX8MQ) += fsl-imx8mq-ddr3l-arm2.dtb \
 				 imx8mq-pico-wizard.dtb \
 				 imx8mq-pico-wizard-dcss-ili9881c.dtb
 dtb-$(CONFIG_ARCH_FSL_IMX8MM) += imx8mm-axon-pi.dtb \
+				 imx8mm-axon-wizard-adv7535.dtb	\
 				 imx8mm-axon-pi-voicehat.dtb \
 				 imx8mm-axon-pi-ov7251.dtb \
 				 imx8mm-axon-loopbacktest.dtb \
