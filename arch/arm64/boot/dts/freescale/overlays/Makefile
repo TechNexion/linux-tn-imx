@@ -17,7 +17,6 @@ dtbo-$(CONFIG_ARCH_FSL_IMX8MM) += \
 	imx8mm-flex-wizard-lvds15.dtbo \
 	imx8mm-flex-wizard-lvds21.dtbo \
 	imx8mm-flex-wizard-voicehat.dtbo \
-	imx8mm-flex-wizard-ntag.dtbo \
 	imx8mm-flex-wizard-clix1wifi.dtbo \
 	imx8mm-flex-wizard-clix1nfc.dtbo \
 	imx8mm-flex-wizard-clix2nfc.dtbo \
