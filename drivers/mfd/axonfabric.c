@@ -487,7 +487,9 @@ static ssize_t axonf_statusled_rgbhex_store(struct device *dev, struct device_at
 	int ret;
 	u32 led_rgb;
 
-	sscanf(buf,"%06X", &led_rgb);
+	ret = kstrtouint(buf, 16, &led_rgb);
+	if(ret)
+		return ret;
 
 	ret = axonf_write_statusled(chip, led_rgb);
 
