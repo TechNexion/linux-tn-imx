@@ -415,7 +415,9 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6dl-sabresd-hdcp.dtb \
 	imx6dl-sabresd-ldo.dtb \
 	imx6dl-savageboard.dtb \
+	imx6dl-tek3.dtb \
 	imx6dl-tep5.dtb \
+	imx6dl-tep5-15inch.dtb \
 	imx6dl-ts4900.dtb \
 	imx6dl-tx6dl-comtft.dtb \
 	imx6dl-tx6s-8034.dtb \
@@ -516,7 +518,9 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6q-sabresd-enetirq.dtb \
 	imx6q-savageboard.dtb \
 	imx6q-sbc6x.dtb \
+	imx6q-tek3.dtb \
 	imx6q-tep5.dtb \
+	imx6q-tep5-15inch.dtb \
 	imx6q-tbs2910.dtb \
 	imx6q-ts4900.dtb \
 	imx6q-tx6q-1010.dtb \
