@@ -177,7 +177,7 @@
 	pinctrl_af_csi_ctrl: pccsictrl {
 		pins = "F_GPIO_X3_P65", "F_GPIO_X3_P67";
 		function = "passthru_out";
-		drive-open-drain;
+		drive-push-pull;
 	};
 
 	pinctrl_af_csi_clk: pccsiclk {
@@ -281,6 +281,7 @@
 
 &AXON_I2C_B {  // I2C_B
 	status = "okay";
+	clock-frequency = <100000>;
 
 	ov5640_mipi: ov5640_mipi@3c {
 		compatible = "ovti,ov5645_mipi_v2";
