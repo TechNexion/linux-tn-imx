@@ -18,3 +18,33 @@
 	model = "TechNexion PICO-IMX7D with QCA WLAN module and NYMPH baseboard";
 	compatible = "fsl,pico-imx7d", "fsl,imx7d";
 };
+
+&lcdif {
+	display = <&display0>;
+	status = "okay";
+
+	display0: display {
+		bits-per-pixel = <32>;
+		bus-width = <24>;
+
+		display-timings {
+			native-mode = <&timing0>;
+			timing0: timing0 {
+				clock-frequency = <25175000>;
+				hactive = <640>;
+				vactive = <480>;
+				hback-porch = <48>;
+				hfront-porch = <16>;
+				vback-porch = <33>;
+				vfront-porch = <10>;
+				hsync-len = <96>;
+				vsync-len = <2>;
+				hsync-active = <0>;
+				vsync-active = <0>;
+				de-active = <1>;
+				pixelclk-active = <1>;
+				interlaced =  <0>;
+			};
+		};
+	};
+};
