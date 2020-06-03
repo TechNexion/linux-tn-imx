@@ -192,7 +192,7 @@
 			pinctrl-0 = <&pinctrl_enet_3v3>;
 			gpio = <&gpio7 13 GPIO_ACTIVE_LOW>;
 			enable-active-low;
-			regulator-boot-on;
+			regulator-always-on;
 		};
 
 		reg_usb_otg_vbus: usb_otg_vbus {
