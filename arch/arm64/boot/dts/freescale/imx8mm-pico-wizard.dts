@@ -76,13 +76,7 @@
 
 		led {
 			label = "gpio-led";
-			gpios = <&pca9555_26 7 GPIO_ACTIVE_LOW>;
-			/*
-			 * FIXME: GPIO LED share the same GPIO with USB HUB reset from PCA9555_26
-			 * GPIO LED will change to use independent GPIO from IO expander - PCA9555.
-			 * To expand GPIO number from 8 to 16 IOs, PCA9554 will be replaced with PCA9555
-			 * in the next HW revision.
-			 */
+			gpios = <&pca9555_21 8 GPIO_ACTIVE_LOW>;
 		};
 	};
 
@@ -169,12 +163,6 @@
 			>;
 		};
 
-		pinctrl_gpio_led: gpioledgrp {
-			fsl,pins = <
-				MX8MM_IOMUXC_SPDIF_EXT_CLK_GPIO5_IO5	0x19
-			>;
-		};
-
 		pinctrl_tfa98xx: tfa98xx_ctrlgrp {
 			fsl,pins = <
 				MX8MM_IOMUXC_ECSPI2_SCLK_GPIO5_IO10	0x19 /* RST */
@@ -198,7 +186,7 @@
 			>;
 		};
 
-		pinctrl_pca9554: pca9554grp {
+		pinctrl_pca9555_21: pca9555_21grp {
 			fsl,pins = <
 				MX8MM_IOMUXC_NAND_ALE_GPIO3_IO0		0x150 /* GPIO_P25, irq */
 			>;
@@ -285,10 +273,10 @@
 &i2c3 {
 	status = "okay";
 
-	pca9554: pca9554@25 {
-		compatible = "nxp,pca9554";
+	pca9555_21: pinctrl_pca9555_21@21 {
+		compatible = "nxp,pca9555";
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_pca9554>;
+		pinctrl-0 = <&pinctrl_pca9555_21>;
 		interrupt-parent = <&gpio3>;
 		interrupts = <0 IRQ_TYPE_EDGE_FALLING>;
 		reg =<0x21>;
@@ -369,9 +357,9 @@
 };
 
 &pcie0{
-	clkreq-gpio = <&pca9555_23 7 GPIO_ACTIVE_LOW>; /* FIXME: It should be connected to M2_CLKREQn instead of PCIE1_CLKRQ */
-	disable-gpio = <&pca9555_23 9 GPIO_ACTIVE_LOW>;
-	reset-gpio = <&pca9555_23 13 GPIO_ACTIVE_LOW>;
+	clkreq-gpio = <&pca9555_23 7 GPIO_ACTIVE_LOW>;
+	disable-gpio = <&pca9555_23 4 GPIO_ACTIVE_LOW>;
+	reset-gpio = <&pca9555_23 6 GPIO_ACTIVE_LOW>;
 	ext_osc = <1>;
 	status = "okay";
 };

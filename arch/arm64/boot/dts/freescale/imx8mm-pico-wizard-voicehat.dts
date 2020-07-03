@@ -57,7 +57,7 @@
 		pinctrl-0 = <&pinctrl_gpio_key_voicehat>;
 
 		prev {
-			gpios = <&pca9554 7 GPIO_ACTIVE_LOW>;
+			gpios = <&pca9555_21 7 GPIO_ACTIVE_LOW>;
 			label = "KEY PREV";
 			linux,code = <KEY_PREVIOUS>;
 		};
@@ -69,7 +69,7 @@
 		};
 
 		next {
-			gpios = <&pca9554 6 GPIO_ACTIVE_LOW>;
+			gpios = <&pca9555_21 6 GPIO_ACTIVE_LOW>;
 			label = "KEY NEXT";
 			linux,code = <KEY_NEXT>;
 		};
@@ -81,13 +81,13 @@
 		};
 
 		down {
-			gpios = <&pca9554 1 GPIO_ACTIVE_LOW>;
+			gpios = <&pca9555_21 1 GPIO_ACTIVE_LOW>;
 			label = "KEY DOWN";
 			linux,code = <KEY_DOWN>;
 		};
 
 		mute {
-			gpios = <&pca9554 2 GPIO_ACTIVE_LOW>;
+			gpios = <&pca9555_21 2 GPIO_ACTIVE_LOW>;
 			label = "KEY MUTE";
 			linux,code = <KEY_MUTE>;
 		};
