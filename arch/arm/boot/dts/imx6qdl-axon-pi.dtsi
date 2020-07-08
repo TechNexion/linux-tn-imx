@@ -51,37 +51,30 @@
 		status = "disabled";
 	};
 
-	sound: sound {
-		compatible = "simple-audio-card";
-		simple-audio-card,name = "axon-pi-wm8960-audio";
-		simple-audio-card,format = "i2s";
-		simple-audio-card,bitclock-master = <&dailink_master>;
-		simple-audio-card,frame-master = <&dailink_master>;
-		simple-audio-card,widgets =
-			"Microphone", "Mic Jack",
-			"Speaker", "Speaker",
-			"Headphone", "Headphone Jack";
-		simple-audio-card,routing =
-			"Headphone Jack", "HP_L",
-			"Headphone Jack", "HP_R",
-			"Speaker", "SPK_LP",
-			"Speaker", "SPK_LN",
-			"Speaker", "SPK_RP",
-			"Speaker", "SPK_RN",
-			"LINPUT1", "Mic Jack",
-			"Mic Jack", "MICB";
-		simple-audio-card,cpu {
-			sound-dai = <&AXON_AUD_A_I2S_CHANNEL>;
-		};
-
-		dailink_master: simple-audio-card,codec {
-			sound-dai = <&codec>;
-			clocks = <&codec_osc>;
-		};
+	sound_wm8960: sound-wm8960 {
+		compatible = "fsl,imx-audio-wm8960";
+		model = "wm8960-audio";
+		cpu-dai = <&AXON_AUD_A_I2S_CHANNEL>;
+		codec-master;
+		audio-codec = <&codec>;
+		mux-int-port = <1>;
+		mux-ext-port = <3>;
+		audio-routing =
+				"Headphone Jack", "HP_L",
+				"Headphone Jack", "HP_R",
+				"Ext Spk", "SPK_LP",
+				"Ext Spk", "SPK_LN",
+				"Ext Spk", "SPK_RP",
+				"Ext Spk", "SPK_RN",
+				"LINPUT1", "Main MIC",
+				"RINPUT1", "Main MIC",
+				"Main MIC", "MICB";
+		/* JD2: hp detect high for headphone*/
+		hp-det = <2 0>;
 	};
 
 	clocks {
-		codec_osc: aud_mclk {  /* Note - on AXON pi rev 0.1 MCLK comes from external osc */
+		codec_osc: aud_mclk {
 			compatible = "fixed-clock";
 			#clock-cells = <0>;
 			clock-frequency = <24000000>;
@@ -91,7 +84,7 @@
 
 	/* Turn off LCD interface as we do not support this on Axon-Pi */
 	lcd@0 {
-        	status = "disabled";
+		status = "disabled";
 	};
 };
 
@@ -216,7 +209,7 @@
 		fsl,port-config = <
 			IMX_AUDMUX_V2_PTCR_SYN
 			IMX_AUDMUX_V2_PDCR_RXDSEL(0)
-        >;
+		>;
 	};
 };
 
