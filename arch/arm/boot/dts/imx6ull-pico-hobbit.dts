@@ -1,0 +1,23 @@
+/*
+ * Copyright 2018 TechNexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *         Tapani Utriainen <tapani@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ */
+
+/dts-v1/;
+
+#include <dt-bindings/input/input.h>
+#include "imx6ull.dtsi"
+#include "imx6ull-pico.dtsi"
+#include "baseboard_pico_hobbit.dtsi"
+
+/ {
+	model = "TechNexion PICO-IMX6ULL and HOBBIT baseboard";
+	compatible = "fsl,pico-imx6ull", "fsl,imx6ull";
+};
