@@ -23,75 +23,6 @@
 #define EXGPIO_7 pca9554 7
 
 / {
-	gpio-edm {
-		compatible = "gpio-edm";
-		ex-gpio_0 {
-			label = "EXGPIO_0";
-			gpios = <&EXGPIO_0 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-		ex-gpio_1 {
-			label = "EXGPIO_1";
-			gpios = <&EXGPIO_1 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-		ex-gpio_2 {
-			label = "EXGPIO_2";
-			gpios = <&EXGPIO_2 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-		ex-gpio_3 {
-			label = "EXGPIO_3";
-			gpios = <&EXGPIO_3 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-		ex-gpio_4 {
-			label = "EXGPIO_4";
-			gpios = <&EXGPIO_4 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-		ex-gpio_5 {
-			label = "EXGPIO_5";
-			gpios = <&EXGPIO_5 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-		ex-gpio_6 {
-			label = "EXGPIO_6";
-			gpios = <&EXGPIO_6 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-		gpio_p255 {
-			label = "GPIO_P255";
-			gpios = <&EDM_EXT_GPIO_P255 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-		gpio_p256 {
-			label = "GPIO_P256";
-			gpios = <&EDM_EXT_GPIO_P256 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-		gpio_p260 {
-			label = "GPIO_P260";
-			gpios = <&EDM_EXT_GPIO_P260 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-		gpio_p262 {
-			label = "GPIO_P262";
-			gpios = <&EDM_EXT_GPIO_P262 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-		gpio_p263 {
-			label = "GPIO_P263";
-			gpios = <&EDM_EXT_GPIO_P263 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-		gpio_p264 {
-			label = "GPIO_P264";
-			gpios = <&EDM_EXT_GPIO_P264 GPIO_ACTIVE_HIGH>;
-			dir   = "out";
-		};
-	};
-
 	sound {
 		compatible = "fsl,imx-sgtl5000",
 			     "fsl,imx-audio-sgtl5000";
@@ -128,6 +59,8 @@
 	};
 };
 
+EDM_GNOME_GPIO_DEFS();
+
 &EDM_I2CA {
 	status = "okay";
 };
@@ -159,6 +92,8 @@
 		gpio-controller;
 		#gpio-cells = <2>;
 		#interrupt-cells = <2>;
+		gpio-line-names = "EXGPIO_0", "EXGPIO_1", "EXGPIO_2", "EXGPIO_3",
+							"EXGPIO_4", "EXGPIO_5", "EXGPIO_6", "";
 	};
 };
 
