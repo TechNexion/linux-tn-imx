@@ -12,11 +12,11 @@
 /dts-v1/;
 
 #include "imx6ul.dtsi"
-#include "imx6ul-pico.dtsi"
+#include "imx6ul-pico-qca.dtsi"
 #include "baseboard_pico_dwarf.dtsi"
 
 / {
-	model = "TechNexion PICO-IMX6UL and DWARF baseboard";
+	model = "TechNexion PICO-IMX6UL with QCA WLAN module and DWARF baseboard";
 	compatible = "fsl,pico-imx6ul", "fsl,imx6ul";
 };
 
