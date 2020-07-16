@@ -26,6 +26,36 @@
 #define EDM_EXT_LVDS_PWR  gpio5 31
 #define EDM_EXT_USB_HUB_RESET gpio7 12
 
+#define EDM_GNOME_GPIO_DEFS()									\
+&gpio1 {											\
+	gpio-line-names =									\
+		"", "", "", "", "GPIO_P263", "", "", "",					\
+		"GPIO_P264", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",							\
+		"GPIO_P262", "", "", "", "", "", "", "";					\
+												\
+};												\
+												\
+&gpio3 {											\
+	gpio-line-names =									\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "";							\
+												\
+	pinctrl-0 = <&pinctrl_gpio3>;								\
+};												\
+												\
+&gpio6 {											\
+	gpio-line-names =									\
+		"", "", "GPIO_P256", "", "", "GPIO_P255", "", "",				\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "",							\
+		"", "", "", "", "", "", "", "GPIO_P260";					\
+												\
+	pinctrl-0 = <&pinctrl_gpio6>;								\
+}
+
 #define EDM_FAIRY_GPIO_DEFS()									\
 &gpio1 {											\
 	gpio-line-names =									\
