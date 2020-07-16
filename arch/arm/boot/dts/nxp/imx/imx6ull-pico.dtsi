@@ -37,6 +37,130 @@
 #define PICO_CANA flexcan1
 #define PICO_CANB flexcan2
 
+#define PICO_DWARF_GPIO_DEFS()	\
+&gpio1 {									\
+	gpio-line-names = 							\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "";					\
+										\
+	pinctrl-0 = <&pinctrl_gpio1>;						\
+};										\
+										\
+&gpio4 {									\
+	gpio-line-names = 							\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "";					\
+										\
+	pinctrl-0 = <&pinctrl_gpio4>;						\
+};										\
+										\
+&gpio5 {									\
+	gpio-line-names = 							\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "";					\
+										\
+	pinctrl-0 = <&pinctrl_gpio5>;						\
+}
+
+#define PICO_HOBBIT_GPIO_DEFS()	\
+&gpio1 {									\
+	gpio-line-names = 							\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "GPIO_P34", "", "", "", "", "",				\
+		"", "", "", "", "", "", "", "";					\
+										\
+	pinctrl-0 = <&pinctrl_gpio1>;						\
+};										\
+										\
+&gpio4 {									\
+	gpio-line-names = 							\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "GPIO_P24", "", "GPIO_P26", "GPIO_P28", "GPIO_P30",	\
+		"", "", "", "", "", "", "", "";					\
+										\
+	pinctrl-0 = <&pinctrl_gpio4>;						\
+};										\
+										\
+&gpio5 {									\
+	gpio-line-names = 							\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "";					\
+										\
+	pinctrl-0 = <&pinctrl_gpio5>;						\
+}
+
+#define PICO_NYMPH_GPIO_DEFS()	\
+&gpio1 {									\
+	gpio-line-names = 							\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "GPIO_P34", "", "", "", "", "",				\
+		"", "", "", "", "", "", "", "";					\
+										\
+	pinctrl-0 = <&pinctrl_gpio1>;						\
+};										\
+										\
+&gpio4 {									\
+	gpio-line-names = 							\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "GPIO_P24", "", "GPIO_P26", "GPIO_P28", "GPIO_P30",	\
+		"", "", "", "", "", "", "", "";					\
+										\
+	pinctrl-0 = <&pinctrl_gpio4>;						\
+};										\
+										\
+&gpio5 {									\
+	gpio-line-names = 							\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "";					\
+										\
+	pinctrl-0 = <&pinctrl_gpio5>;						\
+}
+
+#define PICO_PI_GPIO_DEFS()	\
+&gpio1 {									\
+	gpio-line-names = 							\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "GPIO_P34", "", "", "", "", "",				\
+		"", "", "", "", "", "", "", "";					\
+										\
+	pinctrl-0 = <&pinctrl_gpio1>;						\
+};										\
+										\
+&gpio4 {									\
+	gpio-line-names = 							\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "GPIO_P24", "", "GPIO_P26", "GPIO_P28", "GPIO_P30",	\
+		"", "", "", "", "", "", "", "";					\
+										\
+	pinctrl-0 = <&pinctrl_gpio4>;						\
+};										\
+										\
+&gpio5 {									\
+	gpio-line-names = 							\
+		"", "", "GPIO_P48", "", "", "", "", "",				\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "";					\
+										\
+	pinctrl-0 = <&pinctrl_gpio5>;						\
+}
+
 / {
 	memory {
 		reg = <0x80000000 0x20000000>;
@@ -297,6 +421,24 @@
 &iomuxc {
 	pinctrl-names = "default";
 	pico-imx6ull {
+		pinctrl_gpio1: gpio1grp {
+			fsl,pins = <
+				MX6UL_PAD_UART1_CTS_B__GPIO1_IO18	0x79	/* GPIO_P34 */
+				MX6UL_PAD_UART4_RX_DATA__GPIO1_IO29     0x79    /* GPIO_P44 */
+			>;
+		};
+
+		pinctrl_gpio4: gpio4grp {
+			fsl,pins = <
+				MX6UL_PAD_CSI_VSYNC__GPIO4_IO19		0x79	/* GPIO_P24 */
+				MX6UL_PAD_CSI_HSYNC__GPIO4_IO20		0x79	/* GPIO_P25 */
+				MX6UL_PAD_CSI_DATA00__GPIO4_IO21	0x79	/* GPIO_P26 */
+				MX6UL_PAD_CSI_DATA01__GPIO4_IO22	0x79	/* GPIO_P28 */
+				MX6UL_PAD_CSI_DATA02__GPIO4_IO23	0x79	/* GPIO_P30 */
+				MX6UL_PAD_CSI_DATA03__GPIO4_IO24	0x79	/* GPIO_P32 */
+			>;
+		};
+
 		pinctrl_uart5: uart5grp {
 			fsl,pins = <
 				MX6UL_PAD_GPIO1_IO04__UART5_DCE_TX	0x1b0b1
@@ -509,37 +651,29 @@
 				MX6UL_PAD_ENET1_RX_ER__PWM8_OUT		0x110b0
 			>;
 		};
-
-		pinctrl_ext_gpio: ext-gpio-grp {
-			fsl,pins = <
-				MX6UL_PAD_CSI_VSYNC__GPIO4_IO19		0x79	/* GPIO_P24 */
-				MX6UL_PAD_CSI_HSYNC__GPIO4_IO20		0x79	/* GPIO_P25 */
-				MX6UL_PAD_CSI_DATA00__GPIO4_IO21	0x79	/* GPIO_P26 */
-				MX6UL_PAD_CSI_DATA01__GPIO4_IO22	0x79	/* GPIO_P28 */
-				MX6UL_PAD_CSI_DATA02__GPIO4_IO23	0x79	/* GPIO_P30 */
-				MX6UL_PAD_CSI_DATA03__GPIO4_IO24	0x79	/* GPIO_P32 */
-				MX6UL_PAD_UART1_CTS_B__GPIO1_IO18	0x79	/* GPIO_P34 */
-				MX6UL_PAD_UART4_RX_DATA__GPIO1_IO29     0x79    /* GPIO_P44 */
-			>;
-		};
 	};
 };
 
 &iomuxc_snvs {
 	pinctrl-names = "default_snvs";
 	pinctrl-0 = <&pinctrl_imx6ull_gpio>;
-	imx6ul-evk {
+	pico-imx6ull-snvs {
 		pinctrl_imx6ull_gpio: ext-pinctrl_imx6ull_gpio {
 			fsl,pins = <
 				MX6ULL_PAD_BOOT_MODE0__GPIO5_IO10	0x80000000
 				MX6ULL_PAD_BOOT_MODE1__GPIO5_IO11	0x80000000
 				MX6ULL_PAD_SNVS_TAMPER0__GPIO5_IO00	0x80000000
 				MX6ULL_PAD_SNVS_TAMPER1__GPIO5_IO01	0x80000000
-				MX6ULL_PAD_SNVS_TAMPER2__GPIO5_IO02	0x79
 				MX6ULL_PAD_SNVS_TAMPER3__GPIO5_IO03	0x80000000
 				MX6ULL_PAD_SNVS_TAMPER4__GPIO5_IO04	0x80000000
 				MX6ULL_PAD_SNVS_TAMPER5__GPIO5_IO05	0x80000000
 				MX6ULL_PAD_SNVS_TAMPER7__GPIO5_IO07	0x80000000
+			>;
+		};
+
+		pinctrl_gpio5: gpio5grp {
+			fsl,pins = <
+				MX6ULL_PAD_SNVS_TAMPER2__GPIO5_IO02	0x79
 			>;
 		};
 
