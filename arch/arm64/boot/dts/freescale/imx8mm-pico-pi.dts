@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2020 Technexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *
+ */
+
+/dts-v1/;
+
+#include "imx8mm-pico.dtsi"
+
+/ {
+	model = "TechNexion PICO-IMX8MM and PI baseboard";
+	compatible = "fsl,imx8mm-pico", "fsl,imx8mm";
+
+};
