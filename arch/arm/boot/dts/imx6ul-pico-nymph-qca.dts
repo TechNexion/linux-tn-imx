@@ -13,10 +13,10 @@
 
 #include "imx6ul.dtsi"
 #include "imx6ul-pico-qca.dtsi"
-#include "bb_pico_pi.dtsi"
+#include "baseboard_pico_nymph.dtsi"
 
 / {
-	model = "TechNexion PICO-IMX6UL with QCA WLAN module and PI baseboard";
+	model = "TechNexion PICO-IMX6UL with QCA WLAN module and NYMPH baseboard";
 	compatible = "fsl,pico-imx6ul", "fsl,imx6ul";
 };
 

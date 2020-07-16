@@ -605,11 +605,14 @@ dtb-$(CONFIG_SOC_IMX6UL) += \
 	imx6ul-isiot-nand.dtb \
 	imx6ul-liteboard.dtb \
 	imx6ul-opos6uldev.dtb \
-	imx6ul-pico_pi.dtb	\
-	imx6ul-pico-qca_pi.dtb	\
-	imx6ull-pico_pi.dtb	\
-	imx6ull-pico-qca_pi.dtb	\
+	imx6ul-pico-dwarf.dtb \
+	imx6ul-pico-dwarf-qca.dtb \
 	imx6ul-pico-hobbit.dtb \
+	imx6ul-pico-hobbit-qca.dtb \
+	imx6ul-pico-nymph.dtb \
+	imx6ul-pico-nymph-qca.dtb \
+	imx6ul-pico-pi.dtb \
+	imx6ul-pico-pi-qca.dtb \
 	imx6ul-tx6ul-0010.dtb \
 	imx6ul-tx6ul-0011.dtb \
 	imx6ul-tx6ul-mainboard.dtb \
@@ -628,6 +631,14 @@ dtb-$(CONFIG_SOC_IMX6UL) += \
 	imx6ul-9x9-evk-btwifi-oob.dtb \
 	imx6ul-9x9-evk-ldo.dtb
 dtb-$(CONFIG_SOC_IMX6ULL) += \
+	imx6ull-pico-dwarf.dtb \
+	imx6ull-pico-dwarf-qca.dtb \
+	imx6ull-pico-hobbit.dtb \
+	imx6ull-pico-hobbit-qca.dtb \
+	imx6ull-pico-nymph.dtb \
+	imx6ull-pico-nymph-qca.dtb \
+	imx6ull-pico-pi.dtb \
+	imx6ull-pico-pi-qca.dtb \
 	imx6ull-14x14-ddr3-arm2.dtb \
 	imx6ull-14x14-ddr3-arm2-adc.dtb \
 	imx6ull-14x14-ddr3-arm2-cs42888.dtb \

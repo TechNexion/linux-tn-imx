@@ -13,10 +13,10 @@
 
 #include "imx6ul.dtsi"
 #include "imx6ul-pico.dtsi"
-#include "bb_pico_pi.dtsi"
+#include "baseboard_pico_dwarf.dtsi"
 
 / {
-	model = "TechNexion PICO-IMX6UL and PI baseboard";
+	model = "TechNexion PICO-IMX6UL and DWARF baseboard";
 	compatible = "fsl,pico-imx6ul", "fsl,imx6ul";
 };
 

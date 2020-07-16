@@ -15,9 +15,9 @@
 #include <dt-bindings/input/input.h>
 #include "imx6ull.dtsi"
 #include "imx6ull-pico-qca.dtsi"
-#include "bb_pico_pi.dtsi"
+#include "baseboard_pico_hobbit.dtsi"
 
 / {
-	model = "TechNexion PICO-IMX6ULL with QCA WLAN module and PI baseboard";
+	model = "TechNexion PICO-IMX6ULL with QCA WLAN module and HOBBIT baseboard";
 	compatible = "fsl,pico-imx6ull", "fsl,imx6ull";
 };
