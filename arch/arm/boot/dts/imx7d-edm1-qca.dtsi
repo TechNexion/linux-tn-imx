@@ -43,6 +43,38 @@
 
 #define EDM_PCIE pcie
 
+#define EDM_GNOME_GPIO_DEFS()							\
+&gpio1 {									\
+	gpio-line-names =							\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "GPIO_P263", "", "", "", "",			\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "";					\
+										\
+	pinctrl-0 = <&pinctrl_gpio1>;						\
+};										\
+										\
+&gpio2 {									\
+	gpio-line-names =							\
+		"GPIO_P264", "GPIO_P256", "", "", "", "GPIO_P260", "", "",	\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "GPIO_P255", "";			\
+										\
+	pinctrl-0 = <&pinctrl_gpio2>;						\
+};										\
+										\
+&gpio4 {									\
+	gpio-line-names =							\
+		"", "GPIO_P262", "", "", "", "", "", "",			\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "",					\
+		"", "", "", "", "", "", "", "";					\
+										\
+	pinctrl-0 = <&pinctrl_gpio4>;						\
+}
+
+
 / {
 	aliases {
 		mxcfb0 = &mxcfb1;
@@ -190,11 +222,14 @@
 };
 
 &iomuxc {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_hog_1>;
-
 	edm1-imx7d {
-		pinctrl_hog_1: hoggrp-1 {
+		pinctrl_gpio1: gpio1grp {
+			fsl,pins = <
+				MX7D_PAD_GPIO1_IO11__GPIO1_IO11		0x14 /* GPIO_P263, ads7846 touch irq */
+			>;
+		};
+
+		pinctrl_gpio2: gpio2grp {
 			fsl,pins = <
 				MX7D_PAD_EPDC_PWR_COM__GPIO2_IO30	0x15 /* GPIO_P255 */
 				MX7D_PAD_EPDC_DATA01__GPIO2_IO1		0x15 /* GPIO_P256 */
@@ -202,10 +237,14 @@
 				MX7D_PAD_EPDC_DATA03__GPIO2_IO3		0x15 /* GPIO_P258 */
 				MX7D_PAD_EPDC_DATA04__GPIO2_IO4		0x15 /* GPIO_P259 */
 				MX7D_PAD_EPDC_DATA05__GPIO2_IO5		0x15 /* GPIO_P260 */
+				MX7D_PAD_EPDC_DATA00__GPIO2_IO0		0x14 /* GPIO_P264, ft5606 touch reset */
+			>;
+		};
+
+		pinctrl_gpio4: gpio4grp {
+			fsl,pins = <
 				MX7D_PAD_UART1_TX_DATA__GPIO4_IO1	0x15 /* GPIO_P262 */
 				MX7D_PAD_UART1_RX_DATA__GPIO4_IO0	0x14 /* GPIO_P261, ft5606 touch irq */
-				MX7D_PAD_EPDC_DATA00__GPIO2_IO0		0x14 /* GPIO_P264, ft5606 touch reset */
-				MX7D_PAD_GPIO1_IO11__GPIO1_IO11		0x14 /* GPIO_P263, ads7846 touch irq */
 			>;
 		};
 
