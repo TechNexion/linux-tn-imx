@@ -19,6 +19,26 @@
 
 #include "imx8mm-pico.dtsi"
 
+&gpio3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_gpio3>;
+	gpio-line-names =
+		"GPIO_P25", "", "", "", "", "", "GPIO_P28", "GPIO_P30",
+		"GPIO_P32", "", "", "", "", "", "", "",
+		"GPIO_P26", "", "", "", "", "", "", "",
+		"", "", "", "", "", "", "", "";
+};
+
+&gpio5 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_gpio5>;
+	gpio-line-names =
+		"", "", "", "", "", "", "", "",
+		"", "", "", "", "", "", "", "",
+		"", "", "", "", "GPIO_P44", "", "", "",
+		"", "", "", "", "", "", "", "";
+};
+
 / {
 	model = "TechNexion PICO-IMX8MM and PI baseboard";
 	compatible = "fsl,imx8mm-pico", "fsl,imx8mm";
@@ -78,7 +98,6 @@
 
 &iomuxc {
 	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_expansion_gpio>;
 
 	imx8mm-pico {
 		pinctrl_otg_vbus: otgvbusgrp {
@@ -156,13 +175,19 @@
 		};
 
 		/* GPIO on expansion IO J8 connector */
-		pinctrl_expansion_gpio: expansiongpiogrp {
+		pinctrl_gpio3: gpio3grp {
 			fsl,pins = <
 				MX8MM_IOMUXC_NAND_ALE_GPIO3_IO0			0x41 /* GPIO_P25, KEY_PREV on VoiceHat */
 				MX8MM_IOMUXC_NAND_READY_B_GPIO3_IO16    	0x41 /* GPIO_P26, KEY_DOWN on VoiceHat */
 				MX8MM_IOMUXC_NAND_DATA00_GPIO3_IO6		0x41 /* GPIO_P28, KEY_MUTE on VoiceHat */
 				MX8MM_IOMUXC_NAND_DATA01_GPIO3_IO7		0x41 /* GPIO_P30, KEY_UP on VoiceHat */
 				MX8MM_IOMUXC_NAND_DATA02_GPIO3_IO8		0x41 /* GPIO_P32 */
+				MX8MM_IOMUXC_I2C4_SCL_GPIO5_IO20		0x41 /* GPIO_P44, KEY_NEXT on VoiceHat */
+			>;
+		};
+
+		pinctrl_gpio5: gpio5grp {
+			fsl,pins = <
 				MX8MM_IOMUXC_I2C4_SCL_GPIO5_IO20		0x41 /* GPIO_P44, KEY_NEXT on VoiceHat */
 			>;
 		};
