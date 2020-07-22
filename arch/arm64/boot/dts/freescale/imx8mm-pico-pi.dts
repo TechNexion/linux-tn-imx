@@ -164,7 +164,7 @@
 
 &usbotg1 {
 	dr_mode = "otg";
-	extcon = <&typec_tusb320>;
+	extcon = <0>, <&typec_tusb320>;
 	status = "okay";
 };
 
