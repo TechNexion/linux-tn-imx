@@ -13,7 +13,7 @@
  * GNU General Public License for more details.
  */
 
-#include <linux/extcon.h>
+#include <linux/extcon-provider.h>
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/slab.h>
