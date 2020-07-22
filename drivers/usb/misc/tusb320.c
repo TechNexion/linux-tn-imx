@@ -289,6 +289,7 @@ static int tusb320_reset_device(struct tusb320_chip *chip, int mode)
 		rc = tusb320_i2c_reset_device(chip);
 		if (rc >= 0)
 			break;
+		/* FALLTHRU */
 	case TUBS320_GPIO_I2C_RESET:
 		tusb320_gpio_reset_device(chip);
 		rc = tusb320_i2c_reset_device(chip);
