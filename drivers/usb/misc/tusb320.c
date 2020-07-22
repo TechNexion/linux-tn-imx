@@ -27,7 +27,6 @@
 #include <linux/power_supply.h>
 #include <linux/irq.h>
 #include <linux/delay.h>
-#include <linux/wakelock.h>
 #include <linux/regulator/consumer.h>
 
 #undef  __CONST_FFS
@@ -144,7 +143,6 @@ struct tusb320_chip {
 	u8 ufp_power;
 	u8 accessory_mode;
 	struct work_struct dwork;
-	struct wake_lock wlock;
 	struct power_supply *usb_psy;
 };
 
@@ -619,13 +617,11 @@ static void tusb320_work_handler(struct work_struct *work)
 	int ret;
 	u8 reg09, reg08, state;
 
-	wake_lock(&chip->wlock);
-
 	/* Get status (reg8/reg9) */
 	ret = i2c_smbus_read_word_data(chip->client, TUBS320_CSR_REG_08);
 	if (ret < 0) {
 		dev_err(cdev, "%s: failed to read REG_09\n", __func__);
-		goto work_unlock;
+		return;
 	}
 	reg08 = ret & 0xFF;
 	reg09 = (ret >> 8) & 0xFF;
@@ -639,7 +635,7 @@ static void tusb320_work_handler(struct work_struct *work)
 					TUBS320_INT_CLEAR);
 	if (ret < 0) {
 		dev_err(cdev, "%s: failed to write REG_09\n", __func__);
-		goto work_unlock;
+		return;
 	}
 
 	state = BITS_GET(reg09, TUBS320_ATTACH_STATE);
@@ -666,8 +662,6 @@ static void tusb320_work_handler(struct work_struct *work)
 		dev_err(cdev, "%s: Invalid state\n", __func__);
 		break;
 	}
-work_unlock:
-	wake_unlock(&chip->wlock);
 }
 
 static irqreturn_t tusb320_interrupt(int irq, void *data)
@@ -855,7 +849,6 @@ static int tusb320_probe(struct i2c_client *client,
 	chip->usb_psy = usb_psy;
 
 	INIT_WORK(&chip->dwork, tusb320_work_handler);
-	wake_lock_init(&chip->wlock, WAKE_LOCK_SUSPEND, "tusb320_wake");
 
 	ret = tusb320_create_devices(cdev);
 	if (ret < 0) {
@@ -889,7 +882,6 @@ static int tusb320_probe(struct i2c_client *client,
 err4:
 	tusb320_destory_device(cdev);
 err3:
-	wake_lock_destroy(&chip->wlock);
 	tusb320_free_gpio(chip);
 err2:
 	if (&client->dev.of_node)
@@ -915,7 +907,6 @@ static int tusb320_remove(struct i2c_client *client)
 		devm_free_irq(cdev, chip->irq_gpio, chip);
 
 	tusb320_destory_device(cdev);
-	wake_lock_destroy(&chip->wlock);
 	tusb320_free_gpio(chip);
 
 	if (&client->dev.of_node)
