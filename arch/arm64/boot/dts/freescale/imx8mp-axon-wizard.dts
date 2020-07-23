@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2020 Technexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *
+ */
+
+/dts-v1/;
+
+#include "imx8mp-axon.dtsi"
+
+/ {
+	model = "TechNexion AXON-IMX8MP and WIZARD baseboard";
+	compatible = "fsl,imx8mp-axon", "fsl,imx8mp";
+};
+
