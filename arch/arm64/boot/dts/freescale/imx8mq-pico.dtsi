@@ -56,13 +56,13 @@
 };
 
 &resmem {
-    linux,cma {
-        compatible = "shared-dma-pool";
-        reusable;
-        size = <0 0x30000000>;
-        alloc-ranges = <0 0x40000000 0 0x40000000>;
-        linux,cma-default;
-    };
+	linux,cma {
+		compatible = "shared-dma-pool";
+		reusable;
+		size = <0 0x30000000>;
+		alloc-ranges = <0 0x40000000 0 0x40000000>;
+		linux,cma-default;
+	};
 };
 
 &clk {
@@ -236,6 +236,7 @@
 				MX8MQ_IOMUXC_SAI2_TXC_SAI2_TX_BCLK	0xd6
 				MX8MQ_IOMUXC_SAI2_MCLK_SAI2_MCLK	0xd6
 				MX8MQ_IOMUXC_SAI2_TXD0_SAI2_TX_DATA0	0xd6
+				MX8MQ_IOMUXC_SAI2_RXD0_SAI2_RX_DATA0    0xd6
 			>;
 		};
 
