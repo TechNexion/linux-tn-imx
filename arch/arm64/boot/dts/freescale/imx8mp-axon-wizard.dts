@@ -13,5 +13,55 @@
 / {
 	model = "TechNexion AXON-IMX8MP and WIZARD baseboard";
 	compatible = "fsl,imx8mp-axon", "fsl,imx8mp";
+
+	reg_usb_otg_vbus: usb_otg_vbus {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_otg_vbus>;
+		compatible = "regulator-fixed";
+		regulator-name = "usb_otg_vbus";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		gpio = <&gpio3 1 GPIO_ACTIVE_LOW>;
+		enable-active-low;
+	};
 };
 
+
+&i2c2 {
+	status = "okay";
+
+	typec_tusb320:tusb320@47 {
+		compatible = "ti,tusb320";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_tusb320_irq>;
+		reg = <0x47>;
+		vbus-supply = <&reg_usb_otg_vbus>;
+		tusb320,int-gpio = <&gpio5 8 GPIO_ACTIVE_LOW>;
+		tusb320,select-mode = <0>;
+		tusb320,dfp-power = <0>;
+	};
+};
+
+&usb_dwc3_0 {
+	dr_mode = "otg";
+	hnp-disable;
+	srp-disable;
+	adp-disable;
+	extcon = <&typec_tusb320>;
+	status = "okay";
+};
+
+&iomuxc {
+
+	pinctrl_otg_vbus: otgvbusgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_NAND_CE0_B__GPIO3_IO01		0x19   /* GPIO_X1_P66, USB OTG VBUS Enable */
+		>;
+	};
+
+	pinctrl_tusb320_irq: tusb320_irqgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_ECSPI1_MISO__GPIO5_IO08		0x41    /* UART_B_CTS */
+		>;
+	};
+};
