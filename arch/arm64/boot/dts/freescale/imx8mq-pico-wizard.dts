@@ -19,6 +19,16 @@
 
 #include "imx8mq-pico.dtsi"
 
+&gpio3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_gpio3>;
+	gpio-line-names =
+		"GPIO_P28", "", "", "", "GPIO_P26", "GPIO_P30", "", "",
+		"", "", "", "", "", "", "", "GPIO_P32",
+		"", "", "", "", "", "", "", "",
+		"", "", "", "", "", "", "", "";
+};
+
 / {
 	model = "TechNexion PICO-IMX8MQ w/ Wifi and WIZARD baseboard";
 	compatible = "pico,imx8mq-pico", "fsl,imx8mq";
@@ -158,7 +168,6 @@
 		pinctrl_nfc_ctrl: nfc_ctrl {
 			fsl,pins = <
 				MX8MQ_IOMUXC_ECSPI1_MOSI_GPIO5_IO7		0x19	/* PIN_ENABLE */
-				MX8MQ_IOMUXC_NAND_CE3_B_GPIO3_IO4		0x19	/* PIN_INT */
 			>;
 		};
 
@@ -195,6 +204,15 @@
 		pinctrl_rtc_irq: pinctrl_rtc_irqgrp {
 			fsl,pins = <
 				MX8MQ_IOMUXC_NAND_CE0_B_GPIO3_IO1   0x150 /* GPIO_P24, rtc wakeup irq */
+			>;
+		};
+
+		pinctrl_gpio3: gpio3grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_NAND_ALE_GPIO3_IO0			0x19 /* GPIO_P28 */
+				MX8MQ_IOMUXC_NAND_CE3_B_GPIO3_IO4		0x19 /* GPIO_P26, PIN_INT on NFC */
+				MX8MQ_IOMUXC_NAND_CLE_GPIO3_IO5			0x19 /* GPIO_P30 */
+				MX8MQ_IOMUXC_NAND_RE_B_GPIO3_IO15		0x19 /* GPIO_P32 */
 			>;
 		};
 	};

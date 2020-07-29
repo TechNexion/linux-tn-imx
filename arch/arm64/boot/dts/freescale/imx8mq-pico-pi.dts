@@ -19,6 +19,16 @@
 
 #include "imx8mq-pico.dtsi"
 
+&gpio3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_gpio3>;
+	gpio-line-names =
+		"GPIO_P28", "", "", "GPIO_P25", "GPIO_P26", "GPIO_P30", "", "",
+		"", "", "", "", "", "", "", "GPIO_P32",
+		"", "", "", "", "", "", "", "",
+		"", "", "", "", "", "", "", "";
+};
+
 / {
 	model = "TechNexion PICO-IMX8MQ and PI baseboard";
 	compatible = "pico,imx8mq-pico", "fsl,imx8mq";
@@ -115,7 +125,7 @@
 
 		pinctrl_tusb320_irq: tusb320_irqgrp {
 			fsl,pins = <
-				MX8MQ_IOMUXC_NAND_CE0_B_GPIO3_IO1	0x41
+				MX8MQ_IOMUXC_NAND_CE0_B_GPIO3_IO1	0x41	/* GPIO_P24 */
 			>;
 		};
 
@@ -130,7 +140,7 @@
 		pinctrl_csi2: csi2grp {
 			fsl,pins = <
 				MX8MQ_IOMUXC_ECSPI1_MOSI_GPIO5_IO7		0x19   /* CSI P2 PWDN */
-				MX8MQ_IOMUXC_NAND_READY_B_GPIO3_IO16		0x19   /* CSI nRST */
+				MX8MQ_IOMUXC_NAND_READY_B_GPIO3_IO16		0x19   /* GPIO_P44, CSI nRST */
 			>;
 		};
 
@@ -151,13 +161,12 @@
 		pinctrl_nfc_ctrl: nfc_ctrl {
 			fsl,pins = <
 				MX8MQ_IOMUXC_ECSPI1_MOSI_GPIO5_IO7		0x19	/* PIN_ENABLE */
-				MX8MQ_IOMUXC_NAND_CE3_B_GPIO3_IO4		0x19	/* PIN_INT */
 			>;
 		};
 
 		pinctrl_mipi_dsi_rst: mipi_dsi_rst {
 			fsl,pins = <
-				MX8MQ_IOMUXC_NAND_WE_B_GPIO3_IO17	0x16   /* DSI RST */
+				MX8MQ_IOMUXC_NAND_WE_B_GPIO3_IO17	0x16   /* GPIO_P34, DSI RST */
 			>;
 		};
 
@@ -176,6 +185,17 @@
 		pinctrl_gpio_led: gpioledgrp {
 			fsl,pins = <
 				MX8MQ_IOMUXC_SPDIF_EXT_CLK_GPIO5_IO5	0x19
+			>;
+		};
+
+		/* GPIO on expansion IO J8 connector */
+		pinctrl_gpio3: gpio3grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_NAND_ALE_GPIO3_IO0			0x19 /* GPIO_P28 */
+				MX8MQ_IOMUXC_NAND_CE2_B_GPIO3_IO3		0x19 /* GPIO_P25, CLIX_RESET */
+				MX8MQ_IOMUXC_NAND_CE3_B_GPIO3_IO4		0x19 /* GPIO_P26, PIN_INT on NFC */
+				MX8MQ_IOMUXC_NAND_CLE_GPIO3_IO5			0x19 /* GPIO_P30 */
+				MX8MQ_IOMUXC_NAND_RE_B_GPIO3_IO15		0x19 /* GPIO_P32 */
 			>;
 		};
 	};
