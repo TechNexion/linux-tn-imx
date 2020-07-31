@@ -96,6 +96,29 @@
 		off-on-delay-us = <12000>;
 	};
 
+	wl_reg_on: wlreg_on {
+		compatible = "regulator-fixed";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_wifi_ctrl>;
+		regulator-name = "WL_REG_ON";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&gpio4 1 GPIO_ACTIVE_HIGH>;
+		off-on-delay = <20000>;
+		startup-delay-us = <100>;
+		enable-active-high;
+	};
+
+	bt_reg_on: btreg_on {
+		compatible = "gpio-reset";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_bt_ctrl>;
+		reset-gpios = <&gpio4 0 GPIO_ACTIVE_LOW>;
+		reset-delay-us = <2000>;
+		reset-post-delay-ms = <200>;
+		#reset-cells = <0>;
+	};
+
 	sound-hdmi {
 		compatible = "fsl,imx-audio-cdnhdmi";
 		model = "audio-hdmi";
@@ -551,6 +574,7 @@
 	assigned-clocks = <&clk IMX8MP_CLK_UART1>;
 	assigned-clock-parents = <&clk IMX8MP_SYS_PLL1_80M>;
 	fsl,uart-has-rtscts;
+	resets = <&bt_reg_on>;
 	status = "okay";
 };
 
@@ -606,16 +630,21 @@
 	status = "okay";
 };
 
+/* WIFI SDIO */
 &usdhc1 {
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
 	pinctrl-0 = <&pinctrl_usdhc1>;
 	pinctrl-1 = <&pinctrl_usdhc1_100mhz>;
 	pinctrl-2 = <&pinctrl_usdhc1_200mhz>;
+	vmmc-supply = <&wl_reg_on>;
 	bus-width = <4>;
+	pm-ignore-notify;
+	keep-power-in-suspend;
 	non-removable;
 	status = "okay";
 };
 
+/* SD card on baseboard */
 &usdhc2 {
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
 	pinctrl-0 = <&pinctrl_usdhc2>, <&pinctrl_usdhc2_gpio>;
@@ -627,6 +656,7 @@
 	status = "okay";
 };
 
+/* eMMC on SOM */
 &usdhc3 {
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
 	pinctrl-0 = <&pinctrl_usdhc3>;
@@ -978,6 +1008,18 @@
 	pinctrl_enet_pwr: enetpwrgrp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SAI3_MCLK__GPIO5_IO02		0x11
+		>;
+	};
+
+	pinctrl_wifi_ctrl: wifi_ctrlgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_RXC__GPIO4_IO01	0x41 /* WL_REG_ON */
+		>;
+	};
+
+	pinctrl_bt_ctrl: bt_ctrlgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_RXFS__GPIO4_IO00	0x41 /* BT_REG_ON */
 		>;
 	};
 };
