@@ -364,6 +364,17 @@ static int exc3000_probe(struct i2c_client *client)
 		msleep(EXC3000_READY_MS);
 	}
 
+	data->reset = devm_gpiod_get_optional(&client->dev, "reset",
+					      GPIOD_OUT_HIGH);
+	if (IS_ERR(data->reset))
+		return PTR_ERR(data->reset);
+
+	if (data->reset) {
+		msleep(EXC3000_RESET_MS);
+		gpiod_set_value_cansleep(data->reset, 0);
+		msleep(EXC3000_READY_MS);
+	}
+
 	input = devm_input_allocate_device(&client->dev);
 	if (!input)
 		return -ENOMEM;
