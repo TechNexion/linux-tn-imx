@@ -51,17 +51,6 @@
 		regulator-always-on;
 	};
 
-	reg_can1_stby: regulator-can1-stby {
-		compatible = "regulator-fixed";
-		regulator-name = "can1-stby";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_flexcan1_reg>;
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		gpio = <&gpio5 5 GPIO_ACTIVE_HIGH>;
-		enable-active-high;
-	};
-
 	reg_can2_stby: regulator-can2-stby {
 		compatible = "regulator-fixed";
 		regulator-name = "can2-stby";
@@ -136,21 +125,11 @@
 
 	lvds_backlight: lvds_backlight {
 		compatible = "pwm-backlight";
-		pwms = <&pwm2 0 100000>;
+		pwms = <&pwm1 0 5000000>;
 		status = "okay";
 
-		brightness-levels = < 0  1  2  3  4  5  6  7  8  9
-				     10 11 12 13 14 15 16 17 18 19
-				     20 21 22 23 24 25 26 27 28 29
-				     30 31 32 33 34 35 36 37 38 39
-				     40 41 42 43 44 45 46 47 48 49
-				     50 51 52 53 54 55 56 57 58 59
-				     60 61 62 63 64 65 66 67 68 69
-				     70 71 72 73 74 75 76 77 78 79
-				     80 81 82 83 84 85 86 87 88 89
-				     90 91 92 93 94 95 96 97 98 99
-				    100>;
-		default-brightness-level = <80>;
+		brightness-levels = <0 4 8 16 32 64 128 255>;
+		default-brightness-level = <7>;
 	};
 };
 
@@ -337,6 +316,7 @@
 	};
 };
 
+/* I2C_A on AXON */
 &i2c2 {
 	clock-frequency = <100000>;
 	pinctrl-names = "default";
@@ -353,18 +333,6 @@
 		port {
 			adv7535_from_dsim: endpoint {
 				remote-endpoint = <&dsim_to_adv7535>;
-			};
-		};
-	};
-
-	lvds_bridge: lvds-to-hdmi-bridge@4c {
-		compatible = "ite,it6263";
-		reg = <0x4c>;
-		reset-gpios = <&gpio1 10 GPIO_ACTIVE_LOW>;
-
-		port {
-			it6263_in: endpoint {
-				remote-endpoint = <&lvds_out>;
 			};
 		};
 	};
@@ -397,18 +365,12 @@
 	};
 };
 
+/* I2C_B on AXON */
 &i2c3 {
 	clock-frequency = <100000>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c3>;
 	status = "okay";
-
-	pca6416: gpio@20 {
-		compatible = "ti,tca6416";
-		reg = <0x20>;
-		gpio-controller;
-		#gpio-cells = <2>;
-	};
 
 	ov5640_1: ov5640_mipi@3c {
 		compatible = "ovti,ov5640";
@@ -438,6 +400,14 @@
 	};
 };
 
+/* I2C_C on AXON */
+&i2c4 {
+	clock-frequency = <100000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c4>;
+	status = "okay";
+};
+
 &irqsteer_hdmi {
 	status = "okay";
 };
@@ -445,7 +415,7 @@
 &flexcan1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexcan1>;
-	xceiver-supply = <&reg_can1_stby>;
+	//xceiver-supply = <&reg_can1_stby>;
 	status = "okay";
 };
 
@@ -453,7 +423,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexcan2>;
 	xceiver-supply = <&reg_can2_stby>;
-	pinctrl-assert-gpios = <&pca6416 3 GPIO_ACTIVE_HIGH>;
+	//pinctrl-assert-gpios = <&pca6416 3 GPIO_ACTIVE_HIGH>;
 	status = "disabled";/* can2 pin conflict with pdm: gpio low select pdm, gpio high select can2 */
 };
 
@@ -490,21 +460,7 @@
 };
 
 &ldb {
-	status = "okay";
-
-	lvds-channel@0 {
-		fsl,data-mapping = "jeida";
-		fsl,data-width = <24>;
-		status = "okay";
-
-		port@1 {
-			reg = <1>;
-
-			lvds_out: endpoint {
-				remote-endpoint = <&it6263_in>;
-			};
-		};
-	};
+	status = "disabled";
 };
 
 &ldb_phy {
@@ -689,7 +645,7 @@
 
 	pinctrl_pwm1: pwm1grp {
 		fsl,pins = <
-			MX8MP_IOMUXC_GPIO1_IO01__PWM1_OUT	0x116
+			MX8MP_IOMUXC_SPDIF_EXT_CLK__PWM1_OUT	0x116
 		>;
 	};
 
@@ -753,12 +709,6 @@
 		>;
 	};
 
-	pinctrl_flexcan1_reg: flexcan1reggrp {
-		fsl,pins = <
-			MX8MP_IOMUXC_SPDIF_EXT_CLK__GPIO5_IO05	0x154	/* CAN1_STBY */
-		>;
-	};
-
 	pinctrl_flexcan2_reg: flexcan2reggrp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SAI2_MCLK__GPIO4_IO27	0x154	/* CAN2_STBY */
@@ -789,6 +739,13 @@
 		fsl,pins = <
 			MX8MP_IOMUXC_I2C3_SCL__I2C3_SCL			0x400001c3
 			MX8MP_IOMUXC_I2C3_SDA__I2C3_SDA			0x400001c3
+		>;
+	};
+
+	pinctrl_i2c4: i2c4grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_I2C4_SCL__I2C4_SCL			0x400001c3
+			MX8MP_IOMUXC_I2C4_SDA__I2C4_SDA			0x400001c3
 		>;
 	};
 
