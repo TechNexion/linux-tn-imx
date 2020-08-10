@@ -37,6 +37,17 @@
 		regulator-always-on;
 	};
 
+	reg_mipi_pwr: regulator_mipipwr {
+		pinctrl-names = "default";
+		compatible = "regulator-fixed";
+		regulator-name = "mipi_pwr";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&pca9554 0 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		status = "disabled";
+	};
+
 	reg_lvds_pwr: regulator_lvdspwr {
 		pinctrl-names = "default";
 		compatible = "regulator-fixed";
@@ -45,6 +56,24 @@
 		regulator-max-microvolt = <3300000>;
 		gpio = <&pca9554 6 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
+		status = "disabled";
+	};
+
+	lvds_backlight: lvds_backlight {
+		compatible = "pwm-backlight";
+		//power-supply = <&reg_backlight_pwr>;
+		pwms = <&pwm1 0 50000>;
+		brightness-levels = <0 36 72 108 144 180 216 255>;
+		default-brightness-level = <6>;
+		status = "disabled";
+	};
+
+	mipi_backlight: mipi_backlight {
+		compatible = "pwm-backlight";
+		pwms = <&pwm4 0 50000>;
+		brightness-levels = <0 36 72 108 144 180 216 255>;
+		default-brightness-level = <6>;
+		status = "disabled";
 	};
 
 	sound-wm8960 {
@@ -78,11 +107,6 @@
 			clock-frequency = <24000000>;
 			clock-output-names = "wm8960-mclk";
 		};
-	};
-
-	lvds_backlight: lvds_backlight {
-		//power-supply = <&reg_backlight_pwr>;
-		status = "okay";
 	};
 };
 
@@ -121,6 +145,7 @@
 		reg =<0x23>;
 		gpio-controller;
 		#gpio-cells = <2>;
+		status = "okay";
 	};
 };
 
@@ -145,13 +170,19 @@
 
 	pinctrl_tusb320_irq: tusb320_irqgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_ECSPI1_MISO__GPIO5_IO08		0x41    /* UART_B_CTS */
+			MX8MP_IOMUXC_ECSPI1_MISO__GPIO5_IO08	0x41    /* UART_B_CTS */
 		>;
 	};
 
 	pinctrl_backlight_pwr: backlight_pwrgrp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SAI3_RXFS__GPIO4_IO28		0x19
+		>;
+	};
+
+	pinctrl_ft5336_touch_irq: ft5336_irqgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_GPIO1_IO05__GPIO1_IO05		0x41   /* GPIO_X2_P20, Touch INT */
 		>;
 	};
 };
