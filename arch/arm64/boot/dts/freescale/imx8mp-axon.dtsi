@@ -122,15 +122,6 @@
 				<192000>;
 		status = "okay";
 	};
-
-	lvds_backlight: lvds_backlight {
-		compatible = "pwm-backlight";
-		pwms = <&pwm1 0 5000000>;
-		status = "okay";
-
-		brightness-levels = <0 4 8 16 32 64 128 255>;
-		default-brightness-level = <7>;
-	};
 };
 
 &aud2htx {
@@ -323,20 +314,6 @@
 	pinctrl-0 = <&pinctrl_i2c2>;
 	status = "okay";
 
-	adv_bridge: adv7535@3d {
-		compatible = "adi,adv7533";
-		reg = <0x3d>;
-		adi,addr-cec = <0x3b>;
-		adi,dsi-lanes = <4>;
-		status = "okay";
-
-		port {
-			adv7535_from_dsim: endpoint {
-				remote-endpoint = <&dsim_to_adv7535>;
-			};
-		};
-	};
-
 	ov5640_0: ov5640_mipi@3c {
 		compatible = "ovti,ov5640";
 		reg = <0x3c>;
@@ -469,13 +446,6 @@
 
 &mipi_dsi {
 	status = "okay";
-
-	port@1 {
-		dsim_to_adv7535: endpoint {
-			remote-endpoint = <&adv7535_from_dsim>;
-			attach-bridge;
-		};
-	};
 };
 
 &easrc {
