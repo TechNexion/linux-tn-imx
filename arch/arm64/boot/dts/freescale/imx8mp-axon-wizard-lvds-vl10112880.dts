@@ -9,6 +9,14 @@
 #include "imx8mp-axon-wizard.dts"
 
 / {
+	reg_lvds_pwr: regulator_lvdspwr {
+		status = "okay";
+	};
+
+	lvds_backlight: lvds_backlight {
+		status = "okay";
+	};
+
 	lvds0_panel {
 		compatible = "vxt,vl10112880", "panel-lvds";
 		backlight = <&lvds_backlight>;
