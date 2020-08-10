@@ -1,0 +1,44 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2020 Technexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *
+ */
+
+#include "imx8mp-axon-wizard.dts"
+
+/ {
+	reg_mipi_pwr: regulator_mipipwr {
+		regulator-always-on;
+		status = "okay";
+	};
+
+	mipi_backlight: mipi_backlight {
+		status = "okay";
+	};
+};
+
+&mipi_dsi {
+	status = "okay";
+	panel@0 {
+		compatible = "auo,g101uan02";
+		reg = <0>;
+		enable-gpios = <&pca9554 2 GPIO_ACTIVE_HIGH>;
+		status = "okay";
+	};
+};
+
+&i2c4 {
+	polytouch: edt-ft5x06@38 {
+		compatible = "edt,edt-ft5x06";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_ft5336_touch_irq>;
+		reg = <0x38>;
+		interrupt-parent = <&gpio1>;
+		interrupts = <5 IRQ_TYPE_EDGE_FALLING>;
+		touchscreen-size-x = <1920>;
+		touchscreen-size-y = <1200>;
+		status="okay";
+	};
+};
