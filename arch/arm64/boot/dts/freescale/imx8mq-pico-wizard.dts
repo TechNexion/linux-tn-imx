@@ -30,7 +30,7 @@
 };
 
 / {
-	model = "TechNexion PICO-IMX8MQ w/ Wifi and WIZARD baseboard";
+	model = "TechNexion PICO-IMX8MQ and WIZARD baseboard";
 	compatible = "pico,imx8mq-pico", "fsl,imx8mq";
 
 	regulators {
