@@ -269,31 +269,31 @@
 
 &AXON_I2C_C {
 	status = "okay";
-};
-
-&AXON_I2C_D {
-	status = "okay";
 
 	/* Power monitor for 3.3V SOM output supply */
-	ina219@45 {
+	sensor_3v3:ina219_3v3@45 {
 		compatible = "ti,ina219";
 		reg = <0x45>;
 		shunt-resistor = <200000>; /* .2 Ohm resistor = 200000 uOhms*/
 	};
 
 	/* Power monitor for 1.8V SOM output supply */
-	ina219@40 {
+	sensor_1v8:ina219_1v8@40 {
 		compatible = "ti,ina219";
 		reg = <0x40>;
 		shunt-resistor = <200000>; /* .2 Ohm resistor = 200000 uOhms*/
 	};
 
 	/* Power monitor for 5V SOM input supply */
-	ina219@44 {
+	sensor_5v0:ina219_5v0@44 {
 		compatible = "ti,ina219";
 		reg = <0x44>;
 		shunt-resistor = <200000>; /* .2 Ohm resistor = 200000 uOhms*/
 	};
+};
+
+&AXON_I2C_D {
+	status = "okay";
 };
 
 &AXON_I2C_BRD_CONF {
