@@ -69,7 +69,7 @@
 		"", "GPIO_P239", "GPIO_P241", "GPIO_P243", "GPIO_P245", "GPIO_P247", "", "",	\
 		"", "", "", "", "", "", "", "",							\
 		"", "", "", "", "", "", "", "",							\
-		"", "", "", "", "", "", "", "";							\
+		"", "", "", "", "", "", "", "PCIE2_RST";					\
 												\
 }
 
@@ -420,7 +420,7 @@ TEP_GPIO_DEFS();
 				MX6QDL_PAD_GPIO_4__GPIO1_IO04		0x80000000	/* power board - GPIO_P135 RFU - 4   */
 				MX6QDL_PAD_GPIO_6__GPIO1_IO06		0x80000000	/* power board - GPIO_P137 RFU - 6   */
 				MX6QDL_PAD_CSI0_DAT9__GPIO5_IO27	0x80000000	/* power board - GPIO_P139 RFU - 155 */
-
+				MX6QDL_PAD_EIM_BCLK__GPIO6_IO31		0x80000000	/* PCIE2 reset with low active */
 			>;
 		};
 
