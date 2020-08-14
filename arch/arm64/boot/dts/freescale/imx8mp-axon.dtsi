@@ -51,17 +51,6 @@
 		regulator-always-on;
 	};
 
-	reg_can2_stby: regulator-can2-stby {
-		compatible = "regulator-fixed";
-		regulator-name = "can2-stby";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_flexcan2_reg>;
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		gpio = <&gpio4 27 GPIO_ACTIVE_HIGH>;
-		enable-active-high;
-	};
-
 	reg_usb1_host_vbus: regulator-usb1-vbus {
 		compatible = "regulator-fixed";
 		regulator-name = "usb1_host_vbus";
@@ -392,16 +381,13 @@
 &flexcan1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexcan1>;
-	//xceiver-supply = <&reg_can1_stby>;
-	status = "okay";
+	status = "disabled";
 };
 
 &flexcan2 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexcan2>;
-	xceiver-supply = <&reg_can2_stby>;
-	//pinctrl-assert-gpios = <&pca6416 3 GPIO_ACTIVE_HIGH>;
-	status = "disabled";/* can2 pin conflict with pdm: gpio low select pdm, gpio high select can2 */
+	status = "disabled";
 };
 
 &hdmimix_clk {
