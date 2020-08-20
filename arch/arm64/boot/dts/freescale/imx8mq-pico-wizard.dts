@@ -470,6 +470,7 @@
 };
 
 &pcie1 {
+	/delete-property/pinctrl-0;
 	clkreq-gpio = <&pca9555_23 7 GPIO_ACTIVE_LOW>;
 	disable-gpio = <&pca9555_23 4 GPIO_ACTIVE_LOW>;
 	reset-gpio = <&pca9555_23 6 GPIO_ACTIVE_LOW>;
