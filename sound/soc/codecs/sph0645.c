@@ -12,6 +12,7 @@
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/slab.h>
+#include <linux/pm_runtime.h>
 #include <sound/core.h>
 #include <sound/pcm.h>
 #include <sound/pcm_params.h>
@@ -37,18 +38,18 @@ static struct snd_soc_dai_driver sph0645_dai = {
 	},
 };
 
-static struct snd_soc_codec_driver sph0645_codec_driver = {
+static struct snd_soc_component_driver sph0645_codec_driver = {
 };
 
 static int sph0645_probe(struct platform_device *pdev)
 {
-	return snd_soc_register_codec(&pdev->dev, &sph0645_codec_driver,
+	return devm_snd_soc_register_component(&pdev->dev, &sph0645_codec_driver,
 			&sph0645_dai, 1);
 }
 
 static int sph0645_remove(struct platform_device *pdev)
 {
-	snd_soc_unregister_codec(&pdev->dev);
+	pm_runtime_disable(&pdev->dev);
 	return 0;
 }
 
