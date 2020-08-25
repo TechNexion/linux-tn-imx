@@ -89,10 +89,6 @@ static int imx_sph0645_hw_params(struct snd_pcm_substream *substream,
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
-	struct snd_soc_card_drvdata_imx_tfa *data = snd_soc_card_get_drvdata(rtd->card);
-	u32 channels = params_channels(params);
-	u32 rate = params_rate(params);
-	u32 bclk = rate * channels * 32;
 	int ret = 0;
 
 	/* set cpu DAI configuration SND_SOC_DAIFMT_I2S*/
@@ -170,9 +166,6 @@ static struct snd_soc_ops imx_sph0645_ops = {
 
 static int imx_sph0645_init(struct snd_soc_pcm_runtime *rtd)
 {
-	struct snd_soc_card_drvdata_imx_tfa *data = snd_soc_card_get_drvdata(rtd->card);;
-	struct device *dev = rtd->card->dev;
-
 	pr_info("\n");
 	dev_dbg(rtd->card->dev, "%s,%d: dai_init\n", __FUNCTION__, __LINE__);
 
@@ -239,8 +232,8 @@ static int imx_sph0645_probe(struct platform_device *pdev)
 {
 	struct device_node *cpu_np, *np = pdev->dev.of_node;
 	struct platform_device *cpu_pdev;
+	struct snd_soc_dai_link_component *dlc;
 	struct snd_soc_dai_link_component *codecs;
-	struct i2c_client *codec_dev;
 	struct snd_soc_dai_link *dai;
 	struct snd_soc_card_drvdata_imx_tfa *drvdata = NULL;
 	struct clk *mclk;
@@ -250,6 +243,10 @@ static int imx_sph0645_probe(struct platform_device *pdev)
 	pr_info("imx_sph0645_probe\n");
 
 	imx_sph0645_soc_card.dev = &pdev->dev;
+
+	dlc = devm_kzalloc(&pdev->dev, 2 * sizeof(*dlc), GFP_KERNEL);
+	if (!dlc)
+		return -ENOMEM;
 
 	cpu_np = of_parse_phandle(pdev->dev.of_node, "cpu-dai", 0);
 	if (!cpu_np) {
@@ -284,10 +281,6 @@ static int imx_sph0645_probe(struct platform_device *pdev)
 	}
 
 	for (i = 0; i < num_codecs; i++) {
-		struct device_node *parent;
-		int id;
-		const u32 *property;
-		int len;
 		char name[18];
 
 		codecs[i].of_node = of_parse_phandle(np, "nxp,audio-codec", i);
@@ -295,19 +288,24 @@ static int imx_sph0645_probe(struct platform_device *pdev)
 		codecs[i].dai_name = tfa_devm_kstrdup(&pdev->dev, name);
 	}
 	dai = &imx_dai_sph0645[0];
-	dai->platform_of_node = cpu_np;
+	dai->cpus = &dlc[0];
+	dai->num_cpus = 1;
+	dai->platforms = &dlc[1];
+	dai->num_platforms = 1;
 	dai->codecs = codecs;
-	dai->cpu_dai_name = dev_name(&cpu_pdev->dev);
 	dai->num_codecs = num_codecs;
-	dai->cpu_of_node = of_parse_phandle(np, "ssi-controller", 0);
-	if (!dai->cpu_of_node) {
+
+	dai->platforms->of_node = cpu_np;
+	dai->cpus->dai_name = dev_name(&cpu_pdev->dev);
+	dai->cpus->of_node = of_parse_phandle(np, "ssi-controller", 0);
+	if (!dai->cpus->of_node) {
 		ret = -EINVAL;
 		goto fail;
 	}
 
-	/* Only set the platform_of_node if the platform_name is not set */
-	if (!dai->platform_name)
-		dai->platform_of_node = dai->cpu_of_node;
+	/* Only set the platforms->of_node if the platforms->name is not set */
+	if (!dai->platforms->name)
+		dai->platforms->of_node = dai->cpus->of_node;
 
 	mclk = devm_clk_get(&pdev->dev, NULL);
 	if (PTR_ERR(mclk) == -EPROBE_DEFER) {
