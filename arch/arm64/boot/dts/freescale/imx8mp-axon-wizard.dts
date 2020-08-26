@@ -191,4 +191,30 @@
 			MX8MP_IOMUXC_GPIO1_IO05__GPIO1_IO05		0x41   /* GPIO_X2_P20, Touch INT */
 		>;
 	};
+
+	pinctrl_tfa98xx: tfa98xx_ctrlgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_ECSPI2_SCLK__GPIO5_IO10	0x19 /* RST */
+			MX8MP_IOMUXC_ECSPI2_MISO__GPIO5_IO12	0x19 /* INT */
+		>;
+	};
+
+	pinctrl_pca9955: pca9955_ctrlgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_GPIO1_IO08__GPIO1_IO08		0x16 /* RST */
+		>;
+	};
+
+	pinctrl_gpio_key_voicehat: gpiokey_voicehatgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SD1_DATA5__GPIO2_IO07		0x41 /* KEY_PAIR on VoiceHat */
+			MX8MP_IOMUXC_SAI5_RXFS__GPIO3_IO19		0x41 /* KEY_PLAY on VoiceHat */
+			MX8MP_IOMUXC_SAI5_MCLK__GPIO3_IO25		0x41 /* KEY_NEXT on VoiceHat */
+			MX8MP_IOMUXC_SAI5_RXD3__GPIO3_IO24		0x41 /* KEY_UP on VoiceHat */
+			MX8MP_IOMUXC_SPDIF_TX__GPIO5_IO03		0x41 /* KEY_DOWN on VoiceHat */
+			MX8MP_IOMUXC_SPDIF_RX__GPIO5_IO04		0x41 /* KEY_MUTE on VoiceHat */
+			MX8MP_IOMUXC_ECSPI2_SS0__GPIO5_IO13		0x41 /* KEY_PAIR on VoiceHat */
+			MX8MP_IOMUXC_GPIO1_IO09__GPIO1_IO09		0x41 /* KEY_ACT on VoiceHat */
+		>;
+	};
 };
