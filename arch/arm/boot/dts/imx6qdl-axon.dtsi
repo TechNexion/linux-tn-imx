@@ -242,6 +242,7 @@
 		compatible = "gpio-leds";
 		led {
 			label = "soc-status-led";
+			linux,default-trigger = "heartbeat";
 			gpios = <AXON_INT_GPIO_SOC_STATUS_LED GPIO_ACTIVE_HIGH>;
 			dir   = "out";
 		};

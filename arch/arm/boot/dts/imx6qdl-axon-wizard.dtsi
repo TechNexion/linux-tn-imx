@@ -86,6 +86,19 @@
 	lcd@0 {
 		status = "disabled";
 	};
+
+    gpio-led {
+        compatible = "gpio-leds";
+               pinctrl-names = "default";
+               pinctrl-0 = <&pinctrl_gpio_x1_p70>;
+
+        led {
+            label = "baseboard-status-led";
+                       default-state = "on";
+            gpios = <AXON_EXT_GPIO_X1_P70 GPIO_ACTIVE_HIGH>;
+            dir   = "out";
+        };
+    };
 };
 
 &iomuxc {
@@ -108,7 +121,7 @@
 &pinmux_axonfabric {
 
 	pinctrl_af_user_led: pcuserled {
-		pins = "F_GPIO_X1_P70"; function = "gpio"; drive-push-pull;
+		pins = "F_GPIO_X1_P70"; function = "passthru_out"; drive-push-pull;
 	};
 
 	pinctrl_af_user_pb: pcuserpb {
