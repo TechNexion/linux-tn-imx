@@ -303,17 +303,6 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c1>;
 	status = "okay";
-};
-
-&i2c2 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_i2c2>;
-	status = "okay";
-
-	hdmi_edid: edid@50 {
-		compatible = "fsl,imx6-hdmi-i2c";
-		reg = <0x50>;
-	};
 
 	ov5645_mipi: ov5645_mipi@3c {
 		compatible = "ovti,ov5645_mipi";
@@ -332,6 +321,18 @@
 		mclk = <24000000>;
 		mclk_source = <0>;
 	};
+};
+
+&i2c2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c2>;
+	status = "okay";
+
+	hdmi_edid: edid@50 {
+		compatible = "fsl,imx6-hdmi-i2c";
+		reg = <0x50>;
+	};
+
 };
 
 &i2c3 {
@@ -777,9 +778,11 @@
 &can1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexcan1>;
+	status = "okay";
 };
 
 &can2 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexcan2>;
+	status = "okay";
 };
