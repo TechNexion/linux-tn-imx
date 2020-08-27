@@ -19,12 +19,6 @@
 	compatible = "fsl,pico-imx6q", "fsl,imx6q";
 };
 
-&ldb {
-	lvds-channel@0 {
-		crtc = "ipu2-di0";
-	};
-};
-
 &sata {
-	status = "okay";
+	status = "disabled";
 };
