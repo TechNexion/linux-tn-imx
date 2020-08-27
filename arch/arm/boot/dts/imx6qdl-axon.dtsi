@@ -512,11 +512,11 @@
 
 			// UART_C
 			pinctrl_af_uart_c_txd: pcuartc_txd {
-				pins = "F_UART_C_TXD"; function = "passthru_out"; drive-push-pull;
+				pins = "F_UART_C_TXD", "F_UART_C_CTS"; function = "passthru_out"; drive-push-pull;
 			};
 
 			pinctrl_af_uart_c_rxd: pcuartc_rxd {
-				pins = "F_UART_C_RXD"; function = "passthru_in"; drive-push-pull;
+				pins = "F_UART_C_RXD", "F_UART_C_RTS"; function = "passthru_in"; drive-push-pull;
 			};
 
 			// UART_BT
@@ -763,17 +763,17 @@
 
 		pinctrl_axon_uart_c: uart4grp {
 			fsl,pins = <
-				MX6QDL_PAD_CSI0_DAT13__UART4_TX_DATA    0x1b0b1 /* UART_C_TXD */
-				MX6QDL_PAD_CSI0_DAT12__UART4_RX_DATA    0x1b0b1 /* UART_C_RXD */
+				MX6QDL_PAD_CSI0_DAT13__UART4_RX_DATA    0x1b0b1 /* UART_C_TXD */
+				MX6QDL_PAD_CSI0_DAT12__UART4_TX_DATA    0x1b0b1 /* UART_C_RXD */
 			>;
 		};
 
 		pinctrl_axon_uart_c_rtscts: uart4rtsctsgrp {
 			fsl,pins = <
-				MX6QDL_PAD_CSI0_DAT13__UART4_TX_DATA	0x1b0b1 /* UART_C_TXD */
-				MX6QDL_PAD_CSI0_DAT12__UART4_RX_DATA	0x1b0b1 /* UART_C_RXD */
-				MX6QDL_PAD_CSI0_DAT16__UART4_CTS_B 		0x1b0b1 /* UART_C_RTS */
-				MX6QDL_PAD_CSI0_DAT17__UART4_RTS_B		0x1b0b1 /* UART_C_CTS */
+				MX6QDL_PAD_CSI0_DAT13__UART4_RX_DATA	0x1b0b1 /* UART_C_TXD */
+				MX6QDL_PAD_CSI0_DAT12__UART4_TX_DATA	0x1b0b1 /* UART_C_RXD */
+				MX6QDL_PAD_CSI0_DAT16__UART4_RTS_B 		0x1b0b1 /* UART_C_RTS */
+				MX6QDL_PAD_CSI0_DAT17__UART4_CTS_B		0x1b0b1 /* UART_C_CTS */
 			>;
 		};
 
@@ -1080,8 +1080,9 @@
 
 &AXON_UART_C {
 	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_axon_uart_c>;
-	status = "disabled";
+	pinctrl-0 = <&pinctrl_axon_uart_c_rtscts>;
+	uart-has-rtscts;
+	status = "okay";
 };
 
 &AXON_UART_BT {

@@ -27,7 +27,7 @@
 		uart1 = &AXON_UART_B;
 		uart3 = &AXON_UART_C;
 		uart4 = &AXON_UART_BT;
-    };
+	};
 
 	regulators {
 
@@ -209,7 +209,7 @@
 		fsl,port-config = <
 			IMX_AUDMUX_V2_PTCR_SYN
 			IMX_AUDMUX_V2_PDCR_RXDSEL(0)
-        >;
+		>;
 	};
 };
 
@@ -306,12 +306,6 @@
 };
 
 &AXON_UART_B {
-	status = "okay";
-};
-
-&AXON_UART_C {
-	pinctrl-0 = <&pinctrl_axon_uart_c_rtscts>;
-	fsl,uart-has-rtscts;
 	status = "okay";
 };
 
