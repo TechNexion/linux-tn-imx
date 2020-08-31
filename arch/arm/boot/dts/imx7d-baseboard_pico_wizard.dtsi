@@ -1,0 +1,182 @@
+/*
+ * Copyright 2018 Technexion Ltd.
+ *
+ * Author: Tapani Utriainen <tapani@technexion.com>
+ *         Richard Hu <richard.hu@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ */
+
+#include "tnmacro.h"
+
+//PICO_NYMPH_GPIO_DEFS();
+/ {
+	gpio-leds {
+		compatible = "gpio-leds";
+
+		led {
+			label = "gpio-led";
+			linux,default-trigger = "heartbeat";
+			gpios = <&pca9555_21 8 GPIO_ACTIVE_HIGH>;
+		};
+	};
+
+    sound_wm8960: sound-wm8960 {
+        compatible = "fsl,imx-audio-wm8960";
+        model = "wm8960-audio";
+        cpu-dai = <&sai1>;
+        codec-master;
+        audio-codec = <&codec>;
+        mux-int-port = <1>;
+        mux-ext-port = <3>;
+        audio-routing =
+            "Headphone Jack", "HP_L",
+            "Headphone Jack", "HP_R",
+            "Ext Spk", "SPK_LP",
+            "Ext Spk", "SPK_LN",
+            "Ext Spk", "SPK_RP",
+            "Ext Spk", "SPK_RN",
+            "LINPUT1", "Main MIC",
+            "RINPUT1", "Main MIC",
+            "Main MIC", "MICB";
+        /* JD2: hp detect high for headphone*/
+        hp-det = <2 0>;
+    };
+
+    clocks {
+        codec_osc: aud_mclk {
+            compatible = "fixed-clock";
+            #clock-cells = <0>;
+            clock-frequency = <24000000>;
+            clock-output-names = "wm8960-mclk";
+        };
+    };
+};
+
+&iomuxc {
+    imx7d-pico {
+		pinctrl_rtc_ds1337_irq: rtc_ds1337_irqgrp {
+			fsl,pins = <
+				MX7D_PAD_EPDC_DATA00__GPIO2_IO0		0x80000000 /* GPIO_P24, irq */
+			>;
+		};
+		pinctrl_pca9555_21: pca9555_21grp {
+			fsl,pins = <
+				MX7D_PAD_EPDC_DATA06__GPIO2_IO6		0x80000000 /* GPIO_P25, irq */
+			>;
+		};
+
+		pinctrl_pca9555_23: pca9555_23grp {
+			fsl,pins = <
+				MX7D_PAD_EPDC_DATA12__GPIO2_IO12	0x80000000 /* GPIO_P42, irq */
+			>;
+		};
+
+		pinctrl_pca9555_26: pca9555_26grp {
+			fsl,pins = <
+				MX7D_PAD_EPDC_DATA05__GPIO2_IO5		0x80000000 /* GPIO_P34, irq */
+			>;
+		};
+	};
+};
+
+&iomuxc_lpsr {
+	imx7d-pi {
+        pinctrl_mipi_csi: mipicsigrp-1 {
+            fsl,pins = <
+                MX7D_PAD_LPSR_GPIO1_IO05__GPIO1_IO5     0x15 /* mipi csi reset */
+                MX7D_PAD_LPSR_GPIO1_IO02__CCM_CLKO1     0x7d /* mipi csi main clock */
+            >;
+        };
+	};
+};
+
+&i2c1 {
+	status = "okay";
+
+    rtc: ds1337 {
+        compatible = "dallas,ds1337";
+        pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_rtc_ds1337_irq>;
+        reg = <0x68>;
+        wakeup-source;
+        interrupt-parent = <&gpio2>;
+        interrupts = <0 0>;
+    };
+};
+
+&i2c2 {
+	status = "okay";
+
+    codec: wm8960@1a {
+        compatible = "wlf,wm8960";
+        reg = <0x1a>;
+        #sound-dai-cells = <0>;
+        clocks = <&codec_osc>; 
+        clock-names = "mclk";
+        wlf,shared-lrclk;
+        wlf,fixed-mclk;
+    };
+
+    pca9555_21: pca9555_21@21 {
+        compatible = "nxp,pca9555";
+        pinctrl-names = "default";
+        pinctrl-0 = <&pinctrl_pca9555_21>;
+        interrupt-parent = <&gpio2>;
+        interrupts = <6 IRQ_TYPE_EDGE_FALLING>;
+        reg =<0x21>;
+        gpio-controller;
+        #gpio-cells = <2>;
+        interrupt-controller;
+        #interrupt-cells = <2>;
+    };
+
+    pca9555_23: pca9555_23@23 {
+        compatible = "nxp,pca9555";
+        pinctrl-names = "default";
+        pinctrl-0 = <&pinctrl_pca9555_23>;
+        interrupt-parent = <&gpio2>;
+        interrupts = <12 IRQ_TYPE_EDGE_FALLING>;
+        reg =<0x23>;
+        gpio-controller;
+        #gpio-cells = <2>;
+        interrupt-controller;
+        #interrupt-cells = <2>;
+    };
+
+    pca9555_26: pca9555_26@26 {
+        compatible = "nxp,pca9555";
+        pinctrl-names = "default";
+        pinctrl-0 = <&pinctrl_pca9555_26>;
+        interrupt-parent = <&gpio2>;
+        interrupts = <5 IRQ_TYPE_EDGE_FALLING>;
+        reg =<0x26>;
+        gpio-controller;
+        #gpio-cells = <2>;
+        interrupt-controller;
+        #interrupt-cells = <2>;
+    };
+};
+
+&ecspi3 {
+	status = "okay";
+
+	spidev@1 {
+		compatible = "rohm,dh2228fv";
+		spi-max-frequency = <60000000>;
+		reg = <0>;
+	};
+};
+
+&pcie {
+    clkreq-gpio = <&pca9555_23 7 GPIO_ACTIVE_LOW>;
+    disable-gpio = <&pca9555_23 4 GPIO_ACTIVE_LOW>;
+    reset-gpio = <&pca9555_23 6 GPIO_ACTIVE_LOW>;
+	/* For iMX7D pcie phy ref clock select; ext_osc == 1 ? internal pll : external osc */
+    //ext_osc = <1>;
+    status = "okay";
+};
+
