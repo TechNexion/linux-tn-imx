@@ -166,6 +166,7 @@
 	phy-handle = <&ethphy0>;
 	phy-supply = <&enet_power_en>;
 	phy-reset-gpios = <&gpio3 22 GPIO_ACTIVE_LOW>;
+	fsl,magic-packet;
 	status = "okay";
 
 	mdio {
@@ -662,6 +663,7 @@
 			MX8MP_IOMUXC_ENET_TX_CTL__ENET_QOS_RGMII_TX_CTL	0x1f
 			MX8MP_IOMUXC_ENET_TXC__CCM_ENET_QOS_CLOCK_GENERATE_TX_CLK	0x1f
 			MX8MP_IOMUXC_SAI5_RXD1__GPIO3_IO22		0x19
+			MX8MP_IOMUXC_SAI5_RXD2__GPIO3_IO23		0x19
 		>;
 	};
 
