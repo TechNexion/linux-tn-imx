@@ -328,20 +328,8 @@
         #gpio-cells = <2>;
         status = "okay";
     };
-
-	polytouch: edt-ft5x06@38 {
-		compatible = "edt,edt-ft5x06";
-		reg = <0x38>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_ft5336_touch_irq>;
-		interrupt-parent = <&gpio4>;
-		interrupts = <9 IRQ_TYPE_EDGE_FALLING>;
-		touchscreen-size-x = <720>;
-		touchscreen-size-y = <1280>;
-		status="okay";
-	};
-
-    /* Power monitor for 3.3V SOM output supply */
+    
+	/* Power monitor for 3.3V SOM output supply */
     sensor_3v3:ina219_3v3@45 {
         compatible = "ti,ina219";
         reg = <0x45>;

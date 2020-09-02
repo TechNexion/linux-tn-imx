@@ -29,7 +29,7 @@
 			regulator-name = "mipi_pwr";
 			regulator-min-microvolt = <3300000>;
 			regulator-max-microvolt = <3300000>;
-			gpio = <&pca9554 0 GPIO_ACTIVE_HIGH>;
+			gpio = <&pca9554_23 0 GPIO_ACTIVE_HIGH>;
 			regulator-always-on;
 			enable-active-high;
 		};
@@ -57,7 +57,8 @@
 &pinmux_axonfabric {
     // Audio A
     pinctrl_af_aud_a_out: pcafauda_out {
-        pins = "F_AUD_A_TXCLK", "F_AUD_A_TXFS","F_AUD_A_TXD"; function = "passthru_out"; drive-push-pull;
+        pins = "F_AUD_A_TXCLK", "F_AUD_A_TXFS","F_AUD_A_TXD";
+		function = "passthru_out"; drive-push-pull;
     };
 
     pinctrl_af_aud_a_in: pcafauda_in {
@@ -72,19 +73,6 @@
 
 &AXON_I2C_C {  // I2C_C
 	status = "okay";
-
-	pca9554: pca9554@23 {
-		compatible = "nxp,pca9554";
-		pinctrl-names = "default";
-		reg = <0x23>;
-		gpio-controller;
-		#gpio-cells = <2>;
-		status = "okay";
-	};
-
-	polytouch: edt-ft5x06@38 {
-		status = "disabled";
-	};
 
 	adv_bridge: adv7535@3d {
 		compatible = "adi,adv7533";
