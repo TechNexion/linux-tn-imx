@@ -152,6 +152,7 @@ dtb-$(CONFIG_ARCH_FSL_IMX8MM) += imx8mm-axon-pi.dtb \
 				 imx8mm-axon-pi-voicehat.dtb \
 				 imx8mm-axon-pi-ov7251.dtb \
 				 imx8mm-axon-loopbacktest.dtb \
+				 imx8mm-axon-wizard-voicehat.dtb \
 				 imx8mm-axon-wizard-ili9881c.dtb \
 				 imx8mm-axon-wizard-g080uan01.dtb \
 				 imx8mm-axon-wizard-g101uan02.dtb \

@@ -18,11 +18,11 @@
  */
 
 #include <dt-bindings/input/input.h>
-#include "imx8mm-axon-pi.dts"
+#include "imx8mm-axon-wizard.dts"
 
 / {
 
-	model = "TechNexion AXON-IMX8MM, PI baseboard, and Voicehat";
+	model = "TechNexion AXON-IMX8MM, WIZARD baseboard, and Voicehat";
 	compatible = "fsl,imx8mm-axon", "fsl,imx8mm";
 
 	sound-tfa9912 {
