@@ -204,7 +204,7 @@ dtb-$(CONFIG_ARCH_MXC) += imx8mm-phycore-no-spiflash.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-phycore-rpmsg.dtb
 
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-phygate-tauri-l.dtb
-dtb-$(CONFIG_ARCH_MXC) += imx8mm-pico-pi.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mm-pico-pi.dtb imx8mm-pico-pi-ili9881c.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-prt8mm.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-tqma8mqml-mba8mx.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-var-som-symphony.dtb
