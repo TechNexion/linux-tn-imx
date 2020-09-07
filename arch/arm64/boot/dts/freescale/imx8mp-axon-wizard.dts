@@ -110,6 +110,9 @@
 	};
 };
 
+&snvs_rtc {
+	status = "disabled";
+};
 
 &i2c2 {
 	status = "okay";
@@ -133,6 +136,16 @@
 		tusb320,int-gpio = <&gpio5 8 GPIO_ACTIVE_LOW>;
 		tusb320,select-mode = <0>;
 		tusb320,dfp-power = <0>;
+	};
+
+	rtc_ds1337: ds1337@68 {
+		compatible = "dallas,ds1337";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_rtc_ds1337_irq>;
+		reg = <0x68>;
+		wakeup-source;
+		interrupt-parent = <&gpio5>;
+		interrupts = <9 0>;
 	};
 };
 
@@ -202,6 +215,12 @@
 	pinctrl_pca9955: pca9955_ctrlgrp {
 		fsl,pins = <
 			MX8MP_IOMUXC_GPIO1_IO08__GPIO1_IO08		0x16 /* RST */
+		>;
+	};
+
+	pinctrl_rtc_ds1337_irq: pinctrl_rtc_ds1337_irqgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_ECSPI1_SS0__GPIO5_IO09		0x19
 		>;
 	};
 
