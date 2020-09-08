@@ -82,7 +82,7 @@ dtb-$(CONFIG_ARCH_MXC) += imx8mn-ab2.dtb imx8mn-ddr4-ab2.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mn-var-som-symphony.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-axon-wizard.dtb imx8mp-axon-wizard-g080uan01.dtb imx8mp-axon-wizard-g101uan02.dtb \
 			  imx8mp-axon-wizard-ili9881c.dtb imx8mp-axon-wizard-lvds-vl10112880.dtb imx8mp-axon-wizard-lvds-vl215192108.dtb \
-			  imx8mp-axon-wizard-voicehat.dtb
+			  imx8mp-axon-wizard-voicehat.dtb imx8mp-axon-wizard-adv7533.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-evk.dtb imx8mp-evk-rm67191.dtb imx8mp-evk-it6263-lvds-dual-channel.dtb \
 			  imx8mp-evk-pcie-ep.dtb  imx8mp-evk-rpmsg.dtb imx8mp-evk-ecspi-slave.dtb \
 			  imx8mp-evk-jdi-wuxga-lvds-panel.dtb imx8mp-evk-flexcan2.dtb \
