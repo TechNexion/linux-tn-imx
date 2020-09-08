@@ -1,0 +1,71 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2020 Technexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *
+ */
+
+#include "imx8mp-axon-wizard.dts"
+
+/ {
+	reg_mipi_pwr: regulator_mipipwr {
+		regulator-always-on;
+		status = "okay";
+	};
+
+	sound-adv7533 {
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "adv7533-hdmi";
+		simple-audio-card,format = "i2s";
+		simple-audio-card,bitclock-master = <&sound_master>;
+		simple-audio-card,frame-master = <&sound_master>;
+		sound_master: simple-audio-card,cpu {
+			sound-dai = <&sai2>;
+		};
+		simple-audio-card,codec {
+			sound-dai = <&adv_bridge>;
+		};
+	};
+};
+
+&sai2 {
+	clocks = <&audiomix_clk IMX8MP_CLK_AUDIOMIX_SAI2_IPG>, <&clk IMX8MP_AUDIO_PLL2_OUT>,
+		 <&audiomix_clk IMX8MP_CLK_AUDIOMIX_SAI2_MCLK1>, <&clk IMX8MP_CLK_DUMMY>,
+		 <&clk IMX8MP_CLK_DUMMY>;
+	clock-names = "bus", "mclk0", "mclk1", "mclk2", "mclk3";
+	#sound-dai-cells = <0>;
+	status = "okay";
+};
+
+&mipi_dsi {
+	status = "okay";
+
+	port@1 {
+		dsim_to_adv7533: endpoint {
+			remote-endpoint = <&adv7533_from_dsim>;
+			attach-bridge;
+		};
+	};
+};
+
+&i2c4 {
+	adv_bridge: adv7533@3d {
+		compatible = "adi,adv7533";
+		reg = <0x3d>;
+		adi,addr-cec = <0x3b>;
+		adi,dsi-lanes = <4>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_ft5336_touch_irq>;
+		interrupt-parent = <&gpio1>;
+		interrupts = <5 IRQ_TYPE_EDGE_FALLING>;
+		status = "okay";
+		#sound-dai-cells = <0>;
+
+		port {
+			adv7533_from_dsim: endpoint {
+				remote-endpoint = <&dsim_to_adv7533>;
+			};
+		};
+	};
+};
