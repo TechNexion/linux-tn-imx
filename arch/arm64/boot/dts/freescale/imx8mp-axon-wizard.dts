@@ -108,6 +108,17 @@
 			clock-output-names = "wm8960-mclk";
 		};
 	};
+
+	leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_gpio_led>;
+
+		led {
+			label = "gpio-led";
+			gpios = <&gpio1 12 GPIO_ACTIVE_HIGH>;
+		};
+	};
 };
 
 &snvs_rtc {
@@ -221,6 +232,12 @@
 	pinctrl_rtc_ds1337_irq: pinctrl_rtc_ds1337_irqgrp {
 		fsl,pins = <
 			MX8MP_IOMUXC_ECSPI1_SS0__GPIO5_IO09		0x19
+		>;
+	};
+
+	pinctrl_gpio_led: gpioledgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_GPIO1_IO12__GPIO1_IO12		0x19
 		>;
 	};
 
