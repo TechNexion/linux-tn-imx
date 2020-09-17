@@ -1,0 +1,405 @@
+/*
+ * Copyright 2019 Technexion Ltd.
+ * Copyright 2018 NXP
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *         John Weber <john.weber@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/dts-v1/;
+
+#include "imx8mm-axon.dtsi"
+
+/ {
+	model = "TechNexion AXON-IMX8MM and PI baseboard";
+	compatible = "fsl,imx8mm-axon", "fsl,imx8mm";
+
+	regulators {
+
+		reg_usb_otg_vbus: usb_otg_vbus {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_otg_vbus>;
+			compatible = "regulator-fixed";
+			regulator-name = "usb_otg_vbus";
+			regulator-min-microvolt = <5000000>;
+			regulator-max-microvolt = <5000000>;
+			gpio = <AXON_EXT_GPIO_X1_P66 GPIO_ACTIVE_LOW>;
+			enable-active-low;
+		};
+
+		reg_backlight_pwr: regulator_blpwr {
+			pinctrl-names = "default";
+			compatible = "regulator-fixed";
+			regulator-name = "backlight_pwr";
+			regulator-min-microvolt = <5000000>;
+			regulator-max-microvolt = <5000000>;
+			gpio = <&axonfabric 27 GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+		};
+	};
+
+	backlight_mipi {
+		compatible = "pwm-backlight";
+		pwms = <&pwm1 0 50000 0>;
+		brightness-levels = <0 36 72 108 144 180 216 255>;
+		default-brightness-level = <7>;
+		power-supply = <&reg_backlight_pwr>;
+		status = "okay";
+	};
+
+	sound_wm8960: sound-wm8960 {
+		compatible = "fsl,imx-audio-wm8960";
+		model = "wm8960-audio";
+		cpu-dai = <&sai5>;
+		codec-master;
+		audio-codec = <&codec>;
+		audio-routing =
+			"Headphone Jack", "HP_L",
+			"Headphone Jack", "HP_R",
+			"Ext Spk", "SPK_LP",
+			"Ext Spk", "SPK_LN",
+			"Ext Spk", "SPK_RP",
+			"Ext Spk", "SPK_RN",
+			"LINPUT1", "Main MIC",
+			"RINPUT1", "Main MIC",
+			"Main MIC", "MICB";
+		/* JD2: hp detect high for headphone*/
+		hp-det = <2 0>;
+	};
+
+	clocks {
+		codec_osc: aud_mclk {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <24000000>;
+			clock-output-names = "wm8960-mclk";
+		};
+	};
+	};
+
+&iomuxc {
+	imx8mm-axon {
+
+		pinctrl_otg_vbus: otgvbusgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_SAI1_TXD1_GPIO4_IO13		0x19   /* USB OTG VBUS Enable */
+			>;
+		};
+
+		pinctrl_backlight_pwr: backlight_pwrgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_SAI1_MCLK_GPIO4_IO20		0x19   /* GPIO_SPARE_1 / SAI1_MCLK */
+			>;
+		};
+
+		pinctrl_dsi_pwm: dsi_pwm {
+			fsl,pins = <
+				MX8MM_IOMUXC_SPDIF_EXT_CLK_PWM1_OUT		0x16	/* DSI PWM */
+			>;
+		};
+
+		pinctrl_tusb320_irq: tusb320_irqgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_SAI3_RXC_GPIO4_IO29		0x41    /* UART_B_CTS */
+			>;
+		};
+
+		pinctrl_csi_pwn: csi_pwn_grp {
+			fsl,pins = <
+				MX8MM_IOMUXC_SAI3_TXD_GPIO5_IO1		       0x19  /* GPIO_X3_P67 */
+			>;
+		};
+
+		pinctrl_csi_rst: csi_rst_grp {
+			fsl,pins = <
+				MX8MM_IOMUXC_SAI2_TXD0_GPIO4_IO26		    0x19  /* GPIO_X3_P65 */
+				MX8MM_IOMUXC_GPIO1_IO14_CCMSRCGPCMIX_CLKO1	0x59  /* GPIO_X3_P69 */
+			>;
+		};
+
+		pinctrl_mipi_dsi_rst: mipi_dsi_rst {
+			fsl,pins = <
+				MX8MM_IOMUXC_SPDIF_RX_GPIO5_IO4	    0x16   /* PWM2 / DSI RST */
+			>;
+		};
+
+		pinctrl_ft5336_touch_irq: ft5336_irqgrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_SAI1_RXD7_GPIO4_IO9	0x19   /* GPIO_X2_P20, Touch INT */
+			>;
+		};
+
+	};
+};
+
+&pinmux_axonfabric {
+
+	pinctrl_af_user_led: pcuserled {
+		pins = "F_GPIO_X1_P70";
+		function = "gpio";
+	};
+
+	pinctrl_af_user_pb: pcuserpb {
+		pins = "F_GPIO_X1_P72"; function = "gpio"; drive-open-drain;
+	};
+
+	pinctrl_af_otg_vbus_en: pcotgvbusen {
+		pins = "F_GPIO_X1_P66"; function = "passthru_out"; drive-push-pull;
+	};
+
+	pinctrl_af_tusb320_irq: pctusb320irq {
+		pins = "F_UART_B_CTS"; function = "passthru_in"; drive-push-pull;
+	};
+
+	pinctrl_af_csi_ctrl: pccsictrl {
+		pins = "F_GPIO_X3_P65", "F_GPIO_X3_P67";
+		function = "passthru_out";
+		drive-push-pull;
+	};
+
+	pinctrl_af_csi_clk: pccsiclk {
+		pins = "F_GPIO_X3_P69"; function = "passthru_out"; drive-push-pull;
+	};
+
+	pinctrl_af_ft5336_irq: pcft5336irq {
+		pins = "F_GPIO_X2_P20"; function = "passthru_in"; drive-push-pull;
+	};
+
+	pinctrl_af_dsi_irq: pcdsiirq{
+		pins = "F_GPIO_X2_P18"; function = "passthru_in"; drive-push-pull;
+	};
+
+	pinctrl_af_disp_gpio: pcdispgpio {
+		pins = "F_DISP_DAT00", "F_DISP_DAT01", "F_DISP_DAT02", "F_DISP_DAT03",
+		"F_DISP_DAT04", "F_DISP_DAT05", "F_DISP_DAT06", "F_DISP_DAT07",
+		"F_DISP_DAT08", "F_DISP_DAT09", "F_DISP_DAT10", "F_DISP_DAT11",
+		"F_DISP_DAT12", "F_DISP_DAT13", "F_DISP_DAT14", "F_DISP_DAT15",
+		"F_DISP_DAT16", "F_DISP_DAT17", "F_DISP_DAT18", "F_DISP_DAT19",
+		"F_DISP_DAT20", "F_DISP_DAT21", "F_DISP_DAT22", "F_DISP_DAT23",
+		"F_DISP_HSYNC", "F_DISP_VSYNC", "F_DISP_CLK", "F_DISP_BKLEN",
+		"F_DISP_DRDY";
+		function = "gpio"; drive-push-pull;
+	};
+
+	// PWM
+	pinctrl_af_pwm_x1_x2: pcafpwmx1x2 {
+		pins = "F_PWM_X1_P39", "F_PWM_X2_P79";
+		function = "passthru_out"; drive-push-pull;
+	};
+
+	// Audio A
+	pinctrl_af_aud_a_out: pcafauda_out {
+		pins = "F_AUD_A_TXD"; function = "passthru_out"; drive-push-pull;
+	};
+
+	pinctrl_af_aud_a_in: pcafauda_in {
+		pins = "F_AUD_A_RXD", "F_AUD_A_TXFS", "F_AUD_A_TXCLK";
+		function = "passthru_in"; drive-push-pull;
+	};
+
+	// Audio B - use as GPIO
+	pinctrl_af_aud_b_gpio: pcafaudb_gpio {
+		pins = "F_AUD_B_TXD", "F_AUD_B_RXD", "F_AUD_B_TXFS", "F_AUD_B_TXCLK",
+		"F_AUD_B_RXFS", "F_AUD_B_RXCLK", "F_AUD_B_MCLK" ;
+		function = "gpio"; drive-push-pull;
+	};
+
+	// CAN_A/B - use as GPIO
+	pinctrl_af_can_gpio: pcafcan_gpio {
+		pins = "F_CAN_A_TX", "F_CAN_A_RX", "F_CAN_B_TX", "F_CAN_B_RX";
+		function = "gpio"; drive-push-pull;
+	};
+
+	// UART_A RTS and CTS - use as GPIO
+	pinctrl_af_uart_a_rtscts: pcafuartartscts {
+		pins = "F_UART_A_RTS", "F_UART_A_CTS"; function="gpio";
+		drive-push-pull;
+	};
+
+	// UART_B_RTS - use as RTC DS1337+ interrupt
+	pinctrl_af_ds1337_rtc_irq: pcafds1337rtcirq {
+		pins = "F_UART_B_RTS";
+		function="passthru_in";
+		drive-push-pull;
+	};
+};
+
+&AXON_I2C_A {  // I2C_A
+	clock-frequency = <400000>;
+	status = "okay";
+
+	codec: wm8960@1a {
+		compatible = "wlf,wm8960";
+		reg = <0x1a>;
+		#sound-dai-cells = <0>;
+		clocks = <&codec_osc>;  /* Note:  AXON-PI the clock is external osc */
+		clock-names = "mclk";
+		wlf,shared-lrclk;
+		wlf,fixed-mclk;
+		status = "okay";
+	};
+
+	rtc_ds1337: ds1337@68 {
+		compatible = "dallas,ds1337";
+		reg = <0x68>;
+		wakeup-source;
+		interrupt-parent = <&gpio4>;
+		interrupts = <30 0>;
+		status = "disabled";
+	};
+
+	typec_tusb320:tusb320@47 {
+		compatible = "ti,tusb320";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_tusb320_irq>;
+		reg = <0x47>;
+		vbus-supply = <&reg_usb_otg_vbus>;
+		tusb320,int-gpio = <&gpio4 29 GPIO_ACTIVE_LOW>;
+		tusb320,select-mode = <0>;
+		tusb320,dfp-power = <0>;
+		status = "disabled";
+	};
+};
+
+&AXON_I2C_B {  // I2C_B
+	status = "okay";
+	clock-frequency = <100000>;
+
+	ov5640_mipi: ov5640_mipi@3c {
+		compatible = "ovti,ov5645_mipi_v2";
+		reg = <0x3c>;
+		status = "okay";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_csi_pwn>, <&pinctrl_csi_rst>;
+		clocks = <&clk IMX8MM_CLK_CLKO1>;
+		clock-names = "csi_mclk";
+		assigned-clocks = <&clk IMX8MM_CLK_CLKO1>;
+		assigned-clock-parents = <&clk IMX8MM_CLK_24M>;
+		assigned-clock-rates = <0>, <24000000>;
+		csi_id = <0>;
+		pwn-gpios = <&gpio5 1 GPIO_ACTIVE_LOW>;
+		rst-gpios = <&gpio4 26 GPIO_ACTIVE_HIGH>;
+		mclk = <24000000>;
+		mclk_source = <0>;
+		port {
+			ov5640_mipi1_ep: endpoint {
+				remote-endpoint = <&mipi1_sensor_ep>;
+			};
+		};
+	};
+};
+
+&AXON_I2C_C {  // I2C_C
+	status = "okay";
+
+	polytouch: edt-ft5x06@38 {
+		compatible = "edt,edt-ft5x06";
+		reg = <0x38>;
+		pinctrl-names = "default";
+		interrupt-parent = <&gpio4>;
+		interrupts = <9 IRQ_TYPE_EDGE_FALLING>;
+		touchscreen-size-x = <720>;
+		touchscreen-size-y = <1280>;
+		status="okay";
+	};
+};
+
+&AXON_I2C_BRD_CONF {
+
+	eeprom_baseboard: eeprom@51 {
+		compatible = "at,24c02";
+		reg = <0x51>;
+	};
+};
+
+&csi1_bridge {
+	fsl,mipi-mode;
+	status = "okay";
+	port {
+		csi1_ep: endpoint {
+			remote-endpoint = <&csi1_mipi_ep>;
+		};
+	};
+};
+
+&mipi_csi_1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+	port {
+		mipi1_sensor_ep: endpoint@1 {
+			remote-endpoint = <&ov5640_mipi1_ep>;
+			data-lanes = <2>;
+			csis-hs-settle = <13>;
+			csis-clk-settle = <2>;
+			csis-wclk;
+		};
+
+		csi1_mipi_ep: endpoint@2 {
+			remote-endpoint = <&csi1_ep>;
+		};
+	};
+};
+
+&mipi_dsi {
+	status = "okay";
+
+	panel@0 {
+		compatible = "bananapi,lhr050h41", "ilitek,ili9881c";
+		reset-gpio = <&axonfabric 26 GPIO_ACTIVE_LOW>;
+		reg = <0>;
+		timing-mode = <0>;
+		video-mode = <2>;	/* 0: burst mode
+					 * 1: non-burst mode with sync event
+					 * 2: non-burst mode with sync pulse
+					 */
+		status = "okay";
+	};
+};
+
+&lcdif {
+	status = "okay";
+};
+
+&AXON_AUD_A_I2S_CHANNEL {  // AUD_A
+	status = "okay";
+};
+
+&pcie0{
+	status = "disabled";
+};
+
+&usbotg1 {
+	dr_mode = "otg";
+	extcon = <0>, <&typec_tusb320>;
+	status = "okay";
+};
+
+&usbotg2 {
+	dr_mode = "host";
+	status = "okay";
+};
+
+&pwm1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_dsi_pwm>;
+	status = "okay";
+};
+
+&AXON_SPI_A {
+	status = "okay";
+};
+
+&AXON_SPI_B {
+	status = "okay";
+};

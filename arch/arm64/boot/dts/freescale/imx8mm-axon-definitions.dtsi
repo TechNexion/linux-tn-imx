@@ -1,0 +1,115 @@
+/*
+ * Copyright 2019 Technexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *         John Weber <john.weber@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/* Define GPIO for I/O on module that may be used as regular GPIO */
+
+#define AXON_EXT_GPIO_X1_P66            &gpio4 13 /* SAI1_TXD1 */
+#define AXON_EXT_GPIO_X1_P68            &gpio4 14 /* SAI1_TXD2 */
+#define AXON_EXT_GPIO_X1_P70            &gpio4 15 /* SAI1_TXD3 */
+#define AXON_EXT_GPIO_X1_P72            &gpio4 16 /* SAI1_TXD4 */
+#define AXON_EXT_GPIO_X1_P74            &gpio4 18 /* SAI1_TXD6 */
+#define AXON_EXT_GPIO_X1_P76            &gpio4 19 /* SAI1_TXD7 */
+#define AXON_EXT_GPIO_X1_P78            &gpio4  3 /* SAI1_RXD1 */
+#define AXON_EXT_GPIO_X1_P80            &gpio4  4 /* SAI1_RXD2 */
+
+#define AXON_EXT_GPIO_X2_P18            &gpio4  5 /* SAI1_RXD3 */
+#define AXON_EXT_GPIO_X2_P20            &gpio4  9 /* SAI1_RXD7 */
+#define AXON_EXT_GPIO_X2_P22            &gpio4  0 /* SAI1_RXFS */
+#define AXON_EXT_GPIO_X2_P24            &gpio4  1 /* SAI1_RXC */
+
+#define AXON_EXT_GPIO_X3_P65            &gpio4 26 /* SAI2_TXD0 */
+#define AXON_EXT_GPIO_X3_P67            &gpio5  1 /* SAI3_TXD */
+#define AXON_EXT_GPIO_X3_P69            &gpio1 14 /* GPIO1_IO14 */
+#define AXON_EXT_GPIO_X3_P71            &gpio4 28 /* SAI3_RXFS */
+
+#define AXON_EXT_GPIO_SPI_A_MISO		&gpio5 8  /* ECSPI1_MISO */
+#define AXON_EXT_GPIO_SPI_A_MOSI		&gpio5 7  /* ECSPI1_MOSI */
+#define AXON_EXT_GPIO_SPI_A_SCLK		&gpio5 6  /* ECSPI1_SCLK */
+#define AXON_EXT_GPIO_SPI_A_CS0         &gpio5 9  /* ECSPI1_SS0 */
+#define AXON_EXT_GPIO_SPI_A_CS1         &gpio1 8  /* GPIO1_IO08 */
+
+#define AXON_EXT_GPIO_SPI_B_CS0         &gpio5 25 /* UART2_TXD */
+#define AXON_EXT_GPIO_SPI_B_CS1         &gpio1  9 /* GPIO1_IO09 */
+#define AXON_EXT_GPIO_SPI_B_FABRIC_CS_N &gpio1 11 /* GPIO1_IO11 */
+#define AXON_EXT_GPIO_SPI_B_CORE_CS_N   &gpio1 10 /* GPIO1_IO10 */
+
+#define AXON_EXT_SD_RESET_B             &gpio2 19 /* SD_RESET_B */
+
+#define AXON_EXT_GPIO_SPARE1            &gpio4 20 /* SAI1_MCLK */
+
+#define AXON_EXT_GPIO_UART_A_CTS		&gpio4 24 /* SAI2_TXFS */
+#define AXON_EXT_GPIO_UART_A_RTS		&gpio4 23 /* SAI2_RXD0 */
+#define AXON_EXT_GPIO_UART_B_CTS		&gpio4 29 /* SAI3_RXC */
+#define AXON_EXT_GPIO_UART_B_RTS		&gpio4 30 /* SAI3_RXD */
+
+#define AXON_EXT_GPIO_PWM_X1_P39		&gpio5 5  /* SPDIF_EXT_CLK */
+#define AXON_EXT_GPIO_PWM_X2_P79		&gpio5 4  /* SPDIF_RX */
+#define AXON_EXT_GPIO_PWM3 				&gpio5 3  /* SPDIF_TX */
+#define AXON_EXT_GPIO_PWM4				&gpio5 2  /* SAI3_MCLK */
+
+/* Internal I/O definitions to make life easier */
+#define AXON_I2C_BRD_CONF_SCL           &gpio4 27  /* SAI2_MCLK */
+#define AXON_I2C_BRD_CONF_SDA           &gpio4 25  /* SAI2_TXC */
+
+#define AXON_INT_GPIO_WL_REG_ON         &gpio3  6 /* NAND_DATA00 */
+#define AXON_INT_GPIO_BT_REG_ON         &gpio3  7 /* NAND_DATA01 */
+#define AXON_INT_GPIO_BT_HOST_WAKE      &gpio3 16 /* NAND_READY_B */
+#define AXON_INT_GPIO_SOC_STATUS_LED    &gpio3  9 /* NAND_DATA03 */
+#define AXON_INT_GPIO_FABRIC_RESET_N    &gpio1  1 /* GPIO1_IO01 */
+#define AXON_INT_GPIO_ENET_PWR_EN       &gpio3  1 /* NAND_CE0_B */
+#define AXON_INT_FABRIC_GPIO_INT0_N     &gpio1  5 /* GPIO1_IO05  */
+#define AXON_INT_FABRIC_GPIO_INT1_N     &gpio1  6 /* GPIO1_IO06  */
+#define AXON_INT_FABRIC_GPIO_INT2_N     &gpio1  7 /* GPIO1_IO07  */
+
+#define AXON_PCIE_A pcie
+#define AXON_EXT_GPIO_PCIE_A_RESET      &gpio5 29 /* UART4_TXD */
+#define AXON_EXT_GPIO_PCIE_A_WAKE       &gpio5 28 /* UART4_RXD */
+
+/* audio codec */
+#define AXON_AUD_A_I2S_CHANNEL          sai1
+#define AXON_AUD_B_I2S_CHANNEL          sai5
+#define AXON_AUD_BT_I2S_CHANNEL         sai6
+
+/* I2C bus */
+#define AXON_I2C_A                      i2c1
+#define AXON_I2C_B                      i2c2
+#define AXON_I2C_C                      i2c3
+#define AXON_I2C_D                      i2c4
+#define AXON_I2C_BRD_CONF               i2c_gpio_brd_conf
+
+/* UARTs */
+#define AXON_UART_A 	                uart1
+#define AXON_UART_B 	                uart2
+#define AXON_UART_C 	                uart3
+#define AXON_UART_BT 	                uart4
+
+/* SPI */
+#define AXON_SPI_A                      ecspi1
+#define AXON_SPI_B                      ecspi3
+
+/* External GPIO to i.MX8MM pinctrl mapping */
+#define PINCTRL_AXON_EXT_GPIO_UART_A_CTS    MX8MM_IOMUXC_SAI2_TXFS_GPIO4_IO24
+#define PINCTRL_AXON_EXT_GPIO_SPI_A_MISO    MX8MM_IOMUXC_ECSPI1_MISO_GPIO5_IO8
+#define PINCTRL_AXON_EXT_GPIO_SPI_A_MOSI    MX8MM_IOMUXC_ECSPI1_MOSI_GPIO5_IO7
+#define PINCTRL_AXON_EXT_GPIO_SPI_A_SCLK    MX8MM_IOMUXC_ECSPI1_MOSI_GPIO5_IO7
+#define PINCTRL_AXON_EXT_GPIO_PWM_X2_P79    MX8MM_IOMUXC_SPDIF_RX_GPIO5_IO4
+#define PINCTRL_AXON_EXT_GPIO_SPI_A_CS0     MX8MM_IOMUXC_ECSPI1_SS0_GPIO5_IO9
+#define PINCTRL_AXON_EXT_GPIO_X1_P76		MX8MM_IOMUXC_SAI1_TXD7_GPIO4_IO19
+
+/* Defined clock sources for AUD_A and AUD_B */
+#define AXON_AUD_A_CLK_SRC					&clk IMX8MM_CLK_SAI1_DIV
+#define AXON_AUD_B_CLK_SRC					&clk IMX8MM_CLK_SAI5_DIV
