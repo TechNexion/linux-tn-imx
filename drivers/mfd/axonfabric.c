@@ -947,7 +947,7 @@ static const struct regmap_access_table axonf_volatile_table = {
 	.n_yes_ranges	= ARRAY_SIZE(axonf_volatile_ranges),
 };
 
-static const struct regmap_config axonf_regmap_config = {
+const struct regmap_config axonf_regmap_config = {
 	.name = AXONF_REGMAP_NAME,
 	.reg_bits = 16,
 	.val_bits = 8,
