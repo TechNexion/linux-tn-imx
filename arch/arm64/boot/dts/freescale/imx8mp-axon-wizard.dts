@@ -119,6 +119,18 @@
 			gpios = <&gpio1 12 GPIO_ACTIVE_HIGH>;
 		};
 	};
+
+	gpio_keys {
+		compatible = "gpio-keys";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_gpio_key_user1>;
+
+		pair {
+			gpios = <&gpio1 11 GPIO_ACTIVE_LOW>;
+			label = "KEY PAIR";
+			linux,code = <KEY_SELECT>;
+		};
+	};
 };
 
 &snvs_rtc {
@@ -238,6 +250,12 @@
 	pinctrl_gpio_led: gpioledgrp {
 		fsl,pins = <
 			MX8MP_IOMUXC_GPIO1_IO12__GPIO1_IO12		0x19
+		>;
+	};
+
+	pinctrl_gpio_key_user1: gpiokey_user1grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_GPIO1_IO11__GPIO1_IO11	0x41
 		>;
 	};
 
