@@ -60,7 +60,7 @@
 	gpio_keys {
 		compatible = "gpio-keys";
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_gpio_key_voicehat>;
+		pinctrl-0 = <&pinctrl_gpio_key_voicehat &pinctrl_gpio_key_user1>;
 
 		prev {
 			gpios = <&gpio2 7 GPIO_ACTIVE_LOW>;
