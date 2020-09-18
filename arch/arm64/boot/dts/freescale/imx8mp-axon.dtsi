@@ -119,12 +119,6 @@
 	status = "okay";
 };
 
-&pwm2 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_pwm2>;
-	status = "okay";
-};
-
 &pwm4 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_pwm4>;
@@ -607,12 +601,6 @@
 	pinctrl_pwm1: pwm1grp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SPDIF_EXT_CLK__PWM1_OUT	0x116
-		>;
-	};
-
-	pinctrl_pwm2: pwm2grp {
-		fsl,pins = <
-			MX8MP_IOMUXC_GPIO1_IO11__PWM2_OUT	0x116
 		>;
 	};
 
