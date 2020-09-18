@@ -163,8 +163,10 @@
 		#size-cells = <0>;
 
 		ethphy0: ethernet-phy@1 {
+			/* AR8035 PHY */
 			compatible = "ethernet-phy-ieee802.3-c22";
 			reg = <1>;
+			eee-broken-1000t;
 			at803x,eee-disabled;
 			at803x,vddio-1p8v;
 		};
