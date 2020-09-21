@@ -39,18 +39,6 @@
 		regulator-always-on;
 	};
 
-	reg_usb1_host_vbus: regulator-usb1-vbus {
-		compatible = "regulator-fixed";
-		regulator-name = "usb1_host_vbus";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_usb1_vbus>;
-		regulator-min-microvolt = <5000000>;
-		regulator-max-microvolt = <5000000>;
-		gpio = <&gpio1 14 GPIO_ACTIVE_HIGH>;
-		enable-active-high;
-		regulator-always-on;
-	};
-
 	reg_usdhc2_vmmc: regulator-usdhc2 {
 		compatible = "regulator-fixed";
 		regulator-name = "VSD_3V3";
@@ -287,33 +275,6 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c2>;
 	status = "okay";
-
-	ov5640_0: ov5640_mipi@3c {
-		compatible = "ovti,ov5640";
-		reg = <0x3c>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_csi0_pwn>, <&pinctrl_csi0_rst>;
-		clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO2>;
-		clock-names = "xclk";
-		assigned-clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO2>;
-		assigned-clock-parents = <&clk IMX8MP_CLK_24M>;
-		assigned-clock-rates = <24000000>;
-		csi_id = <0>;
-		powerdown-gpios = <&gpio2 11 GPIO_ACTIVE_HIGH>;
-		reset-gpios = <&gpio1 6 GPIO_ACTIVE_LOW>;
-		mclk = <24000000>;
-		mclk_source = <0>;
-		mipi_csi;
-		status = "okay";
-
-		port {
-			ov5640_mipi_0_ep: endpoint {
-				remote-endpoint = <&mipi_csi0_ep>;
-				data-lanes = <1 2>;
-				clock-lanes = <0>;
-			};
-		};
-	};
 };
 
 /* I2C_B on AXON */
@@ -322,33 +283,6 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c3>;
 	status = "okay";
-
-	ov5640_1: ov5640_mipi@3c {
-		compatible = "ovti,ov5640";
-		reg = <0x3c>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_csi0_pwn>, <&pinctrl_csi0_rst>;
-		clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO2>;
-		clock-names = "xclk";
-		assigned-clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO2>;
-		assigned-clock-parents = <&clk IMX8MP_CLK_24M>;
-		assigned-clock-rates = <24000000>;
-		csi_id = <0>;
-		powerdown-gpios = <&gpio4 1 GPIO_ACTIVE_HIGH>;
-		reset-gpios = <&gpio4 0 GPIO_ACTIVE_LOW>;
-		mclk = <24000000>;
-		mclk_source = <0>;
-		mipi_csi;
-		status = "disabled";
-
-		port {
-			ov5640_mipi_1_ep: endpoint {
-				remote-endpoint = <&mipi_csi1_ep>;
-				data-lanes = <1 2>;
-				clock-lanes = <0>;
-			};
-		};
-	};
 };
 
 /* I2C_C on AXON */
@@ -713,12 +647,6 @@
 		>;
 	};
 
-	pinctrl_typec: typec1grp {
-		fsl,pins = <
-			MX8MP_IOMUXC_SAI1_TXD7__GPIO4_IO19	0x1c4
-		>;
-	};
-
 	pinctrl_sai2: sai2grp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SAI2_TXFS__AUDIOMIX_SAI2_TX_SYNC	0xd6
@@ -763,12 +691,6 @@
 		fsl,pins = <
 			MX8MP_IOMUXC_ECSPI1_SCLK__UART3_DCE_RX		0x140
 			MX8MP_IOMUXC_ECSPI1_MOSI__UART3_DCE_TX		0x140
-		>;
-	};
-
-	pinctrl_usb1_vbus: usb1grp {
-		fsl,pins = <
-			MX8MP_IOMUXC_GPIO1_IO14__GPIO1_IO14	0x19
 		>;
 	};
 
@@ -904,13 +826,26 @@
 
 	pinctrl_csi0_pwn: csi0_pwn_grp {
 		fsl,pins = <
-			MX8MP_IOMUXC_SD1_STROBE__GPIO2_IO11	0x19
+			MX8MP_IOMUXC_SAI1_TXD7__GPIO4_IO19	0x19
 		>;
 	};
 
 	pinctrl_csi0_rst: csi0_rst_grp {
 		fsl,pins = <
-			MX8MP_IOMUXC_GPIO1_IO06__GPIO1_IO06		0x19
+			MX8MP_IOMUXC_SAI1_TXD6__GPIO4_IO18		0x19
+			MX8MP_IOMUXC_GPIO1_IO14__CCM_CLKO1	0x59
+		>;
+	};
+
+	pinctrl_csi1_pwn: csi1_pwn_grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_RXD5__GPIO4_IO07	0x19
+		>;
+	};
+
+	pinctrl_csi1_rst: csi1_rst_grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_RXD4__GPIO4_IO06		0x19
 			MX8MP_IOMUXC_GPIO1_IO15__CCM_CLKO2	0x59
 		>;
 	};
@@ -962,40 +897,6 @@
 	status = "okay";
 };
 
-&mipi_csi_0 {
-	#address-cells = <1>;
-	#size-cells = <0>;
-	status = "okay";
-
-	port@0 {
-		reg = <0>;
-		mipi_csi0_ep: endpoint {
-			remote-endpoint = <&ov5640_mipi_0_ep>;
-			data-lanes = <2>;
-			csis-hs-settle = <13>;
-			csis-clk-settle = <2>;
-			csis-wclk;
-		};
-	};
-};
-
-&mipi_csi_1 {
-	#address-cells = <1>;
-	#size-cells = <0>;
-	status = "disabled";
-
-	port@1 {
-		reg = <1>;
-		mipi_csi1_ep: endpoint {
-			remote-endpoint = <&ov5640_mipi_1_ep>;
-			data-lanes = <2>;
-			csis-hs-settle = <13>;
-			csis-clk-settle = <2>;
-			csis-wclk;
-		};
-	};
-};
-
 &cameradev {
 	status = "okay";
 };
@@ -1013,7 +914,7 @@
 };
 
 &isi_1 {
-	status = "disabled";
+	status = "okay";
 
 	cap_device {
 		status = "okay";
