@@ -100,10 +100,6 @@
 	};
 };
 
-&ecspi2 {
-	status = "disabled";
-};
-
 &sai2 {
 	status = "okay";
 };
