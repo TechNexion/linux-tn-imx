@@ -963,7 +963,12 @@ static struct platform_driver imx_wm8960_driver = {
 	.probe = imx_wm8960_probe,
 	.remove = imx_wm8960_remove,
 };
-module_platform_driver(imx_wm8960_driver);
+
+static int __init wm8960_init(void)
+{
+   return platform_driver_register(&imx_wm8960_driver);
+}
+late_initcall(wm8960_init);
 
 MODULE_AUTHOR("Freescale Semiconductor, Inc.");
 MODULE_DESCRIPTION("Freescale i.MX WM8960 ASoC machine driver");
