@@ -60,9 +60,9 @@
 	sound_wm8960: sound-wm8960 {
 		compatible = "fsl,imx-audio-wm8960";
 		model = "wm8960-audio";
-		cpu-dai = <&sai5>;
+		cpu-dai = <&sai1>;
 		codec-master;
-		audio-codec = <&codec>;
+		audio-codec = <&codec_wm8960>;
 		audio-routing =
 			"Headphone Jack", "HP_L",
 			"Headphone Jack", "HP_R",
@@ -85,7 +85,7 @@
 			clock-output-names = "wm8960-mclk";
 		};
 	};
-	};
+};
 
 &iomuxc {
 	imx8mm-axon {
@@ -238,7 +238,7 @@
 	clock-frequency = <400000>;
 	status = "okay";
 
-	codec: wm8960@1a {
+	codec_wm8960: wm8960@1a {
 		compatible = "wlf,wm8960";
 		reg = <0x1a>;
 		#sound-dai-cells = <0>;
@@ -255,7 +255,7 @@
 		wakeup-source;
 		interrupt-parent = <&gpio4>;
 		interrupts = <30 0>;
-		status = "disabled";
+		status = "okay";
 	};
 
 	typec_tusb320:tusb320@47 {
@@ -267,7 +267,7 @@
 		tusb320,int-gpio = <&gpio4 29 GPIO_ACTIVE_LOW>;
 		tusb320,select-mode = <0>;
 		tusb320,dfp-power = <0>;
-		status = "disabled";
+		status = "okay";
 	};
 };
 
@@ -368,10 +368,6 @@
 };
 
 &lcdif {
-	status = "okay";
-};
-
-&AXON_AUD_A_I2S_CHANNEL {  // AUD_A
 	status = "okay";
 };
 
