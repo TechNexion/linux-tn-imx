@@ -166,25 +166,25 @@
 		};
 	};
 
-        sound_wm8960: sound-wm8960 {
-                compatible = "fsl,imx-audio-wm8960";
-                model = "wm8960-audio";
-                cpu-dai = <&sai2>;
-                codec-master;
-                audio-codec = <&codec_wm8960>;
-                audio-routing =
-                        "Headphone Jack", "HP_L",
-                        "Headphone Jack", "HP_R",
-                        "Ext Spk", "SPK_LP",
-                        "Ext Spk", "SPK_LN",
-                        "Ext Spk", "SPK_RP",
-                        "Ext Spk", "SPK_RN",
-                        "LINPUT1", "Main MIC",
+	sound_wm8960: sound-wm8960 {
+		compatible = "fsl,imx-audio-wm8960";
+		model = "wm8960-audio";
+		cpu-dai = <&sai2>;
+		codec-master;
+		audio-codec = <&codec_wm8960>;
+		audio-routing =
+			"Headphone Jack", "HP_L",
+			"Headphone Jack", "HP_R",
+			"Ext Spk", "SPK_LP",
+			"Ext Spk", "SPK_LN",
+			"Ext Spk", "SPK_RP",
+			"Ext Spk", "SPK_RN",
+			"LINPUT1", "Main MIC",
 			"RINPUT1", "Main MIC",
-                        "Main MIC", "MICB";
-                /* JD2: hp detect high for headphone*/
-                hp-det = <2 0>;
-        };
+			"Main MIC", "MICB";
+		/* JD2: hp detect high for headphone*/
+		hp-det = <2 0>;
+	};
 
 	clocks {
 		codec_osc: aud_mclk {
@@ -194,11 +194,6 @@
 			clock-output-names = "wm8960-mclk";
 		};
 	};
-};
-
-&clk {
-	assigned-clocks = <&clk IMX8MM_AUDIO_PLL1>, <&clk IMX8MM_AUDIO_PLL2>;
-	assigned-clock-rates = <786432000>, <722534400>;
 };
 
 &iomuxc {
@@ -252,19 +247,19 @@
 			>;
 		};
 
-                pinctrl_ecspi2: ecspi2grp {
-                        fsl,pins = <
-                                MX8MM_IOMUXC_ECSPI2_SCLK_ECSPI2_SCLK    0x82
-                                MX8MM_IOMUXC_ECSPI2_MOSI_ECSPI2_MOSI    0x82
-                                MX8MM_IOMUXC_ECSPI2_MISO_ECSPI2_MISO    0x82
-                        >;
-                };
+		pinctrl_ecspi2: ecspi2grp {
+			fsl,pins = <
+				MX8MM_IOMUXC_ECSPI2_SCLK_ECSPI2_SCLK    0x82
+				MX8MM_IOMUXC_ECSPI2_MOSI_ECSPI2_MOSI    0x82
+				MX8MM_IOMUXC_ECSPI2_MISO_ECSPI2_MISO    0x82
+			>;
+		};
 
-                pinctrl_ecspi2_cs: ecspi2cs {
-                        fsl,pins = <
-                                MX8MM_IOMUXC_ECSPI2_SS0_GPIO5_IO13      0x16
-                        >;
-                };
+		pinctrl_ecspi2_cs: ecspi2cs {
+			fsl,pins = <
+				MX8MM_IOMUXC_ECSPI2_SS0_GPIO5_IO13      0x16
+			>;
+		};
 
 		pinctrl_i2c1: i2c1grp {
 			fsl,pins = <
@@ -595,10 +590,10 @@
 	pinctrl-0 = <&pinctrl_i2c1>;
 	status = "okay";
 
-        rtc_ds1337: ds1337@68 {
-                compatible = "dallas,ds1337";
-                reg = <0x68>;
-        };
+	rtc_ds1337: ds1337@68 {
+		compatible = "dallas,ds1337";
+		reg = <0x68>;
+	};
 };
 
 &i2c2 {
@@ -624,64 +619,64 @@
 	pinctrl-0 = <&pinctrl_i2c3>;
 	status = "okay";
 
-        /* NFC support */
-        pn547: pn547@2a {
-			compatible = "nxp,pn547";
-			reg = <0x2a>;
-			pinctrl-names = "default";
-			pinctrl-0 = <&pinctrl_nfc_ctrl>;
-			clock-frequency = <100000>;
-			interrupt-gpios = <&gpio3 25 0>;
-			enable-gpios = <&gpio5 11 0>;
-			status = "okay";
-        };
+	/* NFC support */
+	pn547: pn547@2a {
+		compatible = "nxp,pn547";
+		reg = <0x2a>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_nfc_ctrl>;
+		clock-frequency = <100000>;
+		interrupt-gpios = <&gpio3 25 0>;
+		enable-gpios = <&gpio5 11 0>;
+		status = "okay";
+	};
 
-        codec_wm8960: wm8960@1a {
-			compatible = "wlf,wm8960";
-			#sound-dai-cells = <0>;
-			reg = <0x1a>;
-			clocks = <&codec_osc>;  /* Note:  XORE-WIZARD the clock is external osc */
-			clock-names = "mclk";
-			wlf,shared-lrclk;
-			wlf,fixed-mclk;
-			status = "okay";
-       };
+	codec_wm8960: wm8960@1a {
+		compatible = "wlf,wm8960";
+		#sound-dai-cells = <0>;
+		reg = <0x1a>;
+		clocks = <&codec_osc>;  /* Note:  XORE-WIZARD the clock is external osc */
+		clock-names = "mclk";
+		wlf,shared-lrclk;
+		wlf,fixed-mclk;
+		status = "okay";
+   };
 
-        pca9554_1: pca9554_1@21 {
-			compatible = "nxp,pca9554";
-			pinctrl-names = "default";
-			pinctrl-0 = <&pinctrl_pca9554_1>;
-			interrupt-parent = <&gpio5>;
-			interrupts = <5 IRQ_TYPE_EDGE_FALLING>;
-			reg =<0x21>;
-			gpio-controller;
-			#gpio-cells = <2>;
-			interrupt-controller;
-			#interrupt-cells = <2>;
-        };
+	pca9554_1: pca9554_1@21 {
+		compatible = "nxp,pca9554";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pca9554_1>;
+		interrupt-parent = <&gpio5>;
+		interrupts = <5 IRQ_TYPE_EDGE_FALLING>;
+		reg =<0x21>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+	};
 
-        pca9555_1: pca9555_1@23 {
-			compatible = "nxp,pca9555";
-			pinctrl-names = "default";
-			pinctrl-0 = <&pinctrl_pca9555_1>;
-			interrupt-parent = <&gpio3>;
-			interrupts = <21 IRQ_TYPE_EDGE_FALLING>;
-			reg =<0x23>;
-			gpio-controller;
-			#gpio-cells = <2>;
-			interrupt-controller;
-			#interrupt-cells = <2>;
-        };
+	pca9555_1: pca9555_1@23 {
+		compatible = "nxp,pca9555";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pca9555_1>;
+		interrupt-parent = <&gpio3>;
+		interrupts = <21 IRQ_TYPE_EDGE_FALLING>;
+		reg =<0x23>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+	};
 };
 
 &ecspi2 {
-        #address-cells = <1>;
-        #size-cells = <0>;
-        fsl,spi-num-chipselects = <1>;
-        pinctrl-names = "default";
-        pinctrl-0 = <&pinctrl_ecspi2 &pinctrl_ecspi2_cs>;
-        cs-gpios = <&gpio5 13 GPIO_ACTIVE_LOW>;
-        status = "disabled";
+	#address-cells = <1>;
+	#size-cells = <0>;
+	fsl,spi-num-chipselects = <1>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_ecspi2 &pinctrl_ecspi2_cs>;
+	cs-gpios = <&gpio5 13 GPIO_ACTIVE_LOW>;
+	status = "disabled";
 };
 
 &fec1 {
@@ -714,7 +709,6 @@
 	clkreq-gpio = <&gpio5 4 GPIO_ACTIVE_LOW>; 
 	disable-gpio = <&pca9555_1 1 GPIO_ACTIVE_LOW>;
 	reset-gpio = <&pca9555_1 7 GPIO_ACTIVE_LOW>;
-
     clocks = <&clk IMX8MM_CLK_PCIE1_ROOT>,
          <&clk IMX8MM_CLK_PCIE1_AUX>,
          <&clk IMX8MM_CLK_PCIE1_PHY>,
@@ -834,18 +828,13 @@
 };
 
 &sai2 {
-        pinctrl-names = "default";
-        pinctrl-0 = <&pinctrl_sai2>;
-        assigned-clocks = <&clk IMX8MM_CLK_SAI2>;
-        assigned-clock-parents = <&clk IMX8MM_AUDIO_PLL1_OUT>;
-        assigned-clock-rates = <0>, <24576000>;
-        clocks = <&clk IMX8MM_CLK_SAI2_IPG>, <&clk IMX8MM_CLK_DUMMY>,
-                <&clk IMX8MM_CLK_SAI2_ROOT>, <&clk IMX8MM_CLK_DUMMY>,
-                <&clk IMX8MM_CLK_DUMMY>, <&clk IMX8MM_AUDIO_PLL1_OUT>,
-                <&clk IMX8MM_AUDIO_PLL2_OUT>;
-        clock-names = "bus", "mclk0", "mclk1", "mclk2", "mclk3", "pll8k", "pll11k";
-        #sound-dai-cells = <0>;
-	status = "okay";
+    assigned-clocks = <&clk IMX8MM_AUDIO_PLL1>, <&clk IMX8MM_AUDIO_PLL2>, <&clk IMX8MM_CLK_SAI2>;
+    assigned-clock-parents = <0>, <0>, <&clk IMX8MM_AUDIO_PLL1_OUT>;
+    assigned-clock-rates = <786432000>, <722534400>, <12288000>;
+    #sound-dai-cells = <0>;
+    pinctrl-names = "default";
+    pinctrl-0 = <&pinctrl_sai2>;
+    status = "okay";
 };
 
 &sai3 {
@@ -862,4 +851,3 @@
 	#sound-dai-cells = <0>;
 	status = "okay";
 };
-
