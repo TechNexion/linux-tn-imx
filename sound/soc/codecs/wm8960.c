@@ -1518,16 +1518,57 @@ static int wm8960_i2c_probe(struct i2c_client *i2c)
 	}
 
 	/* Latch the update bits */
-	regmap_update_bits(wm8960->regmap, WM8960_LINVOL, 0x100, 0x100);
-	regmap_update_bits(wm8960->regmap, WM8960_RINVOL, 0x100, 0x100);
-	regmap_update_bits(wm8960->regmap, WM8960_LADC, 0x100, 0x100);
-	regmap_update_bits(wm8960->regmap, WM8960_RADC, 0x100, 0x100);
-	regmap_update_bits(wm8960->regmap, WM8960_LDAC, 0x100, 0x100);
-	regmap_update_bits(wm8960->regmap, WM8960_RDAC, 0x100, 0x100);
-	regmap_update_bits(wm8960->regmap, WM8960_LOUT1, 0x100, 0x100);
-	regmap_update_bits(wm8960->regmap, WM8960_ROUT1, 0x100, 0x100);
-	regmap_update_bits(wm8960->regmap, WM8960_LOUT2, 0x100, 0x100);
-	regmap_update_bits(wm8960->regmap, WM8960_ROUT2, 0x100, 0x100);
+    regmap_update_bits(wm8960->regmap, WM8960_LINVOL, 0x13f, 0x13f);
+    regmap_update_bits(wm8960->regmap, WM8960_RINVOL, 0x13f, 0x13f);
+    regmap_update_bits(wm8960->regmap, WM8960_LOUT1, 0x165, 0x165);
+    regmap_update_bits(wm8960->regmap, WM8960_ROUT1, 0x165, 0x165);
+    regmap_update_bits(wm8960->regmap, WM8960_CLOCK1, 0x5, 0x5);
+    regmap_update_bits(wm8960->regmap, WM8960_DACCTL1, 0x0, 0x0);
+    regmap_update_bits(wm8960->regmap, WM8960_DACCTL2, 0x0, 0x0);
+    regmap_update_bits(wm8960->regmap, WM8960_IFACE1, 0x42, 0x42);
+    regmap_update_bits(wm8960->regmap, WM8960_CLOCK2, 0x1c4, 0x1c4);
+    regmap_update_bits(wm8960->regmap, WM8960_IFACE2, 0x0, 0x0);
+    regmap_update_bits(wm8960->regmap, WM8960_LDAC, 0xd6, 0xd6);
+    regmap_update_bits(wm8960->regmap, WM8960_RDAC, 0xd6, 0xd6);
+
+    regmap_update_bits(wm8960->regmap, WM8960_3D, 0x0, 0x0);
+    regmap_update_bits(wm8960->regmap, WM8960_ALC1, 0x7b, 0x7b);
+    regmap_update_bits(wm8960->regmap, WM8960_ALC2, 0x100, 0x100);
+    regmap_update_bits(wm8960->regmap, WM8960_ALC3, 0x32, 0x32);
+    regmap_update_bits(wm8960->regmap, WM8960_NOISEG, 0x0, 0x0);
+    regmap_update_bits(wm8960->regmap, WM8960_LADC, 0xc3, 0xc3);
+    regmap_update_bits(wm8960->regmap, WM8960_RADC, 0xc3, 0xc3);
+
+    regmap_update_bits(wm8960->regmap, WM8960_ADDCTL1, 0x1c0, 0x1c0);
+    regmap_update_bits(wm8960->regmap, WM8960_ADDCTL2, 0x0, 0x0);
+    regmap_update_bits(wm8960->regmap, WM8960_POWER1, 0xfc, 0xfc);
+    regmap_update_bits(wm8960->regmap, WM8960_POWER2, 0x181, 0x181);
+    regmap_update_bits(wm8960->regmap, WM8960_ADDCTL3, 0x0, 0x0);
+    regmap_update_bits(wm8960->regmap, WM8960_APOP1, 0x8, 0x8);
+    regmap_update_bits(wm8960->regmap, WM8960_APOP2, 0x0, 0x0);
+
+    regmap_update_bits(wm8960->regmap, WM8960_LINPATH, 0x108, 0x108);
+    regmap_update_bits(wm8960->regmap, WM8960_RINPATH, 0x108, 0x108);
+    regmap_update_bits(wm8960->regmap, WM8960_LOUTMIX, 0x100, 0x100);
+    regmap_update_bits(wm8960->regmap, WM8960_ROUTMIX, 0x100, 0x100);
+    regmap_update_bits(wm8960->regmap, WM8960_MONOMIX1, 0x0, 0x0);
+    regmap_update_bits(wm8960->regmap, WM8960_MONOMIX2, 0x0, 0x0);
+    regmap_update_bits(wm8960->regmap, WM8960_LOUT2, 0x165, 0x165);
+    regmap_update_bits(wm8960->regmap, WM8960_ROUT2, 0x165, 0x165);
+    regmap_update_bits(wm8960->regmap, WM8960_MONO, 0x40, 0x40);
+    regmap_update_bits(wm8960->regmap, WM8960_INBMIX1, 0x0, 0x0);
+    regmap_update_bits(wm8960->regmap, WM8960_INBMIX2, 0x0, 0x0);
+    regmap_update_bits(wm8960->regmap, WM8960_BYPASS1, 0x50, 0x50);
+    regmap_update_bits(wm8960->regmap, WM8960_BYPASS2, 0x50, 0x50);
+    regmap_update_bits(wm8960->regmap, WM8960_POWER3, 0x3c, 0x3c);
+    regmap_update_bits(wm8960->regmap, WM8960_ADDCTL4, 0x2, 0x2);
+    regmap_update_bits(wm8960->regmap, WM8960_CLASSD1, 0xf7, 0xf7);
+
+    regmap_update_bits(wm8960->regmap, WM8960_CLASSD3, 0x9b, 0x9b);
+    regmap_update_bits(wm8960->regmap, WM8960_PLL1, 0x37, 0x37);
+    regmap_update_bits(wm8960->regmap, WM8960_PLL2, 0x86, 0x86);
+    regmap_update_bits(wm8960->regmap, WM8960_PLL3, 0xc2, 0xc2);
+    regmap_update_bits(wm8960->regmap, WM8960_PLL4, 0x27, 0x27);
 
 	/* ADCLRC pin configured as GPIO. */
 	regmap_update_bits(wm8960->regmap, WM8960_IFACE2, 1 << 6,
