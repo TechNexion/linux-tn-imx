@@ -399,7 +399,7 @@
 &usdhc1 {
 	/* WIFI SDIO */
 	assigned-clocks = <&clk IMX8MP_CLK_USDHC1>;
-	assigned-clock-rates = <200000000>;
+	assigned-clock-rates = <133333333>;
 	bus-width = <4>;
 	keep-power-in-suspend;
 	non-removable;
