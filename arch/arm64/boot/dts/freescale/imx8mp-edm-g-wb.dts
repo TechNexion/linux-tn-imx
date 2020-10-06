@@ -8,7 +8,10 @@
 /dts-v1/;
 
 #include <dt-bindings/phy/phy-imx8-pcie.h>
+#include <dt-bindings/usb/pd.h>
 #include "imx8mp-edm-g.dtsi"
+#include "imx8mp-nxp-display.dtsi"
+#include "imx8mp-nxp-capture.dtsi"
 
 / {
 	compatible = "technexion,edm-g-imx8mp-wb", "technexion,edm-g-imx8mp", "fsl,imx8mp";
@@ -41,18 +44,6 @@
 		};
 	};
 
-	hdmi-connector {
-		compatible = "hdmi-connector";
-		label = "HDMI OUT";
-		type = "a";
-
-		port {
-			hdmi_in: endpoint {
-				remote-endpoint = <&hdmi_tx_out>;
-			};
-		};
-	};
-
 	leds {
 		compatible = "gpio-leds";
 
@@ -63,10 +54,53 @@
 		};
 	};
 
+	lvds_backlight: lvds-backlight {
+		compatible = "pwm-backlight";
+		brightness-levels = <0 36 72 108 144 180 216 255>;
+		default-brightness-level = <6>;
+		pwms = <&pwm2 0 50000 0>;
+		status = "disabled";
+	};
+
 	pcie0_refclk: clock-pcie-ref {
 		compatible = "fixed-clock";
 		#clock-cells = <0>;
 		clock-frequency = <100000000>;
+	};
+
+	reg_enet_power_en: regulator-enet-power-en {
+		compatible = "regulator-fixed";
+		pinctrl-0 = <&pinctrl_enet_pwr>;
+		pinctrl-names = "default";
+		regulator-max-microvolt = <3300000>;
+		regulator-min-microvolt = <3300000>;
+		regulator-name = "enet_pwr";
+		gpio = <&gpio1 11 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		regulator-always-on;
+	};
+
+	reg_lvds_pwr: regulator-lvdspwr {
+		compatible = "regulator-fixed";
+		pinctrl-0 = <&pinctrl_lvds0_pwr>;
+		pinctrl-names = "default";
+		regulator-max-microvolt = <3300000>;
+		regulator-min-microvolt = <3300000>;
+		regulator-name = "lvds0_vdden";
+		gpio = <&gpio4 12 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+
+	reg_lvds_backlight_pwr: regulator-lvdsblpwr {
+		compatible = "regulator-fixed";
+		pinctrl-0 = <&pinctrl_lvds0_backlight_pwr>;
+		pinctrl-names = "default";
+		regulator-max-microvolt = <3300000>;
+		regulator-min-microvolt = <3300000>;
+		regulator-name = "lvds0_bl_en";
+		gpio = <&gpio4 14 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		regulator-always-on;
 	};
 
 	reg_pwr_3v3: regulator-pwr-3v3 {
@@ -85,6 +119,17 @@
 		regulator-max-microvolt = <5000000>;
 		regulator-min-microvolt = <5000000>;
 		regulator-name = "pwr-5v";
+	};
+
+	reg_usb_otg_vbus: regulator-usb-otg-vbus {
+		compatible = "regulator-fixed";
+		pinctrl-0 = <&pinctrl_otg_vbus>;
+		pinctrl-names = "default";
+		regulator-max-microvolt = <3300000>;
+		regulator-min-microvolt = <3300000>;
+		regulator-name = "usb_otg_vbus";
+		gpio = <&gpio4 0 GPIO_ACTIVE_LOW>;
+		enable-active-low;
 	};
 
 	sound-hdmi {
@@ -108,7 +153,18 @@
 			"LINPUT1", "Mic Jack",
 			"LINPUT1", "Mic Jack",
 			"Mic Jack", "MICB";
+		/* JD2: hp detect high for headphone*/
+		hp-det = <2 0>;
 		model = "wm8960-audio";
+	};
+
+	usb_hub_rst: usb-hub-rst {
+		compatible = "gpio-reset";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_usb_hub_ctrl>;
+		reset-gpios = <&gpio4 22 GPIO_ACTIVE_LOW>;
+		reset-delay-us = <10>;
+		#reset-cells = <0>;
 	};
 };
 
@@ -119,6 +175,16 @@
 &easrc {
 	fsl,asrc-rate  = <48000>;
 	status = "okay";
+};
+
+&ecspi1 {
+	status = "okay";
+
+	spidev1: spi@0 {
+		reg = <0>;
+		compatible = "rohm,dh2228fv";
+		spi-max-frequency = <500000>;
+	};
 };
 
 &flexcan1 {
@@ -143,25 +209,15 @@
 	pinctrl-0 = <&pinctrl_gpio4>;
 };
 
-&hdmi_pvi {
+&hdmi_pavi {
 	status = "okay";
 };
 
-&hdmi_tx {
-	pinctrl-0 = <&pinctrl_hdmi>;
-	pinctrl-names = "default";
+&hdmi {
 	status = "okay";
-
-	ports {
-		port@1 {
-			hdmi_tx_out: endpoint {
-				remote-endpoint = <&hdmi_in>;
-			};
-		};
-	};
 };
 
-&hdmi_tx_phy {
+&hdmiphy {
 	status = "okay";
 };
 
@@ -187,6 +243,10 @@
 	expander1: gpio@21 {
 		compatible = "nxp,pca9555";
 		reg = <0x21>;
+		#interrupt-cells = <2>;
+		interrupt-controller;
+		interrupt-parent = <&gpio1>;
+		interrupts = <10 IRQ_TYPE_LEVEL_LOW>;
 		#gpio-cells = <2>;
 		gpio-controller;
 		gpio-line-names = "EXPOSURE_TRIG_IN1", "FLASH_OUT1",
@@ -195,6 +255,8 @@
 				  "EXPOSURE_TRIG_IN2", "FLASH_OUT2",
 				  "INFO_TRIG_IN2", "CAM_SHUTTER2", "XVS2",
 				  "PWR2_TIME0", "PWR2_TIME1", "PWR2_TIME2";
+		pinctrl-0 = <&pinctrl_expander1_irq>;
+		pinctrl-names = "default";
 	};
 
 	expander2: gpio@23 {
@@ -253,11 +315,23 @@
 	};
 };
 
-&lcdif3 {
+&lcdif1 {
 	status = "okay";
 };
 
+&lcdif2 {
+	status = "okay";
+};
+
+&lcdif3 {
+	status = "okay";
+
+	thres-low  = <1 2>;             /* (FIFO * 1 / 2) */
+	thres-high = <3 4>;             /* (FIFO * 3 / 4) */
+};
+
 &pcie {
+	ext_osc = <1>;
 	status = "okay";
 };
 
@@ -266,6 +340,10 @@
 	clock-names = "ref";
 	fsl,clkreq-unsupported;
 	fsl,refclk-pad-mode = <IMX8_PCIE_REFCLK_PAD_INPUT>;
+	status = "okay";
+};
+
+&snvs_pwrkey {
 	status = "okay";
 };
 
@@ -318,9 +396,22 @@
 
 &usb_dwc3_1 {
 	dr_mode = "host";
+	resets = <&usb_hub_rst>;
 };
 
 &iomuxc {
+	pinctrl_enet_pwr: enetpwrgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_GPIO1_IO11__GPIO1_IO11		0x11
+		>;
+	};
+
+	pinctrl_expander1_irq: expander1-irqgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_GPIO1_IO10__GPIO1_IO10		0x140 /* SPI_B_SS0 */
+		>;
+	};
+
 	pinctrl_expander2_irq: expander2-irqgrp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SAI1_TXC__GPIO4_IO11		0x140 /* GPIO_P247 */
@@ -354,6 +445,30 @@
 			MX8MP_IOMUXC_HDMI_DDC_SCL__HDMIMIX_HDMI_SCL	0x1c2
 			MX8MP_IOMUXC_HDMI_DDC_SDA__HDMIMIX_HDMI_SDA	0x1c2
 			MX8MP_IOMUXC_HDMI_CEC__HDMIMIX_HDMI_CEC		0x10
+		>;
+	};
+
+	pinctrl_lvds0_backlight_pwr: lvds0_bl_pwrgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_TXD2__GPIO4_IO14		0x19 /* LVDS0_BL_EN */
+		>;
+	};
+
+	pinctrl_lvds0_pwr: lvds0_pwrgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_TXD0__GPIO4_IO12		0x19 /* LVDS0_VDDEN */
+		>;
+	};
+
+	pinctrl_otg_vbus: otgvbusgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_RXFS__GPIO4_IO00		0x19 /* USB_OTG_PWR_EN */
+		>;
+	};
+
+	pinctrl_usb_hub_ctrl: usbhubctrlgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI2_RXC__GPIO4_IO22		0x41 /* USB_HUB_RESET */
 		>;
 	};
 };
