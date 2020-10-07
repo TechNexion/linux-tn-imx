@@ -25,33 +25,32 @@
 		enable-active-low;
 	};
 
-	reg_backlight_pwr: regulator_blpwr {
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_backlight_pwr>;
-		compatible = "regulator-fixed";
-		regulator-name = "backlight_pwr";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		gpio = <&gpio4 28 GPIO_ACTIVE_HIGH>;
-		enable-active-high;
-		regulator-always-on;
-	};
-
 	reg_lvds_pwr: regulator_lvdspwr {
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_lvds_pwr>;
+		pinctrl-0 = <&pinctrl_lvds0_pwr>;
 		compatible = "regulator-fixed";
-		regulator-name = "lvds_vdden";
+		regulator-name = "lvds0_vdden";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
 		gpio = <&gpio4 12 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
 	};
 
+	reg_lvds_backlight_pwr: regulator_lvdsblpwr {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_lvds0_backlight_pwr>;
+		compatible = "regulator-fixed";
+		regulator-name = "lvds0_bl_en";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&gpio4 14 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		regulator-always-on;
+	};
+
 	lvds_backlight: lvds_backlight {
 		compatible = "pwm-backlight";
-		//power-supply = <&reg_backlight_pwr>;
-		pwms = <&pwm1 0 50000>;
+		pwms = <&pwm2 0 50000>;
 		brightness-levels = <0 36 72 108 144 180 216 255>;
 		default-brightness-level = <6>;
 		status = "disabled";
@@ -114,7 +113,11 @@
 	status = "disabled";
 };
 
-&i2c1 {
+&mipi_dsi {
+	status = "disabled";
+};
+
+&i2c2 {
 	status = "okay";
 
 	codec: wm8960@1a {
@@ -126,10 +129,6 @@
 		wlf,shared-lrclk;
 		wlf,fixed-mclk;
 	};
-};
-
-&i2c2 {
-	status = "okay";
 
 	typec_hd3ss3220: hd3ss3220@67 {
 		compatible = "ti,tusb320", "ti,hd3ss3220";
@@ -209,15 +208,27 @@
 		>;
 	};
 
-	pinctrl_backlight_pwr: backlight_pwrgrp {
+	pinctrl_lvds0_backlight_pwr: lvds0_bl_pwrgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_SAI3_RXFS__GPIO4_IO28		0x19
+			MX8MP_IOMUXC_SAI1_TXD2__GPIO4_IO14		0x19
 		>;
 	};
 
-	pinctrl_lvds_pwr: lvds_pwrgrp {
+	pinctrl_lvds1_backlight_pwr: lvds1_bl_pwrgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_TXD3__GPIO4_IO15		0x19
+		>;
+	};
+
+	pinctrl_lvds0_pwr: lvds0_pwrgrp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SAI1_TXD0__GPIO4_IO12		0x19
+		>;
+	};
+
+	pinctrl_lvds1_pwr: lvds1_pwrgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_TXD1__GPIO4_IO13		0x19
 		>;
 	};
 
