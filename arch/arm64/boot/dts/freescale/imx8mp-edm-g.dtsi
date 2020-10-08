@@ -87,6 +87,19 @@
 				<192000>;
 		status = "okay";
 	};
+
+	i2c_gpio_brd_conf: i2c@0 {
+		compatible = "i2c-gpio";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_i2c_brd_conf>;
+		gpios = <&gpio4 29 GPIO_ACTIVE_HIGH /* SDA */
+				&gpio4 28 GPIO_ACTIVE_HIGH /* SCL */
+		>;
+		clock-frequency = <100000>;
+		status = "okay";
+	};
 };
 
 &aud2htx {
@@ -921,6 +934,13 @@
 		fsl,pins = <
 			MX8MP_IOMUXC_GPIO1_IO05__GPIO1_IO05	0x41 /* BT_REG_ON */
 			MX8MP_IOMUXC_SAI1_TXD7__GPIO4_IO19	0x41 /* BT_WAKE_HOST */
+		>;
+	};
+
+	pinctrl_i2c_brd_conf: i2cbrdconfgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI3_RXFS__GPIO4_IO28	0x1c3 /* BRD_CONF_SCL, bitbang */
+			MX8MP_IOMUXC_SAI3_RXC__GPIO4_IO29	0x1c3 /* BRD_CONF_SDA, bitbang */
 		>;
 	};
 };
