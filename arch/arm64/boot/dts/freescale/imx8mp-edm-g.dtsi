@@ -891,26 +891,26 @@
 		>;
 	};
 
-	pinctrl_csi1_pwn: csi1_pwn_grp {
+	pinctrl_csi0_pwn: csi0_pwn_grp {
 		fsl,pins = <
 			MX8MP_IOMUXC_GPIO1_IO07__GPIO1_IO07	0x19
 		>;
 	};
 
-	pinctrl_csi1_rst: csi1_rst_grp {
+	pinctrl_csi0_rst: csi0_rst_grp {
 		fsl,pins = <
 			MX8MP_IOMUXC_GPIO1_IO08__GPIO1_IO08		0x19
 			MX8MP_IOMUXC_GPIO1_IO14__CCMSRCGPCMIX_CLKO1	0x59
 		>;
 	};
 
-	pinctrl_csi2_pwn: csi2_pwn_grp {
+	pinctrl_csi1_pwn: csi1_pwn_grp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SAI1_RXD3__GPIO4_IO05	0x19
 		>;
 	};
 
-	pinctrl_csi2_rst: csi2_rst_grp {
+	pinctrl_csi1_rst: csi1_rst_grp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SAI1_RXD2__GPIO4_IO04		0x19
 			MX8MP_IOMUXC_GPIO1_IO15__CCMSRCGPCMIX_CLKO2	0x59
