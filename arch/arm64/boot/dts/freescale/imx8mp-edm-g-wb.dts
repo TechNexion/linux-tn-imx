@@ -153,8 +153,8 @@
 		interrupt-parent = <&gpio1>;
 		interrupts = <10 IRQ_TYPE_LEVEL_LOW>;
 		status = "okay";
-		gpio-line-names = "M2_DISABLE_N", "LED_EN", "", "", "", "", "", "USB_OTG_OC",
-							"EXT_GPIO8", "EXT_GPIO9", "", "", "", "CSI1_PDB", "CSI2_PDB", "PD_FAULT";
+		gpio-line-names = "EXPOSURE_TRIG_IN1", "FLASH_OUT1", "INFO_TRIG_IN1", "CAM_SHUTTER1", "XVS1", "PWR1_TIME0", "PWR1_TIME1", "PWR1_TIME2",
+							"EXPOSURE_TRIG_IN2", "FLASH_OUT2", "INFO_TRIG_IN2", "CAM_SHUTTER2", "XVS2", "PWR2_TIME0", "PWR2_TIME1", "PWR2_TIME2";
 	};
 
 	pca9555_a23: pca9555@23 {
@@ -169,8 +169,8 @@
 		interrupt-parent = <&gpio4>;
 		interrupts = <11 IRQ_TYPE_LEVEL_LOW>;
 		status = "okay";
-		gpio-line-names = "EXPOSURE_TRIG_IN1", "FLASH_OUT1", "INFO_TRIG_IN1", "CAM_SHUTTER1", "XVS1", "PWR1_TIME0", "PWR1_TIME1", "PWR1_TIME2",
-							"EXPOSURE_TRIG_IN2", "FLASH_OUT2", "INFO_TRIG_IN2", "CAM_SHUTTER2", "XVS2", "PWR2_TIME0", "PWR2_TIME1", "PWR2_TIME2";
+		gpio-line-names = "M2_DISABLE_N", "LED_EN", "", "", "", "", "", "USB_OTG_OC",
+							"EXT_GPIO8", "EXT_GPIO9", "", "", "", "CSI1_PDB", "CSI2_PDB", "PD_FAULT";
 	};
 };
 
