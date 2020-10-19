@@ -76,8 +76,8 @@
 		ethphy0: ethernet-phy@0 {
 			compatible = "ethernet-phy-ieee802.3-c22";
 			reg = <1>;
+			at803x,led-act-blind-workaround;
 			at803x,eee-disabled;
-			at803x,vddio-1p8v;
 		};
 	};
 };
