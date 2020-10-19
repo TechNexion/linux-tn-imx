@@ -24,41 +24,60 @@
 			pinctrl-0 = <&pinctrl_otg_vbus>;
 			compatible = "regulator-fixed";
 			regulator-name = "usb_otg_vbus";
-			regulator-min-microvolt = <5000000>;
-			regulator-max-microvolt = <5000000>;
-			gpio = <&gpio1 9 GPIO_ACTIVE_LOW>;
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio1 10 GPIO_ACTIVE_LOW>;
 			enable-active-low;
 		};
 
-		reg_backlight_pwr: regulator_blpwr {
+		reg_lvds_pwr: regulator_lvdspwr {
 			pinctrl-names = "default";
-			pinctrl-0 = <&pinctrl_backlight_pwr>;
+			pinctrl-0 = <&pinctrl_lvds0_pwr>;
 			compatible = "regulator-fixed";
-			regulator-name = "backlight_pwr";
-			regulator-min-microvolt = <5000000>;
-			regulator-max-microvolt = <5000000>;
-			gpio = <&gpio1 10 GPIO_ACTIVE_HIGH>;
+			regulator-name = "lvds0_vdden";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio1 7 GPIO_ACTIVE_HIGH>;
 			enable-active-high;
+		};
+
+		reg_lvds_backlight_pwr: regulator_lvdsblpwr {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_lvds0_backlight_pwr>;
+			compatible = "regulator-fixed";
+			regulator-name = "lvds0_bl_en";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio1 12 GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+			regulator-always-on;
 		};
 	};
 
-	backlight_mipi {
+	lvds_backlight: lvds_backlight {
 		compatible = "pwm-backlight";
-		pwms = <&pwm1 0 50000 0>;
+		pwms = <&pwm2 0 50000>;
 		brightness-levels = <0 36 72 108 144 180 216 255>;
 		default-brightness-level = <6>;
-		power-supply = <&reg_backlight_pwr>;
 		status = "disabled";
+	};
+
+	usb_hub_rst: usb_hub_rst {
+		compatible = "gpio-reset";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_usb_hub_ctrl>;
+		reset-gpios = <&gpio3 0 GPIO_ACTIVE_LOW>;
+		reset-delay-us = <10>;
+		#reset-cells = <0>;
 	};
 
 	leds {
 		compatible = "gpio-leds";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_gpio_led>;
 
 		led {
 			label = "gpio-led";
-			gpios = <&gpio5 5 GPIO_ACTIVE_HIGH>;
+			gpios = <&pca9555_a23 1 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
 		};
 	};
 };
@@ -66,85 +85,50 @@
 &iomuxc {
 	pinctrl_otg_vbus: otgvbusgrp {
 		fsl,pins = <
-			MX8MM_IOMUXC_GPIO1_IO09_GPIO1_IO9		0x19   /* USB OTG VBUS Enable */
+			MX8MM_IOMUXC_GPIO1_IO10_GPIO1_IO10		0x19	/* USB OTG VBUS Enable */
 		>;
 	};
-	pinctrl_backlight_pwr: backlight_pwrgrp {
-		fsl,pins = <
-			MX8MM_IOMUXC_GPIO1_IO10_GPIO1_IO10		0x19
-		>;
-	};
-	pinctrl_dsi_pwm: dsi_pwm {
-		fsl,pins = <
-			MX8MM_IOMUXC_GPIO1_IO01_PWM1_OUT		0x16	/* DSI PWM */
-		>;
-	};
-	pinctrl_fan_pwm: fan_pwm {
-		fsl,pins = <
-			MX8MM_IOMUXC_SAI3_MCLK_PWM4_OUT			0x16	/* PWM for FAN */
-		>;
-	};
-	pinctrl_tusb320_irq: tusb320_irqgrp {
-		fsl,pins = <
-			MX8MM_IOMUXC_NAND_CE0_B_GPIO3_IO1		0x41
-		>;
-	};
-	pinctrl_csi_pwn: csi_pwn_grp {
-		fsl,pins = <
-			MX8MM_IOMUXC_ECSPI2_MOSI_GPIO5_IO11		0x19
-		>;
-	};
-	pinctrl_csi_rst: csi_rst_grp {
-		fsl,pins = <
-			MX8MM_IOMUXC_GPIO1_IO05_GPIO1_IO5		0x19
-			MX8MM_IOMUXC_GPIO1_IO14_CCMSRCGPCMIX_CLKO1	0x59
-		>;
-	};
-	pinctrl_mipi_dsi_rst: mipi_dsi_rst {
-		fsl,pins = <
-			MX8MM_IOMUXC_NAND_DATA03_GPIO3_IO9	0x16   /* DSI RST */
-		>;
-	};
-	pinctrl_touch_irq: touch_irqgrp {
-		fsl,pins = <
-			MX8MM_IOMUXC_GPIO1_IO07_GPIO1_IO7	0x19   /* Touch INT */
-		>;
-	};
-	pinctrl_touch_rst: touch_rstgrp {
-		fsl,pins = <
-			MX8MM_IOMUXC_SAI3_RXFS_GPIO4_IO28	0x16   /* GPIO_P42, Touch RST */
-		>;
-	};
-	pinctrl_gpio_led: gpioledgrp {
-		fsl,pins = <
-			MX8MM_IOMUXC_SPDIF_EXT_CLK_GPIO5_IO5	0x19
-		>;
-	};
-	pinctrl_tfa98xx: tfa98xx_ctrlgrp {
-		fsl,pins = <
-			MX8MM_IOMUXC_ECSPI2_SCLK_GPIO5_IO10	0x19 /* RST */
-			MX8MM_IOMUXC_ECSPI2_MISO_GPIO5_IO12	0x19 /* INT */
-		>;
-	};
-	pinctrl_gpio_key_voicehat: gpiokey_voicehatgrp {
-		fsl,pins = <
-			MX8MM_IOMUXC_NAND_ALE_GPIO3_IO0			0x41 /* GPIO_P25, KEY_PREV */
-			MX8MM_IOMUXC_SPDIF_RX_GPIO5_IO4			0x41 /* PWM2, KEY_PLAY */
-			MX8MM_IOMUXC_I2C4_SCL_GPIO5_IO20		0x41 /* GPIO_P44, KEY_NEXT */
-			MX8MM_IOMUXC_NAND_DATA01_GPIO3_IO7		0x41 /* GPIO_P30, KEY_UP */
-			MX8MM_IOMUXC_NAND_READY_B_GPIO3_IO16		0x41 /* GPIO_P26, KEY_DOWN */
-			MX8MM_IOMUXC_NAND_DATA00_GPIO3_IO6		0x41 /* GPIO_P28, KEY_MUTE */
-			MX8MM_IOMUXC_ECSPI2_SS0_GPIO5_IO13		0x41 /* ECSPI2_SS0, KEY_PAIR */
-			MX8MM_IOMUXC_SPDIF_TX_GPIO5_IO3			0x41 /* PWM3, KEY_ACT */
-		>;
-	};
-};
 
-&ecspi2 {
-	spidev0: spi@0 {
-		reg = <0>;
-		compatible = "rohm,dh2228fv";
-		spi-max-frequency = <1000000>;
+	pinctrl_usb_hub_ctrl: usbhubctrlgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_NAND_ALE_GPIO3_IO0		0x39 	/* open-drain, USB_HUB_RESET */
+		>;
+	};
+
+	pinctrl_hd3ss3220_irq: hd3ss3220_irqgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_SD1_RESET_B_GPIO2_IO10		0x41	/* GPIO_P253 */
+		>;
+	};
+
+	pinctrl_lvds0_backlight_pwr: lvds0_bl_pwrgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_GPIO1_IO12_GPIO1_IO12		0x19
+		>;
+	};
+
+	pinctrl_lvds0_pwr: lvds0_pwrgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_GPIO1_IO07_GPIO1_IO7		0x19
+		>;
+	};
+
+	pinctrl_lvds0_backlight_pwm: lvds0_bl_pwmgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_SPDIF_RX_PWM2_OUT		0x16
+		>;
+	};
+
+	pinctrl_pca9555_a21_irq: pca9555_a21_irqgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_GPIO1_IO15_GPIO1_IO15		0x19
+		>;
+	};
+
+	pinctrl_pca9555_a23_irq: pca9555_a23_irqgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_SAI3_RXFS_GPIO4_IO28		0x19	/* GPIO_P247 */
+		>;
 	};
 };
 
@@ -154,15 +138,47 @@
 	pinctrl-0 = <&pinctrl_i2c2>;
 	status = "okay";
 
-	typec_tusb320:tusb320@67 {
-		compatible = "ti,tusb320";
+	typec_hd3ss3220: hd3ss3220@67 {
+		compatible = "ti,tusb320", "ti,hd3ss3220";
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_tusb320_irq>;
+		pinctrl-0 = <&pinctrl_hd3ss3220_irq>;
 		reg = <0x67>;
 		vbus-supply = <&reg_usb_otg_vbus>;
-		tusb320,int-gpio = <&gpio3 1 GPIO_ACTIVE_LOW>;
+		tusb320,int-gpio = <&gpio2 10 GPIO_ACTIVE_LOW>;
 		tusb320,select-mode = <0>;
 		tusb320,dfp-power = <0>;
+	};
+
+	pca9555_a21: pca9555@21 {
+		compatible = "nxp,pca9555";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pca9555_a21_irq>;
+		reg = <0x21>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+		interrupt-parent = <&gpio1>;
+		interrupts = <15 IRQ_TYPE_LEVEL_LOW>;
+		status = "okay";
+		gpio-line-names = "EXPOSURE_TRIG_IN1", "FLASH_OUT1", "INFO_TRIG_IN1", "CAM_SHUTTER1", "XVS1", "PWR1_TIME0", "PWR1_TIME1", "PWR1_TIME2",
+							"EXPOSURE_TRIG_IN2", "FLASH_OUT2", "INFO_TRIG_IN2", "CAM_SHUTTER2", "XVS2", "PWR2_TIME0", "PWR2_TIME1", "PWR2_TIME2";
+	};
+
+	pca9555_a23: pca9555@23 {
+		compatible = "nxp,pca9555";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pca9555_a23_irq>;
+		reg = <0x23>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+		interrupt-parent = <&gpio4>;
+		interrupts = <28 IRQ_TYPE_LEVEL_LOW>;
+		status = "okay";
+		gpio-line-names = "M2_DISABLE_N", "LED_EN", "", "", "", "", "", "USB_OTG_OC",
+							"EXT_GPIO8", "EXT_GPIO9", "", "", "", "CSI1_PDB", "CSI2_PDB", "PD_FAULT";
 	};
 };
 
@@ -172,7 +188,7 @@
 
 &usbotg1 {
 	dr_mode = "otg";
-	extcon = <0>, <&typec_tusb320>;
+	extcon = <0>, <&typec_hd3ss3220>;
 	status = "okay";
 };
 
@@ -181,19 +197,8 @@
 	status = "okay";
 };
 
-/* SD card on CLIX connector */
-&usdhc2 {
-	status = "okay";
-};
-
-&pwm1 {
+&pwm2 {
 	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_dsi_pwm>;
-	status = "okay";
-};
-
-&pwm4 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_fan_pwm>;
+	pinctrl-0 = <&pinctrl_lvds0_backlight_pwm>;
 	status = "okay";
 };
