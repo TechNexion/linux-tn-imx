@@ -189,6 +189,16 @@
 	resets = <&usb_hub_rst>;
 };
 
+&pcie{
+	ext_osc = <1>;
+	status = "okay";
+};
+
+&pcie_phy{
+	ext_osc = <1>;
+	status = "okay";
+};
+
 &iomuxc {
 	pinctrl_otg_vbus: otgvbusgrp {
 		fsl,pins = <
