@@ -135,7 +135,7 @@
 	status = "disabled";
 };
 
-&uart1 { /* console */
+&uart1 { /* A53 console, UART_A */
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart1>;
 	assigned-clocks = <&clk IMX8MM_CLK_UART1>;
@@ -144,7 +144,7 @@
 	status = "okay";
 };
 
-&uart2 {
+&uart2 { /* baseboard, UART_C */
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart2>;
 	status = "okay";
@@ -158,6 +158,16 @@
 	fsl,uart-has-rtscts;
 	resets = <&bt_reg_on>;
 	status = "okay";
+};
+
+&uart4 { /* M4 console, UART_B */
+	/* used in FreeRTOS, disabled in Linux */
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart4>;
+	assigned-clocks = <&clk IMX8MM_CLK_UART4>;
+	assigned-clock-parents = <&clk IMX8MM_SYS_PLL1_80M>;
+	fsl,uart-has-rtscts;
+	status = "disabled";
 };
 
 &usbotg1 {
@@ -466,6 +476,15 @@
 			MX8MM_IOMUXC_ECSPI1_MOSI_UART3_DCE_TX		0x140
 			MX8MM_IOMUXC_ECSPI1_SS0_UART3_DCE_RTS_B		0x140
 			MX8MM_IOMUXC_ECSPI1_MISO_UART3_DCE_CTS_B	0x140
+		>;
+	};
+
+	pinctrl_uart4: uart4grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_ECSPI2_SCLK_UART4_DCE_RX		0x140
+			MX8MM_IOMUXC_ECSPI2_MOSI_UART4_DCE_TX		0x140
+			MX8MM_IOMUXC_ECSPI2_MISO_UART4_DCE_CTS_B	0x140
+			MX8MM_IOMUXC_ECSPI2_SS0_UART4_DCE_RTS_B		0x140
 		>;
 	};
 
