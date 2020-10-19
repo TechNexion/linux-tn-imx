@@ -32,7 +32,7 @@
 		compatible = "gpio-reset";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_bt_ctrl>;
-		reset-gpios = <&gpio1 12 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&gpio1 3 GPIO_ACTIVE_LOW>;
 		reset-delay-us = <2000>;
 		reset-post-delay-ms = <40>;
 		#reset-cells = <0>;
@@ -136,12 +136,13 @@
 	status = "okay";
 };
 
-&uart3 {
+&uart3 { /* bluetooth */
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart3>;
 	assigned-clocks = <&clk IMX8MM_CLK_UART3>;
 	assigned-clock-parents = <&clk IMX8MM_SYS_PLL1_80M>;
 	fsl,uart-has-rtscts;
+	resets = <&bt_reg_on>;
 	status = "okay";
 };
 
@@ -585,7 +586,7 @@
 
 	pinctrl_bt_ctrl: bt_ctrlgrp {
 		fsl,pins = <
-			MX8MM_IOMUXC_GPIO1_IO12_GPIO1_IO12	0x41 /* BT_REG_ON */
+			MX8MM_IOMUXC_GPIO1_IO03_GPIO1_IO3	0x41 /* BT_REG_ON */
 		>;
 	};
 
