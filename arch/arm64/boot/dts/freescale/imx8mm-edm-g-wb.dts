@@ -1,0 +1,298 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2020 Technexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *
+ */
+
+/dts-v1/;
+
+#include "imx8mm-edm-g.dtsi"
+
+/ {
+	model = "TechNexion EDM-G-IMX8MM and WB baseboard";
+	compatible = "fsl,imx8mm-edm-g", "fsl,imx8mm";
+
+	regulators {
+		compatible = "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		reg_usb_otg_vbus: usb_otg_vbus {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_otg_vbus>;
+			compatible = "regulator-fixed";
+			regulator-name = "usb_otg_vbus";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio1 10 GPIO_ACTIVE_LOW>;
+			enable-active-low;
+		};
+
+		reg_lvds_pwr: regulator_lvdspwr {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_lvds0_pwr>;
+			compatible = "regulator-fixed";
+			regulator-name = "lvds0_vdden";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio1 7 GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+		};
+
+		reg_lvds_backlight_pwr: regulator_lvdsblpwr {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_lvds0_backlight_pwr>;
+			compatible = "regulator-fixed";
+			regulator-name = "lvds0_bl_en";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio1 12 GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+			regulator-always-on;
+		};
+	};
+
+	lvds_backlight: lvds_backlight {
+		compatible = "pwm-backlight";
+		pwms = <&pwm2 0 50000>;
+		brightness-levels = <0 36 72 108 144 180 216 255>;
+		default-brightness-level = <6>;
+		status = "disabled";
+	};
+
+	usb_hub_rst: usb_hub_rst {
+		compatible = "gpio-reset";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_usb_hub_ctrl>;
+		reset-gpios = <&gpio3 0 GPIO_ACTIVE_LOW>;
+		reset-delay-us = <10>;
+		#reset-cells = <0>;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		led {
+			label = "gpio-led";
+			gpios = <&pca9555_a23 1 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+		};
+	};
+
+	sound_wm8960: sound-wm8960 {
+		compatible = "fsl,imx-audio-wm8960";
+		model = "wm8960-audio";
+		cpu-dai = <&sai2>;
+		codec-master;
+		audio-codec = <&codec_wm8960>;
+		audio-routing =
+			"Headphone Jack", "HP_L",
+			"Headphone Jack", "HP_R",
+			"Ext Spk", "SPK_LP",
+			"Ext Spk", "SPK_LN",
+			"Ext Spk", "SPK_RP",
+			"Ext Spk", "SPK_RN",
+			"LINPUT1", "Main MIC",
+			"RINPUT1", "Main MIC",
+			"Main MIC", "MICB";
+		/* JD2: hp detect high for headphone*/
+		hp-det = <2 0>;
+	};
+
+	clocks {
+		codec_osc: aud_mclk {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <24000000>;
+			clock-output-names = "wm8960-mclk";
+		};
+	};
+};
+
+&iomuxc {
+	pinctrl_otg_vbus: otgvbusgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_GPIO1_IO10_GPIO1_IO10		0x19	/* USB OTG VBUS Enable */
+		>;
+	};
+
+	pinctrl_usb_hub_ctrl: usbhubctrlgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_NAND_ALE_GPIO3_IO0		0x39 	/* open-drain, USB_HUB_RESET */
+		>;
+	};
+
+	pinctrl_hd3ss3220_irq: hd3ss3220_irqgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_SD1_RESET_B_GPIO2_IO10		0x41	/* GPIO_P253 */
+		>;
+	};
+
+	pinctrl_lvds0_backlight_pwr: lvds0_bl_pwrgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_GPIO1_IO12_GPIO1_IO12		0x19
+		>;
+	};
+
+	pinctrl_lvds0_pwr: lvds0_pwrgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_GPIO1_IO07_GPIO1_IO7		0x19
+		>;
+	};
+
+	pinctrl_pca9555_a21_irq: pca9555_a21_irqgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_GPIO1_IO15_GPIO1_IO15		0x150
+		>;
+	};
+
+	pinctrl_pca9555_a23_irq: pca9555_a23_irqgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_SAI3_RXFS_GPIO4_IO28		0x150	/* GPIO_P247 */
+		>;
+	};
+
+	pinctrl_pcie: pciegrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_SAI1_RXC_GPIO4_IO1			0x19 /* PCIE CLKREQ */
+			MX8MM_IOMUXC_SAI1_MCLK_GPIO4_IO20		0x19 /* PCIE RST */
+			MX8MM_IOMUXC_NAND_CE0_B_GPIO3_IO1		0x19 /* PCIE WAKE */
+		>;
+	};
+
+	pinctrl_nfc: nfcgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_SAI3_TXD_GPIO5_IO1		0x19 /* IRQ */
+		>;
+	};
+};
+
+&i2c2 {
+	clock-frequency = <400000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c2>;
+	status = "okay";
+
+	codec_wm8960: wm8960@1a {
+		compatible = "wlf,wm8960";
+		reg = <0x1a>;
+		#sound-dai-cells = <0>;
+		//clocks = <&audiomix_clk IMX8MP_CLK_AUDIOMIX_SAI3_MCLK1>;
+		clocks = <&codec_osc>; /* Clock is from  external osc on baseboard*/
+		clock-names = "mclk";
+		wlf,shared-lrclk;
+		wlf,fixed-mclk;
+		status = "okay";
+	};
+
+	typec_hd3ss3220: hd3ss3220@67 {
+		compatible = "ti,tusb320", "ti,hd3ss3220";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_hd3ss3220_irq>;
+		reg = <0x67>;
+		vbus-supply = <&reg_usb_otg_vbus>;
+		tusb320,int-gpio = <&gpio2 10 GPIO_ACTIVE_LOW>;
+		tusb320,select-mode = <0>;
+		tusb320,dfp-power = <0>;
+	};
+
+	pca9555_a21: pca9555@21 {
+		compatible = "nxp,pca9555";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pca9555_a21_irq>;
+		reg = <0x21>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+		interrupt-parent = <&gpio1>;
+		interrupts = <15 IRQ_TYPE_LEVEL_LOW>;
+		status = "okay";
+		gpio-line-names = "EXPOSURE_TRIG_IN1", "FLASH_OUT1", "INFO_TRIG_IN1", "CAM_SHUTTER1", "XVS1", "PWR1_TIME0", "PWR1_TIME1", "PWR1_TIME2",
+							"EXPOSURE_TRIG_IN2", "FLASH_OUT2", "INFO_TRIG_IN2", "CAM_SHUTTER2", "XVS2", "PWR2_TIME0", "PWR2_TIME1", "PWR2_TIME2";
+	};
+
+	pca9555_a23: pca9555@23 {
+		compatible = "nxp,pca9555";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pca9555_a23_irq>;
+		reg = <0x23>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+		interrupt-parent = <&gpio4>;
+		interrupts = <28 IRQ_TYPE_LEVEL_LOW>;
+		status = "okay";
+		gpio-line-names = "M2_DISABLE_N", "LED_EN", "", "", "", "", "", "USB_OTG_OC",
+							"EXT_GPIO8", "EXT_GPIO9", "", "", "", "CSI1_PDB", "CSI2_PDB", "PD_FAULT";
+	};
+};
+
+&i2c3 {
+	pn547: pn547@2a {
+		compatible = "nxp,pn547";
+		reg = <0x2a>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_nfc>;
+		clock-frequency = <100000>;
+		interrupt-gpios = <&gpio5 1 0>;
+		status = "okay";
+	};
+};
+
+&i2c4 {
+	eeprom_baseboard: eeprom@51 {
+		compatible = "atmel,24c02";
+		reg = <0x51>;
+		pagesize = <16>;
+		status = "okay";
+	};
+};
+
+&sai2 { /* AUD_A */
+	status = "okay";
+};
+
+&pcie0{
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pcie>;
+	disable-gpio = <&pca9555_a23 0 GPIO_ACTIVE_LOW>;
+	clkreq-gpio = <&gpio4 1 GPIO_ACTIVE_LOW>;
+	reset-gpio = <&gpio4 20 GPIO_ACTIVE_LOW>;
+	ext_osc = <1>;
+	status = "okay";
+};
+
+&lcdif {
+	status = "okay";
+};
+
+&usbotg1 {
+	dr_mode = "otg";
+	extcon = <0>, <&typec_hd3ss3220>;
+	status = "okay";
+};
+
+&usbotg2 {
+	dr_mode = "host";
+	status = "okay";
+};
+
+&pwm1 {
+	status = "okay";
+};
+
+&pwm2 {
+	status = "okay";
+};
+
+&pwm3 {
+	status = "okay";
+};
+
+&pwm4 {
+	status = "okay";
+};
