@@ -24,7 +24,8 @@
 	};
 
 	chosen {
-		stdout-path = &uart2;
+		bootargs = "console=ttymxc0,115200 earlycon=ec_imx6q,0x30860000,115200";
+		stdout-path = &uart1;
 	};
 
 	bt_reg_on: btreg_on {
@@ -120,17 +121,16 @@
 	status = "disabled";
 };
 
-&uart1 { /* BT */
+&uart1 { /* console */
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart1>;
 	assigned-clocks = <&clk IMX8MM_CLK_UART1>;
 	assigned-clock-parents = <&clk IMX8MM_SYS_PLL1_80M>;
 	fsl,uart-has-rtscts;
-	resets = <&bt_reg_on>;
 	status = "okay";
 };
 
-&uart2 { /* console */
+&uart2 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart2>;
 	status = "okay";
@@ -425,8 +425,8 @@
 
 	pinctrl_uart1: uart1grp {
 		fsl,pins = <
-			MX8MM_IOMUXC_UART1_RXD_UART1_DCE_RX	0x140
-			MX8MM_IOMUXC_UART1_TXD_UART1_DCE_TX	0x140
+			MX8MM_IOMUXC_SAI2_RXC_UART1_DCE_RX	0x140
+			MX8MM_IOMUXC_SAI2_RXFS_UART1_DCE_TX	0x140
 			MX8MM_IOMUXC_UART3_RXD_UART1_DCE_CTS_B	0x140
 			MX8MM_IOMUXC_UART3_TXD_UART1_DCE_RTS_B	0x140
 		>;
