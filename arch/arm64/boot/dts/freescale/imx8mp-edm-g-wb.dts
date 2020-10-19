@@ -300,6 +300,18 @@
 	status = "disabled";
 };
 
+&i2c5 {
+	pn547: pn547@2a {
+		compatible = "nxp,pn547";
+		reg = <0x2a>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_nfc>;
+		clock-frequency = <100000>;
+		interrupt-gpios = <&gpio4 10 0>;
+		status = "okay";
+	};
+};
+
 &usb_dwc3_0 {
 	dr_mode = "otg";
 	hnp-disable;
