@@ -109,6 +109,24 @@
 	};
 };
 
+&gpio1 {
+	pinctrl-0 = <&pinctrl_gpio1>;
+	gpio-line-names =	\
+		"", "", "", "", "", "", "DSI_RST", "",	\
+		"", "", "", "", "", "", "", "",	\
+		"", "", "", "", "", "", "", "",	\
+		"", "", "", "", "", "", "", "";
+};
+
+&gpio4 {
+	pinctrl-0 = <&pinctrl_gpio4>;
+	gpio-line-names =	\
+		"", "", "", "", "", "", "GPIO_P249", "GPIO_P251",	\
+		"", "GPIO_P255", "", "", "", "", "", "",	\
+		"DSI_BL_EN", "DSI_VDDEN", "", "", "", "", "", "",	\
+		"", "", "", "", "", "", "", "";
+};
+
 &snvs_pwrkey {
 	status = "disabled";
 };
@@ -214,43 +232,47 @@
 
 	pinctrl_hd3ss3220_irq: hd3ss3220_irqgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_SAI1_RXD6__GPIO4_IO08		0x41
+			MX8MP_IOMUXC_SAI1_RXD6__GPIO4_IO08		0x41 /* GPIO_P253 */
 		>;
 	};
 
 	pinctrl_lvds0_backlight_pwr: lvds0_bl_pwrgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_SAI1_TXD2__GPIO4_IO14		0x19
-		>;
-	};
-
-	pinctrl_lvds1_backlight_pwr: lvds1_bl_pwrgrp {
-		fsl,pins = <
-			MX8MP_IOMUXC_SAI1_TXD3__GPIO4_IO15		0x19
+			MX8MP_IOMUXC_SAI1_TXD2__GPIO4_IO14		0x19 /* LVDS0_BL_EN */
 		>;
 	};
 
 	pinctrl_lvds0_pwr: lvds0_pwrgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_SAI1_TXD0__GPIO4_IO12		0x19
-		>;
-	};
-
-	pinctrl_lvds1_pwr: lvds1_pwrgrp {
-		fsl,pins = <
-			MX8MP_IOMUXC_SAI1_TXD1__GPIO4_IO13		0x19
+			MX8MP_IOMUXC_SAI1_TXD0__GPIO4_IO12		0x19 /* LVDS0_VDDEN */
 		>;
 	};
 
 	pinctrl_pca9555_a21_irq: pca9555_a21_irqgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_GPIO1_IO10__GPIO1_IO10		0x140
+			MX8MP_IOMUXC_GPIO1_IO10__GPIO1_IO10		0x140 /* SPI_B_SS0 */
 		>;
 	};
 
 	pinctrl_pca9555_a23_irq: pca9555_a23_irqgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_SAI1_TXC__GPIO4_IO11		0x140
+			MX8MP_IOMUXC_SAI1_TXC__GPIO4_IO11		0x140 /* GPIO_P247 */
+		>;
+	};
+
+	pinctrl_gpio1: gpio1grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_GPIO1_IO06__GPIO1_IO06		0x16 /* DSI_RST */
+		>;
+	};
+
+	pinctrl_gpio4: gpio4grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_RXD4__GPIO4_IO06		0x16 /* GPIO_P249 */
+			MX8MP_IOMUXC_SAI1_RXD5__GPIO4_IO07		0x16 /* GPIO_P251 */
+			MX8MP_IOMUXC_SAI1_RXD7__GPIO4_IO09		0x16 /* GPIO_P255 */
+			MX8MP_IOMUXC_SAI1_TXD4__GPIO4_IO16		0x16 /* DSI_BL_EN */
+			MX8MP_IOMUXC_SAI1_TXD5__GPIO4_IO17		0x16 /* DSI_VDDEN */
 		>;
 	};
 };
