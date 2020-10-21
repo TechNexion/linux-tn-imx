@@ -121,13 +121,13 @@
 
 	pinctrl_pca9555_a21_irq: pca9555_a21_irqgrp {
 		fsl,pins = <
-			MX8MM_IOMUXC_GPIO1_IO15_GPIO1_IO15		0x19
+			MX8MM_IOMUXC_GPIO1_IO15_GPIO1_IO15		0x150
 		>;
 	};
 
 	pinctrl_pca9555_a23_irq: pca9555_a23_irqgrp {
 		fsl,pins = <
-			MX8MM_IOMUXC_SAI3_RXFS_GPIO4_IO28		0x19	/* GPIO_P247 */
+			MX8MM_IOMUXC_SAI3_RXFS_GPIO4_IO28		0x150	/* GPIO_P247 */
 		>;
 	};
 };
