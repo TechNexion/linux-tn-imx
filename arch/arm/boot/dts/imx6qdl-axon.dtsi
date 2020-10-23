@@ -552,6 +552,12 @@
 
 	imx6qdl-axon {
 
+        pinctrl_hdmi_cec: hdmicecgrp {
+            fsl,pins = <
+                MX6QDL_PAD_KEY_ROW2__HDMI_TX_CEC_LINE    0x1f8b0
+            >;
+        };
+
 		pinctrl_fabric_reset: fabric_resetgrp {
 			fsl,pins = <
 				MX6QDL_PAD_EIM_A21__GPIO2_IO17     0x000b0 /* RESV_GPIO0 */
@@ -988,6 +994,12 @@
 	phy-reset-gpios = <&gpio1 26 GPIO_ACTIVE_LOW>;
 	fsl,magic-packet;
 	status = "okay";
+};
+
+&hdmi_cec {
+    pinctrl-names = "default";
+    pinctrl-0 = <&pinctrl_hdmi_cec>;
+    status = "okay";
 };
 
 &hdmi_audio {
