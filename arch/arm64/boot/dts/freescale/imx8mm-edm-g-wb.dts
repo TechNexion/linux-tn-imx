@@ -130,6 +130,14 @@
 			MX8MM_IOMUXC_SAI3_RXFS_GPIO4_IO28		0x150	/* GPIO_P247 */
 		>;
 	};
+
+	pinctrl_pcie: pciegrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_SAI1_RXC_GPIO4_IO1			0x19 /* PCIE CLKREQ */
+			MX8MM_IOMUXC_SAI1_MCLK_GPIO4_IO20		0x19 /* PCIE RST */
+			MX8MM_IOMUXC_NAND_CE0_B_GPIO3_IO1		0x19 /* PCIE WAKE */
+		>;
+	};
 };
 
 &i2c2 {
@@ -180,6 +188,16 @@
 		gpio-line-names = "M2_DISABLE_N", "LED_EN", "", "", "", "", "", "USB_OTG_OC",
 							"EXT_GPIO8", "EXT_GPIO9", "", "", "", "CSI1_PDB", "CSI2_PDB", "PD_FAULT";
 	};
+};
+
+&pcie0{
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pcie>;
+	disable-gpio = <&pca9555_a23 0 GPIO_ACTIVE_LOW>;
+	clkreq-gpio = <&gpio4 1 GPIO_ACTIVE_LOW>;
+	reset-gpio = <&gpio4 20 GPIO_ACTIVE_LOW>;
+	ext_osc = <1>;
+	status = "okay";
 };
 
 &lcdif {
