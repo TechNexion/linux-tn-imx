@@ -1,0 +1,98 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2020 Technexion Ltd.
+ *
+ * Author: Ray Chang <ray.chang@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	fragment@0 {
+		target-path = "/";
+		__overlay__ {
+			reg_lvds_pwr: regulator_lvdspwr {
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@1 {
+		target-path = "/";
+		__overlay__ {
+			reg_lvds_backlight_pwr: regulator_lvdsblpwr {
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@2 {
+		target-path = "/";
+		__overlay__ {
+			lvds_backlight: lvds_backlight {
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@3 {
+		target-path = "/";
+		__overlay__ {
+			lvds0_panel {
+				compatible = "vxt,vl215192108", "panel-lvds";
+				backlight = <&lvds_backlight>;
+				power-supply = <&reg_lvds_pwr>;
+
+				data-mapping = "vesa-24";
+				height-mm = <268>;
+				width-mm = <476>;
+
+				panel-timing {
+					clock-frequency = <72000000>;
+					hactive = <1920>;
+					vactive = <1080>;
+					hback-porch = <45>;
+					hfront-porch = <45>;
+					vback-porch = <18>;
+					vfront-porch = <18>;
+					hsync-len = <10>;
+					vsync-len = <4>;
+				};
+
+				port {
+					panel_lvds_in: endpoint {
+						remote-endpoint = <&lvds_out>;
+					};
+				};
+			};
+		};
+	};
+
+	fragment@4 {
+		target = <&ldb>;
+		__overlay__ {
+			status = "okay";
+			fsl,dual-channel;
+			lvds-channel@0 {
+				#address-cells = <1>;
+				#size-cells = <0>;
+				fsl,data-mapping = "spwg";
+				fsl,data-width = <24>;
+				status = "okay";
+				
+				port@1 {
+					reg = <1>;
+
+					lvds_out: endpoint {
+						remote-endpoint = <&panel_lvds_in>;
+					};
+				};
+			};
+		};
+	};
+};

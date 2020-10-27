@@ -216,3 +216,8 @@ dtb-$(CONFIG_ARCH_MXC) += imx8ulp-evk.dtb imx8ulp-evk-rk055hdmipi4m.dtb \
 
 dtb-$(CONFIG_ARCH_S32) += s32v234-evb.dtb \
 			  s32v234-sbc.dtb
+
+subdir-y += overlays
+
+# enable creation of __symbols__ node
+DTC_FLAGS_imx8mp-edm-g-wb := -@
