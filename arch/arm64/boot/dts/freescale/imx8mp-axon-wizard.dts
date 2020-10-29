@@ -59,6 +59,28 @@
 		status = "disabled";
 	};
 
+	reg_mipi_vdden: regulator_mipivdden {
+		pinctrl-names = "default";
+		compatible = "regulator-fixed";
+		regulator-name = "mipi_vdden";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&pca9554 2 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		status = "disabled";
+	};
+
+	reg_mipi_bl_en: regulator_mipiblen {
+		pinctrl-names = "default";
+		compatible = "regulator-fixed";
+		regulator-name = "mipi_blen";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&pca9554 3 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		status = "disabled";
+	};
+
 	lvds_backlight: lvds_backlight {
 		compatible = "pwm-backlight";
 		//power-supply = <&reg_backlight_pwr>;
