@@ -17,24 +17,22 @@
 #include "imx8mp-axon-wizard.dts"
 
 / {
-	reg_mipi_pwr: regulator_mipipwr {
+	reg_mipi_pwr: regulator_mipipwr { /* MIPI_PWR_EN, MIPI_5V */
 		regulator-always-on;
 		status = "okay";
 	};
 
-	reg_mipi_vdden: regulator_mipivdden {
-		pinctrl-names = "default";
-		compatible = "regulator-fixed";
-		regulator-name = "mipi_vdden";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		gpio = <&pca9554 2 GPIO_ACTIVE_HIGH>;
-		enable-active-high;
-		/* regulator-always-on; */
+	reg_mipi_vdden: regulator_mipivdden { /* MIPI_VDDEN */
+		regulator-always-on;
 		status = "okay";
 	};
 
-	mipi_backlight {
+	reg_mipi_bl_en: regulator_mipiblen { /* MIPI_DSI_BL_EN */
+		regulator-always-on;
+		status = "okay";
+	};
+
+	mipi_backlight { /* MIPI_BL_PWM */
 		status = "okay";
 	};
 };
@@ -45,9 +43,6 @@
 	panel@0 {
 		reg = <0>;
 		compatible = "tn,dsi2lvds-panel";
-		backlight = <&mipi_backlight>;
-		power-supply = <&reg_mipi_vdden>;
-		enable-gpios = <&pca9554 3 GPIO_ACTIVE_HIGH>; /* MIPI_DSI_BL_EN */
 		dsi,flags = <0x0007>;
 		dsi,format = <0>;
 		dsi,lanes = <4>;
@@ -83,7 +78,8 @@
 		status = "okay";
 		compatible = "ti,sn65dsi84";
 		#gpio-cells = <2>;
-		enable-gpios = <&pca9554 5 GPIO_ACTIVE_HIGH>; /* MIPI_DSI_RST */
+		enable-gpios = <&pca9554 5 GPIO_ACTIVE_HIGH>; /* MIPI_DSI_RST,
+														 EN pin of SN65DSI84 */
 		sn65dsi84,addresses = <0x09 0x0A 0x0B 0x0D
 							0x10 0x11 0x12 0x13
 							0x18 0x19 0x1A 0x1B
