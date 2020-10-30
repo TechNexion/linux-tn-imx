@@ -409,6 +409,15 @@
 			};
 		};
 	};
+
+	dsi_lvds_bridge: sn65dsi84@2d {
+		reg = <0x2d>;
+		compatible = "ti,sn65dsi84";
+		#gpio-cells = <2>;
+		pinctrl-0 = <&pinctrl_mipi_dsi_en>;
+		enable-gpios = <&gpio3 9 GPIO_ACTIVE_HIGH>;
+		status = "disabled";
+	};
 };
 
 &iomuxc {
@@ -692,6 +701,12 @@
 	pinctrl_ecspi2_cs: ecspi2cs {
 		fsl,pins = <
 			MX8MM_IOMUXC_ECSPI2_SS0_GPIO5_IO13	0x16
+		>;
+	};
+
+	pinctrl_mipi_dsi_en: mipi_dsi_en {
+		fsl,pins = <
+		        MX8MM_IOMUXC_NAND_DATA03_GPIO3_IO9      0x16   /* enable pin of sn65dsi84 */
 		>;
 	};
 };
