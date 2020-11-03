@@ -172,6 +172,7 @@
 &uart2 { /* baseboard, UART_C */
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart2>;
+	fsl,uart-has-rtscts;
 	status = "okay";
 };
 
@@ -257,14 +258,18 @@
 	status = "okay";
 };
 
-&ecspi2 {
-	#address-cells = <1>;
-	#size-cells = <0>;
+&ecspi3 {
 	fsl,spi-num-chipselects = <1>;
 	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_ecspi2 &pinctrl_ecspi2_cs>;
-	cs-gpios = <&gpio5 13 GPIO_ACTIVE_LOW>;
+	pinctrl-0 = <&pinctrl_ecspi3 &pinctrl_ecspi3_cs>;
+	cs-gpios = <&gpio5 25 GPIO_ACTIVE_LOW>;
 	status = "okay";
+
+	spidev1: spi@0 {
+		reg = <0>;
+		compatible = "rohm,dh2228fv";
+		spi-max-frequency = <500000>;
+	};
 };
 
 &i2c1 { /* I2C_A */
@@ -530,8 +535,10 @@
 
 	pinctrl_uart2: uart2grp {
 		fsl,pins = <
-			MX8MM_IOMUXC_UART2_RXD_UART2_DCE_RX	0x140
-			MX8MM_IOMUXC_UART2_TXD_UART2_DCE_TX	0x140
+			MX8MM_IOMUXC_SAI3_TXFS_UART2_DCE_RX	0x140
+			MX8MM_IOMUXC_SAI3_TXC_UART2_DCE_TX	0x140
+			MX8MM_IOMUXC_SAI3_RXC_UART2_DCE_CTS_B 0x140
+			MX8MM_IOMUXC_SAI3_RXD_UART2_DCE_RTS_B 0x140
 		>;
 	};
 
@@ -697,17 +704,17 @@
 		>;
 	};
 
-	pinctrl_ecspi2: ecspi2grp {
+	pinctrl_ecspi3: ecspi3grp {
 		fsl,pins = <
-			MX8MM_IOMUXC_ECSPI2_SCLK_ECSPI2_SCLK	0x82
-			MX8MM_IOMUXC_ECSPI2_MOSI_ECSPI2_MOSI	0x82 /* ECSPI2_MOSI conflicts with CSI P2 PWDN*/
-			MX8MM_IOMUXC_ECSPI2_MISO_ECSPI2_MISO	0x82
+			MX8MM_IOMUXC_UART1_RXD_ECSPI3_SCLK		0x82
+			MX8MM_IOMUXC_UART1_TXD_ECSPI3_MOSI		0x82
+			MX8MM_IOMUXC_UART2_RXD_ECSPI3_MISO		0x82
 		>;
 	};
 
-	pinctrl_ecspi2_cs: ecspi2cs {
+	pinctrl_ecspi3_cs: ecspi3cs {
 		fsl,pins = <
-			MX8MM_IOMUXC_ECSPI2_SS0_GPIO5_IO13	0x16
+			MX8MM_IOMUXC_UART2_TXD_GPIO5_IO25		0x40000
 		>;
 	};
 
