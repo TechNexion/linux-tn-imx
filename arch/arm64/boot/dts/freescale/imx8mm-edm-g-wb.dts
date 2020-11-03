@@ -231,6 +231,15 @@
 	};
 };
 
+&i2c4 {
+	eeprom_baseboard: eeprom@51 {
+		compatible = "atmel,24c02";
+		reg = <0x51>;
+		pagesize = <16>;
+		status = "okay";
+	};
+};
+
 &sai2 { /* AUD_A */
 	status = "okay";
 };
