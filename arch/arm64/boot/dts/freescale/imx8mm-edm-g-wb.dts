@@ -142,12 +142,6 @@
 		>;
 	};
 
-	pinctrl_lvds0_backlight_pwm: lvds0_bl_pwmgrp {
-		fsl,pins = <
-			MX8MM_IOMUXC_SPDIF_RX_PWM2_OUT		0x16
-		>;
-	};
-
 	pinctrl_pca9555_a21_irq: pca9555_a21_irqgrp {
 		fsl,pins = <
 			MX8MM_IOMUXC_GPIO1_IO15_GPIO1_IO15		0x150
@@ -269,8 +263,18 @@
 	status = "okay";
 };
 
+&pwm1 {
+	status = "okay";
+};
+
 &pwm2 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_lvds0_backlight_pwm>;
+	status = "okay";
+};
+
+&pwm3 {
+	status = "okay";
+};
+
+&pwm4 {
 	status = "okay";
 };
