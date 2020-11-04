@@ -723,6 +723,60 @@
 		        MX8MM_IOMUXC_NAND_DATA03_GPIO3_IO9      0x16   /* enable pin of sn65dsi84 */
 		>;
 	};
+
+	pinctrl_lvds0_backlight_pwm: lvds0_bl_pwmgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_SPDIF_RX_PWM2_OUT		0x16
+		>;
+	};
+
+	pinctrl_dsi_backlight_pwm: dsi_bl_pwmgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_SPDIF_EXT_CLK_PWM1_OUT		0x16
+		>;
+	};
+
+	pinctrl_lvds0_backlight_pwm: lvds0_bl_pwmgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_SPDIF_RX_PWM2_OUT		0x16
+		>;
+	};
+
+	pinctrl_lvds1_backlight_pwm: lvds1_bl_pwmgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_SPDIF_TX_PWM3_OUT		0x16
+		>;
+	};
+
+	pinctrl_pwm4: pwm4grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_SAI3_MCLK_PWM4_OUT		0x16
+		>;
+	};
+};
+
+&pwm1 { /* DSI_BL_PWM */
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_dsi_backlight_pwm>;
+	status = "disabled";
+};
+
+&pwm2 { /* LVDS0_BL_PWM */
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_lvds0_backlight_pwm>;
+	status = "disabled";
+};
+
+&pwm3 { /* LVDS1_BL_PWM */
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_lvds1_backlight_pwm>;
+	status = "disabled";
+};
+
+&pwm4 {	/* PWM4 */
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pwm4>;
+	status = "disabled";
 };
 
 &lcdif {
