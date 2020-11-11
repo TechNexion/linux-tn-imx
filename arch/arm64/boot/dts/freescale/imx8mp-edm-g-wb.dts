@@ -192,6 +192,18 @@
 	};
 };
 
+&i2c5 {
+	pn547: pn547@2a {
+		compatible = "nxp,pn547";
+		reg = <0x2a>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_nfc>;
+		clock-frequency = <100000>;
+		interrupt-gpios = <&gpio4 10 0>;
+		status = "okay";
+	};
+};
+
 &usb_dwc3_0 {
 	dr_mode = "otg";
 	hnp-disable;
@@ -273,6 +285,12 @@
 			MX8MP_IOMUXC_SAI1_RXD7__GPIO4_IO09		0x16 /* GPIO_P255 */
 			MX8MP_IOMUXC_SAI1_TXD4__GPIO4_IO16		0x16 /* DSI_BL_EN */
 			MX8MP_IOMUXC_SAI1_TXD5__GPIO4_IO17		0x16 /* DSI_VDDEN */
+		>;
+	};
+
+	pinctrl_nfc: nfcgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_TXFS__GPIO4_IO10		0x41 /* DSI_RST */
 		>;
 	};
 };
