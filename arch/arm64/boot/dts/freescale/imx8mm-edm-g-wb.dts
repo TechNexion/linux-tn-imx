@@ -161,6 +161,12 @@
 			MX8MM_IOMUXC_NAND_CE0_B_GPIO3_IO1		0x19 /* PCIE WAKE */
 		>;
 	};
+
+	pinctrl_nfc: nfcgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_SAI3_TXD_GPIO5_IO1		0x19 /* IRQ */
+		>;
+	};
 };
 
 &i2c2 {
@@ -222,6 +228,18 @@
 		status = "okay";
 		gpio-line-names = "M2_DISABLE_N", "LED_EN", "", "", "", "", "", "USB_OTG_OC",
 							"EXT_GPIO8", "EXT_GPIO9", "", "", "", "CSI1_PDB", "CSI2_PDB", "PD_FAULT";
+	};
+};
+
+&i2c3 {
+	pn547: pn547@2a {
+		compatible = "nxp,pn547";
+		reg = <0x2a>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_nfc>;
+		clock-frequency = <100000>;
+		interrupt-gpios = <&gpio5 1 0>;
+		status = "okay";
 	};
 };
 
