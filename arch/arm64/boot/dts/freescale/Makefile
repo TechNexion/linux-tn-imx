@@ -52,6 +52,7 @@ dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-lx2160a-rdb.dtb
 dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-lx2162a-qds.dtb
 
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-beacon-kit.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mq-edm-wizard.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-axon-pi.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-xore-wizard.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-edm-g-wb.dtb imx8mm-edm-g-wb-sn65dsi84-vl10112880.dtb
