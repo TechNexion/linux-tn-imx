@@ -33,8 +33,6 @@
 #include <media/v4l2-event.h>
 #include <media/v4l2-fwnode.h>
 #include <media/i2c/tc358743.h>
-#include <sound/core.h>
-#include <sound/soc.h>
 
 #include "tc358743_regs.h"
 
@@ -113,19 +111,6 @@ struct _res tc358743_support_res[] =
 	{.x = 1280, .y=720},
 	{.x = 1920, .y=1080},
 };
-
-#define TC358743_FORMATS (SNDRV_PCM_FMTBIT_S32_LE)
-static struct snd_soc_dai_driver tc358743_dai = {
-	.name = "tc358743",
-	.capture = {
-		.stream_name = "Capture",
-		.channels_min = 2,
-		.channels_max = 2,
-		.rates = SNDRV_PCM_RATE_48000,
-		.formats = TC358743_FORMATS,
-	},
-};
-static struct snd_soc_codec_driver tc358743_codec_driver;
 
 static void tc358743_enable_interrupts(struct v4l2_subdev *sd,
 		bool cable_connected);
@@ -818,7 +803,7 @@ static void tc358743_set_hdmi_audio(struct v4l2_subdev *sd)
 	i2c_wr8(sd, ACR_MODE, MASK_CTS_MODE);
 	i2c_wr8(sd, ACR_MDF0, MASK_ACR_L2MDF_1976_PPM | MASK_ACR_L1MDF_976_PPM);
 	i2c_wr8(sd, ACR_MDF1, MASK_ACR_L3MDF_3906_PPM);
-	i2c_wr8(sd, SDO_MODE1, MASK_SDO_FMT_I2S); /* output I2S format, 16bit */
+	i2c_wr8(sd, SDO_MODE1, MASK_SDO_FMT_I2S);
 	i2c_wr8(sd, DIV_MODE, SET_DIV_DLY_MS(100));
 
 	mutex_lock(&state->confctl_mutex);
@@ -2495,7 +2480,6 @@ static int tc358743_probe(struct i2c_client *client)
 	if (err)
 		goto err_work_queues;
 
-	snd_soc_register_codec(&client->dev, &tc358743_codec_driver, &tc358743_dai, 1);
 	v4l2_info(sd, "%s found @ 0x%x (%s)\n", client->name,
 		  client->addr << 1, client->adapter->name);
 
