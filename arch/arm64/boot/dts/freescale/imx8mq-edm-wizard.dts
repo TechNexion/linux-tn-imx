@@ -1,0 +1,486 @@
+/*
+ * Copyright 2019 TechNexion Ltd.
+ * Copyright 2017 NXP
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *         Ray Chang <ray.chang@technexion.com>
+ *         Wig Cheng <wig.cheng@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/dts-v1/;
+
+#include "imx8mq-edm.dtsi"
+
+/ {
+	model = "TechNexion EDM-IMX8MQ and WIZARD baseboard";
+	compatible = "edm,imx8mq-edm", "fsl,imx8mq";
+
+	regulators {
+		compatible = "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		reg_usb_otg_vbus: usb_otg_vbus {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_otg_vbus>;
+			compatible = "regulator-fixed";
+			regulator-name = "usb_otg_vbus";
+			regulator-min-microvolt = <5000000>;
+			regulator-max-microvolt = <5000000>;
+			gpio = <&gpio3 14 GPIO_ACTIVE_LOW>;
+		};
+
+		reg_backlight_pwr: regulator_blpwr {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_backlight_pwr>;
+			compatible = "regulator-fixed";
+			regulator-name = "backlight_pwr";
+			regulator-min-microvolt = <5000000>;
+			regulator-max-microvolt = <5000000>;
+			gpio = <&gpio1 8 GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+		};
+
+		reg_pcie_rst: regulator_pcierst {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_pcie0_rst>;
+			compatible = "regulator-fixed";
+			regulator-name = "pcie0_rst";
+			gpio = <&gpio1 6 GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+			regulator-always-on;
+		};
+
+		reg_pcie_clkreq: regulator_clkreq {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_pcie0>;
+			compatible = "regulator-fixed";
+			regulator-name = "pcie0_clkreq";
+			gpio = <&gpio3 23 GPIO_ACTIVE_LOW>;
+			enable-active-low;
+			regulator-always-on;
+		};
+	};
+
+	backlight_mipi {
+		compatible = "pwm-backlight";
+		pwms = <&pwm3 0 50000 0>;
+		brightness-levels = <0 36 72 108 144 180 216 255>;
+		default-brightness-level = <6>;
+		power-supply = <&reg_backlight_pwr>;
+		status = "disabled";
+	};
+
+	sound-wm8960 {
+		compatible = "fsl,imx-audio-wm8960";
+		model = "wm8960-audio";
+		cpu-dai = <&sai2>;
+		codec-master;
+		audio-codec = <&wm8960>;
+		audio-routing =
+			"Headphone Jack", "HP_L",
+			"Headphone Jack", "HP_R",
+			"Ext Spk", "SPK_LP",
+			"Ext Spk", "SPK_LN",
+			"Ext Spk", "SPK_RP",
+			"Ext Spk", "SPK_RN",
+			"LINPUT1", "Main MIC",
+			"Main MIC", "MICB";
+		/* JD2: hp detect high for headphone*/
+		hp-det = <2 0>;
+	};
+
+	clocks {
+		codec_osc: aud_mclk {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <24000000>;
+			clock-output-names = "wm8960-mclk";
+		};
+	};
+
+	sound-hdmi {
+		compatible = "fsl,imx8mq-evk-cdnhdmi",
+				"fsl,imx-audio-cdnhdmi";
+		model = "imx-audio-hdmi";
+		audio-cpu = <&sai4>;
+		protocol = <1>;
+		hdmi-out;
+		constraint-rate = <44100>,
+				<88200>,
+				<176400>,
+				<32000>,
+				<48000>,
+				<96000>,
+				<192000>;
+	};
+};
+
+&iomuxc {
+	imx8mq-pico {
+		pinctrl_otg_vbus: otgvbusgrp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_NAND_DQS_GPIO3_IO14		0x19   /* USB OTG VBUS Enable */
+			>;
+		};
+
+		pinctrl_dsi_pwm: dsi_pwm {
+			fsl,pins = <
+				MX8MQ_IOMUXC_I2C3_SDA_PWM3_OUT		0x16	/* DSI PWM */
+			>;
+		};
+
+		pinctrl_fan_pwm: fan_pwm {
+			fsl,pins = <
+				MX8MQ_IOMUXC_I2C3_SCL_PWM4_OUT			0x16	/* FAN PWM */
+			>;
+		};
+
+		pinctrl_tusb320_irq: tusb320_irqgrp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_NAND_READY_B_GPIO3_IO16	0x41
+			>;
+		};
+
+		pinctrl_csi1: csi1grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_GPIO1_IO01_GPIO1_IO1			0x19   /* CSI P2 PWDN */
+				MX8MQ_IOMUXC_SAI3_RXC_GPIO4_IO29			0x19   /* CSI P2 RESET*/
+			>;
+		};
+
+		pinctrl_csiedm: csiedmgrp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_SAI2_RXFS_GPIO4_IO21		0x19   /* CSI EDM PWDN */
+				MX8MQ_IOMUXC_SAI2_RXC_GPIO4_IO22		0x19   /* CSI nRST */
+				MX8MQ_IOMUXC_GPIO1_IO15_CCMSRCGPCMIX_CLKO2	0x59
+			>;
+		};
+
+		pinctrl_pcie0: pcie0grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_SAI5_RXD2_GPIO3_IO23	0x76 /* PCIE_A_CLKREQn, open drain, pull up */
+			>;
+		};
+
+		pinctrl_pcie0_rst: pcie1rstgrp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_GPIO1_IO06_GPIO1_IO6	0x16 /* PCIE_A_PERSTn */
+			>;
+		};
+
+		pinctrl_pcie1: pcie1grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_SAI1_MCLK_GPIO4_IO20	0x16 /* PCIE_nRST */
+			>;
+		};
+
+		pinctrl_mipi_dsi_rst: mipi_dsi_rst {
+			fsl,pins = <
+				MX8MQ_IOMUXC_NAND_CE3_B_GPIO3_IO4	0x16   /* DSI RST, GPIO_P257 */
+			>;
+		};
+
+		pinctrl_touch_irq: touch_irqgrp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_GPIO1_IO07_GPIO1_IO7	0x41
+			>;
+		};
+
+		pinctrl_touch_rst: touch_rstgrp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_NAND_WP_B_GPIO3_IO18	0x16	/* GPIO_P260 */
+			>;
+		};
+
+		pinctrl_backlight_pwr: backlight_pwrgrp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_GPIO1_IO08_GPIO1_IO8	0x19
+			>;
+		};
+
+		pinctrl_pca9555_1: pca9555_1grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_NAND_CE0_B_GPIO3_IO1	0x41 /* irq */
+			>;
+		};
+
+		pinctrl_pca9554_2: pca9554_2grp {
+			fsl,pins = <
+				MX8MQ_IOMUXC_GPIO1_IO12_GPIO1_IO12	0x41 /* irq */
+			>;
+		};
+
+		pinctrl_nfc_ctrl: nfc_ctrl {
+			fsl,pins = <
+				MX8MQ_IOMUXC_ECSPI1_MOSI_GPIO5_IO7		0x19	/* PIN_ENABLE */
+				MX8MQ_IOMUXC_NAND_ALE_GPIO3_IO0			0x19	/* PIN_INT */
+			>;
+		};
+	};
+};
+
+&i2c2 {
+	status = "okay";
+
+	ov5645_mipi: ov5645_mipi@3c {
+		compatible = "ovti,ov5645_mipi_v2";
+		reg = <0x3c>;
+		status = "okay";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_csiedm>;
+		clocks = <&clk IMX8MQ_CLK_CLKO2>;
+		clock-names = "csi_mclk";
+		assigned-clocks = <&clk IMX8MQ_CLK_CLKO2>;
+		assigned-clock-parents = <&clk IMX8MQ_SYS2_PLL_200M>;
+		assigned-clock-rates = <24000000>;
+		csi_id = <0>;
+		pwn-gpios = <&gpio4 21 GPIO_ACTIVE_LOW>;
+		rst-gpios = <&gpio4 22 GPIO_ACTIVE_HIGH>;
+		mclk = <24000000>;
+		mclk_source = <0>;
+		port {
+			ov5645_mipi1_ep: endpoint {
+				remote-endpoint = <&mipi1_sensor_ep>;
+			};
+		};
+	};
+
+	typec_tusb320:tusb320@47 {
+		compatible = "ti,tusb320";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_tusb320_irq>;
+		reg = <0x47>;
+		vbus-supply = <&reg_usb_otg_vbus>;
+		tusb320,int-gpio = <&gpio3 16 GPIO_ACTIVE_LOW>;
+		tusb320,select-mode = <0>;
+		tusb320,dfp-power = <0>;
+	};
+
+	wm8960: codec@1a {
+		compatible = "wlf,wm8960";
+		#sound-dai-cells = <0>;
+		reg = <0x1a>;
+		clocks = <&codec_osc>;
+		clock-names = "mclk";
+		wlf,shared-lrclk;
+		wlf,fixed-mclk;
+	};
+
+	rtc_ds1337: ds1337@68 {
+		compatible = "dallas,ds1337";
+		reg = <0x68>;
+	};
+
+	pn547: pn547@2a {
+		compatible = "nxp,pn547";
+		reg = <0x2a>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_nfc_ctrl>;
+		clock-frequency = <100000>;
+		interrupt-gpios = <&gpio3 0 0>;
+		enable-gpios = <&gpio5 7 0>;
+		/* When you enable NFC, you must to disable ov5645_mipi2 device */
+		status = "okay";
+	};
+};
+
+&i2c4 {
+	status = "okay";
+
+	ov5645_mipi2: ov5645_mipi2@3c {
+		compatible = "ovti,ov5645_mipi_v2";
+		reg = <0x3c>;
+		status = "okay";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_csi1>;
+		clocks = <&clk IMX8MQ_CLK_CLKO2>;
+		clock-names = "csi_mclk";
+		assigned-clocks = <&clk IMX8MQ_CLK_CLKO2>;
+		assigned-clock-parents = <&clk IMX8MQ_SYS2_PLL_200M>;
+		assigned-clock-rates = <24000000>;
+		csi_id = <1>;
+		pwn-gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>;
+		rst-gpios = <&gpio4 29 GPIO_ACTIVE_HIGH>;
+		mclk = <24000000>;
+		mclk_source = <0>;
+		port {
+			ov5645_mipi2_ep: endpoint {
+				remote-endpoint = <&mipi2_sensor_ep>;
+			};
+		};
+	};
+
+	pca9555_1: pca9555_1@23 {
+		compatible = "nxp,pca9555";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pca9555_1>;
+		interrupt-parent = <&gpio3>;
+		interrupts = <1 IRQ_TYPE_EDGE_FALLING>;
+		reg =<0x23>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+	};
+
+	pca9554_2: pca9554_2@25 {
+		compatible = "nxp,pca9554";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pca9554_2>;
+		interrupt-parent = <&gpio1>;
+		interrupts = <12 IRQ_TYPE_EDGE_FALLING>;
+		reg =<0x25>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+		gpio-line-names =
+			"EXP_PIN13", "EXP_PIN29", "EXP_PIN31", "EXP_PIN37", "EXP_PIN16", "EXP_PIN18", "EXP_PIN22", "EXP_PIN36";
+	};
+};
+
+&usb3_phy0 {
+	status = "okay";
+};
+
+&usb_dwc3_0 {
+	extcon = <&typec_tusb320>;
+	dr_mode = "otg";
+	status = "okay";
+};
+
+&usb3_phy1 {
+	status = "okay";
+};
+
+&usb_dwc3_1 {
+	status = "okay";
+	dr_mode = "host";
+};
+
+&dcss {
+    status = "okay";
+
+    port@0 {
+        dcss_out: endpoint {
+              remote-endpoint = <&hdmi_in>;
+        };
+    };
+};
+
+&hdmi {
+    compatible = "cdn,imx8mq-hdmi";
+    lane-mapping = <0xe4>;
+    status = "okay";
+    port@1 {
+        hdmi_in: endpoint {
+            remote-endpoint = <&dcss_out>;
+        };
+    };
+};
+
+&csi1_bridge {
+	fsl,mipi-mode;
+	fsl,two-8bit-sensor-mode;
+	status = "okay";
+
+	port {
+		csi1_ep: endpoint {
+		remote-endpoint = <&csi1_mipi_ep>;
+		};
+	};
+};
+
+&mipi_csi_1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+	port {
+		mipi1_sensor_ep: endpoint@1 {
+			remote-endpoint = <&ov5645_mipi1_ep>;
+			data-lanes = <1 2>;
+		};
+
+		csi1_mipi_ep: endpoint@2 {
+			remote-endpoint = <&csi1_ep>;
+		};
+	};
+};
+
+&csi2_bridge {
+	fsl,mipi-mode;
+	fsl,two-8bit-sensor-mode;
+	status = "okay";
+
+	port {
+		csi2_ep: endpoint {
+			remote-endpoint = <&csi2_mipi_ep>;
+		};
+	};
+};
+
+&mipi_csi_2 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+	port {
+		mipi2_sensor_ep: endpoint@1 {
+			remote-endpoint = <&ov5645_mipi2_ep>;
+			data-lanes = <1 2>;
+		};
+
+		csi2_mipi_ep: endpoint@2 {
+			remote-endpoint = <&csi2_ep>;
+		};
+	};
+};
+
+&pwm3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_dsi_pwm>;
+	status = "okay";
+};
+
+&pwm4 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_fan_pwm>;
+	status = "okay";
+};
+
+&pcie0{
+	pinctrl-names = "default";
+	disable-gpio = <&pca9555_1 5 GPIO_ACTIVE_LOW>;
+	ext_osc = <1>;
+	status = "okay";
+};
+
+&pcie1{
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pcie1>;
+	clkreq-gpio = <&pca9555_1 4 GPIO_ACTIVE_LOW>;
+	disable-gpio = <&pca9555_1 1 GPIO_ACTIVE_LOW>;
+	reset-gpio = <&gpio4 20 GPIO_ACTIVE_LOW>;
+	ext_osc = <1>;
+	status = "okay";
+};
+
+&snvs_pwrkey {
+    status = "okay";
+};
+
+&irqsteer {
+    status = "okay";
+};
+
+
