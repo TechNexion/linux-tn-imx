@@ -274,7 +274,6 @@ static int bno055_read_raw_multi(struct iio_dev *indio_dev,
 }
 
 static const struct iio_info bno055_info = {
-	.driver_module = THIS_MODULE,
 	.read_raw_multi = &bno055_read_raw_multi,
 };
 
