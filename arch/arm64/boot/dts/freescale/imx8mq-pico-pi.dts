@@ -18,6 +18,18 @@
 		stdout-path = &uart1;
 	};
 
+	leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+
+		led {
+			label = "gpio-led";
+			pintctrl-0 = <&pinctrl_led>;
+			gpios = <&gpio5 5 0>;
+			linux,default-trigger = "heartbeat";
+		};
+	};
+
 	pmic_osc: clock-pmic {
 		compatible = "fixed-clock";
 		#clock-cells = <0>;
@@ -79,6 +91,7 @@
 				regulator-min-microvolt = <700000>;
 				regulator-max-microvolt = <1300000>;
 				regulator-boot-on;
+				regulator-always-on;
 				regulator-ramp-delay = <1250>;
 				rohm,dvs-run-voltage = <900000>;
 				rohm,dvs-idle-voltage = <850000>;
@@ -90,6 +103,7 @@
 				regulator-min-microvolt = <700000>;
 				regulator-max-microvolt = <1300000>;
 				regulator-boot-on;
+				regulator-always-on;
 				regulator-ramp-delay = <1250>;
 				rohm,dvs-run-voltage = <1000000>;
 				rohm,dvs-idle-voltage = <900000>;
@@ -100,6 +114,7 @@
 				regulator-min-microvolt = <700000>;
 				regulator-max-microvolt = <1300000>;
 				regulator-boot-on;
+				regulator-always-on;
 				rohm,dvs-run-voltage = <1000000>;
 			};
 
@@ -108,6 +123,7 @@
 				regulator-min-microvolt = <700000>;
 				regulator-max-microvolt = <1300000>;
 				regulator-boot-on;
+				regulator-always-on;
 				rohm,dvs-run-voltage = <1000000>;
 			};
 
@@ -116,6 +132,7 @@
 				regulator-min-microvolt = <700000>;
 				regulator-max-microvolt = <1350000>;
 				regulator-boot-on;
+				regulator-always-on;
 			};
 
 			buck6: BUCK6 {
@@ -123,6 +140,7 @@
 				regulator-min-microvolt = <3000000>;
 				regulator-max-microvolt = <3300000>;
 				regulator-boot-on;
+				regulator-always-on;
 			};
 
 			buck7: BUCK7 {
@@ -130,6 +148,7 @@
 				regulator-min-microvolt = <1605000>;
 				regulator-max-microvolt = <1995000>;
 				regulator-boot-on;
+				regulator-always-on;
 			};
 
 			buck8: BUCK8 {
@@ -137,6 +156,7 @@
 				regulator-min-microvolt = <800000>;
 				regulator-max-microvolt = <1400000>;
 				regulator-boot-on;
+				regulator-always-on;
 			};
 
 			ldo1: LDO1 {
@@ -160,6 +180,7 @@
 				regulator-min-microvolt = <1800000>;
 				regulator-max-microvolt = <3300000>;
 				regulator-boot-on;
+				regulator-always-on;
 			};
 
 			ldo4: LDO4 {
@@ -167,6 +188,7 @@
 				regulator-min-microvolt = <900000>;
 				regulator-max-microvolt = <1800000>;
 				regulator-boot-on;
+				regulator-always-on;
 			};
 
 			ldo5: LDO5 {
@@ -174,6 +196,7 @@
 				regulator-min-microvolt = <1800000>;
 				regulator-max-microvolt = <3300000>;
 				regulator-boot-on;
+				regulator-always-on;
 			};
 
 			ldo6: LDO6 {
@@ -181,6 +204,7 @@
 				regulator-min-microvolt = <900000>;
 				regulator-max-microvolt = <1800000>;
 				regulator-boot-on;
+				regulator-always-on;
 			};
 
 			ldo7: LDO7 {
@@ -188,6 +212,7 @@
 				regulator-min-microvolt = <1800000>;
 				regulator-max-microvolt = <3300000>;
 				regulator-boot-on;
+				regulator-always-on;
 			};
 		};
 	};
@@ -408,6 +433,12 @@
 	pinctrl_wdog: wdoggrp {
 		fsl,pins = <
 			MX8MQ_IOMUXC_GPIO1_IO02_WDOG1_WDOG_B 0xc6
+		>;
+	};
+
+	pinctrl_led: ledggrp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_SPDIF_EXT_CLK_GPIO5_IO5	0x19
 		>;
 	};
 };
