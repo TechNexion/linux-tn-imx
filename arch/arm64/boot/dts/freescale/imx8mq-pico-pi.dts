@@ -276,6 +276,31 @@
 	status = "okay";
 };
 
+&irqsteer {
+    status = "okay";
+};
+
+&dcss {
+    status = "okay";
+
+    port@0 {
+        dcss_out: endpoint {
+            remote-endpoint = <&hdmi_in>;
+        };
+    };
+};
+
+&hdmi {
+    compatible = "cdn,imx8mq-hdmi";
+    lane-mapping = <0xe4>;
+    status = "okay";
+    port@1 {
+        hdmi_in: endpoint {
+            remote-endpoint = <&dcss_out>;
+        };
+    };
+};
+
 &iomuxc {
 	pinctrl_enet_3v3: enet3v3grp {
 		fsl,pins = <
