@@ -165,6 +165,7 @@ static int imx_tc358743_probe(struct platform_device *pdev)
 	struct device_node *cpu_np;
 	struct device_node *codec_np;
 	struct snd_soc_card_drvdata_imx_tc358743 *drvdata = NULL;
+	struct snd_soc_dai_link_component *comp;
 	struct clk *mclk;
 	int ret = 0;
 
@@ -184,10 +185,22 @@ static int imx_tc358743_probe(struct platform_device *pdev)
 		goto fail;
 	}
 
-	imx_tc358743_dai_link.codec_of_node = codec_np;
-	imx_tc358743_dai_link.codec_dai_name = "tc358743"; /*please reference the 'name' attribute of snd_soc_dai_driver object of codec driver*/
-	imx_tc358743_dai_link.platform_of_node = cpu_np;
-	imx_tc358743_dai_link.cpu_of_node = cpu_np;
+	comp = devm_kzalloc(&pdev->dev, 3 * sizeof(*comp), GFP_KERNEL);
+	if (!comp) {
+	        ret = -ENOMEM;
+	        goto fail;
+	}
+
+	imx_tc358743_dai_link.cpus	= &comp[0];
+	imx_tc358743_dai_link.codecs    = &comp[1];
+	imx_tc358743_dai_link.platforms = &comp[2];
+	imx_tc358743_dai_link.num_cpus  = 1;
+	imx_tc358743_dai_link.num_codecs        = 1;
+	imx_tc358743_dai_link.num_platforms     = 1;
+	imx_tc358743_dai_link.codecs->of_node = codec_np;
+	imx_tc358743_dai_link.codecs->dai_name = "tc358743"; /*please reference the 'name' attribute of snd_soc_dai_driver object of codec driver*/
+	imx_tc358743_dai_link.platforms->of_node = cpu_np;
+	imx_tc358743_dai_link.cpus->of_node = cpu_np;
 
 	mclk = devm_clk_get(&pdev->dev, NULL);
 	if (PTR_ERR(mclk) == -EPROBE_DEFER) {
