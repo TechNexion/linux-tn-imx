@@ -125,7 +125,7 @@ static struct snd_soc_dai_driver tc358743_dai = {
 		.formats = TC358743_FORMATS,
 	},
 };
-static struct snd_soc_codec_driver tc358743_codec_driver;
+static struct snd_soc_component_driver tc358743_codec_driver;
 
 static void tc358743_enable_interrupts(struct v4l2_subdev *sd,
 		bool cable_connected);
@@ -2484,7 +2484,7 @@ static int tc358743_probe(struct i2c_client *client)
 	if (err)
 		goto err_work_queues;
 
-	snd_soc_register_codec(&client->dev, &tc358743_codec_driver, &tc358743_dai, 1);
+	devm_snd_soc_register_component(&client->dev, &tc358743_codec_driver, &tc358743_dai, 1);
 
 	v4l2_info(sd, "%s found @ 0x%x (%s)\n", client->name,
 		  client->addr << 1, client->adapter->name);
