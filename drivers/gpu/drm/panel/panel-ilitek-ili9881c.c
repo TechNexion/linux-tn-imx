@@ -761,6 +761,11 @@ static int ili9881c_dsi_probe(struct mipi_dsi_device *dsi)
 			/* non-burst mode with sync pulse */
 			dsi->mode_flags |= MIPI_DSI_MODE_VIDEO_SYNC_PULSE;
 			break;
+		case 3:
+			/* disable clock non-continuous mode, enable burst and sync pulse mode */
+			dsi->mode_flags = MIPI_DSI_MODE_VIDEO_HSE | MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_BURST |
+					  MIPI_DSI_MODE_VIDEO_SYNC_PULSE;
+			break;
 		default:
 			dev_warn(dev, "invalid video mode %d\n", video_mode);
 			break;
