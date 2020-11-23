@@ -276,29 +276,41 @@
 	status = "okay";
 };
 
+&vpu {
+	status = "okay";
+};
+
+&gpu {
+	status = "okay";
+};
+
+&gpu3d {
+	status = "okay";
+};
+
 &irqsteer {
-    status = "okay";
+	status = "okay";
 };
 
 &dcss {
-    status = "okay";
+	status = "okay";
 
-    port@0 {
-        dcss_out: endpoint {
-            remote-endpoint = <&hdmi_in>;
-        };
-    };
+	port@0 {
+		dcss_out: endpoint {
+			remote-endpoint = <&hdmi_in>;
+		};
+	};
 };
 
 &hdmi {
-    compatible = "cdn,imx8mq-hdmi";
-    lane-mapping = <0xe4>;
-    status = "okay";
-    port@1 {
-        hdmi_in: endpoint {
-            remote-endpoint = <&dcss_out>;
-        };
-    };
+	compatible = "cdn,imx8mq-hdmi";
+	lane-mapping = <0xe4>;
+	status = "okay";
+	port@1 {
+		hdmi_in: endpoint {
+			remote-endpoint = <&dcss_out>;
+		};
+	};
 };
 
 &iomuxc {
