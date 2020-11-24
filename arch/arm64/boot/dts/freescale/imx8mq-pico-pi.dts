@@ -92,6 +92,12 @@
 	status = "okay";
 };
 
+&usb_dwc3_0 {
+	extcon = <&typec_tusb320>;
+	dr_mode = "otg";
+	status = "okay";
+};
+
 &usb3_phy1 {
 	status = "okay";
 };
