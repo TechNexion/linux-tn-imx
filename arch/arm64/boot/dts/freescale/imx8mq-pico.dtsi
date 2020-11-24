@@ -47,18 +47,6 @@
 		};
 	};
 
-	leds {
-		compatible = "gpio-leds";
-		pinctrl-names = "default";
-
-		led {
-			label = "gpio-led";
-			pintctrl-0 = <&pinctrl_led>;
-			gpios = <&gpio5 5 0>;
-			linux,default-trigger = "heartbeat";
-		};
-	};
-
 	pmic_osc: clock-pmic {
 		compatible = "fixed-clock";
 		#clock-cells = <0>;
@@ -273,6 +261,13 @@
 	status = "okay";
 };
 
+&i2c3 {
+	clock-frequency = <100000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c3>;
+	status = "okay";
+};
+
 &uart1 { /* console */
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart1>;
@@ -366,6 +361,13 @@
 		fsl,pins = <
 			MX8MQ_IOMUXC_I2C2_SCL_I2C2_SCL			0x4000007f
 			MX8MQ_IOMUXC_I2C2_SDA_I2C2_SDA			0x4000007f
+		>;
+	};
+
+	pinctrl_i2c3: i2c3grp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_I2C3_SCL_I2C3_SCL			0x4000007f
+			MX8MQ_IOMUXC_I2C3_SDA_I2C3_SDA			0x4000007f
 		>;
 	};
 
@@ -505,12 +507,6 @@
 	pinctrl_wdog: wdoggrp {
 		fsl,pins = <
 			MX8MQ_IOMUXC_GPIO1_IO02_WDOG1_WDOG_B 0xc6
-		>;
-	};
-
-	pinctrl_led: ledggrp {
-		fsl,pins = <
-			MX8MQ_IOMUXC_SPDIF_EXT_CLK_GPIO5_IO5	0x19
 		>;
 	};
 };
