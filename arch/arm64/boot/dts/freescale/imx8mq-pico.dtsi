@@ -65,6 +65,35 @@
 		clock-frequency = <32768>;
 		clock-output-names = "pmic_osc";
 	};
+
+	bt_reg_on: btreg_on {
+		compatible = "gpio-reset";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_bt_ctrl>;
+		reset-gpios = <&gpio3 21 GPIO_ACTIVE_LOW>;
+		reset-delay-us = <2000>;
+		reset-post-delay-ms = <40>;
+		#reset-cells = <0>;
+	};
+
+	regulators {
+		compatible = "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		wl_reg_on: wlreg_on {
+			compatible = "regulator-fixed";
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_wifi_ctrl>;
+			regulator-name = "WL_REG_ON";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio3 24 GPIO_ACTIVE_HIGH>;
+			off-on-delay = <20000>;
+			startup-delay-us = <100>;
+			enable-active-high;
+		};
+	};
 };
 
 &fec1 {
@@ -250,6 +279,24 @@
 	status = "okay";
 };
 
+&uart2 { /* Bluetooth */
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart2>;
+	assigned-clocks = <&clk IMX8MQ_CLK_UART2>;
+	assigned-clock-parents = <&clk IMX8MQ_SYS1_PLL_80M>;
+	fsl,uart-has-rtscts;
+	status = "okay";
+};
+
+&uart4 { /* 2nd console, CLIX connector */
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart4>;
+	assigned-clocks = <&clk IMX8MQ_CLK_UART4>;
+	assigned-clock-parents = <&clk IMX8MQ_SYS1_PLL_80M>;
+	fsl,uart-has-rtscts;
+	status = "okay";
+};
+
 &usdhc1 {
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
 	pinctrl-0 = <&pinctrl_usdhc1>;
@@ -262,11 +309,15 @@
 
 &usdhc2 {
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
-	pinctrl-0 = <&pinctrl_usdhc2>, <&pinctrl_usdhc2_gpio>;
-	pinctrl-1 = <&pinctrl_usdhc2_100mhz>, <&pinctrl_usdhc2_gpio>;
-	pinctrl-2 = <&pinctrl_usdhc2_200mhz>, <&pinctrl_usdhc2_gpio>;
+	pinctrl-0 = <&pinctrl_usdhc2>;
+	pinctrl-1 = <&pinctrl_usdhc2_100mhz>;
+	pinctrl-2 = <&pinctrl_usdhc2_200mhz>;
+	vmmc-supply = <&wl_reg_on>;
 	bus-width = <4>;
-	cd-gpios = <&gpio2 12 GPIO_ACTIVE_LOW>;
+	no-1-8-v;
+	pm-ignore-notify;
+	keep-power-in-suspend;
+	non-removable;
 	status = "okay";
 };
 
@@ -324,6 +375,18 @@
 		>;
 	};
 
+	pinctrl_wifi_ctrl: wifi_ctrlgrp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_SAI5_RXD3_GPIO3_IO24		0x19 /* WL_REG_ON */
+		>;
+	};
+
+	pinctrl_bt_ctrl: bt_ctrlgrp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_SAI5_RXD0_GPIO3_IO21		0x19 /* BT_ON */
+		>;
+	};
+
 	pinctrl_uart1: uart1grp {
 		fsl,pins = <
 			MX8MQ_IOMUXC_UART1_RXD_UART1_DCE_RX		0x49
@@ -337,6 +400,15 @@
 			MX8MQ_IOMUXC_UART2_TXD_UART2_DCE_TX		0x49
 			MX8MQ_IOMUXC_UART4_RXD_UART2_DCE_CTS_B		0x49
 			MX8MQ_IOMUXC_UART4_TXD_UART2_DCE_RTS_B		0x49
+		>;
+	};
+
+	pinctrl_uart4: uart4grp {
+		fsl,pins = <
+		MX8MQ_IOMUXC_ECSPI2_MOSI_UART4_DCE_TX		0x49
+		MX8MQ_IOMUXC_ECSPI2_SCLK_UART4_DCE_RX		0x49
+		MX8MQ_IOMUXC_ECSPI2_MISO_UART4_DCE_CTS_B	0x49
+		MX8MQ_IOMUXC_ECSPI2_SS0_UART4_DCE_RTS_B		0x49
 		>;
 	};
 
