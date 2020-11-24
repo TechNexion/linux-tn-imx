@@ -18,6 +18,27 @@
 		stdout-path = &uart1;
 	};
 
+	reg_usb_otg_vbus: regulator-usb-otg-vbus {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_otg_vbus>;
+		compatible = "regulator-fixed";
+		regulator-name = "usb_otg_vbus";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		gpio = <&gpio3 14 GPIO_ACTIVE_LOW>;
+	};
+
+	reg_backlight_pwr: regulator_blpwr {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_backlight_pwr>;
+		compatible = "regulator-fixed";
+		regulator-name = "backlight_pwr";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		gpio = <&gpio1 8 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+
 	leds {
 		compatible = "gpio-leds";
 		pinctrl-names = "default";
@@ -30,15 +51,41 @@
 		};
 	};
 
-	reg_usb_otg_vbus: regulator-usb-otg-vbus {
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_otg_vbus>;
-		compatible = "regulator-fixed";
-		regulator-name = "usb_otg_vbus";
-		regulator-min-microvolt = <5000000>;
-		regulator-max-microvolt = <5000000>;
-		gpio = <&gpio3 14 GPIO_ACTIVE_LOW>;
+	backlight_mipi {
+		compatible = "pwm-backlight";
+		pwms = <&pwm1 0 50000 0>;
+		brightness-levels = <0 36 72 108 144 180 216 255>;
+		default-brightness-level = <6>;
+		power-supply = <&reg_backlight_pwr>;
+		status = "disabled";
 	};
+
+	sound-hdmi {
+		compatible = "fsl,imx-audio-cdnhdmi";
+		model = "imx-audio-hdmi";
+		audio-cpu = <&sai4>;
+		protocol = <1>;
+		hdmi-out;
+		constraint-rate = <44100>,
+				<88200>,
+				<176400>,
+				<32000>,
+				<48000>,
+				<96000>,
+				<192000>;
+	};
+};
+
+&sai4 {
+	assigned-clocks = <&clk IMX8MQ_AUDIO_PLL1>, <&clk IMX8MQ_AUDIO_PLL2>, <&clk IMX8MQ_CLK_SAI4>;
+	assigned-clock-parents = <0>, <0>, <&clk IMX8MQ_AUDIO_PLL1_OUT>;
+	assigned-clock-rates = <786432000>, <722534400>, <24576000>;
+	clocks = <&clk IMX8MQ_CLK_SAI4_IPG>, <&clk IMX8MQ_CLK_DUMMY>,
+		<&clk IMX8MQ_CLK_SAI4_ROOT>, <&clk IMX8MQ_CLK_DUMMY>,
+		<&clk IMX8MQ_CLK_DUMMY>, <&clk IMX8MQ_AUDIO_PLL1_OUT>,
+		<&clk IMX8MQ_AUDIO_PLL2_OUT>;
+	clock-names = "bus", "mclk0", "mclk1", "mclk2", "mclk3", "pll8k", "pll11k";
+	status = "okay";
 };
 
 &usb3_phy0 {
@@ -98,4 +145,74 @@
 			MX8MQ_IOMUXC_NAND_DQS_GPIO3_IO14		0x19   /* USB OTG VBUS Enable */
 		>;
 	};
+
+	pinctrl_backlight_pwr: backlight_pwrgrp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_GPIO1_IO08_GPIO1_IO8		0x19
+		>;
+	};
+
+	pinctrl_dsi_pwm: dsi_pwm {
+		fsl,pins = <
+			MX8MQ_IOMUXC_GPIO1_IO01_PWM1_OUT		0x16	/* DSI PWM */
+		>;
+	};
+
+	pinctrl_fan_pwm: fan_pwm {
+		fsl,pins = <
+			MX8MQ_IOMUXC_SAI3_MCLK_PWM4_OUT			0x16	/* FAN PWM */
+		>;
+	};
+
+	pinctrl_touch_irq: touch_irqgrp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_GPIO1_IO07_GPIO1_IO7	0x41
+		>;
+	};
+
+	pinctrl_tusb320_irq: tusb320_irqgrp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_NAND_CE0_B_GPIO3_IO1	0x41
+		>;
+	};
+
+	pinctrl_touch_rst: touch_rstgrp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_NAND_WP_B_GPIO3_IO18	0x16
+		>;
+	};
+
+	pinctrl_led: ledggrp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_SPDIF_EXT_CLK_GPIO5_IO5	0x19
+		>;
+	};
+};
+
+&i2c2 {
+	status = "okay";
+
+	typec_tusb320:tusb320@67 {
+		compatible = "ti,tusb320";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_tusb320_irq>;
+		reg = <0x67>;
+		vbus-supply = <&reg_usb_otg_vbus>;
+		tusb320,int-gpio = <&gpio3 1 GPIO_ACTIVE_LOW>;
+		tusb320,select-mode = <0>;
+		tusb320,dfp-power = <0>;
+	};
+};
+
+
+&pwm1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_dsi_pwm>;
+	status = "okay";
+};
+
+&pwm4 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_fan_pwm>;
+	status = "okay";
 };
