@@ -237,29 +237,6 @@
 &i2c2 {
 	status = "okay";
 
-	ov5645_mipi: ov5645_mipi@3c {
-		compatible = "ovti,ov5645_mipi_v2";
-		reg = <0x3c>;
-		status = "okay";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_csiedm>;
-		clocks = <&clk IMX8MQ_CLK_CLKO2>;
-		clock-names = "csi_mclk";
-		assigned-clocks = <&clk IMX8MQ_CLK_CLKO2>;
-		assigned-clock-parents = <&clk IMX8MQ_SYS2_PLL_200M>;
-		assigned-clock-rates = <24000000>;
-		csi_id = <0>;
-		pwn-gpios = <&gpio4 21 GPIO_ACTIVE_LOW>;
-		rst-gpios = <&gpio4 22 GPIO_ACTIVE_HIGH>;
-		mclk = <24000000>;
-		mclk_source = <0>;
-		port {
-			ov5645_mipi1_ep: endpoint {
-				remote-endpoint = <&mipi1_sensor_ep>;
-			};
-		};
-	};
-
 	typec_tusb320:tusb320@47 {
 		compatible = "ti,tusb320";
 		pinctrl-names = "default";
@@ -285,44 +262,10 @@
 		compatible = "dallas,ds1337";
 		reg = <0x68>;
 	};
-
-	pn547: pn547@2a {
-		compatible = "nxp,pn547";
-		reg = <0x2a>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_nfc_ctrl>;
-		clock-frequency = <100000>;
-		interrupt-gpios = <&gpio3 0 0>;
-		enable-gpios = <&gpio5 7 0>;
-		/* When you enable NFC, you must to disable ov5645_mipi2 device */
-	};
 };
 
 &i2c4 {
 	status = "okay";
-
-	ov5645_mipi2: ov5645_mipi2@3c {
-		compatible = "ovti,ov5645_mipi_v2";
-		reg = <0x3c>;
-		status = "okay";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_csi1>;
-		clocks = <&clk IMX8MQ_CLK_CLKO2>;
-		clock-names = "csi_mclk";
-		assigned-clocks = <&clk IMX8MQ_CLK_CLKO2>;
-		assigned-clock-parents = <&clk IMX8MQ_SYS2_PLL_200M>;
-		assigned-clock-rates = <24000000>;
-		csi_id = <1>;
-		pwn-gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>;
-		rst-gpios = <&gpio4 29 GPIO_ACTIVE_HIGH>;
-		mclk = <24000000>;
-		mclk_source = <0>;
-		port {
-			ov5645_mipi2_ep: endpoint {
-				remote-endpoint = <&mipi2_sensor_ep>;
-			};
-		};
-	};
 
 	pca9555_1: pca9555_1@23 {
 		compatible = "nxp,pca9555";
@@ -368,63 +311,6 @@
 &usb_dwc3_1 {
 	status = "okay";
 	dr_mode = "host";
-};
-
-
-&csi1_bridge {
-	fsl,mipi-mode;
-	fsl,two-8bit-sensor-mode;
-	status = "okay";
-
-	port {
-		csi1_ep: endpoint {
-			remote-endpoint = <&csi1_mipi_ep>;
-		};
-	};
-};
-
-&mipi_csi_1 {
-	#address-cells = <1>;
-	#size-cells = <0>;
-	status = "okay";
-	port {
-		mipi1_sensor_ep: endpoint@1 {
-			remote-endpoint = <&ov5645_mipi1_ep>;
-			data-lanes = <1 2>;
-		};
-
-		csi1_mipi_ep: endpoint@2 {
-			remote-endpoint = <&csi1_ep>;
-		};
-	};
-};
-
-&csi2_bridge {
-	fsl,mipi-mode;
-	fsl,two-8bit-sensor-mode;
-	status = "okay";
-
-	port {
-		csi2_ep: endpoint {
-			remote-endpoint = <&csi2_mipi_ep>;
-		};
-	};
-};
-
-&mipi_csi_2 {
-	#address-cells = <1>;
-	#size-cells = <0>;
-	status = "okay";
-	port {
-		mipi2_sensor_ep: endpoint@1 {
-			remote-endpoint = <&ov5645_mipi2_ep>;
-			data-lanes = <1 2>;
-		};
-
-		csi2_mipi_ep: endpoint@2 {
-			remote-endpoint = <&csi2_ep>;
-		};
-	};
 };
 
 &pwm3 {
