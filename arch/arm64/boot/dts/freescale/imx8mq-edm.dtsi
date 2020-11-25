@@ -92,22 +92,6 @@
 			enable-active-high;
 		};
 	};
-
-	sound-hdmi {
-		compatible = "fsl,imx8mq-evk-cdnhdmi",
-				"fsl,imx-audio-cdnhdmi";
-		model = "imx-audio-hdmi";
-		audio-cpu = <&sai4>;
-		protocol = <1>;
-		hdmi-out;
-		constraint-rate = <44100>,
-				<88200>,
-				<176400>,
-				<32000>,
-				<48000>,
-				<96000>,
-				<192000>;
-	};
 };
 
 &fec1 {
