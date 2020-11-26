@@ -32,3 +32,4 @@ subdir-y += zte
 # enable creation of __symbols__ node
 DTC_FLAGS_imx8mp-edm-g-wb := -@
 DTC_FLAGS_imx8mq-edm-wizard := -@
+DTC_FLAGS_imx8mq-pico-pi := -@
