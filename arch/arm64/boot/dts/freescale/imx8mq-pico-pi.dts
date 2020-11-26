@@ -170,6 +170,12 @@
 		>;
 	};
 
+	pinctrl_mipi_dsi_rst: mipi_dsi_rst {
+		fsl,pins = <
+			MX8MQ_IOMUXC_NAND_WE_B_GPIO3_IO17	0x16   /* DSI RST */
+		>;
+	};
+
 	pinctrl_touch_irq: touch_irqgrp {
 		fsl,pins = <
 			MX8MQ_IOMUXC_GPIO1_IO07_GPIO1_IO7	0x41
