@@ -20,22 +20,6 @@
 
 &iomuxc {
 	imx8mm-pico {
-		/delete-node/ pinctrl_expansion_gpio;
-	};
-};
-
-&iomuxc {
-	imx8mm-pico {
-		pinctrl_expansion_gpio: expansiongpiogrp {
-			fsl,pins = <
-				MX8MM_IOMUXC_NAND_ALE_GPIO3_IO0			0x41 /* GPIO_P25, KEY_PREV on VoiceHat */
-				MX8MM_IOMUXC_NAND_DATA00_GPIO3_IO6		0x41 /* GPIO_P28, KEY_MUTE on VoiceHat */
-				MX8MM_IOMUXC_NAND_DATA01_GPIO3_IO7		0x41 /* GPIO_P30, KEY_UP on VoiceHat */
-				MX8MM_IOMUXC_NAND_DATA02_GPIO3_IO8		0x41 /* GPIO_P32 */
-				MX8MM_IOMUXC_I2C4_SCL_GPIO5_IO20		0x41 /* GPIO_P44, KEY_NEXT on VoiceHat */
-			>;
-		};
-
 		pinctrl_nfc_ctrl: nfc_ctrl {
 			fsl,pins = <
 				MX8MM_IOMUXC_NAND_READY_B_GPIO3_IO16	0x41	/* PIN_INT */
@@ -58,6 +42,9 @@
 	};
 };
 
+/*
+ * NFC PIN_ENABLE conflicts with CSI_PWN
+ */
 &i2c2 {
 	ov5645_mipi: ov5645_mipi@3c {
 		status = "disabled";

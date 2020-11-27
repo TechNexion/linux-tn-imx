@@ -20,12 +20,6 @@
 
 &iomuxc {
 	imx8mm-pico {
-		/delete-node/ pinctrl_expansion_gpio; /* NFC PIN_INT conflicts with expension GPIO_P32 */
-		pinctrl_expansion_gpio: expansiongpiogrp {
-			fsl,pins = <
-				MX8MM_IOMUXC_ECSPI2_SS0_GPIO5_IO13		0x41 /* ECSPI2_SS0,  KEY_UP on VoiceHat */
-			>;
-		};
 		/* CLIX-7150 on CLIX1 interface */
 		pinctrl_nfc_ctrl: nfc_ctrl {
 			fsl,pins = <
@@ -34,6 +28,13 @@
 			>;
 		};
 	};
+};
+
+/* NFC PIN_INT conflicts with GPIO_P32 */
+&gpio3 {
+	/delete-property/ pinctrl-names;
+	/delete-property/ pinctrl-0;
+	/delete-property/ gpio-line-names;
 };
 
 &i2c3 {
