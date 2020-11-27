@@ -94,6 +94,18 @@
 			clock-output-names = "wm8960-mclk";
 		};
 	};
+
+	user_keys {
+		compatible = "gpio-keys";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_user_key>;
+
+		keys {
+			gpios = <&gpio4 16 GPIO_ACTIVE_LOW>;
+			label = "user-key";
+			linux,code = <EV_KEY>;
+		};
+	};
 };
 
 &clk {
@@ -103,6 +115,12 @@
 
 &iomuxc {
 	imx8mm-axon {
+
+		pinctrl_user_key: userkeygrp {
+			fsl,pins = <
+				MX8MM_IOMUXC_SAI1_TXD4_GPIO4_IO16		0x41   /* USER KEY */
+			>;
+		};
 
 		pinctrl_otg_vbus: otgvbusgrp {
 			fsl,pins = <
@@ -163,7 +181,7 @@
 	};
 
 	pinctrl_af_user_pb: pcuserpb {
-		pins = "F_GPIO_X1_P72"; function = "gpio"; drive-open-drain;
+		pins = "F_GPIO_X1_P72"; function = "passthru_in"; drive-push-pull;
 	};
 
 	pinctrl_af_otg_vbus_en: pcotgvbusen {
