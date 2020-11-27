@@ -222,3 +222,10 @@
 	status = "okay";
 };
 
+&PICO_CANA {
+	status = "okay";
+};
+
+&PICO_CANB {
+	status = "okay";
+};
