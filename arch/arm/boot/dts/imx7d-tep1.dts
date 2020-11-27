@@ -14,7 +14,7 @@
 #include "imx7d.dtsi"
 #include "imx7d-tep1.dtsi"
 / {
-	model = "TechNexion TEP1-IMX7D board rev. A1";
+	model = "TechNexion TEP1-IMX7D rev A1 board";
 	compatible = "fsl,imx7d";
 };
 
