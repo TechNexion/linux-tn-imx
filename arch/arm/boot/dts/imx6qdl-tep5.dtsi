@@ -233,6 +233,17 @@
 		default-brightness-level = <6>;
 	};
 
+	pwm-leds {
+		compatible = "pwm-leds";
+
+		led_d24 {
+			label = "led_d24";
+			pwms = <&pwm1 0 50000>;
+			max-brightness = <255>;
+			linux,default-trigger = "default-on";
+		};
+	};
+
 	v4l2_cap_0 {
 		compatible = "fsl,imx6q-v4l2-capture";
 		ipu_id = <0>;
@@ -538,6 +549,12 @@ TEP_GPIO_DEFS();
 			>;
 		};
 
+		pinctrl_pwm1: pwm1grp {
+			fsl,pins = <
+				MX6QDL_PAD_GPIO_9__PWM1_OUT		0x1b0b1
+			>;
+		};
+
 		pinctrl_pwm3: pwm3grp {
 			fsl,pins = <
 				MX6QDL_PAD_SD4_DAT1__PWM3_OUT		0x1b0b1
@@ -719,6 +736,12 @@ TEP_GPIO_DEFS();
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_pcie_reset>;
 	reset-gpio = <&gpio3 31 0>;
+	status = "okay";
+};
+
+&pwm1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pwm1>;
 	status = "okay";
 };
 
