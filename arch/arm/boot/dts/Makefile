@@ -769,6 +769,8 @@ dtb-$(CONFIG_SOC_IMX6UL) += \
 	imx6ul-pico-dwarf.dtb \
 	imx6ul-pico-hobbit.dtb \
 	imx6ul-pico-pi.dtb \
+	imx6ul-pico-hobbit-qca.dtb \
+	imx6ul-pico-pi-qca.dtb \
 	imx6ul-phytec-segin-ff-rdk-emmc.dtb \
 	imx6ul-phytec-segin-ff-rdk-nand.dtb \
 	imx6ul-prti6g.dtb \
@@ -862,6 +864,8 @@ dtb-$(CONFIG_SOC_IMX7D) += \
 	imx7d-pico-hobbit.dtb \
 	imx7d-pico-nymph.dtb \
 	imx7d-pico-pi.dtb \
+	imx7d-pico-hobbit-qca.dtb \
+	imx7d-pico-pi-qca.dtb \
 	imx7d-remarkable2.dtb \
 	imx7d-sbc-imx7.dtb \
 	imx7d-sdb.dtb \
