@@ -2,7 +2,6 @@
 //
 // Copyright 2017 NXP
 
-/dts-v1/;
 
 #include "imx7d.dtsi"
 
