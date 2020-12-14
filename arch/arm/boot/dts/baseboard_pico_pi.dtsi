@@ -54,7 +54,7 @@ PICO_PI_GPIO_DEFS();
 &PICO_I2CA {
 	status = "okay";
 
-	codec: sgtl5000@0a {
+	codec: sgtl5000@a {
 		compatible = "fsl,sgtl5000";
 		reg = <0x0a>;
 		clocks = <&codec_osc>;
@@ -110,7 +110,7 @@ PICO_PI_GPIO_DEFS();
 &PICO_SPIA {
 	status = "okay";
 
-	spidev@1 {
+	spidev@0 {
 		compatible = "rohm,dh2228fv";
 		spi-max-frequency = <60000000>;
 		reg = <0>;
