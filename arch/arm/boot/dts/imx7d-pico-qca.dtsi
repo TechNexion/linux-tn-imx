@@ -722,7 +722,7 @@
 	pinctrl-0 = <&pinctrl_i2c4>;
 	status = "okay";
 
-	pmic: pfuze3000@08 {
+	pmic: pfuze3000@8 {
 		compatible = "fsl,pfuze3000";
 		reg = <0x08>;
 		fsl,lpsr-mode;
@@ -936,14 +936,14 @@
 	clock-frequency = <24000000>;
 	status = "okay";
 	port {
-		mipi_sensor_ep: endpoint1 {
+		mipi_sensor_ep: endpoint@1 {
 			remote-endpoint = <&ov5645_mipi_ep>;
 			data-lanes = <2>;
 			csis-hs-settle = <13>;
 			csis-clk-settle = <2>;
 		};
 
-		csi_mipi_ep: endpoint2 {
+		csi_mipi_ep: endpoint@2 {
 			remote-endpoint = <&csi_ep>;
 		};
 	};
