@@ -660,6 +660,7 @@
 	phy-mode = "rgmii-id";
 	phy-reset-gpios = <&gpio3 29 GPIO_ACTIVE_LOW>;
 	pinctrl-assert-gpios = <&gpio7 13 GPIO_ACTIVE_LOW>;
+	fsl,magic-packet;
 	status = "okay";
 };
 
