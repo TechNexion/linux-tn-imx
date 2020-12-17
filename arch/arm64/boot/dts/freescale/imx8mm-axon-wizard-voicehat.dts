@@ -21,7 +21,6 @@
 #include "imx8mm-axon-wizard.dts"
 
 / {
-
 	model = "TechNexion AXON-IMX8MM, WIZARD baseboard, and Voicehat";
 	compatible = "fsl,imx8mm-axon", "fsl,imx8mm";
 
@@ -57,56 +56,55 @@
 		status = "disabled";
 	};
 
-	gpio_keys {
-		compatible = "gpio-keys";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_gpio_key_voicehat>;
+	voicehat_keys {
+		compatible = "gpio-keys-polled";
+		poll-interval = <100>;
+		autorepeat;
 
 		prev {
-			gpios = <AXON_EXT_GPIO_UART_A_CTS GPIO_ACTIVE_LOW>;
+			gpios = <&axonfabric 59 GPIO_ACTIVE_LOW>;
 			label = "KEY PREV";
 			linux,code = <KEY_PREVIOUS>;
 		};
 
 		play {
-			gpios = <AXON_EXT_GPIO_PWM_X2_P79 GPIO_ACTIVE_LOW>;
+			gpios = <&axonfabric 78 GPIO_ACTIVE_LOW>;
 			label = "KEY PLAY";
 			linux,code = <KEY_PLAY>;
 		};
-/* These need to be enabled in Axon fabrio GPIO, which needs interrupt support
-   added to make it useful.
+
 		next {
-			gpios = <&gpio3 24 GPIO_ACTIVE_LOW>;
+			gpios = <&axonfabric 95 GPIO_ACTIVE_LOW>;
 			label = "KEY NEXT";
 			linux,code = <KEY_NEXT>;
 		};
 
 		up {
-			gpios = <&gpio3 20 GPIO_ACTIVE_LOW>;
+			gpios = <&axonfabric 94 GPIO_ACTIVE_LOW>;
 			label = "KEY UP";
 			linux,code = <KEY_UP>;
 		};
 
 		down {
-			gpios = <&gpio3 25 GPIO_ACTIVE_LOW>;
+			gpios = <&axonfabric 92 GPIO_ACTIVE_LOW>;
 			label = "KEY DOWN";
 			linux,code = <KEY_DOWN>;
 		};
 
 		mute {
-			gpios = <&gpio3 19 GPIO_ACTIVE_LOW>;
+			gpios = <&axonfabric 93 GPIO_ACTIVE_LOW>;
 			label = "KEY MUTE";
 			linux,code = <KEY_MUTE>;
 		};
-*/
+
 		pair {
-			gpios = <AXON_EXT_GPIO_SPI_A_CS0 GPIO_ACTIVE_LOW>;
+			gpios = <&axonfabric 75 GPIO_ACTIVE_LOW>;
 			label = "KEY PAIR";
 			linux,code = <KEY_SELECT>;
 		};
 
 		act {
-			gpios = <AXON_EXT_GPIO_X1_P76 GPIO_ACTIVE_LOW>;
+			gpios = <&axonfabric 5 GPIO_ACTIVE_LOW>;
 			label = "KEY ACT";
 			linux,code = <KEY_OK>;
 		};
@@ -117,15 +115,6 @@
 	pinctrl-names = "default";
 
 	imx8mm-axon {
-		pinctrl_gpio_key_voicehat: gpiokey_voicehat_grp {
-			fsl,pins = <
-				PINCTRL_AXON_EXT_GPIO_UART_A_CTS 	0x19	/*	prev	*/
-				PINCTRL_AXON_EXT_GPIO_PWM_X2_P79    0x19	/*	play	*/
-				PINCTRL_AXON_EXT_GPIO_SPI_A_CS0		0x19	/*	pair	*/
-				PINCTRL_AXON_EXT_GPIO_X1_P76		0x19	/*	act		*/
-			>;
-		};
-
 		pinctrl_tfa98xx: tfa98xx_ctrlgrp {
 			fsl,pins = <
 				PINCTRL_AXON_EXT_GPIO_SPI_A_SCLK	0x19 /* RST */
@@ -136,16 +125,17 @@
 };
 
 &pinmux_axonfabric {
-	/delete-node/ pinctrl_af_uart_a_rtscts;
-	/delete-node/ pinctrl_af_pwm_x1_x2;
-	/delete-node/ pinctrl_af_can_gpio;
-	/delete-node/ pinctrl_af_spi_a_out;
-	/delete-node/ pinctrl_af_spi_a_in;
+
+/delete-node/ pinctrl_af_uart_a_rtscts;
+/delete-node/ pinctrl_af_pwm_x1_x2;
+/delete-node/ pinctrl_af_can_gpio;
+/delete-node/ pinctrl_af_spi_a_out;
+/delete-node/ pinctrl_af_spi_a_in;
 
 	pinctrl_af_gpiokeys: pcgpiokey {
 		pins = "F_UART_A_CTS", "F_PWM_X2_P79", "F_CAN_B_RX", "F_CAN_B_TX",
 				"F_CAN_A_TX", "F_CAN_A_RX", "F_SPI_A_CS0", "F_GPIO_X1_P76";
-		function = "passthru_in"; drive-push-pull;
+		function = "gpio"; drive-push-pull;
 	};
 
 	pinctrl_af_tfa98xx_rst: tfa98xx_rst {
