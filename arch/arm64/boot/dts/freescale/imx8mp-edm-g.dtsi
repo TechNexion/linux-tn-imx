@@ -530,6 +530,7 @@
 	pinctrl-2 = <&pinctrl_usdhc1_200mhz>;
 	vmmc-supply = <&wl_reg_on>;
 	bus-width = <4>;
+	max-frequency = <133333333>;
 	pm-ignore-notify;
 	keep-power-in-suspend;
 	non-removable;
