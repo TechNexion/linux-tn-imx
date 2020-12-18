@@ -94,6 +94,18 @@
 			clock-output-names = "wm8960-mclk";
 		};
 	};
+
+	user_keys {
+		compatible = "gpio-keys-polled";
+		poll-interval = <100>;
+		autorepeat;
+
+		keys {
+			gpios = <&axonfabric 36 GPIO_ACTIVE_LOW>;
+			label = "user-key";
+			linux,code = <EV_KEY>;
+		};
+	};
 };
 
 &clk {
@@ -163,7 +175,7 @@
 	};
 
 	pinctrl_af_user_pb: pcuserpb {
-		pins = "F_GPIO_X1_P72"; function = "gpio"; drive-open-drain;
+		pins = "F_DISP_DAT12"; function = "gpio"; drive-open-drain;
 	};
 
 	pinctrl_af_otg_vbus_en: pcotgvbusen {
