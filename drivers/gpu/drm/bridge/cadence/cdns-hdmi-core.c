@@ -388,10 +388,6 @@ cdns_hdmi_connector_detect(struct drm_connector *connector, bool force)
 
 	hpd = cdns_mhdp_read_hpd(mhdp);
 
-	/* some imx8mq-hdmi evk boards has hdmi interference, force output hdmi signal */
-	if (!strncmp("imx8mq-hdmi", mhdp->plat_data->plat_name, 11))
-		return connector_status_connected;
-
 	if (hpd == 1)
 		/* Cable Connected */
 		result = connector_status_connected;
