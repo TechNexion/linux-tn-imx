@@ -18,7 +18,7 @@
 
 #include "imx8mm-axon-wizard.dts"
 / {
-	model = "TechNexion AXON-IMX8MM and WIZARD baseboard with 10 inch MIPI2LVDS display";
+	model = "TechNexion AXON-IMX8MM and WIZARD baseboard with 21.5 inch MIPI2LVDS display";
 	regulators {
 		reg_mipi_pwr: regulator_mipipwr {
 			pinctrl-names = "default";
@@ -29,6 +29,7 @@
 			gpio = <&pca9554_23 0 GPIO_ACTIVE_HIGH>;
 			regulator-always-on;
 			enable-active-high;
+			regulator-boot-on;
 		};
 
 		reg_mipi_vdd: regulator_mipivdd {
@@ -40,6 +41,7 @@
 			gpio = <&pca9554_23 2 GPIO_ACTIVE_HIGH>;
 			regulator-always-on;
 			enable-active-high;
+			regulator-boot-on;
 		};
 
 		reg_backlight_pwr: regulator_blpwr {
