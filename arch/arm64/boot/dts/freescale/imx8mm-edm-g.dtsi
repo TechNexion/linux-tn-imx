@@ -24,8 +24,7 @@
 	};
 
 	chosen {
-		bootargs = "console=ttymxc0,115200 earlycon=ec_imx6q,0x30860000,115200";
-		stdout-path = &uart1;
+		stdout-path = &uart2;
 	};
 
 	bt_reg_on: btreg_on {
@@ -151,7 +150,7 @@
 	status = "disabled";
 };
 
-&uart1 { /* A53 console, UART_A */
+&uart1 { /* baseboard, UART_C */
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart1>;
 	assigned-clocks = <&clk IMX8MM_CLK_UART1>;
@@ -160,7 +159,7 @@
 	status = "okay";
 };
 
-&uart2 { /* baseboard, UART_C */
+&uart2 { /* A53 console, UART_A */
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart2>;
 	assigned-clocks = <&clk IMX8MM_CLK_UART2>;
@@ -269,27 +268,6 @@
 	clock-frequency = <400000>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c1>;
-	status = "okay";
-};
-
-&i2c2 { /* I2C_B */
-	clock-frequency = <400000>;
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_i2c2>;
-	status = "okay";
-};
-
-&i2c3 { /* I2C_C */
-	clock-frequency = <400000>;
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_i2c3>;
-	status = "okay";
-};
-
-&i2c4 { /* I2C_C */
-	clock-frequency = <400000>;
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_i2c4>;
 	status = "okay";
 
 	pmic: pca9450@25 {
@@ -407,6 +385,27 @@
 			};
 		};
 	};
+};
+
+&i2c2 { /* I2C_B */
+	clock-frequency = <400000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c2>;
+	status = "okay";
+};
+
+&i2c3 { /* I2C_C */
+	clock-frequency = <400000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c3>;
+	status = "okay";
+};
+
+&i2c4 { /* I2C_C */
+	clock-frequency = <400000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c4>;
+	status = "okay";
 
 	dsi_lvds_bridge: sn65dsi84@2d {
 		reg = <0x2d>;
