@@ -139,6 +139,10 @@
 	status = "okay";
 };
 
+&ecspi1 {
+	status = "disabled";
+};
+
 &i2c2 {
 	tfa98xx_left: tfa98xx_left@34 {
 		compatible = "nxp,tfa98xx";
