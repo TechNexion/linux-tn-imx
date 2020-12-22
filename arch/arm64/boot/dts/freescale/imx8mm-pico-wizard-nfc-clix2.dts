@@ -37,6 +37,10 @@
 	/delete-property/ gpio-line-names;
 };
 
+&ecspi2 {
+	status = "disabled";
+};
+
 &i2c3 {
 	pn547: pn547@2a {
 		compatible = "nxp,pn547";

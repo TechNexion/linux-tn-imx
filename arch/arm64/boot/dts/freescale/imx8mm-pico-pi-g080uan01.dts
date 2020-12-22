@@ -46,6 +46,10 @@
        };
 };
 
+&ecspi2 {
+	status = "disabled";
+};
+
 &pwm3 {
        pinctrl-names = "default";
        pinctrl-0 = <&pinctrl_exp_dsi_pwm>;

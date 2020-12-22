@@ -109,6 +109,13 @@
 	};
 
 	fragment@3 {
+		target = <&ecspi2>;
+		__overlay__ {
+			status = "disabled";
+		};
+	};
+
+	fragment@4 {
 		target = <&i2c2>;
 		__overlay__ {
 			#address-cells = <1>;
@@ -131,7 +138,7 @@
 		};
 	};
 
-	fragment@4 {
+	fragment@5 {
 		target = <&i2c3>;
 		__overlay__ {
 			#address-cells = <1>;

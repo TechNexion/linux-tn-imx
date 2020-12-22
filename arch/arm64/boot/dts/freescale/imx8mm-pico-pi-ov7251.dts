@@ -17,12 +17,6 @@
 
 #include "imx8mm-pico-pi.dts"
 
-&pinctrl_csi_pwn {
-	fsl,pins = <
-		MX8MM_IOMUXC_GPIO1_IO06_GPIO1_IO6	0x19
-	>;
-};
-
 &i2c2 {
 	ov7251: ovti_ov7251@60 {
 		compatible = "ovti,ov7251";
