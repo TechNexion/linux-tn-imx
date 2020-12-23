@@ -146,6 +146,12 @@ EDM_FAIRY_GPIO_DEFS();
 
 		linux,wakeup;
 	};
+
+	spidev@0 {
+		compatible = "rohm,dh2228fv";
+		spi-max-frequency = <10000000>;
+		reg = <0>;
+	};
 };
 
 #ifdef EDM_PCIEA

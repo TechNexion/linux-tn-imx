@@ -118,6 +118,12 @@ EDM_GNOME_GPIO_DEFS();
 
 &EDM_SPIB {
 	status = "okay";
+
+	spidev@0 {
+		compatible = "rohm,dh2228fv";
+		spi-max-frequency = <10000000>;
+		reg = <0>;
+	};
 };
 
 &EDM_CANA {
