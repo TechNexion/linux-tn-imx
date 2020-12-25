@@ -62,7 +62,7 @@
 	};
 };
 
-&i2c4 {
+&i2c1 {
 	dsi_lvds_bridge: sn65dsi84@2d {
 		sn65dsi84,addresses = <0x09 0x0A 0x0B 0x0D
 		                       0x10 0x11 0x12 0x13
