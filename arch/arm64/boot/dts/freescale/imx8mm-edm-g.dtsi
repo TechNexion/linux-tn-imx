@@ -385,6 +385,15 @@
 			};
 		};
 	};
+
+	dsi_lvds_bridge: sn65dsi84@2d {
+		reg = <0x2d>;
+		compatible = "ti,sn65dsi84";
+		#gpio-cells = <2>;
+		pinctrl-0 = <&pinctrl_mipi_dsi_en>;
+		enable-gpios = <&gpio3 9 GPIO_ACTIVE_HIGH>;
+		status = "disabled";
+	};
 };
 
 &i2c2 { /* I2C_B */
@@ -406,15 +415,6 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c4>;
 	status = "okay";
-
-	dsi_lvds_bridge: sn65dsi84@2d {
-		reg = <0x2d>;
-		compatible = "ti,sn65dsi84";
-		#gpio-cells = <2>;
-		pinctrl-0 = <&pinctrl_mipi_dsi_en>;
-		enable-gpios = <&gpio3 9 GPIO_ACTIVE_HIGH>;
-		status = "disabled";
-	};
 
 	eeprom_som: eeprom@53 {
 		compatible = "atmel,24c02";
@@ -716,12 +716,6 @@
 	pinctrl_dsi_backlight_pwm: dsi_bl_pwmgrp {
 		fsl,pins = <
 			MX8MM_IOMUXC_SPDIF_EXT_CLK_PWM1_OUT		0x16
-		>;
-	};
-
-	pinctrl_lvds0_backlight_pwm: lvds0_bl_pwmgrp {
-		fsl,pins = <
-			MX8MM_IOMUXC_SPDIF_RX_PWM2_OUT		0x16
 		>;
 	};
 
