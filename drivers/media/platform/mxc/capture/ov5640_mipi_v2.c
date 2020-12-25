@@ -548,19 +548,19 @@ static void ov5640_reset(struct ov5640 *sensor)
 		return;
 
 	/* camera reset */
-	gpio_set_value(sensor->rst_gpio, 1);
+	gpio_set_value_cansleep(sensor->rst_gpio, 1);
 
 	/* camera power dowmn */
-	gpio_set_value(sensor->pwn_gpio, 1);
+	gpio_set_value_cansleep(sensor->pwn_gpio, 1);
 	msleep(5);
 
-	gpio_set_value(sensor->rst_gpio, 0);
+	gpio_set_value_cansleep(sensor->rst_gpio, 0);
 	msleep(1);
 
-	gpio_set_value(sensor->pwn_gpio, 0);
+	gpio_set_value_cansleep(sensor->pwn_gpio, 0);
 	msleep(5);
 
-	gpio_set_value(sensor->rst_gpio, 1);
+	gpio_set_value_cansleep(sensor->rst_gpio, 1);
 	msleep(5);
 }
 
