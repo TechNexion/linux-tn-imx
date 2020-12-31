@@ -54,7 +54,7 @@ PICO_NYMPH_GPIO_DEFS();
 &PICO_I2CA {
 	status = "okay";
 
-	codec: sgtl5000@0a {
+	codec: sgtl5000@a {
 		compatible = "fsl,sgtl5000";
 		reg = <0x0a>;
 		clocks = <&codec_osc>;
@@ -62,13 +62,13 @@ PICO_NYMPH_GPIO_DEFS();
 		VDDIO-supply = <&reg_3p3v>;
 	};
 
-	adc: adc081c {
+	adc: adc081c@52 {
 		compatible = "ti,adc081c";
 		reg = <0x52>;
 		vref-supply = <&reg_2p5v>;
 	};
 
-	rtc: ds1337 {
+	rtc: ds1337@68 {
 		compatible = "dallas,ds1337";
 		reg = <0x68>;
 	};
@@ -93,7 +93,7 @@ PICO_NYMPH_GPIO_DEFS();
 &PICO_SPIA {
 	status = "okay";
 
-	spidev@1 {
+	spidev@0 {
 		compatible = "rohm,dh2228fv";
 		spi-max-frequency = <60000000>;
 		reg = <0>;
