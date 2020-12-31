@@ -64,7 +64,7 @@ PICO_HOBBIT_GPIO_DEFS();
 &PICO_I2CA {
 	status = "okay";
 
-	codec: sgtl5000@0a {
+	codec: sgtl5000@a {
 		compatible = "fsl,sgtl5000";
 		reg = <0x0a>;
 		clocks = <&codec_osc>;
@@ -76,7 +76,7 @@ PICO_HOBBIT_GPIO_DEFS();
 &PICO_I2CB {
 	status = "okay";
 
-	adc: adc081c {
+	adc: adc081c@50 {
 		compatible = "ti,adc081c";
 		reg = <0x50>;
 		vref-supply = <&reg_3p3v>;
