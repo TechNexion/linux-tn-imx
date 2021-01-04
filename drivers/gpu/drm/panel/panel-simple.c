@@ -4696,6 +4696,35 @@ static const struct panel_desc_dsi dsi2lvds_panel = {
 	.lanes = 4,
 };
 
+static const struct display_timing vxt_vl15613676_timing = {
+	.pixelclock = { 60000000, 76000000, 90000000 },
+	.hactive = { 1366, 1366, 1368 },
+	.hfront_porch = { 35, 90, 250 },
+	.hback_porch = { 35, 90, 250 },
+	.hsync_len = { 10, 20, 70 },
+	.vactive = { 768, 768, 768 },
+	.vfront_porch = { 4, 17, 55 },
+	.vback_porch = { 4, 17, 55 },
+	.vsync_len = { 2, 4, 10 },
+	.flags = DISPLAY_FLAGS_HSYNC_HIGH | DISPLAY_FLAGS_VSYNC_HIGH,
+};
+
+static const struct panel_desc_dsi vxt_vl15613676_panel = {
+	.desc = {
+		.timings = &vxt_vl15613676_timing,
+		.num_timings = 1,
+		.bpc = 8,
+		.size = {
+			.width = 344,
+			.height = 193,
+		},
+		.bus_flags = DRM_BUS_FLAG_DE_LOW,
+	},
+	.flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_CLOCK_NON_CONTINUOUS,
+	.format = MIPI_DSI_FMT_RGB888,
+	.lanes = 4,
+};
+
 static const struct display_timing vxt_vl215192108_timing = {
 	.pixelclock = { 40000000, 72000000, 83000000 },
 	.hactive = { 1920, 1920, 1920 },
@@ -4885,6 +4914,9 @@ static const struct of_device_id dsi_of_match[] = {
 	}, {
 		.compatible = "tn,dsi2lvds-panel",
 		.data = &dsi2lvds_panel
+	}, {
+		.compatible = "vxt,vl15613676-panel",
+		.data = &vxt_vl15613676_panel
 	}, {
 		.compatible = "vxt,vl215192108-panel",
 		.data = &vxt_vl215192108_panel
