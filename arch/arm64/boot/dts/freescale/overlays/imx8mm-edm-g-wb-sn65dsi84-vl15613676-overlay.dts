@@ -40,13 +40,13 @@
 			#size-cells = <0>;
 			panel@0 {
 				reg = <0>;
-				compatible = "tn,dsi2lvds-panel";
+				compatible = "vxt,vl15613676-panel";
 				backlight = <&lvds_backlight>;
 				dsi,flags = <0x0007>;
 				dsi,format = <0>;
 				dsi,lanes = <4>;
-				panel-width-mm  = <217>;
-				panel-height-mm = <135>;
+				panel-width-mm  = <344>;
+				panel-height-mm = <193>;
 				bus-format = <0x100a>;	/* MEDIA_BUS_FMT_RGB888_1X24 */
 				bus-flags = <1>;
 				refresh-rate = <60>;
@@ -55,15 +55,15 @@
 				/* vert-flip; */
 
 				panel-timing {
-					clock-frequency = <68900000>;
-					hactive = <1280>;
-					vactive = <800>;
-					hfront-porch = <40>;
-					hsync-len = <80>;
-					hback-porch = <40>;
-					vfront-porch = <3>;
-					vsync-len = <10>;
-					vback-porch = <10>;
+					clock-frequency = <76000000>;
+					hactive = <1366>;
+					vactive = <768>;
+					hfront-porch = <90>;
+					hsync-len = <20>;
+					hback-porch = <90>;
+					vfront-porch = <17>;
+					vsync-len = <4>;
+					vback-porch = <17>;
 					/* flags = DISPLAY_FLAGS_HSYNC_HIGH | DISPLAY_FLAGS_VSYNC_HIGH */
 					vsync-active = <1>;
 					hsync-active = <1>;
@@ -91,25 +91,25 @@
 				sn65dsi84,values = </* reset and clock registers */
 									0x00 0x05 0x10 0x00
 									/* DSI registers */
-									0x26 0x00 0x2a 0x00
+									0x26 0x00 0x35 0x00
 									/* LVDS registers */
 									0x78 0x00 0x03 0x00
 
 									/* video registers */
 									/* cha-al-len-l, cha-al-len-h, chb-al-len-l, chb-al-len-h */
-									0x00 0x05 0x00 0x00
+									0x56 0x05 0x00 0x00
 									/* cha-v-ds-l, cha-v-ds-h, chb-v-ds-l, chb-v-ds-h */
-									0x00 0x00 0x00 0x00
+									0x00 0x03 0x00 0x00
 									/* cha-sdl, cha-sdh, chb-sdl, chb-sdh */
-									0x21 0x00 0x00 0x00
+									0x20 0x00 0x00 0x00
 									/* cha-hs-pwl, cha-hs-pwh, chb-hs-pwl, chb-hs-pwh */
-									0x50 0x00 0x00 0x00
+									0x14 0x00 0x00 0x00
 									/* cha-vs-pwl, cha-vs-pwh, chb-vs-pwl, chb-vs-pwh */
-									0x0a 0x00 0x00 0x00
+									0x04 0x00 0x00 0x00
 									/*cha-hbp, chb-hbp, cha-vbp, chb-vbp*/
-									0x28 0x00 0x00 0x00
+									0x5a 0x00 0x11 0x00
 									/* cha-hfp, chb-hfp, cha-vfp, chb-vfp*/
-									0x00 0x00 0x00 0x00
+									0x5a 0x00 0x11 0x00
 
 									0x00 0x00 0x00 0x01>;
 				status = "okay";
