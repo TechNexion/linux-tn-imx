@@ -264,7 +264,7 @@
 	};
 };
 
-&i2c1 { /* I2C_A */
+&i2c1 { /* BRD_CONF I2C */
 	clock-frequency = <400000>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c1>;
@@ -394,6 +394,13 @@
 		enable-gpios = <&gpio3 9 GPIO_ACTIVE_HIGH>;
 		status = "disabled";
 	};
+
+	eeprom_som: eeprom@53 {
+		compatible = "atmel,24c02";
+		reg = <0x53>;
+		pagesize = <16>;
+		status = "okay";
+	};
 };
 
 &i2c2 { /* I2C_B */
@@ -410,18 +417,11 @@
 	status = "okay";
 };
 
-&i2c4 { /* I2C_C */
+&i2c4 { /* I2C_A */
 	clock-frequency = <400000>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c4>;
 	status = "okay";
-
-	eeprom_som: eeprom@53 {
-		compatible = "atmel,24c02";
-		reg = <0x53>;
-		pagesize = <16>;
-		status = "okay";
-	};
 };
 
 &iomuxc {
