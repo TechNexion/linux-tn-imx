@@ -176,12 +176,16 @@
 	};
 };
 
-&i2c2 {
-	clock-frequency = <400000>;
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_i2c2>;
-	status = "okay";
+&i2c1 { /* BRD_CONF I2C */
+	eeprom_baseboard: eeprom@51 {
+		compatible = "atmel,24c02";
+		reg = <0x51>;
+		pagesize = <16>;
+		status = "okay";
+	};
+};
 
+&i2c2 {
 	codec_wm8960: wm8960@1a {
 		compatible = "wlf,wm8960";
 		reg = <0x1a>;
@@ -269,15 +273,6 @@
 		pinctrl-0 = <&pinctrl_nfc>;
 		clock-frequency = <100000>;
 		interrupt-gpios = <&gpio5 1 0>;
-		status = "okay";
-	};
-};
-
-&i2c4 {
-	eeprom_baseboard: eeprom@51 {
-		compatible = "atmel,24c02";
-		reg = <0x51>;
-		pagesize = <16>;
 		status = "okay";
 	};
 };
