@@ -80,6 +80,7 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6dl-dhcom-pdk2.dtb \
 	imx6dl-dhcom-picoitx.dtb \
 	imx6dl-eckelmann-ci4x10.dtb \
+	imx6dl-edm1-fairy-qca.dtb \
 	imx6dl-emcon-avari.dtb \
 	imx6dl-gw51xx.dtb \
 	imx6dl-gw52xx.dtb \
@@ -192,6 +193,7 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6q-dmo-edmqmx6.dtb \
 	imx6q-dms-ba16.dtb \
 	imx6q-ds.dtb \
+	imx6q-edm1-fairy-qca.dtb \
 	imx6q-emcon-avari.dtb \
 	imx6q-evi.dtb \
 	imx6dl-b105pv2.dtb \
