@@ -180,7 +180,6 @@
 	};
 };
 
-/* I2C_A on EDMG */
 &i2c1 {
 	clock-frequency = <100000>;
 	pinctrl-names = "default";
@@ -311,6 +310,7 @@
 	status = "okay";
 };
 
+/* I2C_A on EDMG */
 &i2c4 {
 	clock-frequency = <100000>;
 	pinctrl-names = "default";

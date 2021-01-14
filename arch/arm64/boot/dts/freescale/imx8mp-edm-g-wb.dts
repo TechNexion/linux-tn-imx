@@ -204,6 +204,14 @@
 	};
 };
 
+&flexcan1 {
+	status = "okay";
+};
+
+&flexcan2 {
+	status = "disabled";
+};
+
 &usb_dwc3_0 {
 	dr_mode = "otg";
 	hnp-disable;
