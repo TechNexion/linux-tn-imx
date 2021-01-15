@@ -240,7 +240,6 @@
 	pinctrl-2 = <&pinctrl_usdhc3_200mhz>;
 	bus-width = <8>;
 	non-removable;
-	cqhci-disabled;
 	status = "okay";
 };
 
