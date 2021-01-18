@@ -111,7 +111,55 @@
 	};
 };
 
+&gpio1 {
+	pinctrl-0 = <&pinctrl_gpio1>;
+	gpio-line-names =	\
+		"", "", "", "", "", "", "", "",	\
+		"", "", "", "DSI_RST", "", "", "", "",	\
+		"", "", "", "", "", "", "", "",	\
+		"", "", "", "", "", "", "", "";
+};
+
+&gpio2 {
+	pinctrl-0 = <&pinctrl_gpio2>;
+	gpio-line-names =	\
+		"", "", "", "", "", "", "", "",	\
+		"GPIO_P249", "GPIO_P251", "", "GPIO_P255", "", "", "", "",	\
+		"", "", "", "", "", "", "", "",	\
+		"", "", "", "", "", "", "", "";
+};
+
+&gpio5 {
+	pinctrl-0 = <&pinctrl_gpio5>;
+	gpio-line-names =	\
+		"", "", "", "", "", "", "", "",	\
+		"", "", "", "", "", "", "", "",	\
+		"", "", "", "", "", "", "", "",	\
+		"", "", "", "", "DSI_BL_EN", "DSI_VDDEN", "", "";
+};
+
 &iomuxc {
+	pinctrl_gpio1: gpio1grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_GPIO1_IO11_GPIO1_IO11		0x19 /* DSI_RST */
+		>;
+	};
+
+	pinctrl_gpio2: gpio2grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_SD1_DATA6_GPIO2_IO8		0x16 /* GPIO_P249 */
+			MX8MM_IOMUXC_SD1_DATA7_GPIO2_IO9		0x16 /* GPIO_P251 */
+			MX8MM_IOMUXC_SD1_STROBE_GPIO2_IO11		0x16 /* GPIO_P255 */
+		>;
+	};
+
+	pinctrl_gpio5: gpio5grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_UART4_RXD_GPIO5_IO28		0x16 /* DSI_BL_EN */
+			MX8MM_IOMUXC_UART4_TXD_GPIO5_IO29		0x16 /* DSI_VDDEN */
+		>;
+	};
+
 	pinctrl_otg_vbus: otgvbusgrp {
 		fsl,pins = <
 			MX8MM_IOMUXC_GPIO1_IO10_GPIO1_IO10		0x19	/* USB OTG VBUS Enable */
