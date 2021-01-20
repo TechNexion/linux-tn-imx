@@ -145,15 +145,19 @@ static int pn544_enable(struct pn54x_dev *dev, int mode)
 		pr_info("%s power on\n", __func__);
 		if (gpio_is_valid(dev->firm_gpio))
 			gpio_set_value_cansleep(dev->firm_gpio, 0);
-		gpio_set_value_cansleep(dev->ven_gpio, 1);
-		msleep(100);
+		if (gpio_is_valid(dev->ven_gpio)) {
+			gpio_set_value_cansleep(dev->ven_gpio, 1);
+			msleep(100);
+		}
 	}
 	else if (MODE_FW == mode) {
 		/* power on with firmware download (requires hw reset)
 		 */
 		pr_info("%s power on with firmware\n", __func__);
-		gpio_set_value(dev->ven_gpio, 1);
-		msleep(20);
+		if (gpio_is_valid(dev->ven_gpio)) {
+			gpio_set_value(dev->ven_gpio, 1);
+			msleep(20);
+		}
 		if (gpio_is_valid(dev->firm_gpio)) {
 			gpio_set_value(dev->firm_gpio, 1);
 		}
@@ -161,11 +165,13 @@ static int pn544_enable(struct pn54x_dev *dev, int mode)
 			pr_err("%s Unused Firm GPIO %d\n", __func__, mode);
 			return GPIO_UNUSED;
 		}
-		msleep(20);
-		gpio_set_value(dev->ven_gpio, 0);
-		msleep(100);
-		gpio_set_value(dev->ven_gpio, 1);
-		msleep(20);
+		if (gpio_is_valid(dev->ven_gpio)) {
+			msleep(20);
+			gpio_set_value(dev->ven_gpio, 0);
+			msleep(100);
+			gpio_set_value(dev->ven_gpio, 1);
+			msleep(20);
+		}
 	}
 	else {
 		pr_err("%s bad arg %d\n", __func__, mode);
@@ -190,8 +196,10 @@ static void pn544_disable(struct pn54x_dev *dev)
 	pr_info("%s power off\n", __func__);
 	if (gpio_is_valid(dev->firm_gpio))
 		gpio_set_value_cansleep(dev->firm_gpio, 0);
-	gpio_set_value_cansleep(dev->ven_gpio, 0);
-	msleep(100);
+	if (gpio_is_valid(dev->ven_gpio)) {
+		gpio_set_value_cansleep(dev->ven_gpio, 0);
+		msleep(100);
+	}
 
 	if(dev->sevdd_reg) regulator_disable(dev->sevdd_reg);
 	if(dev->pmuvcc_reg) regulator_disable(dev->pmuvcc_reg);
@@ -426,8 +434,8 @@ static int pn54x_get_pdata(struct device *dev,
 		pdata->ven_gpio = val;
 	}
 	else {
-		dev_err(dev, "VEN GPIO error getting from OF node\n");
-		return val;
+		pdata->ven_gpio = GPIO_UNUSED;
+		dev_warn(dev, "VEN GPIO <OPTIONAL> error getting from OF node\n");
 	}
 
 	/* firm pin - controls firmware download - OPTIONAL */
@@ -570,11 +578,13 @@ static int pn54x_probe(struct i2c_client *client,
 		client->irq = ret;
 	}
 
-	pr_info("%s: request ven_gpio %d\n", __func__, pdata->ven_gpio);
-	ret = gpio_request(pdata->ven_gpio, "nfc_ven");
-	if (ret){
-		pr_err("%s :not able to get GPIO ven_gpio\n", __func__);
-		goto err_ven;
+	if (gpio_is_valid(pdata->ven_gpio)) {
+		pr_info("%s: request ven_gpio %d\n", __func__, pdata->ven_gpio);
+		ret = gpio_request(pdata->ven_gpio, "nfc_ven");
+		if (ret){
+			pr_err("%s :not able to get GPIO ven_gpio\n", __func__);
+			goto err_ven;
+		}
 	}
 
 	if (gpio_is_valid(pdata->firm_gpio)) {
@@ -622,10 +632,12 @@ static int pn54x_probe(struct i2c_client *client,
 		goto err_exit;
 	}
 
-	ret = gpio_direction_output(pn54x_dev->ven_gpio, 0);
-	if (ret < 0) {
-		pr_err("%s : not able to set ven_gpio as output\n", __func__);
-		goto err_exit;
+	if (gpio_is_valid(pn54x_dev->ven_gpio)) {
+		ret = gpio_direction_output(pn54x_dev->ven_gpio, 0);
+		if (ret < 0) {
+			pr_err("%s : not able to set ven_gpio as output\n", __func__);
+			goto err_exit;
+		}
 	}
 
 	if (gpio_is_valid(pn54x_dev->firm_gpio)) {
@@ -688,7 +700,8 @@ err_clkreq:
 	if (gpio_is_valid(pdata->firm_gpio))
 		gpio_free(pdata->firm_gpio);
 err_firm:
-	gpio_free(pdata->ven_gpio);
+	if (gpio_is_valid(pdata->ven_gpio))
+		gpio_free(pdata->ven_gpio);
 err_ven:
 	gpio_free(pdata->irq_gpio);
 	return ret;
@@ -709,7 +722,8 @@ static int pn54x_remove(struct i2c_client *client)
 	misc_deregister(&pn54x_dev->pn54x_device);
 	mutex_destroy(&pn54x_dev->read_mutex);
 	gpio_free(pn54x_dev->irq_gpio);
-	gpio_free(pn54x_dev->ven_gpio);
+	if (gpio_is_valid(pn54x_dev->ven_gpio))
+		gpio_free(pn54x_dev->ven_gpio);
 	if (gpio_is_valid(pn54x_dev->firm_gpio))
 		gpio_free(pn54x_dev->firm_gpio);
 	if (gpio_is_valid(pn54x_dev->clkreq_gpio))
