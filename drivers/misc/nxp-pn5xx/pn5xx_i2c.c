@@ -426,7 +426,8 @@ static int pn54x_get_pdata(struct device *dev,
 		pdata->ven_gpio = val;
 	}
 	else {
-		pdata->ven_gpio = 0;
+		dev_err(dev, "VEN GPIO error getting from OF node\n");
+		return val;
 	}
 
 	/* firm pin - controls firmware download - OPTIONAL */
@@ -572,10 +573,8 @@ static int pn54x_probe(struct i2c_client *client,
 	pr_info("%s: request ven_gpio %d\n", __func__, pdata->ven_gpio);
 	ret = gpio_request(pdata->ven_gpio, "nfc_ven");
 	if (ret){
-		if(pdata->ven_gpio > 0) {
-			pr_err("%s :not able to get GPIO ven_gpio\n", __func__);
-			goto err_ven;
-		}
+		pr_err("%s :not able to get GPIO ven_gpio\n", __func__);
+		goto err_ven;
 	}
 
 	if (gpio_is_valid(pdata->firm_gpio)) {
