@@ -11,7 +11,7 @@
 #include "imx8mq-pico.dtsi"
 
 / {
-	model = "TechNexion PICO-IMX8MQ and PICO-PI-IMX8MQ baseboard";
+	model = "TechNexion PICO-IMX8MQ and PI baseboard";
 	compatible = "pico,imx8mq-pico", "fsl,imx8mq";
 
 	chosen {
