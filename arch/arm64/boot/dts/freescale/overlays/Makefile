@@ -36,7 +36,7 @@ dtbo-$(CONFIG_ARCH_MXC) += imx8mq-edm-wizard-mipi2hdmi-adv7535.dtbo imx8mq-edm-w
 			    imx8mq-edm-wizard-g080uan01.dtbo imx8mq-edm-wizard-g101uan02.dtbo \
 			    imx8mq-edm-wizard-sn65dsi84-vl10112880.dtbo imx8mq-edm-wizard-sn65dsi84-vl15613676.dtbo imx8mq-edm-wizard-sn65dsi84-vl215192108.dtbo \
 			    imx8mq-edm-wizard-clix2nfc.dtbo imx8mq-edm-wizard-voicehat.dtbo
-dtbo-$(CONFIG_ARCH_MXC) += imx8mq-pico-pi-ili9881c.dtbo imx8mq-pico-pi-voicehat.dtbo \
+dtbo-$(CONFIG_ARCH_MXC) += imx8mq-pico-pi-ili9881c.dtbo imx8mq-pico-pi-voicehat.dtbo imx8mq-pico-pi-dual.dtbo \
 			   imx8mq-pico-pi-clixnfc.dtbo imx8mq-pico-pi-tevi-ov5640.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mq-pico-wizard-ili9881c.dtbo imx8mq-pico-wizard-g080uan01.dtbo imx8mq-pico-wizard-g101uan02.dtbo \
 			   imx8mq-pico-wizard-clix1nfc.dtbo imx8mq-pico-wizard-clix2nfc.dtbo \
