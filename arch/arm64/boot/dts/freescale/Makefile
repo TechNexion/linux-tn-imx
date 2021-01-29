@@ -123,6 +123,7 @@ dtb-$(CONFIG_ARCH_FSL_IMX8MQ) += fsl-imx8mq-ddr3l-arm2.dtb \
 				 imx8mq-edm-wizard-dcss-g101uan02.dtb \
 				 imx8mq-edm-wizard-dcss-ili9881c.dtb \
 				 imx8mq-edm-wizard-lcdif-adv7535.dtb \
+				 imx8mq-edm-wizard-nfc.dtb \
 				 imx8mq-edm-wizard-voicehat.dtb \
 				 imx8mq-edm-wizard-dual-display-adv7535.dtb \
 				 imx8mq-pico-pi.dtb \
