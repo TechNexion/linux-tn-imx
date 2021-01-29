@@ -85,7 +85,7 @@
 &iomuxc {
 	pinctrl-names = "default";
 
-	imx8mq-pico {
+	imx8mq-edm {
 		pinctrl_fec1: fec1grp {
 			fsl,pins = <
 				MX8MQ_IOMUXC_ENET_MDC_ENET1_MDC		0x3
