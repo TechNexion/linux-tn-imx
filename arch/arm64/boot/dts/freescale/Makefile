@@ -112,6 +112,10 @@ dtb-$(CONFIG_ARCH_MXC) += imx8mn-ddr4-evk-root.dtb imx8mn-ddr4-evk-inmate.dtb im
 			  imx8mn-evk-lk.dtb imx8mn-ddr4-evk-lk.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mn-ddr3l-evk-ak5558.dtb imx8mn-ddr4-evk-ak5558.dtb imx8mn-evk-ak5558.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mn-ab2.dtb imx8mn-ddr3l-ab2.dtb imx8mn-ddr4-ab2.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mn-edm-g-wb.dtb \
+			  imx8mn-edm-g-wb-rpmsg.dtb \
+			  imx8mn-edm-g-wb-sn65dsi84-vl15613676.dtb \
+			  imx8mn-edm-g-wb-sn65dsi84-vl215192108.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mn-evk-iqaudio-dacplus.dtb imx8mn-evk-iqaudio-dacpro.dtb imx8mn-evk-hifiberry-dacplus.dtb \
 			  imx8mn-evk-hifiberry-dac2.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wb.dtb imx8mp-edm-g-wb-lvds-vl10112880.dtb imx8mp-edm-g-wb-lvds-vl215192108.dtb
