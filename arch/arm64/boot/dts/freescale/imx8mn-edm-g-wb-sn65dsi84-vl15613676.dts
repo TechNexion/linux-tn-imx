@@ -1,0 +1,97 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2021 TechNexion Ltd.
+ *
+ * Author: Andy Lin <andy.lin@technexion.com>
+ *
+ */
+
+/dts-v1/;
+
+#include "imx8mn-edm-g-wb.dts"
+
+/ {
+	model = "TechNexion EDM-G-IMX8MN Windboard with 15 inch LVDS panel";
+};
+
+&mipi_dsi {
+	status = "okay";
+	#address-cells = <1>;
+	#size-cells = <0>;
+	/delete-node/ panel@0;
+	panel@0 {
+		reg = <0>;
+		compatible = "vxt,vl15613676-panel";
+		backlight = <&lvds_backlight>;
+		dsi,flags = <0x0007>;
+		dsi,format = <0>;
+		dsi,lanes = <4>;
+		panel-width-mm  = <344>;
+		panel-height-mm = <193>;
+		bus-format = <0x100a>;	/* MEDIA_BUS_FMT_RGB888_1X24 */
+		bus-flags = <1>;
+		refresh-rate = <60>;
+		rotate = <0>;
+		/* horz-flip; */
+		/* vert-flip; */
+		/delete-node/ panel-timing;
+		panel-timing {
+			clock-frequency = <76000000>;
+			hactive = <1366>;
+			vactive = <768>;
+			hfront-porch = <90>;
+			hsync-len = <20>;
+			hback-porch = <90>;
+			vfront-porch = <17>;
+			vsync-len = <4>;
+			vback-porch = <17>;
+			/* flags = DISPLAY_FLAGS_HSYNC_HIGH | DISPLAY_FLAGS_VSYNC_HIGH */
+			vsync-active = <1>;
+			hsync-active = <1>;
+		};
+	};
+};
+
+&i2c1 {
+	/delete-node/ dsi_lvds_bridge;
+	dsi_lvds_bridge: sn65dsi84@2d {
+		sn65dsi84,addresses = <0x09 0x0A 0x0B 0x0D
+							0x10 0x11 0x12 0x13
+							0x18 0x19 0x1A 0x1B
+							0x20 0x21 0x22 0x23
+							0x24 0x25 0x26 0x27
+							0x28 0x29 0x2A 0x2B
+							0x2C 0x2D 0x2E 0x2F
+							0x30 0x31 0x32 0x33
+							0x34 0x35 0x36 0x37
+							0x38 0x39 0x3A 0x3B
+							0x3C 0x3D 0x3E 0x0D>;
+
+		sn65dsi84,values = </* reset and clock registers */
+							0x00 0x05 0x10 0x00
+							/* DSI registers */
+							0x26 0x00 0x35 0x00
+							/* LVDS registers */
+							0x78 0x00 0x03 0x00
+
+							/* video registers */
+							/* cha-al-len-l, cha-al-len-h, chb-al-len-l, chb-al-len-h */
+							0x56 0x05 0x00 0x00
+							/* cha-v-ds-l, cha-v-ds-h, chb-v-ds-l, chb-v-ds-h */
+							0x00 0x03 0x00 0x00
+							/* cha-sdl, cha-sdh, chb-sdl, chb-sdh */
+							0x20 0x00 0x00 0x00
+							/* cha-hs-pwl, cha-hs-pwh, chb-hs-pwl, chb-hs-pwh */
+							0x14 0x00 0x00 0x00
+							/* cha-vs-pwl, cha-vs-pwh, chb-vs-pwl, chb-vs-pwh */
+							0x04 0x00 0x00 0x00
+							/*cha-hbp, chb-hbp, cha-vbp, chb-vbp*/
+							0x5a 0x00 0x11 0x00
+							/* cha-hfp, chb-hfp, cha-vfp, chb-vfp*/
+							0x5a 0x00 0x11 0x00
+
+							0x00 0x00 0x00 0x01>;
+		
+		status = "okay";
+	};
+};
