@@ -1,0 +1,108 @@
+/*
+ * Copyright 2019 Technexion Ltd.
+ * Copyright 2018 NXP
+ *
+ * Author: Andy Lin <andy.lin@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/dts-v1/;
+
+#include "imx8mm-axon-wizard.dts"
+
+/ {
+	model = "TechNexion AXON-IMX8MM and WIZARD baseboard with MIPI2HDMI display";
+
+	regulators {
+		reg_mipi_pwr: regulator_mipipwr {
+			pinctrl-names = "default";
+			compatible = "regulator-fixed";
+			regulator-name = "mipi_pwr";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&pca9554_23 0 GPIO_ACTIVE_HIGH>;
+			regulator-always-on;
+			enable-active-high;
+		};
+	};
+
+	sound-adv7535 {
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "adv7535-hdmi-audio";
+		simple-audio-card,mclk-fs = <256>;
+		simple-audio-card,mclk-clk-id = <1>;
+		simple-audio-card,format = "i2s";
+		simple-audio-card,bitclock-master = <&sound_master>;
+		simple-audio-card,frame-master = <&sound_master>;
+
+		sound_master: simple-audio-card,cpu {
+			sound-dai = <&sai1>;
+		};
+
+		simple-audio-card,codec {
+			sound-dai = <&adv_bridge>;
+		};
+	};
+};
+
+&pinmux_axonfabric {
+    // Audio A
+    pinctrl_af_aud_a_out: pcafauda_out {
+        pins = "F_AUD_A_TXCLK", "F_AUD_A_TXFS","F_AUD_A_TXD";
+		function = "passthru_out"; drive-push-pull;
+    };
+
+    pinctrl_af_aud_a_in: pcafauda_in {
+        pins = "F_AUD_A_RXD";
+        function = "passthru_in"; drive-push-pull;
+    };
+};
+
+&sound_wm8960 {
+	status = "disabled";
+};
+
+&mipi_dsi {
+	status = "okay";
+	/delete-node/ panel@0;
+
+	port@1 {
+		dsim_to_adv7535: endpoint {
+			remote-endpoint = <&adv7535_from_dsim>;
+			attach-bridge;
+		};
+	};
+};
+
+&AXON_I2C_C {  // I2C_C
+	clock-frequency = <400000>;
+	status = "okay";
+
+	adv_bridge: adv7535@3d {
+		compatible = "adi,adv7533";
+		reg = <0x3d>;
+		pinctrl-0 = <&pinctrl_ft5336_touch_irq>;
+		adi,addr-cec = <0x3a>;
+		adi,dsi-lanes = <4>;
+		interrupt-parent = <&gpio4>;
+		interrupts = <9 IRQ_TYPE_EDGE_FALLING>;
+		status = "okay";
+		#sound-dai-cells = <0>;
+
+		port {
+			adv7535_from_dsim: endpoint {
+				remote-endpoint = <&dsim_to_adv7535>;
+			};
+		};
+	};
+};
+
