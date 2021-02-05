@@ -1,0 +1,81 @@
+/*
+ * Copyright 2019 Technexion Ltd.
+ * Copyright 2018 NXP
+ *
+ * Author: Wig Cheng <wig.cheng@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+#include "imx8mm-pico-wizard.dts"
+
+/ {
+	sound-adv7535 {
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "adv7535-hdmi";
+		simple-audio-card,mclk-fs = <256>;
+		simple-audio-card,mclk-clk-id = <1>;
+		simple-audio-card,format = "i2s";
+		simple-audio-card,bitclock-master = <&sound_master>;
+		simple-audio-card,frame-master = <&sound_master>;
+
+		sound_master: simple-audio-card,cpu {
+			sound-dai = <&sai3>;
+		};
+
+		simple-audio-card,codec {
+			sound-dai = <&adv_bridge>;
+		};
+	};
+};
+
+&sai3 {
+	clocks = <&clk IMX8MM_CLK_SAI3_IPG>, <&clk IMX8MM_CLK_DUMMY>,
+		<&clk IMX8MM_CLK_SAI3_ROOT>, <&clk IMX8MM_CLK_DUMMY>,
+		<&clk IMX8MM_CLK_DUMMY>, <&clk IMX8MM_AUDIO_PLL1_OUT>,
+		<&clk IMX8MM_AUDIO_PLL2_OUT>;
+	clock-names = "bus", "mclk0", "mclk1", "mclk2", "mclk3", "pll8k", "pll11k";
+	
+	#sound-dai-cells = <0>;
+	status = "okay";
+};
+
+&mipi_dsi {
+	status = "okay";
+
+	port@1 {
+		dsim_to_adv7535: endpoint {
+			remote-endpoint = <&adv7535_from_dsim>;
+			attach-bridge;
+		};
+	};
+};
+
+&i2c3 {
+	adv_bridge: adv7535@3d {
+		compatible = "adi,adv7533";
+		reg = <0x3d>;
+		adi,addr-cec = <0x3b>;
+		adi,dsi-lanes = <4>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_touch_irq>;
+		interrupt-parent = <&gpio1>;
+		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
+		status = "okay";
+		#sound-dai-cells = <0>;
+		
+		port {
+			adv7535_from_dsim: endpoint {
+				remote-endpoint = <&dsim_to_adv7535>;
+			};
+		};
+	};
+};
