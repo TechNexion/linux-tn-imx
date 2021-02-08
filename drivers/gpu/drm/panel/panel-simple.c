@@ -4602,7 +4602,7 @@ static const struct panel_desc_dsi dsi2lvds_panel = {
 		},
 		.bus_flags = DRM_BUS_FLAG_DE_LOW,
 	},
-	.flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_CLOCK_NON_CONTINUOUS,
+	.flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_SYNC_PULSE,
 	.format = MIPI_DSI_FMT_RGB888,
 	.lanes = 4,
 };
@@ -4631,7 +4631,7 @@ static const struct panel_desc_dsi vxt_vl15613676_panel = {
 		},
 		.bus_flags = DRM_BUS_FLAG_DE_LOW,
 	},
-	.flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_CLOCK_NON_CONTINUOUS,
+	.flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_SYNC_PULSE,
 	.format = MIPI_DSI_FMT_RGB888,
 	.lanes = 4,
 };
