@@ -11,7 +11,7 @@
 #include "imx8mn-edm-g-wb.dts"
 
 / {
-	model = "TechNexion EDM-G-IMX8MN Windboard with 21 inch LVDS panel";
+	model = "TechNexion EDM-G-IMX8MN Wandboard with 21 inch LVDS panel";
 };
 
 &mipi_dsi {
