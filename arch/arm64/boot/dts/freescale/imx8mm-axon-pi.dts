@@ -25,7 +25,6 @@
 	compatible = "fsl,imx8mm-axon", "fsl,imx8mm";
 
 	regulators {
-
 		reg_usb_otg_vbus: usb_otg_vbus {
 			pinctrl-names = "default";
 			pinctrl-0 = <&pinctrl_otg_vbus>;
@@ -275,19 +274,28 @@
 	status = "okay";
 	clock-frequency = <100000>;
 
+    pca9554_21: pca9554_21@21 {
+        compatible = "nxp,pca9554";
+        pinctrl-names = "default";
+        reg = <0x21>;
+        gpio-controller;
+        #gpio-cells = <2>;
+        status = "okay";
+    };
+
 	ov5640_mipi: ov5640_mipi@3c {
-		compatible = "ovti,ov5645_mipi_v2";
+		compatible = "ovti,ov5640_mipi";
 		reg = <0x3c>;
 		status = "okay";
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_csi_pwn>, <&pinctrl_csi_rst>;
+		pinctrl-0 = <&pinctrl_csi_rst>;
 		clocks = <&clk IMX8MM_CLK_CLKO1>;
 		clock-names = "csi_mclk";
 		assigned-clocks = <&clk IMX8MM_CLK_CLKO1>;
 		assigned-clock-parents = <&clk IMX8MM_CLK_24M>;
-		assigned-clock-rates = <0>, <24000000>;
+		assigned-clock-rates = <24000000>;
 		csi_id = <0>;
-		pwn-gpios = <&gpio5 1 GPIO_ACTIVE_LOW>;
+		pwn-gpios = <&pca9554_21 2 GPIO_ACTIVE_LOW>;
 		rst-gpios = <&gpio4 26 GPIO_ACTIVE_HIGH>;
 		mclk = <24000000>;
 		mclk_source = <0>;
