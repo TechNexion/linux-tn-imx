@@ -205,10 +205,17 @@
 		>;
 	};
 
-	pinctrl_nfc_ctrl: nfc_ctrl {
+	pinctrl_ecspi1: ecspi1_ctrl {
 		fsl,pins = <
-			MX8MQ_IOMUXC_ECSPI1_MOSI_GPIO5_IO7		0x19	/* PIN_ENABLE */
-			MX8MQ_IOMUXC_NAND_ALE_GPIO3_IO0			0x19	/* PIN_INT */
+			MX8MQ_IOMUXC_ECSPI1_SCLK_ECSPI1_SCLK    0x82
+			MX8MQ_IOMUXC_ECSPI1_MOSI_ECSPI1_MOSI    0x82
+			MX8MQ_IOMUXC_ECSPI1_MISO_ECSPI1_MISO    0x82
+		>;
+	};
+
+	pinctrl_ecspi1_cs: ecspi1cs {
+		fsl,pins = <
+			MX8MQ_IOMUXC_ECSPI1_SS0_GPIO5_IO9       0x16
 		>;
 	};
 };
@@ -220,6 +227,22 @@
 		dcss_out: endpoint {
 			remote-endpoint = <&hdmi_in>;
 		};
+	};
+};
+
+&ecspi1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	fsl,spi-num-chipselects = <1>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_ecspi1 &pinctrl_ecspi1_cs>;
+	cs-gpios = <&gpio5 9 GPIO_ACTIVE_LOW>;
+	status = "okay";
+
+	spidev0: spi@0 {
+		reg = <0>;
+		compatible = "rohm,dh2228fv";
+		spi-max-frequency = <1000000>;
 	};
 };
 
