@@ -53,7 +53,8 @@ dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-lx2162a-qds.dtb
 
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-beacon-kit.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mq-edm-wizard.dtb
-dtb-$(CONFIG_ARCH_MXC) += imx8mm-axon-pi.dtb imx8mm-axon-wizard.dtb imx8mm-axon-wizard-adv7535.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mm-axon-pi.dtb imx8mm-axon-pi-voicehat.dtb \
+						  imx8mm-axon-wizard.dtb imx8mm-axon-wizard-adv7535.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-xore-wizard.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mn-edm-g-wb.dtb \
 			  imx8mn-edm-g-wb-rpmsg.dtb \

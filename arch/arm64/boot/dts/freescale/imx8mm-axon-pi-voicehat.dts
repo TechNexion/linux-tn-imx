@@ -1,0 +1,324 @@
+/*
+ * Copyright 2018 TechNexion Ltd.
+ * Copyright 2018 NXP
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *         Ray Chang <ray.chang@technexion.com>
+ *         John Weber <john.weber@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+#include <dt-bindings/input/input.h>
+#include "imx8mm-axon-pi.dts"
+
+/ {
+
+	model = "TechNexion AXON-IMX8MM, PI baseboard, and Voicehat";
+	compatible = "fsl,imx8mm-axon", "fsl,imx8mm";
+
+	sound-tfa9912 {
+		compatible = "nxp,imx-audio-tfa98xx", "nxp,imx-tfa98xx";
+		nxp,model = "TFA9912";
+		cpu-dai = <&AXON_AUD_A_I2S_CHANNEL>;
+		ssi-controller = <&AXON_AUD_A_I2S_CHANNEL>;
+		nxp,audio-codec = <&tfa98xx_left &tfa98xx_right>;
+		clocks = <AXON_AUD_A_CLK_SRC>;
+		nxp,audio-routing =
+			"Speaker", "OUTL",
+			"DMIC1", "Mic",
+			"DMIC2", "Mic",
+			"DMIC3", "Mic",
+			"DMIC4", "Mic";
+	};
+
+	sound-sph0645 {
+		compatible = "nxp,imx-audio-sph0645", "nxp,imx-sph0645";
+		nxp,model = "SPH0645";
+		cpu-dai = <&AXON_AUD_B_I2S_CHANNEL>;
+		ssi-controller = <&AXON_AUD_B_I2S_CHANNEL>;
+		nxp,audio-codec = <&sound_record>;
+		clocks = <AXON_AUD_B_CLK_SRC>;
+	};
+
+	sound_record: codec {
+		compatible = "knowles,sph0645";
+	};
+
+	leds {
+		status = "disabled";
+	};
+
+	voicehat_keys {
+		compatible = "gpio-keys-polled";
+		poll-interval = <100>;
+		autorepeat;
+
+		prev {
+			gpios = <&axonfabric 59 GPIO_ACTIVE_LOW>;
+			label = "KEY PREV";
+			linux,code = <KEY_PREVIOUS>;
+		};
+
+		play {
+			gpios = <&axonfabric 78 GPIO_ACTIVE_LOW>;
+			label = "KEY PLAY";
+			linux,code = <KEY_PLAY>;
+		};
+
+		next {
+			gpios = <&axonfabric 95 GPIO_ACTIVE_LOW>;
+			label = "KEY NEXT";
+			linux,code = <KEY_NEXT>;
+		};
+
+		up {
+			gpios = <&axonfabric 94 GPIO_ACTIVE_LOW>;
+			label = "KEY UP";
+			linux,code = <KEY_UP>;
+		};
+
+		down {
+			gpios = <&axonfabric 92 GPIO_ACTIVE_LOW>;
+			label = "KEY DOWN";
+			linux,code = <KEY_DOWN>;
+		};
+
+		mute {
+			gpios = <&axonfabric 93 GPIO_ACTIVE_LOW>;
+			label = "KEY MUTE";
+			linux,code = <KEY_MUTE>;
+		};
+
+		pair {
+			gpios = <&axonfabric 75 GPIO_ACTIVE_LOW>;
+			label = "KEY PAIR";
+			linux,code = <KEY_SELECT>;
+		};
+
+		act {
+			gpios = <&axonfabric 5 GPIO_ACTIVE_LOW>;
+			label = "KEY ACT";
+			linux,code = <KEY_OK>;
+		};
+	};
+};
+
+&iomuxc {
+	pinctrl-names = "default";
+
+	imx8mm-axon {
+		pinctrl_tfa98xx: tfa98xx_ctrlgrp {
+			fsl,pins = <
+				PINCTRL_AXON_EXT_GPIO_SPI_A_SCLK	0x19 /* RST */
+				PINCTRL_AXON_EXT_GPIO_SPI_A_MISO	0x19 /* INT */
+			>;
+		};
+	};
+};
+
+&pinmux_axonfabric {
+	/delete-node/ pinctrl_af_uart_a_rtscts;
+	/delete-node/ pinctrl_af_pwm_x1_x2;
+	/delete-node/ pinctrl_af_can_gpio;
+	/delete-node/ pinctrl_af_spi_a_out;
+	/delete-node/ pinctrl_af_spi_a_in;
+
+	pinctrl_af_gpiokeys: pcgpiokey {
+		pins = "F_UART_A_CTS", "F_PWM_X2_P79", "F_CAN_B_RX", "F_CAN_B_TX",
+				"F_CAN_A_TX", "F_CAN_A_RX", "F_SPI_A_CS0", "F_GPIO_X1_P76";
+		function = "gpio"; drive-push-pull;
+	};
+
+	pinctrl_af_tfa98xx_rst: tfa98xx_rst {
+		pins = "F_SPI_A_SCLK";
+		function = "passthru_out"; drive-push-pull;
+	};
+
+	pinctrl_af_tfa98xx_int: tfa98xx_int {
+		pins = "F_SPI_A_MISO";
+		function = "passthru_in"; drive-push-pull;
+	};
+
+	pinctrl_af_sai1_out: sai1_out {
+		pins = "F_AUD_A_TXD", "F_AUD_A_TXFS", "F_AUD_A_TXCLK";
+		function = "passthru_out"; drive-push-pull;
+	};
+
+	pinctrl_af_sai1_in: sai1_in {
+		pins = "F_AUD_A_RXD";
+		function = "passthru_in"; drive-push-pull;
+	};
+
+	pinctrl_af_sai5_out: sai5_out {
+		pins = "F_AUD_B_TXD", "F_AUD_B_TXFS", "F_AUD_B_TXCLK";
+		function = "passthru_out"; drive-push-pull;
+	};
+
+	pinctrl_af_sai5_in: sai5_in {
+		pins = "F_AUD_B_RXD";
+		function = "passthru_in"; drive-push-pull;
+	};
+};
+
+&AXON_AUD_A_I2S_CHANNEL {
+	status = "okay";
+};
+
+&AXON_AUD_B_I2S_CHANNEL {
+	status = "okay";
+};
+
+&AXON_SPI_A {
+	status = "disabled";
+};
+
+&pwm2 {
+	status = "disabled";
+};
+
+&pwm3 {
+	status = "disabled";
+};
+
+&AXON_I2C_A {
+	clock-frequency = <400000>;
+	tfa98xx_left: tfa98xx_left@34 {
+		compatible = "nxp,tfa98xx";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_tfa98xx>;
+		pcm_sample_format = <0>;
+		reg = <0x34>;
+		reset-gpio = <AXON_EXT_GPIO_SPI_A_SCLK   GPIO_ACTIVE_HIGH>;
+		irq-gpio =   <AXON_EXT_GPIO_SPI_A_MISO   GPIO_ACTIVE_HIGH>;
+	};
+
+	tfa98xx_right: tfa98xx_right@35 {
+		compatible = "nxp,tfa98xx";
+		reg = <0x35>;
+	};
+};
+
+&codec_wm8960 {
+	status = "disabled";
+};
+
+&sound_wm8960 {
+	status = "disabled";
+};
+
+&AXON_I2C_B {
+	status = "okay";
+
+	/* PCA9955 - 16-bit RGB LED */
+	led_pca9955: pca9955@60 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		compatible = "nxp,pca9955";
+		reg = <0x60>;
+
+		led0 {
+			label = "blue0";
+			linux,default-trigger = "none";
+			reg = <0>;
+		};
+
+		led1 {
+			label = "green0";
+			linux,default-trigger = "none";
+			reg = <1>;
+		};
+
+		led2 {
+			label = "red0";
+			linux,default-trigger = "none";
+			reg = <2>;
+		};
+
+		led3 {
+			label = "blue1";
+			linux,default-trigger = "none";
+			reg = <3>;
+		};
+
+		led4 {
+			label = "green1";
+			linux,default-trigger = "none";
+			reg = <4>;
+		};
+
+		led5 {
+			label = "red1";
+			linux,default-trigger = "none";
+			reg = <5>;
+		};
+
+		led6 {
+			label = "blue2";
+			linux,default-trigger = "none";
+			reg = <6>;
+		};
+
+		led7 {
+			label = "green2";
+			linux,default-trigger = "none";
+			reg = <7>;
+		};
+
+		led8 {
+			label = "red2";
+			linux,default-trigger = "none";
+			reg = <8>;
+		};
+
+		led9 {
+			label = "blue3";
+			linux,default-trigger = "none";
+			reg = <9>;
+		};
+
+		led10 {
+			label = "green3";
+			linux,default-trigger = "none";
+			reg = <10>;
+		};
+
+		led11 {
+			label = "red3";
+			linux,default-trigger = "none";
+			reg = <11>;
+		};
+
+		led12 {
+			label = "blue4";
+			linux,default-trigger = "none";
+			reg = <12>;
+		};
+
+		led13 {
+			label = "green4";
+			linux,default-trigger = "none";
+			reg = <13>;
+		};
+
+		led14 {
+			label = "red4";
+			linux,default-trigger = "none";
+			reg = <14>;
+		};
+
+		led15 {
+			label = "blue5";
+			linux,default-trigger = "none";
+			reg = <15>;
+		};
+	};
+};
