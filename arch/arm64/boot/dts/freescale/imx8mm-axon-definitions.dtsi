@@ -111,5 +111,5 @@
 #define PINCTRL_AXON_EXT_GPIO_X1_P76		MX8MM_IOMUXC_SAI1_TXD7_GPIO4_IO19
 
 /* Defined clock sources for AUD_A and AUD_B */
-#define AXON_AUD_A_CLK_SRC					&clk IMX8MM_CLK_SAI1_DIV
-#define AXON_AUD_B_CLK_SRC					&clk IMX8MM_CLK_SAI5_DIV
+#define AXON_AUD_A_CLK_SRC					&clk IMX8MM_CLK_SAI1
+#define AXON_AUD_B_CLK_SRC					&clk IMX8MM_CLK_SAI5
