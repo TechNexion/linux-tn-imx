@@ -79,8 +79,8 @@
                         regulator-max-microvolt = <3300000>;
                         gpio = <&pca9555_23 1 GPIO_ACTIVE_HIGH>;
                         enable-active-high;
-                };
-        };
+		};
+	};
 
 	backlight_mipi {
 		compatible = "pwm-backlight";
@@ -245,6 +245,14 @@
 		interrupts = <1 0>;
 	};
 
+	/* PCA9554 on camera tev_mipi board */
+	pca9554_tev_mipi: pca9554_tev_mipi@21 {
+		compatible = "nxp,pca9554";
+		reg =<0x21>;
+		gpio-controller;
+		#gpio-cells = <2>;
+	};
+
 	ov5640_mipi: ov5640_mipi@3c {
 		compatible = "ovti,ov5640_mipi";
 		reg = <0x3c>;
@@ -257,7 +265,7 @@
 		assigned-clock-parents = <&clk IMX8MM_CLK_24M>;
 		assigned-clock-rates = <24000000>;
 		csi_id = <0>;
-		pwn-gpios = <&pca9555_26 15 GPIO_ACTIVE_LOW>;
+		pwn-gpios = <&pca9554_tev_mipi 2 GPIO_ACTIVE_LOW>;
 		rst-gpios = <&gpio1 5 GPIO_ACTIVE_HIGH>;
 		mclk = <24000000>;
 		mclk_source = <0>;
