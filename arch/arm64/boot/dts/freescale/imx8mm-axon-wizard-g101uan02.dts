@@ -1,0 +1,51 @@
+/*
+ * Copyright 2019 Technexion Ltd.
+ * Copyright 2018 NXP
+ *
+ * Author: Andy Lin <andy.lin@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/dts-v1/;
+
+#include "imx8mm-axon-wizard.dts"
+
+/ {
+	model = "TechNexion AXON-IMX8MM and WIZARD baseboard with 10 inch MIPI display";
+};
+
+&AXON_I2C_C {  // I2C_C
+	status = "okay";
+
+	polytouch: edt-ft5x06@38 {
+		compatible = "edt,edt-ft5x06";
+		reg = <0x38>;
+		pinctrl-names = "default";
+        pinctrl-0 = <&pinctrl_ft5336_touch_irq>;
+		interrupt-parent = <&gpio4>;
+		interrupts = <9 IRQ_TYPE_EDGE_FALLING>;
+		touchscreen-size-x = <1920>;
+		touchscreen-size-y = <1200>;
+		status="okay";
+	};
+};
+
+&mipi_dsi {
+	status = "okay";
+	panel@0 {
+		compatible = "auo,g101uan02";
+		reg = <0>;
+		enable-gpios = <&pca9554_23 0 GPIO_ACTIVE_HIGH>;
+		status = "okay";
+	};
+};
+

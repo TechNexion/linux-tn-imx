@@ -67,27 +67,23 @@
 	};
 
 	sound_wm8960: sound-wm8960 {
-		compatible = "simple-audio-card";
-		simple-audio-card,name = "axon-pi-wm8690-audio";
-		simple-audio-card,format = "i2s";
-		simple-audio-card,bitclock-master = <&dailink_master>;
-		simple-audio-card,frame-master = <&dailink_master>;
-		simple-audio-card,widgets =
-			"Microphone", "Mic Jack",
-			"Speaker", "Speaker",
-			"Headphone", "Headphone Jack";
-		simple-audio-card,routing =
+		compatible = "fsl,imx-audio-wm8960";
+		model = "wm8960-audio";
+		cpu-dai = <&sai1>;
+		codec-master;
+		audio-codec = <&codec_wm8960>;
+		audio-routing =
 			"Headphone Jack", "HP_L",
 			"Headphone Jack", "HP_R",
-			"Speaker", "SPK_LP",
-			"Speaker", "SPK_LN",
-			"Speaker", "SPK_RP",
-			"Speaker", "SPK_RN",
-			"LINPUT1", "Mic Jack",
-			"Mic Jack", "MICB";
-		simple-audio-card,cpu {
-			sound-dai = <&sai1>;
-		};
+			"Ext Spk", "SPK_LP",
+			"Ext Spk", "SPK_LN",
+			"Ext Spk", "SPK_RP",
+			"Ext Spk", "SPK_RN",
+			"LINPUT1", "Main MIC",
+			"RINPUT1", "Main MIC",
+			"Main MIC", "MICB";
+		/* JD2: hp detect high for headphone*/
+		hp-det = <2 0>;
 
 		dailink_master: simple-audio-card,codec {
 			sound-dai = <&codec_wm8960>;
@@ -121,11 +117,6 @@
 			linux,code = <EV_KEY>;
 		};
 	};
-};
-
-&clk {
-	assigned-clocks = <&clk IMX8MM_AUDIO_PLL1>, <&clk IMX8MM_AUDIO_PLL2>;
-	assigned-clock-rates = <786432000>, <722534400>;
 };
 
 &iomuxc {
@@ -294,6 +285,7 @@
 		clock-names = "mclk";
 		wlf,shared-lrclk;
 		wlf,fixed-mclk;
+		status = "okay";
 	};
 
 	rtc_ds1337: ds1337@68 {
@@ -430,24 +422,6 @@
 
 &lcdif {
 	status = "okay";
-};
-
-&mipi_dsi {
-	status = "okay";
-
-	panel@0 {
-		compatible = "bananapi,lhr050h41", "ilitek,ili9881c";
-		reset-gpio = <&pca9554_23 5 GPIO_ACTIVE_LOW>;
-		power-gpio = <&pca9554_23 0 GPIO_ACTIVE_HIGH>;
-		reg = <0>;
-		timing-mode = <0>;
-		video-mode = <2>;
-		/* 0: burst mode
-		 * 1: non-burst mode with sync event
-		 * 2: non-burst mode with sync pulse
-		*/
-		status = "okay";
-	};
 };
 
 &AXON_AUD_A_I2S_CHANNEL {  // AUD_A
