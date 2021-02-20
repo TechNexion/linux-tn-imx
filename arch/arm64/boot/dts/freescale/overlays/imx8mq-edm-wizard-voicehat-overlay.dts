@@ -1,0 +1,305 @@
+/dts-v1/;
+/plugin/;
+
+#include "../imx8mq-pinfunc.h"
+#include <dt-bindings/clock/imx8mq-clock.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+
+	fragment@0 {
+		target-path = "/";
+		__overlay__ {
+			sound-tfa9912 {
+				compatible = "nxp,imx-audio-tfa98xx", "nxp,imx-tfa98xx";
+				nxp,model = "TFA9912";
+				cpu-dai = <&sai2>;
+				ssi-controller = <&sai2>;
+				nxp,audio-codec = <&tfa98xx_left &tfa98xx_right>;
+				clocks = <&clk IMX8MQ_CLK_SAI2>;
+				nxp,audio-routing =
+					"Speaker", "OUTL",
+					"DMIC1", "Mic",
+					"DMIC2", "Mic",
+					"DMIC3", "Mic",
+					"DMIC4", "Mic";
+			};
+
+			sound-sph0645 {
+				compatible = "nxp,imx-audio-sph0645", "nxp,imx-sph0645";
+				nxp,model = "SPH0645";
+				cpu-dai = <&sai3>;
+				ssi-controller = <&sai3>;
+				nxp,audio-codec = <&sound_record>;
+				clocks = <&clk IMX8MQ_CLK_SAI3>;
+			};
+
+			sound_record: codec {
+				compatible = "knowles,sph0645";
+			};
+
+			gpio_keys {
+				compatible = "gpio-keys";
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_gpio_key_voicehat>;
+
+				prev {
+					gpios = <&pca9554_2 3 GPIO_ACTIVE_LOW>;
+					label = "KEY PREV";
+					linux,code = <KEY_PREVIOUS>;
+				};
+
+				play {
+					gpios = <&gpio5 4 GPIO_ACTIVE_LOW>;
+					label = "KEY PLAY";
+					linux,code = <KEY_PLAY>;
+				};
+
+				next {
+					gpios = <&pca9554_2 7 GPIO_ACTIVE_LOW>;
+					label = "KEY NEXT";
+					linux,code = <KEY_NEXT>;
+				};
+
+				up {
+					gpios = <&pca9554_2 6 GPIO_ACTIVE_LOW>;
+					label = "KEY UP";
+					linux,code = <KEY_UP>;
+				};
+
+				down {
+					gpios = <&pca9554_2 4 GPIO_ACTIVE_LOW>;
+					label = "KEY DOWN";
+					linux,code = <KEY_DOWN>;
+				};
+
+				mute {
+					gpios = <&pca9554_2 5 GPIO_ACTIVE_LOW>;
+					label = "KEY MUTE";
+					linux,code = <KEY_MUTE>;
+				};
+
+				pair {
+					gpios = <&gpio5 9 GPIO_ACTIVE_LOW>;
+					label = "KEY PAIR";
+					linux,code = <KEY_SELECT>;
+				};
+
+				act {
+					gpios = <&gpio5 5 GPIO_ACTIVE_LOW>;
+					label = "KEY ACT";
+					linux,code = <KEY_OK>;
+				};
+			};
+
+			sound-wm8960 {
+				status = "disabled";
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&ecspi1>;
+		__overlay__ {
+			status = "disabled";
+		};
+	};
+
+	fragment@2 {
+		target = <&iomuxc>;
+		__overlay__ {
+			pinctrl-names = "default";
+
+			pinctrl_tfa98xx: tfa98xx_ctrlgrp {
+				fsl,pins = <
+					MX8MQ_IOMUXC_ECSPI1_SCLK_GPIO5_IO6	0x19 /* RST */
+					MX8MQ_IOMUXC_ECSPI1_MISO_GPIO5_IO8	0x19 /* INT */
+				>;
+			};
+
+			pinctrl_sai3: sai3grp {
+				fsl,pins = <
+					MX8MQ_IOMUXC_SAI3_TXFS_SAI3_TX_SYNC	0xd6
+					MX8MQ_IOMUXC_SAI3_TXC_SAI3_TX_BCLK	0xd6
+					MX8MQ_IOMUXC_SAI3_RXD_SAI3_RX_DATA0	0xd6
+				>;
+			};
+
+			pinctrl_gpio_key_voicehat: key_ctrlgrp {
+				fsl,pins = <
+					MX8MQ_IOMUXC_SPDIF_RX_GPIO5_IO4			0x41 /* KEY_PLAY */
+					MX8MQ_IOMUXC_ECSPI1_SS0_GPIO5_IO9		0x41 /* KEY_PAIR */
+					MX8MQ_IOMUXC_SPDIF_EXT_CLK_GPIO5_IO5		0x41 /* KEY_ACT */
+				>;
+			};
+		};
+	};
+
+	fragment@3 {
+		target = <&sai3>;
+		__overlay__ {
+			#sound-dai-cells = <0>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_sai3>;
+			assigned-clocks = <&clk IMX8MQ_CLK_SAI3>;
+			assigned-clock-parents = <&clk IMX8MQ_AUDIO_PLL1_OUT>;
+			assigned-clock-rates = <24576000>;
+			status = "okay";
+		};
+	};
+
+
+	fragment@4 {
+		target = <&sai3>;
+		__overlay__ {
+			#sound-dai-cells = <0>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_sai3>;
+			assigned-clocks = <&clk IMX8MQ_CLK_SAI3>;
+			assigned-clock-parents = <&clk IMX8MQ_AUDIO_PLL1_OUT>;
+			assigned-clock-rates = <24576000>;
+			status = "okay";
+		};
+	};
+
+	fragment@5 {
+		target = <&i2c2>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+			wm8960: codec@1a {
+				status = "disabled";
+			};
+		};
+	};
+
+	fragment@6 {
+		target = <&i2c4>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			tfa98xx_left: tfa98xx_left@34 {
+				compatible = "nxp,tfa98xx";
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_tfa98xx>;
+				reg = <0x34>;
+				reset-gpio = <&gpio5 6 GPIO_ACTIVE_HIGH>;
+				irq-gpio = <&gpio5 8 GPIO_ACTIVE_HIGH>;
+			};
+
+			tfa98xx_right: tfa98xx_right@35 {
+				compatible = "nxp,tfa98xx";
+				reg = <0x35>;
+			};
+
+			/* PCA9955 - 16-bit RGB LED */
+			led_pca9955: pca9955@60 {
+				#address-cells = <1>;
+				#size-cells = <0>;
+				compatible = "nxp,pca9955";
+				reg = <0x60>;
+
+				led0 {
+					label = "blue0";
+					linux,default-trigger = "none";
+					reg = <0>;
+				};
+
+				led1 {
+					label = "green0";
+					linux,default-trigger = "none";
+					reg = <1>;
+				};
+
+				led2 {
+					label = "red0";
+					linux,default-trigger = "none";
+					reg = <2>;
+				};
+
+				led3 {
+					label = "blue1";
+					linux,default-trigger = "none";
+					reg = <3>;
+				};
+
+				led4 {
+					label = "green1";
+					linux,default-trigger = "none";
+					reg = <4>;
+				};
+
+				led5 {
+					label = "red1";
+					linux,default-trigger = "none";
+					reg = <5>;
+				};
+
+				led6 {
+					label = "blue2";
+					linux,default-trigger = "none";
+					reg = <6>;
+				};
+
+				led7 {
+					label = "green2";
+					linux,default-trigger = "none";
+					reg = <7>;
+				};
+
+				led8 {
+					label = "red2";
+					linux,default-trigger = "none";
+					reg = <8>;
+				};
+
+				led9 {
+					label = "blue3";
+					linux,default-trigger = "none";
+					reg = <9>;
+				};
+
+				led10 {
+					label = "green3";
+					linux,default-trigger = "none";
+					reg = <10>;
+				};
+
+				led11 {
+					label = "red3";
+					linux,default-trigger = "none";
+					reg = <11>;
+				};
+
+				led12 {
+					label = "blue4";
+					linux,default-trigger = "none";
+					reg = <12>;
+				};
+
+				led13 {
+					label = "green4";
+					linux,default-trigger = "none";
+					reg = <13>;
+				};
+
+				led14 {
+					label = "red4";
+					linux,default-trigger = "none";
+					reg = <14>;
+				};
+
+				led15 {
+					label = "blue5";
+					linux,default-trigger = "none";
+					reg = <15>;
+				};
+			};
+		};
+	};
+};
