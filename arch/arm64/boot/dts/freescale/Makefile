@@ -97,7 +97,8 @@ dtb-$(CONFIG_ARCH_MXC) += imx8mm-icore-mx8mm-edimm2.2.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-pico-pi.dtb imx8mm-pico-pi-ili9881c.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-pico-wizard.dtb imx8mm-pico-wizard-ili9881c.dtb imx8mm-pico-wizard-g080uan01.dtb \
 			  imx8mm-pico-wizard-g101uan02.dtb imx8mm-pico-wizard-adv7535.dtb imx8mm-pico-wizard-sn65dsi84-m101nwwb.dtb \
-			  imx8mm-pico-wizard-sn65dsi84-g156xw01.dtb imx8mm-pico-wizard-sn65dsi84-g215hvn01.dtb
+			  imx8mm-pico-wizard-sn65dsi84-g156xw01.dtb imx8mm-pico-wizard-sn65dsi84-g215hvn01.dtb \
+			  imx8mm-pico-wizard-voicehat.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-nitrogen-r2.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mn-bsh-smm-s2.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mn-bsh-smm-s2pro.dtb
