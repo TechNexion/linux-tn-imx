@@ -1,0 +1,60 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2020 TechNexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	fragment@0 {
+		target-path = "/";
+		__overlay__ {
+			backlight_mipi {
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&mipi_dsi>;
+		__overlay__ {
+			status = "okay";
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			panel@0 {
+				compatible = "auo,g101uan02";
+				reg = <0>;
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&i2c3>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			polytouch: edt-ft5826@38 {
+				compatible = "edt,edt-ft5x06";
+				reg = <0x38>;
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_touch_irq>;
+				interrupt-parent = <&gpio1>;
+				interrupts = <7 IRQ_TYPE_EDGE_FALLING>;
+				reset-gpios = <&pca9555_23 3 GPIO_ACTIVE_LOW>;
+				touchscreen-size-x = <1920>;
+				touchscreen-size-y = <1200>;
+			};
+		};
+	};
+};
