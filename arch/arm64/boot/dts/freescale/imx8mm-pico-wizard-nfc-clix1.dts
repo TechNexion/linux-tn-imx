@@ -30,6 +30,13 @@
 	};
 };
 
+/* NFC PIN_INT conflicts with GPIO_P28 */
+&gpio3 {
+    /delete-property/ pinctrl-names;
+    /delete-property/ pinctrl-0;
+    /delete-property/ gpio-line-names;
+};
+
 &ecspi2 {
 	status = "disabled";
 };
