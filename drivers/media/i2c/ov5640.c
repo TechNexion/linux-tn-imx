@@ -14,6 +14,7 @@
 #include <linux/i2c.h>
 #include <linux/init.h>
 #include <linux/module.h>
+#include <linux/nvmem-consumer.h>
 #include <linux/of_device.h>
 #include <linux/regulator/consumer.h>
 #include <linux/slab.h>
@@ -562,7 +563,7 @@ static const struct reg_value ov5640_setting_QSXGA_2592_1944[] = {
 };
 
 /* power-on sensor init reg table */
-static const struct ov5640_mode_info ov5640_mode_init_data = {
+static struct ov5640_mode_info ov5640_mode_init_data = {
 	0, SUBSAMPLING, 640, 1896, 480, 984,
 	ov5640_init_setting_30fps_VGA,
 	ARRAY_SIZE(ov5640_init_setting_30fps_VGA),
@@ -1905,9 +1906,19 @@ static int ov5640_set_framefmt(struct ov5640_dev *sensor,
 /* restore the last set video mode after chip power-on */
 static int ov5640_restore_mode(struct ov5640_dev *sensor)
 {
+	struct i2c_client *client = sensor->i2c_client;
+	struct nvmem_cell *cell;
+	size_t len;
 	int ret;
 
 	/* first load the initial register values */
+	cell = nvmem_cell_get(&client->dev, "calibration-data");
+	if (! IS_ERR(cell)) {
+		ov5640_mode_init_data.reg_data = (struct reg_value *)nvmem_cell_read(cell, &len);
+		ov5640_mode_init_data.reg_data_size = len / sizeof(struct reg_value);
+		nvmem_cell_put(cell);
+	}
+
 	ret = ov5640_load_regs(sensor, &ov5640_mode_init_data);
 	if (ret < 0)
 		return ret;
