@@ -176,7 +176,6 @@
 				MX8MM_IOMUXC_SAI1_RXD7_GPIO4_IO9	0x19   /* GPIO_X2_P20, Touch INT */
 			>;
 		};
-
 	};
 };
 
@@ -248,10 +247,20 @@
 		function = "passthru_in"; drive-push-pull;
 	};
 
-	// Audio B - use as GPIO
+	// Audio B
+	pinctrl_af_aud_b_out: pcafauda_out {
+		pins = "F_AUD_B_TXD", "F_AUD_B_TXFS", "F_AUD_B_TXCLK";
+		function = "passthru_out"; drive-push-pull;
+	};
+
+	pinctrl_af_aud_b_in: pcafauda_in {
+		pins = "F_AUD_B_RXD";
+		function = "passthru_in"; drive-push-pull;
+	};
+
+	// Audio B - left use as GPIO
 	pinctrl_af_aud_b_gpio: pcafaudb_gpio {
-		pins = "F_AUD_B_TXD", "F_AUD_B_RXD", "F_AUD_B_TXFS", "F_AUD_B_TXCLK",
-		"F_AUD_B_RXFS", "F_AUD_B_RXCLK", "F_AUD_B_MCLK" ;
+		pins = "F_AUD_B_RXFS", "F_AUD_B_RXCLK", "F_AUD_B_MCLK" ;
 		function = "gpio"; drive-push-pull;
 	};
 
