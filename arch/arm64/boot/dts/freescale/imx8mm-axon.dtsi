@@ -574,9 +574,30 @@
 		pinmux_axonfabric: pinmux {
 			status = "okay";
 
- 			// SPI_A
-			pinctrl_af_spi_a_out: pcspia_out {
-				pins = "F_SPI_A_MOSI", "F_SPI_A_SCLK", "F_SPI_A_CS0", "F_SPI_A_CS1";
+			// SPI_A
+			pinctrl_af_spi_a_mosi_out: pcspia_mosi_out {
+				pins = "F_SPI_A_MOSI";
+				function = "passthru_out";
+				drive-push-pull;
+			};
+
+			// SPI_A
+			pinctrl_af_spi_a_sclk_out: pcspia_sclk_out {
+				pins = "F_SPI_A_SCLK";
+				function = "passthru_out";
+				drive-push-pull;
+			};
+
+			// SPI_A
+			pinctrl_af_spi_a_cs0_out: pcspia_cs0_out {
+				pins = "F_SPI_A_CS0";
+				function = "passthru_out";
+				drive-push-pull;
+			};
+
+			// SPI_A
+			pinctrl_af_spi_a_cs1_out: pcspia_cs1_out {
+				pins = "F_SPI_A_CS1";
 				function = "passthru_out";
 				drive-push-pull;
 			};
@@ -771,13 +792,13 @@
 };
 
 &sai1 {  // AUD_A
-    assigned-clocks = <&clk IMX8MM_AUDIO_PLL1>, <&clk IMX8MM_AUDIO_PLL2>, <&clk IMX8MM_CLK_SAI1>;
-    assigned-clock-parents = <0>, <0>, <&clk IMX8MM_AUDIO_PLL1_OUT>;
-    assigned-clock-rates = <786432000>, <722534400>, <12288000>;
+	assigned-clocks = <&clk IMX8MM_AUDIO_PLL1>, <&clk IMX8MM_AUDIO_PLL2>, <&clk IMX8MM_CLK_SAI1>;
+	assigned-clock-parents = <0>, <0>, <&clk IMX8MM_AUDIO_PLL1_OUT>;
+	assigned-clock-rates = <786432000>, <722534400>, <12288000>;
 	#sound-dai-cells = <0>;
-    pinctrl-names = "default";
-    pinctrl-0 = <&pinctrl_sai1>;
-    status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_sai1>;
+	status = "okay";
 };
 
 &sai5 {  // AUD_B
