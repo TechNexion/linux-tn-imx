@@ -1,0 +1,51 @@
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/{
+    fragment@0 {
+        target-path = "/";
+        __overlay__ {
+            model = "TechNexion AXON-IMX8MM and WIZARD baseboard with 10 inch MIPI display";
+        };
+    };
+
+    fragment@1 {
+        target = <&i2c3>;
+        __overlay__ {
+            #address-cells = <1>;
+            #size-cells = <0>;
+            status = "okay";
+
+            polytouch: edt-ft5x06@38 {
+                compatible = "edt,edt-ft5x06";
+                reg = <0x38>;
+                pinctrl-names = "default";
+                pinctrl-0 = <&pinctrl_ft5336_touch_irq>;
+                interrupt-parent = <&gpio4>;
+                interrupts = <9 IRQ_TYPE_EDGE_FALLING>;
+                touchscreen-size-x = <1920>;
+                touchscreen-size-y = <1200>;
+                status="okay";
+            };
+        };
+    };
+
+    fragment@2 {
+        target = <&mipi_dsi>;
+        __overlay__ {
+            #address-cells = <1>;
+            #size-cells = <0>;
+            status = "okay";
+
+            panel@0 {
+                compatible = "auo,g101uan02";
+                reg = <0>;
+                enable-gpios = <&pca9554_23 0 GPIO_ACTIVE_HIGH>;
+                status = "okay";
+            };
+        };
+    };
+};
