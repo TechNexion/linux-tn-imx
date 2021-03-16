@@ -209,12 +209,27 @@
 		mipi_csi;
 		status = "okay";
 
+		nvmem-cells = <&csi0_calibration_data>;
+		nvmem-cell-names = "calibration-data";
+
 		port {
 			ov5640_mipi_0_ep: endpoint {
 				remote-endpoint = <&mipi_csi0_ep>;
 				data-lanes = <1 2>;
 				clock-lanes = <0>;
 			};
+		};
+	};
+
+	eeprom_0@54 {
+		compatible = "atmel,24c64";
+		read-only;
+		reg = <0x54>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		csi0_calibration_data: csi0-calib@0 {
+			reg = <0x0 0x788>;
 		};
 	};
 };
@@ -248,12 +263,27 @@
 		mipi_csi;
 		status = "okay";
 
+		nvmem-cells = <&csi1_calibration_data>;
+		nvmem-cell-names = "calibration-data";
+
 		port {
 			ov5640_mipi_1_ep: endpoint {
 				remote-endpoint = <&mipi_csi1_ep>;
 				data-lanes = <1 2>;
 				clock-lanes = <0>;
 			};
+		};
+	};
+
+	eeprom_1@54 {
+		compatible = "atmel,24c64";
+		read-only;
+		reg = <0x54>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		csi1_calibration_data: csi1-calib@0 {
+			reg = <0x0 0x788>;
 		};
 	};
 };
