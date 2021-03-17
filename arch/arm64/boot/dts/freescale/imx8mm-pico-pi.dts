@@ -10,6 +10,26 @@
 
 #include "imx8mm-pico.dtsi"
 
+&gpio3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_gpio3>;
+	gpio-line-names =
+		"GPIO_P25", "", "", "", "", "", "GPIO_P28", "GPIO_P30",
+		"GPIO_P32", "", "", "", "", "", "", "",
+		"", "", "", "", "", "", "", "",
+		"", "", "", "", "", "", "", "";
+};
+
+&gpio5 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_gpio5>;
+	gpio-line-names =
+		"", "", "", "", "", "", "", "",
+		"", "", "", "", "", "", "", "",
+		"", "", "", "", "GPIO_P44", "", "", "",
+		"", "", "", "", "", "", "", "";
+};
+
 / {
 	model = "TechNexion PICO-IMX8MM and PI baseboard";
 	compatible = "fsl,imx8mm-pico", "fsl,imx8mm";
@@ -89,11 +109,6 @@
 			MX8MM_IOMUXC_NAND_CE0_B_GPIO3_IO1		0x41
 		>;
 	};
-	pinctrl_csi_pwn: csi_pwn_grp {
-		fsl,pins = <
-			MX8MM_IOMUXC_ECSPI2_MOSI_GPIO5_IO11		0x19
-		>;
-	};
 	pinctrl_csi_rst: csi_rst_grp {
 		fsl,pins = <
 			MX8MM_IOMUXC_GPIO1_IO05_GPIO1_IO5		0x19
@@ -126,17 +141,40 @@
 			MX8MM_IOMUXC_ECSPI2_MISO_GPIO5_IO12	0x19 /* INT */
 		>;
 	};
+
+	/* GPIO on expansion IO J8 connector */
+	pinctrl_gpio3: gpio3grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_NAND_ALE_GPIO3_IO0			0x41 /* GPIO_P25, KEY_PREV on VoiceHat */
+			MX8MM_IOMUXC_NAND_DATA00_GPIO3_IO6		0x41 /* GPIO_P28, KEY_MUTE on VoiceHat */
+			MX8MM_IOMUXC_NAND_DATA01_GPIO3_IO7		0x41 /* GPIO_P30, KEY_UP on VoiceHat */
+			MX8MM_IOMUXC_NAND_DATA02_GPIO3_IO8		0x41 /* GPIO_P32 */
+		>;
+	};
+
+	pinctrl_gpio5: gpio5grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_I2C4_SCL_GPIO5_IO20		0x41 /* GPIO_P44, KEY_NEXT on VoiceHat */
+		>;
+	};
+
 	pinctrl_gpio_key_voicehat: gpiokey_voicehatgrp {
 		fsl,pins = <
-			MX8MM_IOMUXC_NAND_ALE_GPIO3_IO0			0x41 /* GPIO_P25, KEY_PREV */
-			MX8MM_IOMUXC_SPDIF_RX_GPIO5_IO4			0x41 /* PWM2, KEY_PLAY */
-			MX8MM_IOMUXC_I2C4_SCL_GPIO5_IO20		0x41 /* GPIO_P44, KEY_NEXT */
-			MX8MM_IOMUXC_NAND_DATA01_GPIO3_IO7		0x41 /* GPIO_P30, KEY_UP */
 			MX8MM_IOMUXC_NAND_READY_B_GPIO3_IO16		0x41 /* GPIO_P26, KEY_DOWN */
-			MX8MM_IOMUXC_NAND_DATA00_GPIO3_IO6		0x41 /* GPIO_P28, KEY_MUTE */
+			MX8MM_IOMUXC_SPDIF_RX_GPIO5_IO4			0x41 /* PWM2, KEY_PLAY */
 			MX8MM_IOMUXC_ECSPI2_SS0_GPIO5_IO13		0x41 /* ECSPI2_SS0, KEY_PAIR */
 			MX8MM_IOMUXC_SPDIF_TX_GPIO5_IO3			0x41 /* PWM3, KEY_ACT */
 		>;
+	};
+};
+
+&ecspi2 {
+	status = "okay";
+
+	spidev0: spi@0 {
+		reg = <0>;
+		compatible = "rohm,dh2228fv";
+		spi-max-frequency = <1000000>;
 	};
 };
 
@@ -155,6 +193,66 @@
 		tusb320,int-gpio = <&gpio3 1 GPIO_ACTIVE_LOW>;
 		tusb320,select-mode = <0>;
 		tusb320,dfp-power = <0>;
+	};
+
+	/* PCA9554 on camera tev_mipi board */
+	pca9554_tev_mipi: pca9554_tev_mipi@21 {
+		compatible = "nxp,pca9554";
+		reg =<0x21>;
+		gpio-controller;
+		#gpio-cells = <2>;
+	};
+
+	ov5640_mipi: ov5640_mipi@3c {
+		compatible = "ovti,ov5640_mipi";
+		reg = <0x3c>;
+		status = "okay";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_csi_rst>;
+		clocks = <&clk IMX8MM_CLK_CLKO1>;
+		clock-names = "csi_mclk";
+		assigned-clocks = <&clk IMX8MM_CLK_CLKO1>;
+		assigned-clock-parents = <&clk IMX8MM_CLK_24M>;
+		assigned-clock-rates = <24000000>;
+		csi_id = <0>;
+		pwn-gpios = <&pca9554_tev_mipi 2 GPIO_ACTIVE_LOW>;
+		rst-gpios = <&gpio1 5 GPIO_ACTIVE_HIGH>;
+		mclk = <24000000>;
+		mclk_source = <0>;
+		port {
+			ov5640_mipi1_ep: endpoint {
+				remote-endpoint = <&mipi1_sensor_ep>;
+			};
+		};
+	};
+};
+
+&csi1_bridge {
+	fsl,mipi-mode;
+	status = "okay";
+	port {
+		csi1_ep: endpoint {
+			remote-endpoint = <&csi1_mipi_ep>;
+		};
+	};
+};
+
+&mipi_csi_1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+	port {
+		mipi1_sensor_ep: endpoint@1 {
+			remote-endpoint = <&ov5640_mipi1_ep>;
+			data-lanes = <2>;
+			csis-hs-settle = <13>;
+			csis-clk-settle = <2>;
+			csis-wclk;
+		};
+
+		csi1_mipi_ep: endpoint@2 {
+			remote-endpoint = <&csi1_ep>;
+		};
 	};
 };
 
