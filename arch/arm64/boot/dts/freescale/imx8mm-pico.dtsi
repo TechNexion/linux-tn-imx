@@ -589,6 +589,20 @@
 			MX8MM_IOMUXC_GPIO1_IO12_GPIO1_IO12	0x41 /* BT_REG_ON */
 		>;
 	};
+
+	pinctrl_ecspi2: ecspi2grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_ECSPI2_SCLK_ECSPI2_SCLK	0x82
+			MX8MM_IOMUXC_ECSPI2_MOSI_ECSPI2_MOSI	0x82
+			MX8MM_IOMUXC_ECSPI2_MISO_ECSPI2_MISO	0x82
+		>;
+	};
+
+	pinctrl_ecspi2_cs: ecspi2cs {
+		fsl,pins = <
+			MX8MM_IOMUXC_ECSPI2_SS0_GPIO5_IO13	0x16
+		>;
+	};
 };
 
 &lcdif {
