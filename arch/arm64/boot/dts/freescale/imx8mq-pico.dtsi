@@ -323,6 +323,46 @@
 	status = "okay";
 };
 
+&pgc_gpu {
+	power-supply = <&buck3>;
+};
+
+&pgc_vpu {
+	power-supply = <&buck4>;
+};
+
+&mu {
+	status = "okay";
+};
+
+&A53_0 {
+	cpu-supply = <&buck2>;
+};
+
+&A53_1 {
+	cpu-supply = <&buck2>;
+};
+
+&A53_2 {
+	cpu-supply = <&buck2>;
+};
+
+&A53_3 {
+	cpu-supply = <&buck2>;
+};
+
+&vpu {
+	status = "okay";
+};
+
+&gpu3d {
+	status = "okay";
+};
+
+&irqsteer {
+	status = "okay";
+};
+
 &iomuxc {
 	pinctrl_enet_3v3: enet3v3grp {
 		fsl,pins = <
