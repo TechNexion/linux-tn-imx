@@ -10,6 +10,17 @@
 
 #include "imx8mq-pico.dtsi"
 
+
+&gpio3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_gpio3>;
+	gpio-line-names =
+		"GPIO_P28", "", "", "GPIO_P25", "", "GPIO_P30", "", "",
+		"", "", "", "", "", "", "", "GPIO_P32",
+		"", "", "", "", "", "", "", "",
+		"", "", "", "", "", "", "", "";
+};
+
 / {
 	model = "TechNexion PICO-IMX8MQ and PI baseboard";
 	compatible = "pico,imx8mq-pico", "fsl,imx8mq";
@@ -18,25 +29,31 @@
 		stdout-path = &uart1;
 	};
 
-	reg_usb_otg_vbus: regulator-usb-otg-vbus {
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_otg_vbus>;
-		compatible = "regulator-fixed";
-		regulator-name = "usb_otg_vbus";
-		regulator-min-microvolt = <5000000>;
-		regulator-max-microvolt = <5000000>;
-		gpio = <&gpio3 14 GPIO_ACTIVE_LOW>;
-	};
+	regulators {
+		compatible = "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <0>;
 
-	reg_backlight_pwr: regulator_blpwr {
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_backlight_pwr>;
-		compatible = "regulator-fixed";
-		regulator-name = "backlight_pwr";
-		regulator-min-microvolt = <5000000>;
-		regulator-max-microvolt = <5000000>;
-		gpio = <&gpio1 8 GPIO_ACTIVE_HIGH>;
-		enable-active-high;
+		reg_usb_otg_vbus: regulator-usb-otg-vbus {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_otg_vbus>;
+			compatible = "regulator-fixed";
+			regulator-name = "usb_otg_vbus";
+			regulator-min-microvolt = <5000000>;
+			regulator-max-microvolt = <5000000>;
+			gpio = <&gpio3 14 GPIO_ACTIVE_LOW>;
+		};
+
+		reg_backlight_pwr: regulator_blpwr {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_backlight_pwr>;
+			compatible = "regulator-fixed";
+			regulator-name = "backlight_pwr";
+			regulator-min-microvolt = <5000000>;
+			regulator-max-microvolt = <5000000>;
+			gpio = <&gpio1 8 GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+		};
 	};
 
 	leds {
@@ -104,18 +121,6 @@
 
 &usb_dwc3_1 {
 	dr_mode = "host";
-	status = "okay";
-};
-
-&vpu {
-	status = "okay";
-};
-
-&gpu3d {
-	status = "okay";
-};
-
-&irqsteer {
 	status = "okay";
 };
 
@@ -193,6 +198,16 @@
 	pinctrl_led: ledggrp {
 		fsl,pins = <
 			MX8MQ_IOMUXC_SPDIF_EXT_CLK_GPIO5_IO5	0x19
+		>;
+	};
+
+	/* GPIO on expansion IO J8 connector */
+	pinctrl_gpio3: gpio3grp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_NAND_ALE_GPIO3_IO0			0x19 /* GPIO_P28 */
+			MX8MQ_IOMUXC_NAND_CE2_B_GPIO3_IO3		0x19 /* GPIO_P25, CLIX_RESET */
+			MX8MQ_IOMUXC_NAND_CLE_GPIO3_IO5			0x19 /* GPIO_P30 */
+			MX8MQ_IOMUXC_NAND_RE_B_GPIO3_IO15		0x19 /* GPIO_P32 */
 		>;
 	};
 };
