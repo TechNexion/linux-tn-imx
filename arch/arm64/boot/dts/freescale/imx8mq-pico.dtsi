@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0+
+// SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright 2018 Wandboard, Org.
  * Copyright 2017 NXP
@@ -320,6 +320,42 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_wdog>;
 	fsl,ext-reset-output;
+	status = "okay";
+};
+
+&pgc_gpu {
+	power-supply = <&buck3>;
+};
+
+&pgc_vpu {
+	power-supply = <&buck4>;
+};
+
+&mu {
+	status = "okay";
+};
+
+&A53_0 {
+	cpu-supply = <&buck2>;
+};
+
+&A53_1 {
+	cpu-supply = <&buck2>;
+};
+
+&A53_2 {
+	cpu-supply = <&buck2>;
+};
+
+&A53_3 {
+	cpu-supply = <&buck2>;
+};
+
+&vpu {
+	status = "okay";
+};
+
+&irqsteer {
 	status = "okay";
 };
 
