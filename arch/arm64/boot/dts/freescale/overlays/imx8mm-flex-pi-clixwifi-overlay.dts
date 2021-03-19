@@ -1,0 +1,94 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2020 TechNexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *         Ray Chang <ray.chang@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	fragment@0 {
+		target-path = "/";
+		__overlay__ {
+			clix_bt_reg_on: clix_btreg_on {
+				compatible = "gpio-reset";
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_clix_bt_ctrl>;
+				reset-gpios = <&gpio5 11 GPIO_ACTIVE_LOW>;
+				reset-delay-us = <2000>;
+				reset-post-delay-ms = <40>;
+				#reset-cells = <0>;
+			};
+
+			regulators {
+				clix_wl_reg_on: clix_wlreg_on {
+					compatible = "regulator-fixed";
+					pinctrl-names = "default";
+					pinctrl-0 = <&pinctrl_clix_wifi_ctrl>;
+					regulator-name = "CLIX_WL_REG_ON";
+					regulator-min-microvolt = <3300000>;
+					regulator-max-microvolt = <3300000>;
+					gpio = <&gpio5 13 GPIO_ACTIVE_HIGH>;
+					enable-active-high;
+					regulator-always-on;
+				};
+
+				clix_rst: clix_reset {
+					compatible = "regulator-fixed";
+					regulator-name = "CLIX_RESET";
+					regulator-min-microvolt = <3300000>;
+					regulator-max-microvolt = <3300000>;
+					gpio = <&gpio4 28 GPIO_ACTIVE_HIGH>;
+					enable-active-high;
+					regulator-always-on;
+				};
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&ecspi2>;
+		__overlay__ {
+			status = "disabled";
+		};
+	};
+
+	fragment@2 {
+		target = <&uart1>;
+		__overlay__ {
+			status = "disabled";
+		};
+	};
+
+	fragment@3 {
+		target = <&usdhc1>;
+		__overlay__ {
+			status = "disabled";
+		};
+	};
+
+	fragment@4 {
+		target = <&uart3>;
+		__overlay__ {
+			resets = <&clix_bt_reg_on>;
+			status = "okay";
+		};
+	};
+
+	fragment@5 {
+		target = <&usdhc2>;
+		__overlay__ {
+			vdd-supply = <&clix_wl_reg_on>;
+			keep-power-in-suspend;
+			non-removable;
+			status = "okay";
+		};
+	};
+};
