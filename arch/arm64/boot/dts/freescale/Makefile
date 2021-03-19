@@ -80,6 +80,7 @@ dtb-$(CONFIG_ARCH_MXC) += imx8mm-var-som-symphony.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mn-evk.dtb imx8mn-evk-rm67191.dtb imx8mn-evk-rpmsg.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-ab2.dtb imx8mm-ab2-m4.dtb imx8mm-ddr4-ab2.dtb imx8mm-ddr4-ab2-m4.dtb \
 			  imx8mm-ddr4-ab2-revb.dtb imx8mm-ddr4-ab2-m4-revb.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mm-flex-pi.dtb imx8mm-flex-wizard.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-pico-pi.dtb imx8mm-pico-pi-ili9881c.dtb imx8mm-pico-pi-voicehat.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-pico-wizard.dtb imx8mm-pico-wizard-ili9881c.dtb imx8mm-pico-wizard-g080uan01.dtb \
 			  imx8mm-pico-wizard-g101uan02.dtb imx8mm-pico-wizard-adv7535.dtb imx8mm-pico-wizard-sn65dsi84-m101nwwb.dtb \
