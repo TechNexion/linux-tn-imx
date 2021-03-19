@@ -87,17 +87,6 @@
 			gpio = <&gpio1 12 GPIO_ACTIVE_HIGH>;
 			enable-active-high;
 		};
-
-		reg_mipi_bl_en: regulator_mipiblen {
-			pinctrl-names = "default";
-			pinctrl-0 = <&pinctrl_mipi_dsi_bl_en>;
-			compatible = "regulator-fixed";
-			regulator-name = "mipi_blen";
-			regulator-min-microvolt = <3300000>;
-			regulator-max-microvolt = <3300000>;
-			gpio = <&gpio1 13 GPIO_ACTIVE_HIGH>;
-			enable-active-high;
-		};
 	};
 
 	backlight_mipi {
@@ -381,6 +370,28 @@
 
 &sai2 {
 	status = "okay";
+};
+
+&csi1_bridge {
+	fsl,mipi-mode;
+	status = "disabled";
+	port {
+		csi1_ep: endpoint {
+			remote-endpoint = <&csi1_mipi_ep>;
+		};
+	};
+};
+
+&mipi_csi_1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "disabled";
+	port {
+
+		csi1_mipi_ep: endpoint@2 {
+			remote-endpoint = <&csi1_ep>;
+		};
+	};
 };
 
 &pcie0{
