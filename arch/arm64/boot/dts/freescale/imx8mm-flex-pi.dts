@@ -236,6 +236,27 @@
 	};
 };
 
+&csi1_bridge {
+	fsl,mipi-mode;
+	status = "disabled";
+	port {
+		csi1_ep: endpoint {
+			remote-endpoint = <&csi1_mipi_ep>;
+		};
+	};
+};
+
+&mipi_csi_1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "disabled";
+	port {
+		csi1_mipi_ep: endpoint@2 {
+			remote-endpoint = <&csi1_ep>;
+		};
+	};
+};
+
 &lcdif {
 	status = "okay";
 };

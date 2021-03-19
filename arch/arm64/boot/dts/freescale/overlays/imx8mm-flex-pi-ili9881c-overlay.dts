@@ -1,0 +1,67 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2020 TechNexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *         Ray Chang <ray.chang@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	fragment@0 {
+		target-path = "/";
+		__overlay__ {
+			backlight_mipi {
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&mipi_dsi>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+			panel@0 {
+				compatible = "bananapi,lhr050h41", "ilitek,ili9881c";
+				pinctrl-0 = <&pinctrl_mipi_dsi_rst>;
+				reset-gpio = <&gpio1 11 GPIO_ACTIVE_LOW>;
+				reg = <0>;
+				timing-mode = <0>;
+				video-mode = <2>;	/* 0: burst mode
+							 * 1: non-burst mode with sync event
+							 * 2: non-burst mode with sync pulse
+							 */
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&i2c1>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+			polytouch: edt-ft5x06@38 {
+				compatible = "edt,edt-ft5x06";
+				reg = <0x38>;
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_touch_irq &pinctrl_touch_rst>;
+				interrupt-parent = <&gpio5>;
+				interrupts = <4 IRQ_TYPE_EDGE_FALLING>;
+				reset-gpios = <&gpio4 20 GPIO_ACTIVE_LOW>;
+				touchscreen-size-x = <720>;
+				touchscreen-size-y = <1280>;
+				status = "okay";
+			};
+		};
+	};
+};
