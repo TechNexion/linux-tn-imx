@@ -1,0 +1,43 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2020 TechNexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *         Ray Chang <ray.chang@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	fragment@0 {
+		target = <&i2c3>;
+		__overlay__ {
+			status = "okay";
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			pn547: pn547@2a {
+				compatible = "nxp,pn547";
+				reg = <0x2a>;
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_clix_nfc_ctrl>;
+				clock-frequency = <100000>;
+				interrupt-gpios = <&gpio3 9 0>;
+				enable-gpios = <&gpio5 11 0>;
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&ecspi2>;
+		__overlay__ {
+			status = "disabled";
+		};
+	};
+};
