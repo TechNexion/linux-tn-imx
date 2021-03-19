@@ -191,6 +191,12 @@
 							"EXT_GPIO8", "EXT_GPIO9", "", "", "", "CSI1_PDB", "CSI2_PDB", "PD_FAULT";
 	};
 
+	ov5640_otp_0: eeprom@54 {
+		compatible = "atmel,24c64";
+		reg = <0x54>;
+		//read-only;
+	};
+
 	ov5640_0: ov5640_mipi@3c {
 		compatible = "ovti,ov5640";
 		reg = <0x3c>;
@@ -207,10 +213,9 @@
 		mclk = <24000000>;
 		mclk_source = <0>;
 		mipi_csi;
+		nvmem = <&ov5640_otp_0>;
+		nvmem-names = "calib-data";
 		status = "okay";
-
-		nvmem-cells = <&csi0_calibration_data>;
-		nvmem-cell-names = "calibration-data";
 
 		port {
 			ov5640_mipi_0_ep: endpoint {
@@ -218,18 +223,6 @@
 				data-lanes = <1 2>;
 				clock-lanes = <0>;
 			};
-		};
-	};
-
-	eeprom_0@54 {
-		compatible = "atmel,24c64";
-		read-only;
-		reg = <0x54>;
-		#address-cells = <1>;
-		#size-cells = <1>;
-
-		csi0_calibration_data: csi0-calib@0 {
-			reg = <0x0 0x788>;
 		};
 	};
 };
@@ -243,6 +236,12 @@
 		clock-frequency = <100000>;
 		interrupt-gpios = <&gpio4 10 0>;
 		status = "okay";
+	};
+
+	ov5640_otp_1: eeprom@54 {
+		compatible = "atmel,24c64";
+		reg = <0x54>;
+		//read-only;
 	};
 
 	ov5640_1: ov5640_mipi@3c {
@@ -261,10 +260,9 @@
 		mclk = <24000000>;
 		mclk_source = <0>;
 		mipi_csi;
+		nvmem = <&ov5640_otp_1>;
+		nvmem-names = "calib-data";
 		status = "okay";
-
-		nvmem-cells = <&csi1_calibration_data>;
-		nvmem-cell-names = "calibration-data";
 
 		port {
 			ov5640_mipi_1_ep: endpoint {
