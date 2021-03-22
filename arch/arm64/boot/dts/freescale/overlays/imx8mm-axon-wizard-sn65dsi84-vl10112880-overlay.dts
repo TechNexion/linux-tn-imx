@@ -1,0 +1,162 @@
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include "../imx8mm-pinfunc.h"
+
+/{
+	fragment@0 {
+		target-path = "/";
+		__overlay__ {
+			model = "TechNexion AXON-IMX8MM and WIZARD baseboard with 10.1 inch MIPI2LVDS display";
+
+			regulators {
+				reg_mipi_pwr: regulator_mipipwr {
+					pinctrl-names = "default";
+					compatible = "regulator-fixed";
+					regulator-name = "mipi_pwr";
+					regulator-min-microvolt = <3300000>;
+					regulator-max-microvolt = <3300000>;
+					gpio = <&pca9554_23 0 GPIO_ACTIVE_HIGH>;
+					regulator-always-on;
+					enable-active-high;
+					regulator-boot-on;
+					status = "okay";
+				};
+
+				reg_mipi_vdd: regulator_mipivdd {
+					pinctrl-names = "default";
+					compatible = "regulator-fixed";
+					regulator-name = "mipi_vdd";
+					regulator-min-microvolt = <3300000>;
+					regulator-max-microvolt = <3300000>;
+					gpio = <&pca9554_23 2 GPIO_ACTIVE_HIGH>;
+					regulator-always-on;
+					enable-active-high;
+					regulator-boot-on;
+					status = "okay";
+				};
+
+				reg_backlight_pwr: regulator_blpwr {
+					gpio = <&pca9554_23 3 GPIO_ACTIVE_HIGH>;
+					regulator-always-on;
+					enable-active-high;
+					regulator-boot-on;
+					status = "okay";
+				};
+			};
+
+			backlight_mipi {
+				pwms = <&pwm2 0 50000 0>;
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&i2c2>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			dsi_lvds_bridge: sn65dsi84@2d {
+				reg = <0x2d>;
+				status = "okay";
+				compatible = "ti,sn65dsi84";
+				#gpio-cells = <2>;
+				enable-gpios = <&pca9554_23 5 GPIO_ACTIVE_HIGH>;
+		sn65dsi84,addresses = <0x09 0x0A 0x0B 0x0D
+							0x10 0x11 0x12 0x13
+							0x18 0x19 0x1A 0x1B
+							0x20 0x21 0x22 0x23
+							0x24 0x25 0x26 0x27
+							0x28 0x29 0x2A 0x2B
+							0x2C 0x2D 0x2E 0x2F
+							0x30 0x31 0x32 0x33
+							0x34 0x35 0x36 0x37
+							0x38 0x39 0x3A 0x3B
+							0x3C 0x3D 0x3E 0x0D>;
+
+				sn65dsi84,values = </* reset and clock registers */
+							0x00 0x05 0x10 0x00
+							/* DSI registers */
+							0x26 0x00 0x2d 0x00
+							/* LVDS registers */
+							0x78 0x00 0x03 0x00
+
+							/* video registers */
+							/* cha-al-len-l, cha-al-len-h, chb-al-len-l, chb-al-len-h */
+							0x56 0x05 0x00 0x00
+							/* cha-v-ds-l, cha-v-ds-h, chb-v-ds-l, chb-v-ds-h */
+							0x00 0x00 0x00 0x00
+							/* cha-sdl, cha-sdh, chb-sdl, chb-sdh */
+							0x21 0x00 0x00 0x00
+							/* cha-hs-pwl, cha-hs-pwh, chb-hs-pwl, chb-hs-pwh */
+							0x64 0x00 0x00 0x00
+							/* cha-vs-pwl, cha-vs-pwh, chb-vs-pwl, chb-vs-pwh */
+							0x14 0x00 0x00 0x00
+							/*cha-hbp, chb-hbp, cha-vbp, chb-vbp*/
+							0x2f 0x00 0x00 0x00
+							/* cha-hfp, chb-hfp, cha-vfp, chb-vfp*/
+							0x00 0x00 0x00 0x00
+
+							0x00 0x00 0x00 0x01>;
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&pwm1>;
+		__overlay__ {
+			status = "disabled";
+		};
+	};
+
+	fragment@3 {
+		target = <&pwm2>;
+		__overlay__ {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_dsi_pwm>;
+			status = "okay";
+		};
+	};
+
+	fragment@4 {
+		target = <&mipi_dsi>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			panel@0 {
+				reg = <0>;
+				compatible = "tn,dsi2lvds-panel";
+				dsi,flags = <0x0007>;
+				dsi,format = <0>;
+				dsi,lanes = <4>;
+				panel-width-mm  = <217>;
+				panel-height-mm = <135>;
+				bus-format = <0x100a>;	/* MEDIA_BUS_FMT_RGB888_1X24 */
+				bus-flags = <1>;
+				refresh-rate = <60>;
+				rotate = <0>;
+
+				panel-timing {
+						clock-frequency = <68900000>;
+						hactive = <1280>;
+						vactive = <800>;
+						hfront-porch = <40>;
+						hsync-len = <80>;
+						hback-porch = <40>;
+						vfront-porch = <3>;
+						vsync-len = <10>;
+						vback-porch = <10>;
+						/* flags = DISPLAY_FLAGS_HSYNC_HIGH | DISPLAY_FLAGS_VSYNC_HIGH */
+						vsync-active = <1>;
+						hsync-active = <1>;
+				};
+			};
+		};
+	};
+};
