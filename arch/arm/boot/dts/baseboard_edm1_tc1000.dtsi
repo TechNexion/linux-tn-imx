@@ -67,7 +67,7 @@ EDM_TC1000_GPIO_DEFS();
 							"GPIO_EXP8", "GPIO_EXP9", "GPIO_EXP10", "GPIO_EXP11", "", "", "", "";
 	};
 
-	codec: sgtl5000@0a {
+	codec: sgtl5000@a {
 		compatible = "fsl,sgtl5000";
 		reg = <0x0a>;
 		clocks = <&EDM_AUDA_CLK_SRC>;

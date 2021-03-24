@@ -68,7 +68,7 @@ EDM_GNOME_GPIO_DEFS();
 &EDM_I2CB {
 	status = "okay";
 
-	codec: sgtl5000@0a {
+	codec: sgtl5000@a {
 		compatible = "fsl,sgtl5000";
 		reg = <0x0a>;
 		clocks = <&EDM_AUDA_CLK_SRC>;
