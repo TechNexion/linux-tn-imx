@@ -404,7 +404,7 @@
 	pinctrl-0 = <&pinctrl_i2c3>;
 	status = "okay";
 
-	pmic: pfuze100@08 {
+	pmic: pfuze100@8 {
 		compatible = "fsl,pfuze100";
 		reg = <0x08>;
 
@@ -524,7 +524,7 @@
 				MX6QDL_PAD_GPIO_8__GPIO1_IO08			0x0b0b0		/* ov5640 mipi reset */
 				MX6QDL_PAD_GPIO_3__CCM_CLKO2			0x000b0		/* ov5640 mclk */
 				MX6QDL_PAD_EIM_D29__GPIO3_IO29			0x1f0b1		/* RGMII PHY reset */
-				MX6QDL_PAD_ENET_RXD0__XTALOSC_REF_CLK_32K	0x000b0		/* wifi LPO 32K Hz clock */
+				MX6QDL_PAD_ENET_RXD0__OSC32K_32K_OUT		0x000b0		/* wifi LPO 32K Hz clock */
 				MX6QDL_PAD_CSI0_DAT17__GPIO6_IO03		0x4001b0b5	/* GPIO6_03 EDM pin 261, touch irq */
 				MX6QDL_PAD_GPIO_4__GPIO1_IO04			0x4001b0b5	/* GPIO1_04 EDM pin 263 touch irq */
 				MX6QDL_PAD_SD3_RST__GPIO7_IO08			0x4001b0b5	/* GPIO7_08 EDM pin 264, touch reset */
