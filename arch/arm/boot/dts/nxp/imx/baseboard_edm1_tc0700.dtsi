@@ -38,7 +38,7 @@ EDM_TC700_GPIO_DEFS();
 &EDM_I2CB {
 	status = "okay";
 
-	codec: sgtl5000@0a {
+	codec: sgtl5000@a {
 		compatible = "fsl,sgtl5000";
 		reg = <0x0a>;
 		clocks = <&EDM_AUDA_CLK_SRC>;
@@ -50,7 +50,7 @@ EDM_TC700_GPIO_DEFS();
 &EDM_I2CC {
 	status = "okay";
 
-	mag3110@0e {
+	mag3110@e {
 		compatible = "fsl,mag3110";
 		reg = <0x0e>;
 		position = <2>;
