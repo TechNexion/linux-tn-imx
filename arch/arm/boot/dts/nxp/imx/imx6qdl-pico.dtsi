@@ -355,7 +355,7 @@
 	imx6qdl-pico {
 		pinctrl_hog_1: hoggrp-1 {
 			fsl,pins = <
-				MX6QDL_PAD_ENET_RXD0__XTALOSC_REF_CLK_32K	0x000b0	/* wifi LPO 32K Hz clock */
+				MX6QDL_PAD_ENET_RXD0__OSC32K_32K_OUT		0x000b0	/* wifi LPO 32K Hz clock */
 				MX6QDL_PAD_EIM_D22__GPIO3_IO22			0x80000000	/* USB OTG power */
 			>;
 		};
