@@ -196,9 +196,9 @@
 	};
 
 	/* PCA9554 on camera tev_mipi board */
-	pca9554_tev_mipi: pca9554_tev_mipi@21 {
+	pca9554_tev_mipi: pca9554_tev_mipi@24 {
 		compatible = "nxp,pca9554";
-		reg =<0x21>;
+		reg =<0x24>;
 		gpio-controller;
 		#gpio-cells = <2>;
 	};
