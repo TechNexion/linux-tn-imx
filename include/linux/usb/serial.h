@@ -133,6 +133,8 @@ static inline void usb_set_serial_port_data(struct usb_serial_port *port,
  * @dev: pointer to the struct usb_device for this device
  * @type: pointer to the struct usb_serial_driver for this device
  * @interface: pointer to the struct usb_interface for this device
+ * @sibling: pointer to the struct usb_interface of any sibling interface
+ * @suspend_count: number of suspended (sibling) interfaces
  * @num_ports: the number of ports this device has
  * @num_interrupt_in: number of interrupt in endpoints we have
  * @num_interrupt_out: number of interrupt out endpoints we have
@@ -148,6 +150,8 @@ struct usb_serial {
 	struct usb_device		*dev;
 	struct usb_serial_driver	*type;
 	struct usb_interface		*interface;
+	struct usb_interface		*sibling;
+	unsigned int			suspend_count;
 	unsigned char			disconnected:1;
 	unsigned char			attached:1;
 	unsigned char			minors_reserved:1;
@@ -337,6 +341,7 @@ static inline void usb_serial_console_disconnect(struct usb_serial *serial) {}
 /* Functions needed by other parts of the usbserial core */
 extern struct usb_serial_port *usb_serial_port_get_by_minor(unsigned int minor);
 extern void usb_serial_put(struct usb_serial *serial);
+extern int usb_serial_claim_interface(struct usb_serial *serial, struct usb_interface *intf);
 extern int usb_serial_generic_open(struct tty_struct *tty,
 	struct usb_serial_port *port);
 extern int usb_serial_generic_write_start(struct usb_serial_port *port,
