@@ -1,0 +1,143 @@
+/dts-v1/;
+/plugin/;
+
+#include "../imx8mq-pinfunc.h"
+#include <dt-bindings/clock/imx8mq-clock.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+
+	fragment@0 {
+		target-path = "/";
+		__overlay__ {
+			sound-hdmi {
+				status = "disabled";
+			};
+		};
+	};
+
+	fragment@1 {
+		target-path = "/";
+		__overlay__ {
+			backlight_mipi {
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&hdmi>;
+		__overlay__ {
+			status = "disabled";
+		};
+	};
+
+	fragment@3 {
+		target = <&lcdif>;
+		__overlay__ {
+			status = "disabled";
+		};
+	};
+
+	fragment@4 {
+		target = <&dcss>;
+		__overlay__ {
+			status = "okay";
+			clocks = <&clk IMX8MQ_CLK_DISP_APB_ROOT>,
+				<&clk IMX8MQ_CLK_DISP_AXI_ROOT>,
+				<&clk IMX8MQ_CLK_DISP_RTRM_ROOT>,
+				<&clk IMX8MQ_CLK_DC_PIXEL>,
+				<&clk IMX8MQ_CLK_DISP_DTRC>;
+			clock-names = "apb", "axi", "rtrm", "pix", "dtrc";
+			assigned-clocks = <&clk IMX8MQ_CLK_DC_PIXEL>,
+				<&clk IMX8MQ_VIDEO_PLL1_BYPASS>,
+				<&clk IMX8MQ_VIDEO_PLL1_REF_SEL>,
+				<&clk IMX8MQ_CLK_DISP_AXI>,
+				<&clk IMX8MQ_CLK_DISP_RTRM>;
+			assigned-clock-parents = <&clk IMX8MQ_VIDEO_PLL1_OUT>,
+				<&clk IMX8MQ_VIDEO_PLL1>,
+				<&clk IMX8MQ_CLK_27M>,
+				<&clk IMX8MQ_SYS1_PLL_800M>,
+				<&clk IMX8MQ_SYS1_PLL_800M>;
+			assigned-clock-rates = <600000000>, <0>, <0>,
+				<800000000>,
+				<400000000>;
+
+			port@0 {
+				dcss_out: endpoint {
+				remote-endpoint = <&mipi_dsi_in>;
+				};
+			};
+		};
+	};
+
+	fragment@5 {
+		target = <&mipi_dsi>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+			panel@0 {
+				compatible = "bananapi,lhr050h41", "ilitek,ili9881c";
+				reset-gpio = <&pca9555_23 2 GPIO_ACTIVE_LOW>;
+				reg = <0>;
+				timing-mode = <1>;
+				video-mode = <3>;
+
+				port {
+					panel_in: endpoint {
+						remote-endpoint = <&mipi_dsi_out>;
+					};
+				};
+			};
+
+			ports {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				port@0 {
+					reg = <0>;
+					mipi_dsi_in: endpoint {
+						remote-endpoint = <&dcss_out>;
+					};
+				};
+
+				port@1 {
+					reg = <1>;
+					mipi_dsi_out: endpoint {
+						remote-endpoint = <&panel_in>;
+					};
+				};
+			};
+		};
+	};
+
+	fragment@6 {
+		target = <&dphy>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@7 {
+		target = <&i2c3>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			polytouch: edt-ft5x06@38 {
+				compatible = "edt,edt-ft5x06";
+				reg = <0x38>;
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_touch_irq>;
+				interrupt-parent = <&gpio1>;
+				interrupts = <7 IRQ_TYPE_EDGE_FALLING>;
+				reset-gpios = <&pca9555_23 3 GPIO_ACTIVE_LOW>;
+				touchscreen-size-x = <720>;
+				touchscreen-size-y = <1280>;
+			};
+		};
+	};
+};

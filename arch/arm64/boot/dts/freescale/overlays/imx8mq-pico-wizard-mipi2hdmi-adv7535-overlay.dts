@@ -1,0 +1,145 @@
+/dts-v1/;
+/plugin/;
+
+#include "../imx8mq-pinfunc.h"
+#include <dt-bindings/clock/imx8mq-clock.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/* Dual HDMI output*/
+/ {
+	fragment@0 {
+		target-path = "/";
+		__overlay__ {
+			sound-adv7535 {
+				compatible = "simple-audio-card";
+				simple-audio-card,name = "adv7535-hdmi";
+				simple-audio-card,format = "i2s";
+				simple-audio-card,bitclock-master = <&sound_master>;
+				simple-audio-card,frame-master = <&sound_master>;
+				sound_master: simple-audio-card,cpu {
+					sound-dai = <&sai3>;
+				};
+				simple-audio-card,codec {
+					sound-dai = <&adv_bridge>;
+				};
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&lcdif>;
+		__overlay__ {
+			status = "okay";
+			max-memory-bandwidth = <221184000>; /* 1280x720-32@60 */
+			assigned-clocks = <&clk IMX8MQ_CLK_LCDIF_PIXEL>,
+						<&clk IMX8MQ_VIDEO_PLL1_BYPASS>,
+						<&clk IMX8MQ_VIDEO_PLL1_REF_SEL>,
+						<&clk IMX8MQ_VIDEO_PLL1>;
+			assigned-clock-parents = <&clk IMX8MQ_VIDEO_PLL1_OUT>,
+						 <&clk IMX8MQ_VIDEO_PLL1>,
+						 <&clk IMX8MQ_CLK_27M>;
+			assigned-clock-rate = <126000000>, <0>, <0>, <1134000000>;
+
+			port@0 {
+				lcdif_out: endpoint {
+					remote-endpoint = <&mipi_dsi_in>;
+				};
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&mipi_dsi>;
+		__overlay__ {
+			status = "okay";
+
+			ports {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				port@0 {
+					reg = <0>;
+					mipi_dsi_in: endpoint {
+						remote-endpoint = <&lcdif_out>;
+					};
+				};
+
+				port@1 {
+					reg = <1>;
+					mipi_dsi_out: endpoint {
+						remote-endpoint = <&adv7535_in>;
+						attach-bridge;
+					};
+				};
+			};
+		};
+	};
+
+	fragment@3 {
+		target = <&dphy>;
+		 __overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@4 {
+		target = <&iomuxc>;
+		__overlay__ {
+			pinctrl-names = "default";
+
+			pinctrl_sai3: sai3grp {
+				fsl,pins = <
+					MX8MQ_IOMUXC_SAI3_TXFS_SAI3_TX_SYNC	0xd6
+					MX8MQ_IOMUXC_SAI3_TXC_SAI3_TX_BCLK	0xd6
+					MX8MQ_IOMUXC_SAI3_TXD_SAI3_TX_DATA0	0xd6
+				>;
+			};
+		};
+	};
+
+
+	fragment@5 {
+		target = <&sai3>;
+		__overlay__ {
+			#sound-dai-cells = <0>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_sai3>;
+			assigned-clocks = <&clk IMX8MQ_CLK_SAI3>;
+			assigned-clock-parents = <&clk IMX8MQ_AUDIO_PLL1_OUT>;
+			assigned-clock-rates = <24576000>;
+			clocks = <&clk IMX8MQ_CLK_SAI3_IPG>, <&clk IMX8MQ_CLK_DUMMY>,
+				<&clk IMX8MQ_CLK_SAI3_ROOT>, <&clk IMX8MQ_CLK_DUMMY>,
+				<&clk IMX8MQ_CLK_DUMMY>, <&clk IMX8MQ_AUDIO_PLL1_OUT>,
+				<&clk IMX8MQ_AUDIO_PLL2_OUT>;
+			clock-names = "bus", "mclk0", "mclk1", "mclk2", "mclk3", "pll8k", "pll11k";
+			status = "okay";
+		};
+	};
+
+	fragment@6 {
+		target = <&i2c3>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+			adv_bridge: adv7535@3d {
+				compatible = "adi,adv7533";
+				reg = <0x3d>;
+				adi,addr-cec = <0x3b>;
+				adi,dsi-lanes = <4>;
+				pinctrl-0 = <&pinctrl_touch_irq>;
+				interrupt-parent = <&gpio1>;
+				interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
+				status = "okay";
+				#sound-dai-cells = <0>;
+
+				port@0 {
+					adv7535_in: endpoint {
+						remote-endpoint = <&mipi_dsi_out>;
+					};
+				};
+			};
+		};
+	};
+};
