@@ -1,0 +1,199 @@
+/dts-v1/;
+/plugin/;
+
+#include "../imx8mq-pinfunc.h"
+#include <dt-bindings/clock/imx8mq-clock.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+
+	fragment@0 {
+		target-path = "/";
+		__overlay__ {
+			sound-hdmi {
+				status = "disabled";
+			};
+		};
+	};
+
+	fragment@1 {
+		target-path = "/";
+		__overlay__ {
+			backlight_mipi {
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&hdmi>;
+		__overlay__ {
+			status = "disabled";
+		};
+	};
+
+	fragment@3 {
+		target = <&lcdif>;
+		__overlay__ {
+			status = "disabled";
+		};
+	};
+
+	fragment@4 {
+		target = <&dcss>;
+		__overlay__ {
+			status = "okay";
+			clocks = <&clk IMX8MQ_CLK_DISP_APB_ROOT>,
+				<&clk IMX8MQ_CLK_DISP_AXI_ROOT>,
+				<&clk IMX8MQ_CLK_DISP_RTRM_ROOT>,
+				<&clk IMX8MQ_CLK_DC_PIXEL>,
+				<&clk IMX8MQ_CLK_DISP_DTRC>;
+			clock-names = "apb", "axi", "rtrm", "pix", "dtrc";
+			assigned-clocks = <&clk IMX8MQ_CLK_DC_PIXEL>,
+				<&clk IMX8MQ_VIDEO_PLL1_BYPASS>,
+				<&clk IMX8MQ_VIDEO_PLL1_REF_SEL>,
+				<&clk IMX8MQ_CLK_DISP_AXI>,
+				<&clk IMX8MQ_CLK_DISP_RTRM>;
+			assigned-clock-parents = <&clk IMX8MQ_VIDEO_PLL1_OUT>,
+				<&clk IMX8MQ_VIDEO_PLL1>,
+				<&clk IMX8MQ_CLK_27M>,
+				<&clk IMX8MQ_SYS1_PLL_800M>,
+				<&clk IMX8MQ_SYS1_PLL_800M>;
+			assigned-clock-rates = <600000000>, <0>, <0>,
+				<800000000>,
+				<400000000>;
+
+			port@0 {
+				dcss_disp0_mipi_dsi: endpoint {
+				remote-endpoint = <&mipi_dsi_in>;
+				};
+			};
+		};
+	};
+
+	fragment@5 {
+		target = <&mipi_dsi>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+			fsl,clock-drop-level = <2>;
+
+			panel@0 {
+				reg = <0>;
+				compatible = "vxt,vl15613676-panel";
+				dsi,flags = <0x0007>;
+				dsi,format = <0>;
+				dsi,lanes = <4>;
+				panel-width-mm  = <344>;
+				panel-height-mm = <193>;
+				bus-format = <0x100a>;	/* MEDIA_BUS_FMT_RGB888_1X24 */
+				bus-flags = <1>;
+				refresh-rate = <60>;
+				rotate = <0>;
+				/* horz-flip; */
+				/* vert-flip; */
+
+				panel-timing {
+					clock-frequency = <76000000>;
+					hactive = <1366>;
+					vactive = <768>;
+					hfront-porch = <90>;
+					hsync-len = <20>;
+					hback-porch = <90>;
+					vfront-porch = <17>;
+					vsync-len = <4>;
+					vback-porch = <17>;
+					/* flags = DISPLAY_FLAGS_HSYNC_HIGH | DISPLAY_FLAGS_VSYNC_HIGH */
+					vsync-active = <1>;
+					hsync-active = <1>;
+				};
+
+				port {
+					panel1_in: endpoint {
+						remote-endpoint = <&mipi_dsi_out>;
+					};
+				};
+			};
+
+			ports {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				port@0 {
+					reg = <0>;
+					mipi_dsi_in: endpoint {
+						remote-endpoint = <&dcss_disp0_mipi_dsi>;
+					};
+				};
+
+				port@1 {
+					reg = <1>;
+					mipi_dsi_out: endpoint {
+						remote-endpoint = <&panel1_in>;
+					};
+				};
+			};
+		};
+	};
+
+	fragment@6 {
+		target = <&dphy>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@7 {
+		target = <&i2c2>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+			dsi_lvds_bridge: sn65dsi84@2d {
+				reg = <0x2d>;
+				compatible = "ti,sn65dsi84";
+				#gpio-cells = <2>;
+				status = "okay";
+				enable-gpios = <&pca9555_23 2 GPIO_ACTIVE_HIGH>;
+				sn65dsi84,addresses = <0x09 0x0A 0x0B 0x0D
+									0x10 0x11 0x12 0x13
+									0x18 0x19 0x1A 0x1B
+									0x20 0x21 0x22 0x23
+									0x24 0x25 0x26 0x27
+									0x28 0x29 0x2A 0x2B
+									0x2C 0x2D 0x2E 0x2F
+									0x30 0x31 0x32 0x33
+									0x34 0x35 0x36 0x37
+									0x38 0x39 0x3A 0x3B
+									0x3C 0x3D 0x3E 0x0D>;
+
+				sn65dsi84,values = </* reset and clock registers */
+									0x00 0x05 0x10 0x00
+									/* DSI registers */
+									0x26 0x00 0x35 0x00
+									/* LVDS registers */
+									0x78 0x00 0x03 0x00
+
+									/* video registers */
+									/* cha-al-len-l, cha-al-len-h, chb-al-len-l, chb-al-len-h */
+									0x56 0x05 0x00 0x00
+									/* cha-v-ds-l, cha-v-ds-h, chb-v-ds-l, chb-v-ds-h */
+									0x00 0x03 0x00 0x00
+									/* cha-sdl, cha-sdh, chb-sdl, chb-sdh */
+									0x20 0x00 0x00 0x00
+									/* cha-hs-pwl, cha-hs-pwh, chb-hs-pwl, chb-hs-pwh */
+									0x14 0x00 0x00 0x00
+									/* cha-vs-pwl, cha-vs-pwh, chb-vs-pwl, chb-vs-pwh */
+									0x04 0x00 0x00 0x00
+									/*cha-hbp, chb-hbp, cha-vbp, chb-vbp*/
+									0x5a 0x00 0x11 0x00
+									/* cha-hfp, chb-hfp, cha-vfp, chb-vfp*/
+									0x5a 0x00 0x11 0x00
+
+									0x00 0x00 0x00 0x01>;
+			};
+		};
+	};
+};
