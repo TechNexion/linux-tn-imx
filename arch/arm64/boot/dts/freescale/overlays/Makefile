@@ -1,7 +1,7 @@
 # Overlays for the TechNexion platform
 
 dtbo-$(CONFIG_ARCH_MXC) += imx8mm-edm-g-wb-sn65dsi84-vl10112880.dtbo imx8mm-edm-g-wb-sn65dsi84-vl15613676.dtbo imx8mm-edm-g-wb-sn65dsi84-vl215192108.dtbo \
-			   imx8mm-edm-g-wb-ov5640.dtbo
+			   imx8mm-edm-g-wb-ov5640.dtbo imx8mm-edm-g-wb-hdmi2mipi-tc358743.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mm-flex-pi-ili9881c.dtbo imx8mm-flex-pi-voicehat.dtbo imx8mm-flex-pi-ov5640.dtbo \
 			   imx8mm-flex-pi-clixwifi.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mm-flex-wizard-ili9881c.dtbo imx8mm-flex-wizard-voicehat.dtbo imx8mm-flex-wizard-ov5640.dtbo \
