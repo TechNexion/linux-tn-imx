@@ -31,8 +31,7 @@
 	panel@0 {
 		reg = <0>;
 		compatible = "tn,dsi2lvds-panel";
-//		backlight = <&lvds_backlight>;
-//		power-supply = <&reg_lvds_pwr>;
+		backlight = <&lvds_backlight>;
 		dsi,flags = <0x0007>;
 		dsi,format = <0>;
 		dsi,lanes = <4>;
