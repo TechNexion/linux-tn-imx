@@ -1,0 +1,58 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2020 TechNexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *         Ray Chang <ray.chang@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+#include "../imx8mm-pinfunc.h"
+
+/ {
+	ragment@1 {
+		target = <&iomuxc>;
+		__overlay__ {
+			pinctrl-names = "default";
+
+			pinctrl_nfc_ctrl: nfcgrp {
+				fsl,pins = <
+					/* PIN_INT, GPIO_P32 is defined in pinctrl_gpio3 */
+					MX8MM_IOMUXC_ECSPI2_MOSI_GPIO5_IO11	0x41	/* PIN_ENABLE */
+				>;
+			};
+		};
+	};
+
+	fragment@0 {
+		target = <&i2c3>;
+		__overlay__ {
+			status = "okay";
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			pn547: pn547@2a {
+				compatible = "nxp,pn547";
+				reg = <0x2a>;
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_nfc_ctrl>;
+				clock-frequency = <100000>;
+				interrupt-gpios = <&gpio3 8 0>;
+				enable-gpios = <&gpio5 11 0>;
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&ecspi2>;
+		__overlay__ {
+			status = "disabled";
+		};
+	};
+};
