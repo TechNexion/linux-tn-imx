@@ -91,6 +91,43 @@
 				<96000>,
 				<192000>;
 	};
+
+	fan: pwm-fan {
+		compatible = "pwm-fan";
+		cooling-levels = <0 32 96 255>;
+		#cooling-cells = <2>;
+		pwms = <&pwm4 0 40000 0>;
+	};
+
+	thermal-zones {
+		cpu-thermal {
+			trips {
+				cpu_warm: cpu_warm {
+					temperature = <55000>;
+					hysteresis = <2000>;
+					type = "active";
+				};
+
+				cpu_hot: cpu_hot {
+					temperature = <60000>;
+					hysteresis = <2000>;
+					type = "active";
+				};
+			};
+
+			cooling-maps {
+				map1 {
+					trip = <&cpu_warm>;
+					cooling-device = <&fan THERMAL_NO_LIMIT 1>;
+				};
+
+				map2 {
+					trip = <&cpu_hot>;
+					cooling-device = <&fan 2 THERMAL_NO_LIMIT>;
+				};
+			};
+		};
+	};
 };
 
 &sai4 {
