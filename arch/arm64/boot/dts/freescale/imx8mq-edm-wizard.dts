@@ -117,6 +117,16 @@
 };
 
 &iomuxc {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_hog>;
+
+	pinctrl_hog: hoggrp {
+		fsl,pins = <
+			/* Clock for both CSI1 and CSI2 */
+			MX8MQ_IOMUXC_GPIO1_IO15_CCMSRCGPCMIX_CLKO2	0x07
+		>;
+	};
+
 	pinctrl_otg_vbus: otgvbusgrp {
 		fsl,pins = <
 			MX8MQ_IOMUXC_NAND_DQS_GPIO3_IO14		0x19   /* USB OTG VBUS Enable */
@@ -152,7 +162,6 @@
 		fsl,pins = <
 			MX8MQ_IOMUXC_SAI2_RXFS_GPIO4_IO21		0x19   /* CSI EDM PWDN */
 			MX8MQ_IOMUXC_SAI2_RXC_GPIO4_IO22		0x19   /* CSI nRST */
-			MX8MQ_IOMUXC_GPIO1_IO15_CCMSRCGPCMIX_CLKO2	0x59
 		>;
 	};
 
@@ -257,6 +266,64 @@
 	};
 };
 
+&csi1_bridge {
+	fsl,mipi-mode;
+	fsl,two-8bit-sensor-mode;
+	status = "okay";
+
+	port {
+		csi1_ep: endpoint {
+			remote-endpoint = <&csi1_mipi_ep>;
+		};
+	};
+};
+
+&csi2_bridge {
+	fsl,mipi-mode;
+	fsl,two-8bit-sensor-mode;
+	status = "okay";
+
+	port {
+		csi2_ep: endpoint {
+			remote-endpoint = <&csi2_mipi_ep>;
+		};
+	};
+};
+
+&mipi_csi_1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+	port {
+		mipi1_sensor_ep: endpoint@0 {
+			remote-endpoint = <&ov5640_mipi1_ep>;
+			data-lanes = <1 2>;
+			bus-type = <4>;
+		};
+
+		csi1_mipi_ep: endpoint@1 {
+			remote-endpoint = <&csi1_ep>;
+		};
+	};
+};
+
+&mipi_csi_2 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+	port {
+		mipi2_sensor_ep: endpoint@0 {
+			remote-endpoint = <&ov5640_mipi2_ep>;
+			data-lanes = <1 2>;
+			bus-type = <4>;
+		};
+
+		csi2_mipi_ep: endpoint@1 {
+			remote-endpoint = <&csi2_ep>;
+		};
+	};
+};
+
 &i2c2 {
 	status = "okay";
 
@@ -284,6 +351,37 @@
 	rtc_ds1337: ds1337@68 {
 		compatible = "dallas,ds1337";
 		reg = <0x68>;
+	};
+
+	/* PCA9554 on camera tev_mipi board */
+	pca9554_tev_mipi1: pca9554_tev_mipi@24 {
+		compatible = "nxp,pca9554";
+		reg =<0x24>;
+		gpio-controller;
+		#gpio-cells = <2>;
+	};
+
+	ov5640_mipi1: ov5640_mipi@3c {
+		compatible = "ovti,ov5640_mipi";
+		reg = <0x3c>;
+		status = "okay";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_csiedm>;
+		clocks = <&clk IMX8MQ_CLK_CLKO2>;
+		clock-names = "csi_mclk";
+		assigned-clocks = <&clk IMX8MQ_CLK_CLKO2>;
+		assigned-clock-parents = <&clk IMX8MQ_SYS2_PLL_200M>;
+		assigned-clock-rates = <20000000>;
+		csi_id = <0>;
+		pwn-gpios = <&pca9554_tev_mipi1 2 GPIO_ACTIVE_LOW>;
+		rst-gpios = <&gpio4 22 GPIO_ACTIVE_HIGH>;
+		mclk = <20000000>;
+		mclk_source = <0>;
+		port {
+			ov5640_mipi1_ep: endpoint {
+				remote-endpoint = <&mipi1_sensor_ep>;
+			};
+		};
 	};
 };
 
@@ -314,6 +412,37 @@
 		#gpio-cells = <2>;
 		interrupt-controller;
 		#interrupt-cells = <2>;
+	};
+
+	/* PCA9554 on camera tev_mipi board */
+	pca9554_tev_mipi2: pca9554_tev_mipi@24 {
+		compatible = "nxp,pca9554";
+		reg =<0x24>;
+		gpio-controller;
+		#gpio-cells = <2>;
+	};
+
+	ov5640_mipi2: ov5640_mipi2@3c {
+		compatible = "ovti,ov5640_mipi";
+		reg = <0x3c>;
+		status = "okay";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_csi1>;
+		clocks = <&clk IMX8MQ_CLK_CLKO2>;
+		clock-names = "csi_mclk";
+		assigned-clocks = <&clk IMX8MQ_CLK_CLKO2>;
+		assigned-clock-parents = <&clk IMX8MQ_SYS2_PLL_200M>;
+		assigned-clock-rates = <20000000>;
+		csi_id = <1>;
+		pwn-gpios = <&pca9554_tev_mipi2 2 GPIO_ACTIVE_LOW>;
+		rst-gpios = <&gpio4 29 GPIO_ACTIVE_HIGH>;
+		mclk = <20000000>;
+		mclk_source = <0>;
+		port {
+			ov5640_mipi2_ep: endpoint {
+				remote-endpoint = <&mipi2_sensor_ep>;
+			};
+		};
 	};
 };
 
