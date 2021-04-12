@@ -356,6 +356,10 @@
 	status = "okay";
 };
 
+&snvs_rtc {
+	status = "disabled";
+};
+
 &iomuxc {
 	pinctrl-names = "default";
 
