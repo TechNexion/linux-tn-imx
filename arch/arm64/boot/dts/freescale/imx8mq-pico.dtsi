@@ -388,6 +388,10 @@
 	status = "okay";
 };
 
+&snvs_rtc {
+       status = "disabled";
+};
+
 &iomuxc {
 	pinctrl_enet_3v3: enet3v3grp {
 		fsl,pins = <
