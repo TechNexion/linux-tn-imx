@@ -86,6 +86,7 @@
 		target = <&usdhc2>;
 		__overlay__ {
 			vdd-supply = <&clix_wl_reg_on>;
+			max-frequency = <133333333>;
 			keep-power-in-suspend;
 			non-removable;
 			status = "okay";
