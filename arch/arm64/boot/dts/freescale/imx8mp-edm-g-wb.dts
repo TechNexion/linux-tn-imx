@@ -272,18 +272,6 @@
 			};
 		};
 	};
-
-	eeprom_1@54 {
-		compatible = "atmel,24c64";
-		read-only;
-		reg = <0x54>;
-		#address-cells = <1>;
-		#size-cells = <1>;
-
-		csi1_calibration_data: csi1-calib@0 {
-			reg = <0x0 0x788>;
-		};
-	};
 };
 
 &mipi_csi_0 {
