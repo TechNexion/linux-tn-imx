@@ -322,7 +322,7 @@
 	pinctrl-0 = <&pinctrl_i2c1>;
 	status = "okay";
 
-	pmic: pfuze3000@08 {
+	pmic: pfuze3000@8 {
 		compatible = "fsl,pfuze3000";
 		reg = <0x08>;
 
@@ -766,7 +766,7 @@
 			reg = <1>;
 			max-speed = <100>;
 			interrupt-parent = <&gpio5>;
-			interrupts = <6 IRQ_TYPE_LEVEL_LOW 0>;
+			interrupts = <6 IRQ_TYPE_LEVEL_LOW>;
 			micrel,led-mode = <1>;
 			clocks = <&clks IMX6UL_CLK_ENET2_REF>;
 			clock-names = "rmii-ref";
