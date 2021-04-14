@@ -278,7 +278,6 @@
 	status = "okay";
 };
 
->>>>>>> ARM:imx6ul:imx6ull:dts Added pico-imx6ul and pico-imx6ull device trees.
 &can1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexcan1>;
