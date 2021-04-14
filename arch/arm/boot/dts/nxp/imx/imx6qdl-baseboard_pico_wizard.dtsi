@@ -122,7 +122,7 @@
 };
 
 &i2c1 {
-	rtc: ds1337 {
+	rtc: ds1337@68 {
 		compatible = "dallas,ds1337";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_rtc_ds1337_irq>;
