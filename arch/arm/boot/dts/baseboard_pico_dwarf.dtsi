@@ -99,7 +99,7 @@ PICO_DWARF_GPIO_DEFS();
 &PICO_I2CC {
 	status = "okay";
 
-	rtc: ds1337 {
+	rtc: ds1337@68 {
 		compatible = "dallas,ds1337";
 		reg = <0x68>;
 	};
