@@ -34,8 +34,8 @@
 
 #define PICO_SPIA ecspi3
 
-#define PICO_CANA flexcan1
-#define PICO_CANB flexcan2
+#define PICO_CANA can1
+#define PICO_CANB can2
 
 #define PICO_DWARF_GPIO_DEFS()	\
 &gpio1 {									\
@@ -164,6 +164,19 @@
 / {
 	memory {
 		reg = <0x80000000 0x20000000>;
+	};
+
+	reserved-memory {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+
+		linux,cma {
+			compatible = "shared-dma-pool";
+			reusable;
+			size = <0xa000000>;
+			linux,cma-default;
+		};
 	};
 
 	chosen {
@@ -804,13 +817,13 @@
 	status = "okay";
 };
 
-&flexcan1 {
+&can1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexcan1>;
 	status = "okay";
 };
 
-&flexcan2 {
+&can2 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexcan2>;
 	status = "okay";
