@@ -315,19 +315,26 @@
 		reg = <0x50>;
 	};
 
-	ov5645_mipi: ov5645_mipi@3c {
-		compatible = "ovti,ov5645_mipi";
+	/* PCA9554 on camera tev_mipi board */
+	pca9554_tev_mipi: pca9554_tev_mipi@24 {
+		compatible = "nxp,pca9554";
+		reg =<0x24>;
+		gpio-controller;
+		#gpio-cells = <2>;
+	};
+
+	ov564x_mipi: ov564x_mipi@3c { /* i2c2 driver */
+		compatible = "ovti,ov564x_mipi";
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_mipi_csi>; /* PICO_P69:mipi clock, PICO_P67:power on, PICO_P65:reset */
+		pinctrl-0 = <&pinctrl_mipi_csi>; /* PICO_P69:mipi clock, PICO_P65:reset */
 		reg = <0x3c>;
-		clocks = <&clks 200>;
+		clocks = <&clks IMX6QDL_CLK_CKO2>;
 		clock-names = "csi_mclk";
 		DOVDD-supply = <&reg_2p5v>;
 		AVDD-supply = <&reg_2p5v>;
 		DVDD-supply = <&reg_1p8v>;
-		pwn-gpios = <&gpio1 6 1>;
-		rst-gpios = <&gpio1 8 0>;
-		ipu_id = <0>;
+		rst-gpios = <&gpio1 8 GPIO_ACTIVE_HIGH>;
+		pwn-gpios = <&pca9554_tev_mipi 2 GPIO_ACTIVE_LOW>;
 		csi_id = <0>;
 		mclk = <24000000>;
 		mclk_source = <0>;
@@ -601,7 +608,6 @@
 
 		pinctrl_mipi_csi: mipicsigrp {
 			fsl,pins = <
-				MX6QDL_PAD_GPIO_6__GPIO1_IO06		0x0b0b0		/* ov5640 mipi powerdown */
 				MX6QDL_PAD_GPIO_8__GPIO1_IO08		0x0b0b0		/* ov5640 mipi reset */
 				MX6QDL_PAD_GPIO_3__CCM_CLKO2		0x000b0		/* ov5640 mclk */
 			>;
