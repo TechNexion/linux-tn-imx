@@ -42,29 +42,48 @@
 		#clock-cells = <0>;
 		clock-frequency = <100000000>;
 	};
+
 	pcie1_refclk: pcie0-refclk {
 		compatible = "fixed-clock";
 		#clock-cells = <0>;
 		clock-frequency = <100000000>;
 	};
-	reg_usb_otg_vbus: usb_otg_vbus {
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_otg_vbus>;
-		compatible = "regulator-fixed";
-		regulator-name = "usb_otg_vbus";
-		regulator-min-microvolt = <5000000>;
-		regulator-max-microvolt = <5000000>;
-		gpio = <&gpio3 14 GPIO_ACTIVE_LOW>;
-	};
-	reg_backlight_pwr: regulator_blpwr {
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_backlight_pwr>;
-		compatible = "regulator-fixed";
-		regulator-name = "backlight_pwr";
-		regulator-min-microvolt = <5000000>;
-		regulator-max-microvolt = <5000000>;
-		gpio = <&gpio1 8 GPIO_ACTIVE_HIGH>;
-		enable-active-high;
+
+	regulators {
+		compatible = "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		reg_usb_otg_vbus: usb_otg_vbus {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_otg_vbus>;
+			compatible = "regulator-fixed";
+			regulator-name = "usb_otg_vbus";
+			regulator-min-microvolt = <5000000>;
+			regulator-max-microvolt = <5000000>;
+			gpio = <&gpio3 14 GPIO_ACTIVE_LOW>;
+		};
+
+		reg_backlight_pwr: regulator_blpwr {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_backlight_pwr>;
+			compatible = "regulator-fixed";
+			regulator-name = "backlight_pwr";
+			regulator-min-microvolt = <5000000>;
+			regulator-max-microvolt = <5000000>;
+			gpio = <&gpio1 8 GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+		};
+
+		reg_mipi_bl_en: regulator_mipiblen {
+			pinctrl-names = "default";
+			compatible = "regulator-fixed";
+			regulator-name = "mipi_blen";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&pca9555_23 1 GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+		};
 	};
 
 	backlight_mipi {
