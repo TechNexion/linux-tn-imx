@@ -696,9 +696,9 @@ static struct i2c_driver ov5640_i2c_driver = {
 static void ov5640_standby(s32 enable)
 {
 	if (enable)
-		gpio_set_value(pwn_gpio, 1);
+		gpio_set_value_cansleep(pwn_gpio, 1);
 	else
-		gpio_set_value(pwn_gpio, 0);
+		gpio_set_value_cansleep(pwn_gpio, 0);
 
 	msleep(100);
 }
@@ -706,22 +706,22 @@ static void ov5640_standby(s32 enable)
 static void ov5640_reset(void)
 {
 	/* camera reset */
-	gpio_set_value(rst_gpio, 1);
+	gpio_set_value_cansleep(rst_gpio, 1);
 
 	/* camera power dowmn */
-	gpio_set_value(pwn_gpio, 1);
+	gpio_set_value_cansleep(pwn_gpio, 1);
 	msleep(5);
 
-	gpio_set_value(pwn_gpio, 0);
+	gpio_set_value_cansleep(pwn_gpio, 0);
 	msleep(5);
 
-	gpio_set_value(rst_gpio, 0);
+	gpio_set_value_cansleep(rst_gpio, 0);
 	msleep(1);
 
-	gpio_set_value(rst_gpio, 1);
+	gpio_set_value_cansleep(rst_gpio, 1);
 	msleep(5);
 
-	gpio_set_value(pwn_gpio, 1);
+	gpio_set_value_cansleep(pwn_gpio, 1);
 }
 
 static int ov5640_power_on(struct device *dev)
