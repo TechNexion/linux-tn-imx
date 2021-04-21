@@ -14,6 +14,22 @@
 			sound-hdmi {
 				status = "disabled";
 			};
+
+			backlight_mipi {
+				status = "okay";
+			};
+
+			regulators {
+				reg_backlight_pwr: regulator_blpwr { /* MIPI_VDDEN */
+					regulator-always-on;
+					status = "okay";
+				};
+
+				reg_mipi_bl_en: regulator_mipiblen {
+					regulator-always-on;
+					status = "okay";
+				};
+			};
 		};
 	};
 
