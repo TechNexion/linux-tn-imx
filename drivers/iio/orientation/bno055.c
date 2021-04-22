@@ -377,7 +377,7 @@ static int bno055_probe(struct i2c_client *client,
 	ret = device_create_file(&indio_dev->dev, &dev_attr_calib_status);
 	if (ret){
 		dev_err(&client->dev, "failed to create sysfs entry.\n");
-		devm_iio_device_unregister(&client->dev, indio_dev);
+		iio_device_unregister(indio_dev);
 		return ret;
 	}
 
@@ -389,7 +389,7 @@ static int bno055_remove(struct i2c_client *client)
 	struct iio_dev *indio_dev = i2c_get_clientdata(client);
 
 	device_remove_file(&indio_dev->dev, &dev_attr_calib_status);
-	devm_iio_device_unregister(&client->dev, indio_dev);
+	iio_device_unregister(indio_dev);
 	return 0;
 }
 
