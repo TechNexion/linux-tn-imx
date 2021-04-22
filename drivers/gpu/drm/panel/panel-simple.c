@@ -156,10 +156,6 @@ static unsigned int panel_simple_get_timings_modes(struct panel_simple *panel,
 		if (panel->desc->num_timings == 1)
 			mode->type |= DRM_MODE_TYPE_PREFERRED;
 
-		/* default refresh rate should be 60Hz */
-		mode->vrefresh = panel->desc->refresh_rate;
-		drm_mode_debug_printmodeline(mode);
-
 		drm_mode_probed_add(connector, mode);
 		num++;
 	}
@@ -4500,7 +4496,6 @@ static const struct drm_display_mode auo_g080uan01_mode = {
 	.vsync_start = 1920 + 35,
 	.vsync_end = 1920 + 35 + 1,
 	.vtotal = 1920 + 35 + 1 + 25,
-	.vrefresh = 60,
 };
 
 static const struct panel_desc_dsi auo_g080uan01 = {
@@ -4529,7 +4524,6 @@ static const struct drm_display_mode auo_g101uan02_mode = {
 	.vsync_start = 1200 + 5,
 	.vsync_end = 1200 + 5 + 2,
 	.vtotal = 1200 + 5 + 2 + 5,
-	.vrefresh = 60,
 };
 
 static const struct panel_desc_dsi auo_g101uan02 = {
