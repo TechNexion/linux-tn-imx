@@ -336,11 +336,13 @@
     fragment@11 {
         target = <&iomuxc>;
         __overlay__ {
-            pinctrl_tfa98xx: tfa98xx_ctrlgrp {
-                fsl,pins = <
-                    MX8MM_IOMUXC_ECSPI1_MOSI_GPIO5_IO7	0x19 /* RST */
-                    MX8MM_IOMUXC_ECSPI1_MISO_GPIO5_IO8	0x19 /* INT */
-                >;
+            imx8mm-axon {
+                pinctrl_tfa98xx: tfa98xx_ctrlgrp {
+                    fsl,pins = <
+                        MX8MM_IOMUXC_ECSPI1_MOSI_GPIO5_IO7	0x19 /* RST */
+                        MX8MM_IOMUXC_ECSPI1_MISO_GPIO5_IO8	0x19 /* INT */
+                    >;
+                };
             };
         };
     };
