@@ -55,15 +55,6 @@ struct ili9881c_desc {
 	const struct drm_display_mode *mode;
 };
 
-struct ili9881c {
-	struct drm_panel	panel;
-	struct mipi_dsi_device	*dsi;
-	const struct ili9881c_desc	*desc;
-
-	struct regulator	*power;
-	struct gpio_desc	*reset;
-};
-
 #define ILI9881C_SWITCH_PAGE_INSTR(_page)	\
 	{					\
 		.op = ILI9881C_SWITCH_PAGE,	\
@@ -528,9 +519,6 @@ static int ili9881c_prepare(struct drm_panel *panel)
 		msleep(20);
 	}
 
-	for (i = 0; i < ctx->desc->init_length; i++) {
-		const struct ili9881c_instr *instr = &ctx->desc->init[i];
-
 	return 0;
 }
 
@@ -542,8 +530,8 @@ static int ili9881c_enable(struct drm_panel *panel)
 
 	ctx->dsi->mode_flags |= MIPI_DSI_MODE_LPM;
 
-	for (i = 0; i < ARRAY_SIZE(ili9881c_init); i++) {
-		const struct ili9881c_instr *instr = &ili9881c_init[i];
+	for (i = 0; i < ARRAY_SIZE(lhr050h41_init); i++) {
+		const struct ili9881c_instr *instr = &lhr050h41_init[i];
 
 		if (instr->op == ILI9881C_SWITCH_PAGE)
 			ret = ili9881c_switch_page(ctx, instr->arg.page);
@@ -597,7 +585,6 @@ static int ili9881c_unprepare(struct drm_panel *panel)
 
 static const struct drm_display_mode high_clk_mode = {
 	.clock		= 74250,
-	.vrefresh	= 60,
 	.hdisplay	= 720,
 	.hsync_start	= 720 + 34,
 	.hsync_end	= 720 + 34 + 100,
@@ -610,7 +597,6 @@ static const struct drm_display_mode high_clk_mode = {
 
 static const struct drm_display_mode default_mode = {
 	.clock		= 62000,
-	.vrefresh	= 60,
 	.hdisplay	= 720,
 	.hsync_start	= 720 + 10,
 	.hsync_end	= 720 + 10 + 20,
@@ -650,7 +636,8 @@ static int ili9881c_get_modes(struct drm_panel *panel,
 	u32 bus_format = MEDIA_BUS_FMT_RGB888_1X24;
 	int ret;
 
-	mode = drm_mode_duplicate(connector->dev, ctx->desc->mode);
+	mode = drm_mode_duplicate(connector->dev, display_mode);
+
 	switch (ctx->timing_mode) {
 		case 0:
 			display_mode = &default_mode;
@@ -664,12 +651,10 @@ static int ili9881c_get_modes(struct drm_panel *panel,
 			break;
 
 	}
-	mode = drm_mode_duplicate(connector->dev, ctx->desc->mode);
+
 	if (!mode) {
-		dev_err(&ctx->dsi->dev, "failed to add mode %ux%ux@%u\n",
-			ctx->desc->mode->hdisplay,
-			ctx->desc->mode->vdisplay,
-			drm_mode_vrefresh(ctx->desc->mode));
+		dev_err(&ctx->dsi->dev, "failed to add mode %ux%ux@60\n",
+			display_mode->hdisplay, display_mode->vdisplay);
 		return -ENOMEM;
 	}
 
@@ -711,10 +696,8 @@ static int ili9881c_dsi_probe(struct mipi_dsi_device *dsi)
 		return -ENOMEM;
 	mipi_dsi_set_drvdata(dsi, ctx);
 	ctx->dsi = dsi;
-	ctx->desc = of_device_get_match_data(&dsi->dev);
 
-	drm_panel_init(&ctx->panel, &dsi->dev, &ili9881c_funcs,
-		       DRM_MODE_CONNECTOR_DSI);
+	drm_panel_init(&ctx->panel, ctx->panel.dev, ctx->panel.funcs, 0);
 
 	ctx->power = devm_regulator_get(&dsi->dev, "power");
 	if (IS_ERR(ctx->power)) {
@@ -789,7 +772,7 @@ static int ili9881c_dsi_remove(struct mipi_dsi_device *dsi)
 static const struct ili9881c_desc lhr050h41_desc = {
 	.init = lhr050h41_init,
 	.init_length = ARRAY_SIZE(lhr050h41_init),
-	.mode = &lhr050h41_default_mode,
+	.mode = &default_mode,
 };
 
 static const struct ili9881c_desc k101_im2byl02_desc = {
