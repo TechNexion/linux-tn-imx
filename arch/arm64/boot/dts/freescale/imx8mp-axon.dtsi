@@ -309,14 +309,6 @@
 	status = "disabled";
 };
 
-&hdmimix_clk {
-	status = "okay";
-};
-
-&hdmimix_reset {
-	status = "okay";
-};
-
 &hdmi_pavi {
 	status = "okay";
 };
