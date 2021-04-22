@@ -248,12 +248,12 @@
 	};
 
 	// Audio B
-	pinctrl_af_aud_b_out: pcafauda_out {
+	pinctrl_af_aud_b_out: pcafaudb_out {
 		pins = "F_AUD_B_TXD", "F_AUD_B_TXFS", "F_AUD_B_TXCLK";
 		function = "passthru_out"; drive-push-pull;
 	};
 
-	pinctrl_af_aud_b_in: pcafauda_in {
+	pinctrl_af_aud_b_in: pcafaudb_in {
 		pins = "F_AUD_B_RXD";
 		function = "passthru_in"; drive-push-pull;
 	};
@@ -450,7 +450,7 @@
 			<&pcie0_refclk>;
 	clock-names = "pcie", "pcie_aux", "pcie_phy", "pcie_bus";
 	reserved-region = <&rpmsg_reserved>;
-	status = "disabled";
+	status = "okay";
 };
 
 &usbotg1 {
