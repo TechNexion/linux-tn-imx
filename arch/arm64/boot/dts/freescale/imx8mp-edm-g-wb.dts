@@ -141,7 +141,7 @@
 	codec: wm8960@1a {
 		compatible = "wlf,wm8960";
 		reg = <0x1a>;
-		clocks = <&audiomix_clk IMX8MP_CLK_AUDIOMIX_SAI3_MCLK1>;
+		clocks = <&audio_blk_ctrl IMX8MP_CLK_AUDIO_BLK_CTRL_SAI3_MCLK1>;
 		//clocks = <&codec_osc>;  /* Clock is from external osc on baseboard */
 		clock-names = "mclk";
 		wlf,shared-lrclk;
