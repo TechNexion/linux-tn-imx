@@ -35,7 +35,7 @@
 		cpu-dai = <&sai3>;
 		ssi-controller = <&sai3>;
 		nxp,audio-codec = <&tfa98xx_left &tfa98xx_right>;
-		clocks = <&clk IMX8MP_CLK_AUDIOMIX_SAI3_MCLK1>;
+		clocks = <&clk IMX8MP_CLK_AUDIO_BLK_CTRL_SAI3_MCLK1>;
 		nxp,audio-routing =
 			"Speaker", "OUTL",
 			"DMIC1", "Mic",
@@ -50,7 +50,7 @@
 		cpu-dai = <&sai2>;
 		ssi-controller = <&sai2>;
 		nxp,audio-codec = <&sound_record>;
-		clocks = <&clk IMX8MP_CLK_AUDIOMIX_SAI2_MCLK1>;
+		clocks = <&clk IMX8MP_CLK_AUDIO_BLK_CTRL_SAI2_MCLK1>;
 	};
 
 	sound_record: codec {
