@@ -378,17 +378,26 @@
 	pinctrl-0 = <&pinctrl_i2c2>;
 	status = "okay";
 
-	ov5645_mipi: ov5645_mipi@3c {
-		compatible = "ovti,ov5645_mipi";
+	/* PCA9554 on camera tev_mipi board */
+	pca9554_tev_mipi: pca9554_tev_mipi@24 {
+		compatible = "nxp,pca9554";
+		reg =<0x24>;
+		gpio-controller;
+		#gpio-cells = <2>;
+	};
+
+	ov5640_mipi: ov5640_mipi@3c { /* i2c2 driver */
+		compatible = "ovti,ov564x_mipi";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_mipi_csi>; /* PICO_P69:mipi clock, PICO_P65:reset */
 		reg = <0x3c>;
-		clocks = <&clks 200>;
+		clocks = <&clks IMX6QDL_CLK_CKO2>;
 		clock-names = "csi_mclk";
 		DOVDD-supply = <&reg_2p5v>;
 		AVDD-supply = <&reg_2p5v>;
 		DVDD-supply = <&reg_1p8v>;
-		pwn-gpios = <&gpio1 6 GPIO_ACTIVE_LOW>;
-		rst-gpios = <&gpio1 8 GPIO_ACTIVE_HIGH>;
-		ipu_id = <0>;
+		rst-gpios = <&gpio1 8 GPIO_ACTIVE_LOW>;
+		pwn-gpios = <&pca9554_tev_mipi 2 GPIO_ACTIVE_HIGH>;
 		csi_id = <0>;
 		mclk = <24000000>;
 		mclk_source = <0>;
@@ -517,9 +526,6 @@
 				MX6QDL_PAD_GPIO_2__GPIO1_IO02			0x80000000	/* USDHC1 CD */
 				MX6QDL_PAD_EIM_DA9__GPIO3_IO09			0x80000000	/* uSDHC3 CD */
 				MX6QDL_PAD_GPIO_0__CCM_CLKO1			0x000b0		/* SGTL5000 sys_mclk */
-				MX6QDL_PAD_GPIO_6__GPIO1_IO06			0x0b0b0		/* ov5640 mipi powerdown */
-				MX6QDL_PAD_GPIO_8__GPIO1_IO08			0x0b0b0		/* ov5640 mipi reset */
-				MX6QDL_PAD_GPIO_3__CCM_CLKO2			0x000b0		/* ov5640 mclk */
 				MX6QDL_PAD_EIM_D29__GPIO3_IO29			0x1f0b1		/* RGMII PHY reset */
 				MX6QDL_PAD_ENET_RXD0__OSC32K_32K_OUT		0x000b0		/* wifi LPO 32K Hz clock */
 				MX6QDL_PAD_GPIO_4__GPIO1_IO04			0x4001b0b5	/* GPIO1_04 EDM pin 263 touch irq */
@@ -529,6 +535,14 @@
 				MX6QDL_PAD_EIM_BCLK__GPIO6_IO31			0x4001b0b5	/* GPIO6_31 EDM pin 260 */
 				MX6QDL_PAD_EIM_D26__GPIO3_IO26			0x4001b0b5	/* GPIO3_26 EDM pin 259 */
 				MX6QDL_PAD_ENET_RX_ER__GPIO1_IO24		0x4001b0b5	/* GPIO1_24 EDM pin 262 */
+			>;
+		};
+
+		pinctrl_mipi_csi: mipicsigrp {
+			fsl,pins = <
+				MX6QDL_PAD_GPIO_6__GPIO1_IO06			0x0b0b0		/* ov5640 mipi powerdown */
+				MX6QDL_PAD_GPIO_8__GPIO1_IO08			0x0b0b0		/* ov5640 mipi reset */
+				MX6QDL_PAD_GPIO_3__CCM_CLKO2			0x000b0		/* ov5640 mclk */
 			>;
 		};
 
