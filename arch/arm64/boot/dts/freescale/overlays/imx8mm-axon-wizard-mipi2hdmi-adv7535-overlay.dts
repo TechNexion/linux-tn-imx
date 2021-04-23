@@ -23,6 +23,12 @@
 				};
 			};
 
+			cec_refclk: cec_refclk {
+				compatible = "fixed-clock";
+				 #clock-cells = <0>;
+				clock-frequency = <12000000>;
+			};
+
 			sound-adv7535 {
 				compatible = "simple-audio-card";
 				simple-audio-card,name = "adv7535-hdmi-audio";
@@ -77,6 +83,8 @@
 				interrupts = <9 IRQ_TYPE_EDGE_FALLING>;
 				status = "okay";
 				#sound-dai-cells = <0>;
+				clocks = <&cec_refclk>;
+				clock-names = "cec";
 
 				port {
 					adv7535_from_dsim: endpoint {
