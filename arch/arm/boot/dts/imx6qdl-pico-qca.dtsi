@@ -744,7 +744,7 @@
 &usdhc1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_usdhc1>;
-	bus-width = <8>;
+	bus-width = <4>;
 	cd-gpios = <&gpio3 9 GPIO_ACTIVE_LOW>;
 	status = "okay";
 };
