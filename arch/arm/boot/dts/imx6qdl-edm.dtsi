@@ -981,6 +981,7 @@
 &usdhc1 { /* Baseboard microSD slot */
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_usdhc1>;
+	bus-width = <4>;
 	cd-gpios = <&gpio1 2 GPIO_ACTIVE_LOW>; /* SD1_CD J1B-203 */
 	status = "okay";
 };
