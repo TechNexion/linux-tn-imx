@@ -97,12 +97,6 @@
 	};
 
 	/* KEY_NEXT conflicts with GPIO_P44(CSI nRST) */
-	fragment@1 {
-		target = <&ov5640_mipi2>;
-		__overlay__ {
-			status = "disabled";
-		};
-	};
 
 	/* KEY_PAIR conflicts with ECSPI1_CS */
 	fragment@2 {
