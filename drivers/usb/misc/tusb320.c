@@ -976,7 +976,7 @@ static __exit void tusb320_i2c_exit(void)
 	i2c_del_driver(&tusb320_i2c_driver);
 }
 
-module_init(tusb320_i2c_init);
+late_initcall(tusb320_i2c_init);
 module_exit(tusb320_i2c_exit);
 
 MODULE_AUTHOR("jaesung.woo@lge.com");
