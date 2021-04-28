@@ -237,12 +237,14 @@
 
 	pinctrl_csi1: csi1grp {
 		fsl,pins = <
+			MX8MQ_IOMUXC_NAND_CE1_B_GPIO3_IO2		0x19   /* CSI P1 PWDN, ov5645 only */
 			MX8MQ_IOMUXC_GPIO1_IO12_GPIO1_IO12		0x19   /* CSI nRST */
 		>;
 	};
 
 	pinctrl_csi2: csi2grp {
 		fsl,pins = <
+			MX8MQ_IOMUXC_ECSPI1_MOSI_GPIO5_IO7		0x19   /* CSI P2 PWDN, ov5645 only */
 			MX8MQ_IOMUXC_NAND_READY_B_GPIO3_IO16		0x19   /* GPIO_P44, CSI nRST */
 		>;
 	};
