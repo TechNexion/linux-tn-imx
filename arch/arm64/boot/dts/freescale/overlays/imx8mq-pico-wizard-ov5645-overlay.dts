@@ -1,0 +1,122 @@
+/dts-v1/;
+/plugin/;
+
+#include "../imx8mq-pinfunc.h"
+#include <dt-bindings/clock/imx8mq-clock.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+
+	fragment@0 {
+		target = <&csi1_bridge>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@1 {
+		target = <&csi2_bridge>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@2 {
+		target = <&mipi_csi_1>;
+		__overlay__ {
+			status = "okay";
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port {
+				mipi1_sensor_ep: endpoint@0 {
+					remote-endpoint = <&ov5645_mipi1_ep>;
+					data-lanes = <1 2>;
+					bus-type = <4>;
+				};
+			};
+		};
+	};
+
+	fragment@3 {
+		target = <&mipi_csi_2>;
+		__overlay__ {
+			status = "okay";
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port {
+				mipi2_sensor_ep: endpoint@0 {
+					remote-endpoint = <&ov5645_mipi2_ep>;
+					data-lanes = <1 2>;
+					bus-type = <4>;
+				};
+			};
+		};
+	};
+
+	fragment@4 {
+		target = <&i2c2>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+			
+			ov5645_mipi1: ov5645_mipi@3c {
+			compatible = "ovti,ov5645_mipi_v2";
+			reg = <0x3c>;
+			status = "okay";
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_csi1>;
+			clocks = <&clk IMX8MQ_CLK_CLKO2>;
+			clock-names = "csi_mclk";
+			assigned-clocks = <&clk IMX8MQ_CLK_CLKO2>;
+			assigned-clock-parents = <&clk IMX8MQ_SYS2_PLL_200M>;
+			assigned-clock-rates = <24000000>;
+			csi_id = <0>;
+			pwn-gpios = <&pca9555_26 15 GPIO_ACTIVE_LOW>;
+			rst-gpios = <&gpio1 12 GPIO_ACTIVE_HIGH>;
+			mclk = <24000000>;
+			mclk_source = <0>;
+			port {
+				ov5645_mipi1_ep: endpoint {
+					remote-endpoint = <&mipi1_sensor_ep>;
+				};
+			};
+		};
+		};
+	};
+
+	fragment@5 {
+		target = <&i2c3>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			ov5645_mipi2: ov5645_mipi2@3c {
+				compatible = "ovti,ov5645_mipi_v2";
+				reg = <0x3c>;
+				status = "okay";
+				pinctrl-names = "default";
+				clocks = <&clk IMX8MQ_CLK_CLKO2>;
+				clock-names = "csi_mclk";
+				assigned-clocks = <&clk IMX8MQ_CLK_CLKO2>;
+				assigned-clock-parents = <&clk IMX8MQ_SYS2_PLL_200M>;
+				assigned-clock-rates = <24000000>;
+				csi_id = <1>;
+				pwn-gpios = <&pca9555_23 15 GPIO_ACTIVE_LOW>;
+				rst-gpios = <&pca9555_23 14 GPIO_ACTIVE_HIGH>;
+				mclk = <24000000>;
+				mclk_source = <0>;
+				port {
+					ov5645_mipi2_ep: endpoint {
+						remote-endpoint = <&mipi2_sensor_ep>;
+					};
+				};
+			};
+		};
+	};
+};
