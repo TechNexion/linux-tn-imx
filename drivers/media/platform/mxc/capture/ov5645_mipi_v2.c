@@ -2310,6 +2310,16 @@ static int ov5645_remove(struct i2c_client *client);
 static s32 ov5645_read_reg(struct ov5645 *sensor, u16 reg, u8 *val);
 static s32 ov5645_write_reg(struct ov5645 *sensor, u16 reg, u8 val);
 
+#ifdef CONFIG_OF
+static const struct of_device_id ov5645_mipi_v2_of_match[] = {
+	{ .compatible = "ovti,ov5645_mipi_v2",
+	},
+	{ /* sentinel */ }
+};
+
+MODULE_DEVICE_TABLE(of, ov5645_mipi_v2_of_match);
+#endif
+
 static const struct i2c_device_id ov5645_id[] = {
 	{"ov5645_mipi_v2", 0},
 	{},
@@ -2320,7 +2330,10 @@ MODULE_DEVICE_TABLE(i2c, ov5645_id);
 static struct i2c_driver ov5645_i2c_driver = {
 	.driver = {
 		  .owner = THIS_MODULE,
-		  .name  = "ov5645_mipi",
+		  .name  = "ov5645_mipi_v2",
+#ifdef CONFIG_OF
+		  .of_match_table = of_match_ptr(ov5645_mipi_v2_of_match),
+#endif
 		  },
 	.probe  = ov5645_probe,
 	.remove = ov5645_remove,
