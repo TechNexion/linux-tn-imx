@@ -41,6 +41,8 @@
 
 #define BANK_TO_IOBANK_ADDR(bank) ((u16)AXONF_ADDR_IOBLOCK + ((u16)bank << 4))
 
+#define AXONF_RESET_DURATION_USEC 1000
+
 //#define USE_SINGLE_REG_TRANS
 
 static const struct mfd_cell axonfabric_cells[] = {
@@ -696,7 +698,12 @@ static int device_axonf_init(struct axonf_chip *chip, u32 invert)
 {
 	int ret;
 
-	dev_info(&chip->client->dev,"Beginning init.\n");
+	dev_info(&chip->client->dev,"Beginning init. Reseting device.\n");
+
+	/* Reset the device */
+	gpiod_set_value_cansleep(chip->reset_gpio, 1);
+	udelay(AXONF_RESET_DURATION_USEC);
+	gpiod_set_value_cansleep(chip->reset_gpio, 0);
 
 	ret = axonf_read_magic(chip);
 
@@ -1123,6 +1130,10 @@ err_exit:
 	if(chip->regulator)
 		regulator_disable(chip->regulator);
 
+	/* Free the reset GPIO */
+	if(chip->reset_gpio)
+		devm_gpiod_put(&client->dev, chip->reset_gpio);
+
 	return ret;
 }
 
@@ -1141,6 +1152,10 @@ static int axonf_remove(struct i2c_client *client)
 
 	if(chip->regulator)
 		regulator_disable(chip->regulator);
+
+	/* Free the reset GPIO */
+	if(chip->reset_gpio)
+		devm_gpiod_put(&client->dev, chip->reset_gpio);
 
 	return ret;
 }
