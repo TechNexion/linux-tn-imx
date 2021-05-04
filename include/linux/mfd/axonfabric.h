@@ -132,6 +132,7 @@ struct axonf_chip {
 	struct i2c_client *client;
 	unsigned long driver_data;
 	struct regulator *regulator;
+	struct gpio_desc *reset_gpio;
 	u8 dir_lock;
 	struct mutex io_lock;
 
