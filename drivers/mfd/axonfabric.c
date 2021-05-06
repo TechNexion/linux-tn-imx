@@ -694,21 +694,52 @@ static const struct attribute_group *axonf_groups[] = {
 	NULL,
 };
 
+static int device_axonf_reset(struct axonf_chip *chip) {
+
+	dev_info(&chip->client->dev,"Reseting device.\n");
+
+	if(chip->reset_gpio) {
+		/* Reset the device */
+		gpiod_set_value_cansleep(chip->reset_gpio, 1);
+		udelay(AXONF_RESET_DURATION_USEC);
+		gpiod_set_value_cansleep(chip->reset_gpio, 0);
+		udelay(AXONF_RESET_DURATION_USEC);
+	}
+	else {
+		dev_err(&chip->client->dev,"Reset failed: no reset gpio.\n");
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
 static int device_axonf_init(struct axonf_chip *chip, u32 invert)
 {
 	int ret;
 
-	dev_info(&chip->client->dev,"Beginning init. Reseting device.\n");
+	dev_info(&chip->client->dev,"Beginning init. \n");
 
-	/* Reset the device */
-	gpiod_set_value_cansleep(chip->reset_gpio, 1);
-	udelay(AXONF_RESET_DURATION_USEC);
-	gpiod_set_value_cansleep(chip->reset_gpio, 0);
+	ret = device_axonf_reset(chip);
+
+	if (ret) {
+		return ret;
+	}
 
 	ret = axonf_read_magic(chip);
 
-	if (ret)
-		goto out;
+	if (ret) {
+
+		/* Reset the device */
+		dev_dbg(&chip->client->dev,"Initial magic read failed, reset and attempt again.\n");
+
+		device_axonf_reset(chip);
+
+		ret = axonf_read_magic(chip);
+
+		if (ret)
+			goto out;
+
+	}
 
 	ret = axonf_read_version(chip);
 
@@ -959,7 +990,7 @@ static const struct regmap_config axonf_regmap_config = {
 	.reg_bits = 16,
 	.val_bits = 8,
 
-	.cache_type = REGCACHE_RBTREE,
+	.cache_type = REGCACHE_NONE,
 
 	.rd_table = &axonf_readable_table,
 	.wr_table = &axonf_writeable_table,
@@ -1037,6 +1068,8 @@ static int axonf_probe(struct i2c_client *client,
 		dev_err(&client->dev, "failed to get reset gpio. error %ld\n", PTR_ERR(reset_gpio));
 		return PTR_ERR(reset_gpio);
 	}
+
+	chip->reset_gpio = reset_gpio;
 
 	chip->client = client;
 	chip->dir_lock = 0;
