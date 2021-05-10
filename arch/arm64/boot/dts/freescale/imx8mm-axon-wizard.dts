@@ -121,7 +121,6 @@
 
 &iomuxc {
 	imx8mm-axon {
-
 		pinctrl_user_key: userkeygrp {
 			fsl,pins = <
 				MX8MM_IOMUXC_SAI1_TXD4_GPIO4_IO16		0x41   /* USER KEY */
@@ -182,7 +181,7 @@
 &pinmux_axonfabric {
 	pinctrl_af_pcie0_out: pcpcie_out {
 		pins = "F_GPIO_X3_P71"; function = "passthru_out";
-		drive-push-pull;
+		drive-open-drain;
 	};
 
 	pinctrl_af_user_led: pcuserled {
@@ -299,10 +298,13 @@
 
 	rtc_ds1337: ds1337@68 {
 		compatible = "dallas,ds1337";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_rtcisr>;
 		reg = <0x68>;
 		wakeup-source;
 		interrupt-parent = <&gpio4>;
 		interrupts = <30 0>;
+		status = "okay";
 	};
 
 	typec_tusb320:tusb320@47 {
