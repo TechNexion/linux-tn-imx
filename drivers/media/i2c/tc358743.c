@@ -1272,6 +1272,11 @@ static void tc358743_hdmi_sys_int_handler(struct v4l2_subdev *sd, bool *handled)
 
 /* --------------- CORE OPS --------------- */
 
+static int tc358743_s_power(struct v4l2_subdev *sd, int on)
+{
+	return 0;
+};
+
 static int tc358743_log_status(struct v4l2_subdev *sd)
 {
 	struct tc358743_state *state = to_state(sd);
@@ -1740,6 +1745,10 @@ static int tc358743_get_fmt(struct v4l2_subdev *sd,
 	if (format->pad != 0)
 		return -EINVAL;
 
+	format->format.width = ((i2c_rd8(sd, DE_WIDTH_H_HI) & 0x1f) << 8) +
+			       i2c_rd8(sd, DE_WIDTH_H_LO);
+	format->format.height = ((i2c_rd8(sd, DE_WIDTH_V_HI) & 0x1f) << 8) +
+				i2c_rd8(sd, DE_WIDTH_V_LO);
 	format->format.code = state->mbus_fmt_code;
 	format->format.field = V4L2_FIELD_NONE;
 
@@ -1760,6 +1769,10 @@ static int tc358743_get_fmt(struct v4l2_subdev *sd,
 		format->format.colorspace = 0;
 		break;
 	}
+
+	format->format.ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(format->format.colorspace);
+	format->format.quantization = V4L2_QUANTIZATION_FULL_RANGE;
+	format->format.xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(format->format.colorspace);
 
 	return 0;
 }
@@ -2160,6 +2173,7 @@ static int tc358743_s_edid(struct v4l2_subdev *sd,
 /* -------------------------------------------------------------------------- */
 
 static const struct v4l2_subdev_core_ops tc358743_core_ops = {
+	.s_power = tc358743_s_power,
 	.log_status = tc358743_log_status,
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 	.g_register = tc358743_g_register,
@@ -2223,6 +2237,17 @@ static const struct v4l2_ctrl_config tc358743_ctrl_audio_present = {
 };
 
 /* --------------- PROBE / REMOVE --------------- */
+
+static int tc358743_link_setup(struct media_entity *entity,
+		const struct media_pad *local,
+		const struct media_pad *remote, u32 flags)
+{
+	return 0;
+}
+
+static const struct media_entity_operations tc358743_sd_media_ops = {
+	.link_setup = tc358743_link_setup,
+};
 
 #ifdef CONFIG_OF
 static void tc358743_gpio_reset(struct tc358743_state *state)
@@ -2381,6 +2406,7 @@ static int tc358743_probe(struct i2c_client *client)
 	sd = &state->sd;
 	v4l2_i2c_subdev_init(sd, client, &tc358743_ops);
 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
+	sd->entity.ops = &tc358743_sd_media_ops;
 
 	/* i2c access */
 	if ((i2c_rd16(sd, CHIPID) & MASK_CHIPID) != 0) {
