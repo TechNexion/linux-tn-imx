@@ -553,8 +553,6 @@ static inline void enable_stream(struct v4l2_subdev *sd, bool enable)
 		 * LP11->HS. Set to non-continuous mode to enable clock lane
 		 * LP11 state. */
 		i2c_wr32(sd, TXOPTIONCNTRL, 0);
-		/* Set to continuous mode to trigger LP11->HS transition */
-		i2c_wr32(sd, TXOPTIONCNTRL, MASK_CONTCLKMODE);
 		/* Unmute video */
 		i2c_wr8(sd, VI_MUTE, MASK_AUTO_MUTE);
 	} else {
