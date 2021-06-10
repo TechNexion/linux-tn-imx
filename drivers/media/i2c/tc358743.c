@@ -138,7 +138,7 @@ static inline struct tc358743_state *to_state(struct v4l2_subdev *sd)
 
 /* --------------- I2C --------------- */
 
-static void i2c_rd(struct v4l2_subdev *sd, u16 reg, u8 *values, u32 n)
+static int i2c_rd(struct v4l2_subdev *sd, u16 reg, u8 *values, u32 n)
 {
 	struct tc358743_state *state = to_state(sd);
 	struct i2c_client *client = state->i2c_client;
@@ -163,10 +163,13 @@ static void i2c_rd(struct v4l2_subdev *sd, u16 reg, u8 *values, u32 n)
 	if (err != ARRAY_SIZE(msgs)) {
 		v4l2_err(sd, "%s: reading register 0x%x from 0x%x failed\n",
 				__func__, reg, client->addr);
+		return -EINVAL;
 	}
+
+	return 0;
 }
 
-static void i2c_wr(struct v4l2_subdev *sd, u16 reg, u8 *values, u32 n)
+static int i2c_wr(struct v4l2_subdev *sd, u16 reg, u8 *values, u32 n)
 {
 	struct tc358743_state *state = to_state(sd);
 	struct i2c_client *client = state->i2c_client;
@@ -195,11 +198,11 @@ static void i2c_wr(struct v4l2_subdev *sd, u16 reg, u8 *values, u32 n)
 	if (err != 1) {
 		v4l2_err(sd, "%s: writing register 0x%x from 0x%x failed\n",
 				__func__, reg, client->addr);
-		return;
+		return -EINVAL;
 	}
 
 	if (debug < 3)
-		return;
+		return 0;
 
 	switch (n) {
 	case 1:
@@ -218,6 +221,8 @@ static void i2c_wr(struct v4l2_subdev *sd, u16 reg, u8 *values, u32 n)
 		v4l2_info(sd, "I2C write %d bytes from address 0x%04x\n",
 				n, reg);
 	}
+
+	return 0;
 }
 
 static noinline u32 i2c_rdreg(struct v4l2_subdev *sd, u16 reg, u32 n)
@@ -2375,6 +2380,7 @@ static int tc358743_probe(struct i2c_client *client)
 	struct tc358743_platform_data *pdata = client->dev.platform_data;
 	struct v4l2_subdev *sd;
 	u16 irq_mask = MASK_HDMI_MSK | MASK_CSI_MSK;
+	__le16 chipid;
 	int err;
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
@@ -2407,9 +2413,10 @@ static int tc358743_probe(struct i2c_client *client)
 	sd->entity.ops = &tc358743_sd_media_ops;
 
 	/* i2c access */
-	if ((i2c_rd16(sd, CHIPID) & MASK_CHIPID) != 0) {
-		v4l2_info(sd, "not a TC358743 on address 0x%x\n",
-			  client->addr << 1);
+	if ((i2c_rd(sd, CHIPID, (u8 *)&chipid, 2) != 0) ||
+	    (le16_to_cpu(chipid) & MASK_CHIPID) != 0) {
+		v4l2_err(sd, "not a TC358743 on address 0x%x\n",
+			 client->addr << 1);
 		return -ENODEV;
 	}
 
