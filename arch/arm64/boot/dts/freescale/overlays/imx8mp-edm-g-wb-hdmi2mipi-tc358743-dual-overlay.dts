@@ -6,6 +6,29 @@
  *
  */
 
+/******************************************************************************
+
+USAGE NOTES:
+
+This overlay is to enable 2 VizionLink HDMI boards connected into both camera
+slots of the Wandboard-EDM-G baseboard.
+
+It enables the TC358743 devices and logically connects them into the MIPI-CSI
+ports of the i.MX8M Plus SOC. It also explicitly disables the TEVI-OV5640
+cameras which are enabled by default on both CSI ports for the Wandboard-EDM-G.
+
+It also disables the WM8960 codec, which is shared with SAI3 (SAI3 is named
+AUD_A in the EDM-G-IMX8M-PLUS connection pinout). SAI3 is also the default
+interface connected to the CAMERA1 port of the Wandboard-EDM-G.
+
+This overlay can be included by configuring the 'dtoverlay' in u-boot to
+include "hdmi2mipi-tc358743-dual":
+
+setenv dtoverlay ${dtoverlay} hdmi2mipi-tc358743-dual
+saveenv
+
+*****************************************************************************/
+
 /dts-v1/;
 /plugin/;
 
