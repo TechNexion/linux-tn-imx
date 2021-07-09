@@ -721,6 +721,8 @@ dtb-$(CONFIG_SOC_IMX7D) += \
 	imx7d-pico-pi.dtb \
 	imx7d-pico-hobbit-qca.dtb \
 	imx7d-pico-pi-qca.dtb \
+	imx7d-tep1.dtb \
+	imx7d-tep1-a2.dtb \
 	imx7d-sbc-imx7.dtb \
 	imx7d-sdb.dtb \
 	imx7d-sdb-epdc.dtb \
