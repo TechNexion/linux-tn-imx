@@ -1,0 +1,23 @@
+/*
+ * Copyright 2016 Technexion Ltd.
+ *
+ * Author: Alvin Chen<alvin.chen@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ */
+/dts-v1/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include "imx7d.dtsi"
+#include "imx7d-tep1.dtsi"
+/ {
+	model = "TechNexion TEP1-IMX7D rev A1 board";
+	compatible = "fsl,imx7d";
+};
+
+&epdc {
+	status = "disabled";
+};
