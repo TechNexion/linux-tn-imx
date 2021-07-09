@@ -228,15 +228,7 @@
 };
 
 &i2c5 {
-	pn547: pn547@2a {
-		compatible = "nxp,pn547";
-		reg = <0x2a>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_nfc>;
-		clock-frequency = <100000>;
-		interrupt-gpios = <&gpio4 10 0>;
-		status = "okay";
-	};
+	clock-frequency = <400000>;
 
 	ov5640_otp_1: eeprom@54 {
 		compatible = "atmel,24c64";
@@ -415,6 +407,12 @@
 	pinctrl_nfc: nfcgrp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SAI1_TXFS__GPIO4_IO10		0x41 /* DSI_RST */
+		>;
+	};
+
+        pinctrl_touch_irq: touch_irqgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_TXD3__GPIO4_IO15	0x41   /* Touch INT */
 		>;
 	};
 };
