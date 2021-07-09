@@ -40,6 +40,19 @@
 		reg = <0x80000000 0x80000000>;
 	};
 
+	reserved-memory {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+
+		linux,cma {
+		compatible = "shared-dma-pool";
+		reusable;
+		size = <0x14000000>;
+		linux,cma-default;
+		};
+	};
+
 	backlight_lcd {
 		compatible = "pwm-backlight";
 		pwms = <&pwm3 0 50000 0>;
