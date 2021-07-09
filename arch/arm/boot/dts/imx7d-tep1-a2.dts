@@ -1,0 +1,133 @@
+/*
+ * Copyright 2016 Technexion Ltd.
+ *
+ * Author: Alvin Chen<alvin.chen@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ */
+/dts-v1/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include "imx7d.dtsi"
+#include "imx7d-tep1.dtsi"
+/ {
+	model = "TechNexion TEP1-IMX7D rev A2 board";
+	compatible = "fsl,imx7d";
+
+	regulators {
+		reg_pcie_switch1: pcie_switch1 {
+			pinctrl-0 = <&pinctrl_pcie_switch1>;
+			gpio = <&gpio4 2 GPIO_ACTIVE_HIGH>;
+		};
+
+		reg_pcie_switch2: pcie_switch2 {
+			pinctrl-0 = <&pinctrl_pcie_switch2>;
+			gpio = <&gpio4 3 GPIO_ACTIVE_HIGH>;
+		};
+
+		reg_usb_otg2_vbus: regulator@1 {
+			compatible = "regulator-fixed";
+			reg = <1>;
+			regulator-name = "usb_otg2_vbus";
+			regulator-min-microvolt = <5000000>;
+			regulator-max-microvolt = <5000000>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_usbotg2_pwr>;
+			gpio = <&gpio1 1 GPIO_ACTIVE_LOW>;
+			enable-active-low;
+		};
+	};
+};
+
+&iomuxc {
+	tep1-imx7d {
+		pinctrl_pcie_switch1: pcie_switch1_ctrlgrp {
+			fsl,pins = <
+				MX7D_PAD_UART2_RX_DATA__GPIO4_IO2	0x15
+			>;
+		};
+
+		pinctrl_pcie_switch2: pcie_switch2_ctrlgrp {
+			fsl,pins = <
+				MX7D_PAD_UART2_TX_DATA__GPIO4_IO3	0x15
+			>;
+		};
+
+		pinctrl_pcie: pcie_ctrlgrp {
+			fsl,pins = <
+				MX7D_PAD_SAI2_RX_DATA__GPIO6_IO21	0x15	/* POWER_ON_OFF */
+				MX7D_PAD_EPDC_PWR_COM__GPIO2_IO30	0x15	/* M2_RST */
+				MX7D_PAD_SAI1_RX_DATA__GPIO6_IO12	0x15	/* WAKE_WWAN */
+				MX7D_PAD_SAI1_TX_BCLK__GPIO6_IO13	0x15	/* pcie CLKREQ */
+				MX7D_PAD_SAI1_TX_SYNC__GPIO6_IO14	0x15	/* pcie PEWAKE */
+				MX7D_PAD_SAI1_TX_DATA__GPIO6_IO15	0x15	/* pcie PERST */
+				MX7D_PAD_SAI1_RX_BCLK__GPIO6_IO17	0x15	/* GPS_DISABLE */
+				MX7D_PAD_SAI2_TX_DATA__GPIO6_IO22	0x15	/* WAN_nDISABLE1 */
+			>;
+		};
+
+		pinctrl_uart3: uart3grp {
+			fsl,pins = <
+				MX7D_PAD_UART3_TX_DATA__UART3_DCE_TX	0x79
+				MX7D_PAD_UART3_RX_DATA__UART3_DCE_RX	0x79
+				MX7D_PAD_UART3_RTS_B__UART3_DCE_RTS	0x79
+				MX7D_PAD_UART3_CTS_B__UART3_DCE_CTS	0x79
+			>;
+		};
+
+		pinctrl_uart7: uart7grp {
+			fsl,pins = <
+				MX7D_PAD_EPDC_DATA12__UART7_DCE_RX	0x79
+				MX7D_PAD_EPDC_DATA13__UART7_DCE_TX	0x79
+				MX7D_PAD_EPDC_DATA14__UART7_DCE_RTS	0x79
+				MX7D_PAD_EPDC_DATA15__UART7_DCE_CTS	0x79
+			>;
+		};
+	};
+};
+
+&iomuxc_lpsr {
+	tep1-imx7d-miscpins {
+		pinctrl_usbotg2_pwr: usbotg2_pwr {
+			fsl,pins = <
+				MX7D_PAD_LPSR_GPIO1_IO01__GPIO1_IO1		0x14
+			>;
+		};
+	};
+};
+
+&epdc {
+	status = "disabled";
+};
+
+&pcie {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pcie>;
+	power-on-gpio = <&gpio6 21 GPIO_ACTIVE_HIGH>;
+	disable-gpio = <&gpio6 22 GPIO_ACTIVE_HIGH>;
+	clkreq-gpio = <&gpio6 13 GPIO_ACTIVE_HIGH>;
+	wake-gpio = <&gpio6 14 GPIO_ACTIVE_HIGH>;
+	reset-gpio = <&gpio6 15 GPIO_ACTIVE_HIGH>;
+	status = "okay";
+};
+
+
+&uart2 {
+	status = "disabled";
+};
+
+&uart3 {
+	fsl,uart-has-rtscts;
+};
+
+&uart7 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart7>;
+	assigned-clocks = <&clks IMX7D_UART7_ROOT_SRC>;
+	assigned-clock-parents = <&clks IMX7D_PLL_SYS_MAIN_240M_CLK>;
+	fsl,uart-has-rtscts;
+	status = "okay";
+};
