@@ -471,4 +471,10 @@
 			MX8MP_IOMUXC_SAI2_RXC__GPIO4_IO22		0x41 /* USB_HUB_RESET */
 		>;
 	};
+
+	pinctrl_touch_irq: touch_irqgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_TXD3__GPIO4_IO15	0x41   /* Touch INT */
+		>;
+	};
 };
