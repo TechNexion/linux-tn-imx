@@ -376,6 +376,12 @@
 		>;
 	};
 
+	pinctrl_touch_reset: touch_rstgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_TXD1__GPIO4_IO13		0x41 /* TOUCH_nRST, LVDS1_VDDEN */
+		>;
+	};
+
 	pinctrl_pca9555_a21_irq: pca9555_a21_irqgrp {
 		fsl,pins = <
 			MX8MP_IOMUXC_GPIO1_IO10__GPIO1_IO10		0x140 /* SPI_B_SS0 */
