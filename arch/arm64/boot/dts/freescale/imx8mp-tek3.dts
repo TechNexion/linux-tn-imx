@@ -728,7 +728,6 @@
 
 	pinctrl_hd3ss3220_irq: hd3ss3220_irqgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_SAI5_RXD0__GPIO3_IO21		0x41
 			MX8MP_IOMUXC_SD1_DATA0__GPIO2_IO02		0x41 /* virtual irq for i2c mode */
 		>;
 	};
