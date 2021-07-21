@@ -91,14 +91,6 @@
 
 /delete-node/ &usb_dwc3_0;
 
-&mipi_csi_0 {
-	/delete-node/ port@0;
-};
-
-&mipi_csi_1 {
-	/delete-node/ port@1;
-};
-
 &uart4 {
 	status = "disabled";
 };
