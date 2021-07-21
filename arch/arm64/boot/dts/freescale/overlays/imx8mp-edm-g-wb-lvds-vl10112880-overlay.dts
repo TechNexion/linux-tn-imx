@@ -105,7 +105,7 @@
 			exc80w46: touchscreen@2a {
                                 compatible = "eeti,exc80h60";
                                 pinctrl-names = "default";
-                                pinctrl-0 = <&pinctrl_touch_irq>;
+                                pinctrl-0 = <&pinctrl_touch_irq>, <&pinctrl_touch_reset>;
                                 reg = <0x2a>;
                                 interrupt-parent = <&gpio4>;
                                 interrupts = <15 IRQ_TYPE_LEVEL_LOW>;
