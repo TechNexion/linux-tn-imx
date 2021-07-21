@@ -1021,16 +1021,17 @@
 		>;
 	};
 
-	pinctrl_csi0_pwn: csi0_pwn_grp {
+	pinctrl_csi0_rst: csi0_rst_grp {
 		fsl,pins = <
-			MX8MP_IOMUXC_GPIO1_IO07__GPIO1_IO07	0x19
+			MX8MP_IOMUXC_I2C3_SCL__GPIO5_IO18		0x19
+			MX8MP_IOMUXC_GPIO1_IO14__CCM_CLKO1		0x59
 		>;
 	};
 
-	pinctrl_csi0_rst: csi0_rst_grp {
+	pinctrl_csi1_rst: csi1_rst_grp {
 		fsl,pins = <
-			MX8MP_IOMUXC_GPIO1_IO08__GPIO1_IO08		0x19
-			MX8MP_IOMUXC_GPIO1_IO14__CCM_CLKO1		0x59
+			MX8MP_IOMUXC_SAI1_TXD7__GPIO4_IO19		0x19
+			MX8MP_IOMUXC_GPIO1_IO15__CCM_CLKO2		0x59
 		>;
 	};
 
