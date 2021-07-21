@@ -477,4 +477,10 @@
 			MX8MP_IOMUXC_SAI1_TXD3__GPIO4_IO15	0x41   /* Touch INT */
 		>;
 	};
+
+	pinctrl_touch_reset: touch_rstgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_TXD1__GPIO4_IO13		0x41 /* TOUCH_nRST, LVDS1_VDDEN */
+		>;
+	};
 };
