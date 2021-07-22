@@ -965,11 +965,13 @@ err_free:
 	return ret;
 }
 
-static void xr_port_remove(struct usb_serial_port *port)
+static int xr_port_remove(struct usb_serial_port *port)
 {
 	struct xr_data *data = usb_get_serial_port_data(port);
 
 	kfree(data);
+
+	return 0;
 }
 
 #define XR_DEVICE(vid, pid, type)					\
