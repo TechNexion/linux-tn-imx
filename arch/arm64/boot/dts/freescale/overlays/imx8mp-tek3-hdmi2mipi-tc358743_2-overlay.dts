@@ -13,7 +13,6 @@
 #include <dt-bindings/gpio/gpio.h>
 
 / {
-
 	fragment@0 {
 		target = <&i2c2>;
 		__overlay__ {
@@ -21,29 +20,16 @@
 			#size-cells = <0>;
 			status = "okay";
 
-			wm8904: wm8904@1a {
-				status="disabled";
-			};
-		};
-	};
-
-	fragment@1 {
-		target = <&i2c5>;
-		__overlay__ {
-			#address-cells = <1>;
-			#size-cells = <0>;
-			status = "okay";
-
-			hdmi_in_0: tc358743@f {
+			hdmi_in_1: tc358743@f {
 				compatible = "toshiba,tc358743";
 				reg = <0x0f>;
 				pinctrl-names = "default";
-				pinctrl-0 = <&pinctrl_csi0_rst>;
-				reset-gpios = <&gpio5 18 GPIO_ACTIVE_HIGH>;
+				pinctrl-0 = <&pinctrl_csi1_rst>;
+				reset-gpios = <&gpio4 19 GPIO_ACTIVE_HIGH>;
 				status = "okay";
 				port {
-					hdmi_in_ep_0: endpoint {
-						remote-endpoint = <&mipi_csi0_ep>;
+					hdmi_in_ep_1: endpoint {
+						remote-endpoint = <&mipi_csi1_ep>;
 						data-lanes = <1 2 3 4>;
 						clock-lanes = <0>;
 						clock-noncontinuous;
@@ -54,16 +40,16 @@
 		};
 	};
 
-	fragment@2 {
-		target = <&mipi_csi_0>;
+	fragment@1 {
+		target = <&mipi_csi_1>;
 		__overlay__ {
 			#address-cells = <1>;
 			#size-cells = <0>;
 			status = "okay";
-			port@0 {
-				reg = <0>;
-				mipi_csi0_ep: endpoint {
-					remote-endpoint = <&hdmi_in_ep_0>;
+			port@1 {
+				reg = <1>;
+				mipi_csi1_ep: endpoint {
+					remote-endpoint = <&hdmi_in_ep_1>;
 					data-lanes = <4>;
 					csis-hs-settle = <13>;
 					csis-clk-settle = <2>;
@@ -73,31 +59,13 @@
 		};
 	};
 
-	fragment@3 {
-		target = <&gpio5>;
-		__overlay__ {
-
-			audio_switch {
-				gpio-hog;
-				gpios = <19 GPIO_ACTIVE_HIGH>;
-				line-name = "AUDIO_SWITCH";
-				output-low;
-			};
-		};
-	};
-
-	fragment@4 {
+	fragment@2 {
 		target-path = "/";
 		__overlay__ {
-
-			sound {
-				status = "disabled";
-			};
-
 			sound-tc358743 {
 				compatible = "nxp,imx-audio-tc358743", "nxp,imx-tc358743";
-				cpu-dai = <&sai3>;
-				nxp,audio-codec = <&hdmi_in_0>;
+				cpu-dai = <&sai2>;
+				nxp,audio-codec = <&hdmi_in_1>;
 			};
 		};
 	};
