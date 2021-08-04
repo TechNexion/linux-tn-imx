@@ -645,7 +645,7 @@ EDM_TEP1_GPIO_DEFS();
 
 	pmic: pfuze3000@8 {
 	compatible = "fsl,pfuze3000";
-	reg = <0x08>;
+	reg = <0x8>;
 	fsl,lpsr-mode;
 
 	regulators {
