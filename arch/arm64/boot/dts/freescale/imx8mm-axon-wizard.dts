@@ -285,6 +285,15 @@
 &AXON_I2C_A {  // I2C_A
 	status = "okay";
 
+	pca9554_23: pca9554_23@23 {
+		compatible = "nxp,pca9554";
+		pinctrl-names = "default";
+		reg = <0x23>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		status = "okay";
+	};
+
 	codec_wm8960: wm8960@1a {
 		compatible = "wlf,wm8960";
 		reg = <0x1a>;
@@ -349,15 +358,6 @@
 
 &AXON_I2C_C {  // I2C_C
 	status = "okay";
-
-	pca9554_23: pca9554_23@23 {
-		compatible = "nxp,pca9554";
-		pinctrl-names = "default";
-		reg = <0x23>;
-		gpio-controller;
-		#gpio-cells = <2>;
-		status = "okay";
-	};
 
 	pca9554_27: pca9554_27@27 {
 		compatible = "nxp,pca9554";
