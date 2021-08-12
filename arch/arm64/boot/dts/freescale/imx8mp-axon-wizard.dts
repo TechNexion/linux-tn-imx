@@ -226,6 +226,15 @@
 		interrupt-parent = <&gpio5>;
 		interrupts = <9 0>;
 	};
+
+	pca9554: pca9554@23 {
+		compatible = "nxp,pca9554";
+		pinctrl-names = "default";
+		reg =<0x23>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		status = "okay";
+	};
 };
 
 &i2c3 {
@@ -289,10 +298,10 @@
         };
     };
 
-	pca9554: pca9554@23 {
+	pca9554_27: pca9554_27@27 {
 		compatible = "nxp,pca9554";
 		pinctrl-names = "default";
-		reg =<0x23>;
+		reg =<0x27>;
 		gpio-controller;
 		#gpio-cells = <2>;
 		status = "okay";
