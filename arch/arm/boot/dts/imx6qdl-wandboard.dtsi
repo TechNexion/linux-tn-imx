@@ -73,14 +73,12 @@
 		regulator-always-on;
 	};
 
-	reg_usb_otg_vbus: regulator-usbotgvbus {
+	reg_usb_otg_vbus: usb_otg_vbus {
 		compatible = "regulator-fixed";
 		regulator-name = "usb_otg_vbus";
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_usbotgvbus>;
-		gpio = <&gpio3 22 GPIO_ACTIVE_LOW>;
+		gpio = <&gpio3 22 GPIO_ACTIVE_HIGH>;
 	};
 };
 
@@ -251,12 +249,6 @@
 		pinctrl_usbotg: usbotggrp {
 			fsl,pins = <
 				MX6QDL_PAD_GPIO_1__USB_OTG_ID		0x17059
-			>;
-		};
-
-		pinctrl_usbotgvbus: usbotgvbusgrp {
-			fsl,pins = <
-				MX6QDL_PAD_EIM_D22__GPIO3_IO22		0x130b0
 			>;
 		};
 
