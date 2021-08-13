@@ -446,6 +446,8 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6dl-dhcom-picoitx.dtb \
 	imx6dl-eckelmann-ci4x10.dtb \
 	imx6dl-edm1-fairy-qca.dtb \
+	imx6dl-edm1-tc0700.dtb \
+	imx6dl-edm1-tc0700-qca.dtb \
 	imx6dl-emcon-avari.dtb \
 	imx6dl-gw51xx.dtb \
 	imx6dl-gw52xx.dtb \
@@ -545,6 +547,8 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6q-dms-ba16.dtb \
 	imx6q-ds.dtb \
 	imx6q-edm1-fairy-qca.dtb \
+	imx6q-edm1-tc0700.dtb \
+	imx6q-edm1-tc0700-qca.dtb \
 	imx6q-emcon-avari.dtb \
 	imx6q-evi.dtb \
 	imx6dl-b105pv2.dtb \
@@ -657,6 +661,8 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6qp-tx6qp-8137-mb7.dtb \
 	imx6qp-vicutp.dtb \
 	imx6qp-wandboard-revd1.dtb \
+	imx6qp-edm1-tc0700.dtb \
+	imx6qp-edm1-tc0700-qca.dtb \
 	imx6qp-zii-rdu2.dtb \
 	imx6s-dhcom-drc02.dtb
 dtb-$(CONFIG_SOC_IMX6SL) += \
