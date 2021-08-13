@@ -70,6 +70,8 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6dl-dhcom-picoitx.dtb \
 	imx6dl-eckelmann-ci4x10.dtb \
 	imx6dl-edm1-fairy-qca.dtb \
+	imx6dl-edm1-tc0700.dtb \
+	imx6dl-edm1-tc0700-qca.dtb \
 	imx6dl-emcon-avari.dtb \
 	imx6dl-gw51xx.dtb \
 	imx6dl-gw52xx.dtb \
@@ -175,6 +177,8 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6q-dms-ba16.dtb \
 	imx6q-ds.dtb \
 	imx6q-edm1-fairy-qca.dtb \
+	imx6q-edm1-tc0700.dtb \
+	imx6q-edm1-tc0700-qca.dtb \
 	imx6q-emcon-avari.dtb \
 	imx6q-evi.dtb \
 	imx6dl-b105pv2.dtb \
@@ -272,6 +276,8 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6q-yapp4-crux.dtb \
 	imx6q-yapp4-pegasus.dtb \
 	imx6q-zii-rdu2.dtb \
+	imx6qp-edm1-tc0700.dtb \
+	imx6qp-edm1-tc0700-qca.dtb \
 	imx6qp-mba6b.dtb \
 	imx6qp-nitrogen6_max.dtb \
 	imx6qp-nitrogen6_som2.dtb \
