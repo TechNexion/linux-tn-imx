@@ -1120,7 +1120,7 @@
 };
 
 &isi_1 {
-	status = "okay";
+	status = "disabled";
 
 	cap_device {
 		status = "okay";
