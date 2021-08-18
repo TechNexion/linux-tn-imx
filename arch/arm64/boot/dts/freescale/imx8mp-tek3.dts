@@ -160,10 +160,6 @@
 	status = "okay";
 };
 
-&clk {
-	init-on-array = <IMX8MP_CLK_HSIO_ROOT>;
-};
-
 &gpio1 {
 	pinctrl-0 = <&pinctrl_gpio1>;
 
@@ -443,7 +439,7 @@
 	wm8904: wm8904@1a {
 		compatible = "wlf,wm8904";
 		reg = <0x1a>;
-		clocks = <&audiomix_clk IMX8MP_CLK_AUDIOMIX_SAI3_MCLK1>;
+		clocks = <&audio_blk_ctrl IMX8MP_CLK_AUDIO_BLK_CTRL_SAI3_MCLK1>;
 		clock-names = "mclk";
 		wlf,shared-lrclk;
 	};
@@ -521,14 +517,6 @@
 	status = "okay";
 };
 
-&hdmimix_clk {
-	status = "okay";
-};
-
-&hdmimix_reset {
-	status = "okay";
-};
-
 &hdmi_pavi {
 	status = "okay";
 };
@@ -576,16 +564,16 @@
 	clkreq-gpio = <&gpio1 13 GPIO_ACTIVE_LOW>;
 	reset-gpio = <&gpio1 1 GPIO_ACTIVE_LOW>;
 	ext_osc = <0>;
-	clocks = <&clk IMX8MP_CLK_HSIO_AXI_DIV>,
+	clocks = <&clk IMX8MP_CLK_HSIO_ROOT>,
 		 <&clk IMX8MP_CLK_PCIE_AUX>,
-		 <&clk IMX8MP_CLK_PCIE_PHY>,
+		 <&clk IMX8MP_CLK_HSIO_AXI>,
 		 <&clk IMX8MP_CLK_PCIE_ROOT>;
 	clock-names = "pcie", "pcie_aux", "pcie_phy", "pcie_bus";
-	assigned-clocks = <&clk IMX8MP_CLK_HSIO_AXI_SRC>,
+	assigned-clocks = <&clk IMX8MP_CLK_HSIO_AXI>,
 			  <&clk IMX8MP_CLK_PCIE_AUX>;
+	assigned-clock-rates = <500000000>, <10000000>;
 	assigned-clock-parents = <&clk IMX8MP_SYS_PLL2_500M>,
 				 <&clk IMX8MP_SYS_PLL2_50M>;
-	reserved-region = <&rpmsg_reserved>;
 	status = "okay";
 };
 
@@ -600,8 +588,8 @@
 	assigned-clocks = <&clk IMX8MP_CLK_SAI2>;
 	assigned-clock-parents = <&clk IMX8MP_AUDIO_PLL1_OUT>;
 	assigned-clock-rates = <12288000>;
-	clocks = <&audiomix_clk IMX8MP_CLK_AUDIOMIX_SAI2_IPG>, <&clk IMX8MP_CLK_DUMMY>,
-		 <&audiomix_clk IMX8MP_CLK_AUDIOMIX_SAI2_MCLK1>, <&clk IMX8MP_CLK_DUMMY>,
+	clocks = <&audio_blk_ctrl IMX8MP_CLK_AUDIO_BLK_CTRL_SAI2_IPG>, <&clk IMX8MP_CLK_DUMMY>,
+		 <&audio_blk_ctrl IMX8MP_CLK_AUDIO_BLK_CTRL_SAI2_MCLK1>, <&clk IMX8MP_CLK_DUMMY>,
 		 <&clk IMX8MP_CLK_DUMMY>;
 	clock-names = "bus", "mclk0", "mclk1", "mclk2", "mclk3";
 	fsl,sai-mclk-direction-output;
@@ -614,8 +602,8 @@
 	assigned-clocks = <&clk IMX8MP_CLK_SAI3>;
 	assigned-clock-parents = <&clk IMX8MP_AUDIO_PLL1_OUT>;
 	assigned-clock-rates = <12288000>;
-	clocks = <&audiomix_clk IMX8MP_CLK_AUDIOMIX_SAI3_IPG>, <&clk IMX8MP_CLK_DUMMY>,
-		 <&audiomix_clk IMX8MP_CLK_AUDIOMIX_SAI3_MCLK1>, <&clk IMX8MP_CLK_DUMMY>,
+	clocks = <&audio_blk_ctrl IMX8MP_CLK_AUDIO_BLK_CTRL_SAI3_IPG>, <&clk IMX8MP_CLK_DUMMY>,
+		 <&audio_blk_ctrl IMX8MP_CLK_AUDIO_BLK_CTRL_SAI3_MCLK1>, <&clk IMX8MP_CLK_DUMMY>,
 		 <&clk IMX8MP_CLK_DUMMY>;
 	clock-names = "bus", "mclk0", "mclk1", "mclk2", "mclk3";
 	fsl,sai-mclk-direction-output;
@@ -685,6 +673,8 @@
 
 /* SD card on baseboard */
 &usdhc2 {
+	assigned-clocks = <&clk IMX8MP_CLK_USDHC2>;
+	assigned-clock-rates = <400000000>;
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
 	pinctrl-0 = <&pinctrl_usdhc2>, <&pinctrl_usdhc2_gpio>;
 	pinctrl-1 = <&pinctrl_usdhc2_100mhz>, <&pinctrl_usdhc2_gpio>;
@@ -697,6 +687,8 @@
 
 /* eMMC on SOM */
 &usdhc3 {
+	assigned-clocks = <&clk IMX8MP_CLK_USDHC3>;
+	assigned-clock-rates = <400000000>;
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
 	pinctrl-0 = <&pinctrl_usdhc3>;
 	pinctrl-1 = <&pinctrl_usdhc3_100mhz>;
