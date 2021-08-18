@@ -15,15 +15,10 @@
 	model = "TechNexion TEK3-IMX8MP box PC";
 	compatible = "fsl,imx8mp-tek3", "fsl,imx8mp";
 
-	reserved-memory {
-		#address-cells = <2>;
-		#size-cells = <2>;
-		ranges;
-
-		rpmsg_reserved: rpmsg@0x55800000 {
-			no-map;
-			reg = <0 0x55800000 0 0x800000>;
-		};
+	 memory@40000000 {
+		device_type = "memory";
+		reg = <0x0 0x40000000 0 0xc0000000>,
+					<0x1 0x00000000 0 0xc0000000>;
 	};
 
 	chosen {
