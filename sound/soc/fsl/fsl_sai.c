@@ -1487,8 +1487,10 @@ static int fsl_sai_probe(struct platform_device *pdev)
 				sai->monitor_spdif = true;
 		}
 
-		if (sysfs_create_group(&pdev->dev.kobj, fsl_sai_get_dev_attribute_group(sai->monitor_spdif)))
+		if(sai->monitor_spdif) {
+			if (sysfs_create_group(&pdev->dev.kobj, fsl_sai_get_dev_attribute_group(sai->monitor_spdif)))
 			dev_err(&pdev->dev, "fail to create sys group\n");
+		}
 	}
 
 	pm_runtime_put_sync(&pdev->dev);
