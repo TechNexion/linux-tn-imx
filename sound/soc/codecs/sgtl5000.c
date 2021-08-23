@@ -778,15 +778,10 @@ static const struct snd_kcontrol_new sgtl5000_snd_controls[] = {
 static int sgtl5000_mute_stream(struct snd_soc_dai *codec_dai, int mute, int direction)
 {
 	struct snd_soc_component *component = codec_dai->component;
-	u16 i2s_pwr = SGTL5000_I2S_IN_POWERUP;
+	u16 adcdac_ctrl = SGTL5000_DAC_MUTE_LEFT | SGTL5000_DAC_MUTE_RIGHT;
 
-	/*
-	 * During 'digital mute' do not mute DAC
-	 * because LINE_IN would be muted aswell. We want to mute
-	 * only I2S block - this can be done by powering it off
-	 */
-	snd_soc_component_update_bits(component, SGTL5000_CHIP_DIG_POWER,
-			i2s_pwr, mute ? 0 : i2s_pwr);
+	snd_soc_component_update_bits(component, SGTL5000_CHIP_ADCDAC_CTRL,
+			adcdac_ctrl, mute ? adcdac_ctrl : 0);
 
 	return 0;
 }
