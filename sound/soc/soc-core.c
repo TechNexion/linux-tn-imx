@@ -2779,6 +2779,7 @@ void snd_soc_of_parse_node_prefix(struct device_node *np,
 }
 EXPORT_SYMBOL_GPL(snd_soc_of_parse_node_prefix);
 
+int sgtl5000_lineout = -1;
 int snd_soc_of_parse_audio_routing(struct snd_soc_card *card,
 				   const char *propname)
 {
@@ -2825,6 +2826,11 @@ int snd_soc_of_parse_audio_routing(struct snd_soc_card *card,
 				"ASoC: Property '%s' index %d could not be read: %d\n",
 				propname, (2 * i) + 1, ret);
 			return -EINVAL;
+		}
+
+		if (sgtl5000_lineout < 0) {
+			if (!strcmp(card->name, "audio-sgtl5000") && !strcmp(routes[i].sink, "Line Out Jack"))
+				sgtl5000_lineout = 1;
 		}
 	}
 

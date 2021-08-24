@@ -1399,6 +1399,8 @@ int snd_soc_fixup_dai_links_platform_name(struct snd_soc_card *card,
 	return 0;
 }
 
+extern int sgtl5000_lineout;
+
 #ifdef CONFIG_DEBUG_FS
 extern struct dentry *snd_soc_debugfs_root;
 #endif
