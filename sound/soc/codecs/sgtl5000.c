@@ -780,6 +780,12 @@ static int sgtl5000_mute_stream(struct snd_soc_dai *codec_dai, int mute, int dir
 	struct snd_soc_component *component = codec_dai->component;
 	u16 adcdac_ctrl = SGTL5000_DAC_MUTE_LEFT | SGTL5000_DAC_MUTE_RIGHT;
 
+	if (sgtl5000_lineout == 1) {
+		snd_soc_component_update_bits(component, SGTL5000_CHIP_ANA_CTRL,
+				256, 0);
+		sgtl5000_lineout = 0;
+	}
+
 	snd_soc_component_update_bits(component, SGTL5000_CHIP_ADCDAC_CTRL,
 			adcdac_ctrl, mute ? adcdac_ctrl : 0);
 
