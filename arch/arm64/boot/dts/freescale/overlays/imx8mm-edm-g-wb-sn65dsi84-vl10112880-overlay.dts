@@ -55,7 +55,7 @@
 				/* vert-flip; */
 
 				panel-timing {
-					clock-frequency = <68900000>;
+					clock-frequency = <69500000>;
 					hactive = <1280>;
 					vactive = <800>;
 					hfront-porch = <40>;
