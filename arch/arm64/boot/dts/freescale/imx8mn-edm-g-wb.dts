@@ -119,6 +119,18 @@
 				MX8MN_IOMUXC_GPIO1_IO14_CCMSRCGPCMIX_CLKO1  0x59
 			>;
 		};
+
+		pinctrl_touch_irq: touch_irqgrp {
+			fsl,pins = <
+				MX8MN_IOMUXC_GPIO1_IO13_GPIO1_IO13		0x41 /* Touch INT */
+			>;
+		};
+
+		pinctrl_touch_reset: touch_rstgrp {
+			fsl,pins = <
+				MX8MN_IOMUXC_SAI5_MCLK_GPIO3_IO25		0x41 /* TOUCH_nRST, LVDS1_VDDEN */
+			>;
+		};
 	};
 };
 
