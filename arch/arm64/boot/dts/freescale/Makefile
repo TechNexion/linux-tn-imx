@@ -67,9 +67,7 @@ dtb-$(CONFIG_ARCH_MXC) += imx8mm-axon-pi.dtb imx8mm-axon-pi-voicehat.dtb imx8mm-
 						  imx8mm-axon-wizard-voicehat.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-xore-wizard.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mn-edm-g-wb.dtb \
-			  imx8mn-edm-g-wb-rpmsg.dtb \
-			  imx8mn-edm-g-wb-sn65dsi84-vl15613676.dtb \
-			  imx8mn-edm-g-wb-sn65dsi84-vl215192108.dtb
+			  imx8mn-edm-g-wb-rpmsg.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-edm-g-wb.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-evk.dtb imx8mm-evk-rpmsg.dtb imx8mm-evk-rm67191.dtb \
 			  imx8mm-evk-root.dtb imx8mm-evk-inmate.dtb imx8mm-evk-revb-qca-wifi.dtb \
