@@ -3185,6 +3185,8 @@ static int ov5640_check_chip_id(struct ov5640_dev *sensor)
 	if (ret)
 		return ret;
 
+	msleep(2);
+
 	ret = ov5640_read_reg16(sensor, OV5640_REG_CHIP_ID, &chip_id);
 	if (ret) {
 		dev_err(&client->dev, "%s: failed to read chip identifier\n",
