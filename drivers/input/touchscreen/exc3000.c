@@ -223,7 +223,9 @@ static irqreturn_t exc3000_interrupt(int irq, void *dev_id)
 	input_mt_sync_frame(input);
 	input_sync(input);
 
+	return IRQ_HANDLED;
 out:
+	del_timer_sync(&data->timer);
 	return IRQ_HANDLED;
 }
 
