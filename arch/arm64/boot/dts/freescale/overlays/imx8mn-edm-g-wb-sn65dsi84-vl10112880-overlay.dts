@@ -120,6 +120,7 @@
 	fragment@3 {
 		target = <&i2c3>;
 		__overlay__ {
+			clock-frequency = <400000>;
 			#address-cells = <1>;
 			#size-cells = <0>;
 			status = "okay";
