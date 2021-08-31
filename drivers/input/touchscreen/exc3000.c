@@ -221,7 +221,9 @@ static irqreturn_t exc3000_interrupt(int irq, void *dev_id)
 		break;
 	}
 
+	return IRQ_HANDLED;
 out:
+	timer_delete_sync(&data->timer);
 	return IRQ_HANDLED;
 }
 
