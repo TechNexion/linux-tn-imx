@@ -227,7 +227,7 @@
 	};
 };
 
-&i2c3 {
+&i2c4 {
 	pn547: pn547@2a {
 		compatible = "nxp,pn547";
 		reg = <0x2a>;
