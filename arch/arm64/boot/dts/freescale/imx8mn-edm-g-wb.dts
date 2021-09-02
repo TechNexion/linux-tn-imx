@@ -59,8 +59,6 @@
 			regulator-max-microvolt = <3300000>;
 			gpio = <&gpio1 7 GPIO_ACTIVE_HIGH>;
 			enable-active-high;
-			regulator-always-on;
-			status = "okay";
 		};
 		reg_lvds_backlight_pwr: regulator_lvdsblpwr {
 			pinctrl-names = "default";
