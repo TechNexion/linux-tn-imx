@@ -18,7 +18,7 @@
 		__overlay__ {
 			regulators {
 				reg_lvds_pwr: regulator_lvdspwr {
-					regulator-always-on;
+					status = "okay";
 				};
 
 				reg_lvds_backlight_pwr: regulator_lvdsblpwr {
@@ -42,6 +42,8 @@
 				reg = <0>;
 				compatible = "tn,dsi2lvds-panel";
 				backlight = <&lvds_backlight>;
+				power-supply = <&reg_lvds_pwr>;
+
 				dsi,flags = <0x0007>;
 				dsi,format = <0>;
 				dsi,lanes = <4>;
