@@ -1,0 +1,69 @@
+/*
+ * Copyright 2018 TechNexion Ltd.
+ *
+ * Author: Ray Chang <ray.chang@technexion.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ */
+/dts-v1/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include "imx6dl.dtsi"
+#include "imx6qdl-tep5.dtsi"
+
+/ {
+	model = "TechNexion TEP5-IMX6 DualLite/Solo board with 15-inch panel";
+	compatible = "fsl,tep5-imx6dl", "fsl,imx6dl";
+};
+
+&ldb {
+	lvds-channel@0 {
+		crtc = "ipu1-di0";
+
+		/delete-node/ display-timings;
+
+		display-timings {
+			native-mode = <&timing0>;
+			timing0: LVDS_SIN_1368x768 {
+				clock-frequency = <76000000>;
+				hactive = <1368>;
+				vactive = <768>;
+				hback-porch = <90>;
+				hfront-porch = <90>;
+				vback-porch = <17>;
+				vfront-porch = <17>;
+				hsync-len = <20>;
+				vsync-len = <4>;
+			};
+		};
+	};
+
+	lvds-channel@1 {
+		crtc = "ipu1-di1";
+	};
+};
+
+&can1{
+	status = "okay";
+};
+
+&can2{
+	status = "okay";
+};
+
+#if 0
+&mxcfb3 {
+	status = "okay";
+};
+
+&mxcfb4 {
+	status = "okay";
+};
+#endif
+
+&epdc {
+	status = "disabled";
+};
