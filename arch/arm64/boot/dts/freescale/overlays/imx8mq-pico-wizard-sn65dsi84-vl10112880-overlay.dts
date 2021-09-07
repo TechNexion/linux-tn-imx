@@ -95,6 +95,8 @@
 			#size-cells = <0>;
 			status = "okay";
 			fsl,clock-drop-level = <2>;
+			power-supply = <&reg_backlight_pwr>;
+
 
 			panel@0 {
 				reg = <0>;
@@ -112,15 +114,15 @@
 				/* vert-flip; */
 
 				panel-timing {
-					clock-frequency = <71000000>;
+					clock-frequency = <66000000>;
 					hactive = <1280>;
 					vactive = <800>;
 					hfront-porch = <40>;
 					hsync-len = <80>;
 					hback-porch = <40>;
 					vfront-porch = <3>;
-					vsync-len = <10>;
-					vback-porch = <10>;
+					vsync-len = <4>;
+					vback-porch = <5>;
 					/* flags = DISPLAY_FLAGS_HSYNC_HIGH | DISPLAY_FLAGS_VSYNC_HIGH */
 					vsync-active = <1>;
 					hsync-active = <1>;
@@ -202,13 +204,32 @@
 									/* cha-hs-pwl, cha-hs-pwh, chb-hs-pwl, chb-hs-pwh */
 									0x50 0x00 0x00 0x00
 									/* cha-vs-pwl, cha-vs-pwh, chb-vs-pwl, chb-vs-pwh */
-									0x0a 0x00 0x00 0x00
+									0x06 0x00 0x00 0x00
 									/*cha-hbp, chb-hbp, cha-vbp, chb-vbp*/
 									0x28 0x00 0x00 0x00
 									/* cha-hfp, chb-hfp, cha-vfp, chb-vfp*/
 									0x00 0x00 0x00 0x00
 
 									0x00 0x00 0x00 0x01>;
+			};
+		};
+	};
+
+	fragment@8 {
+		target = <&i2c3>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			exc80w46: touchscreen@2a {
+				compatible = "eeti,exc80h60";
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_touch_irq>;
+				reg = <0x2a>;
+				interrupt-parent = <&gpio1>;
+				interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
+				status = "okay";
 			};
 		};
 	};
