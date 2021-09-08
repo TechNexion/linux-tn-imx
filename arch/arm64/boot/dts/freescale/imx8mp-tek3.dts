@@ -426,7 +426,7 @@
 		pinctrl-0 = <&pinctrl_hd3ss3220_irq>;
 		reg = <0x47>;
 		vbus-supply = <&reg_usb_otg_vbus>;
-		tusb320,int-gpio = <&gpio2 2 GPIO_ACTIVE_LOW>; /*it's fake, just for driver compatible */
+		tusb320,int-gpio = <&gpio1 5 GPIO_ACTIVE_LOW>;
 		tusb320,select-mode = <0>;
 		tusb320,dfp-power = <0>;
 	};
@@ -716,7 +716,7 @@
 
 	pinctrl_hd3ss3220_irq: hd3ss3220_irqgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_SD1_DATA0__GPIO2_IO02		0x41 /* virtual irq for i2c mode */
+			MX8MP_IOMUXC_GPIO1_IO05__GPIO1_IO05		0x41
 		>;
 	};
 
@@ -896,7 +896,6 @@
 			MX8MP_IOMUXC_SAI3_RXD__AUDIOMIX_SAI3_RX_DATA00	0xd6
 			MX8MP_IOMUXC_SAI3_TXD__AUDIOMIX_SAI3_TX_DATA00	0xd6
 			MX8MP_IOMUXC_SAI1_TXD6__GPIO4_IO18							0x41
-			MX8MP_IOMUXC_GPIO1_IO05__GPIO1_IO05							0x41
 		>;
 	};
 
