@@ -175,3 +175,4 @@ obj-$(CONFIG_VIDEO_WM8775) += wm8775.o
 obj-$(CONFIG_VIDEO_AP1302)     += ap1302.o
 obj-$(CONFIG_VIDEO_OX05B1S) += ox05b1s/
 obj-$(CONFIG_VIDEO_TEVS) += tevs/
+obj-$(CONFIG_SERDES_VIZIONLINK) += vizionlink/
