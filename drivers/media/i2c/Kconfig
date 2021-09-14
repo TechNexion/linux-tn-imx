@@ -1618,6 +1618,15 @@ config VIDEO_THS7303
 	  To compile this driver as a module, choose M here: the
 	  module will be called ths7303.
 
+comment "MIPI CSI SerDes chips"
+
+config SERDES_VIZIONLINK
+	tristate "TechNexion Vizionlink SerDes support"
+	depends on I2C
+	depends on OF
+	help
+	  TechNexion Vizionlink SerDes support.
+
 endmenu
 
 endif # VIDEO_DEV
