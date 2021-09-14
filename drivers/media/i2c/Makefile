@@ -156,3 +156,4 @@ obj-$(CONFIG_VIDEO_AP130X)     += ap130x.o
 obj-$(CONFIG_VIDEO_OX05B1S) += ox05b1s/
 obj-$(CONFIG_VIDEO_TEVS) += tevs/
 obj-$(CONFIG_VIDEO_OS08A20) += os08a20/
+obj-$(CONFIG_SERDES_VIZIONLINK) += vizionlink/
