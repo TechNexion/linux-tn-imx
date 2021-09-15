@@ -9,7 +9,7 @@ dtbo-$(CONFIG_ARCH_MXC) += imx8mm-pico-wizard-ili9881c.dtbo imx8mm-pico-wizard-v
 			   imx8mm-pico-wizard-clix1nfc.dtbo imx8mm-pico-wizard-clix2nfc.dtbo \
 			   imx8mm-pico-wizard-sn65dsi84-vl10112880.dtbo imx8mm-pico-wizard-sn65dsi84-vl15613676.dtbo imx8mm-pico-wizard-sn65dsi84-vl215192108.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wb-lvds-vl10112880.dtbo imx8mp-edm-g-wb-lvds-vl15613676.dtbo \
-				imx8mp-edm-g-wb-lvds-vl215192108.dtbo
+				imx8mp-edm-g-wb-lvds-vl215192108.dtbo imx8mp-edm-g-wb-tevi-ov5640.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wb-hdmi2mipi-tc358743-dual.dtbo \
 				imx8mp-edm-g-wb-hdmi2mipi-tc358743-single-cam1.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mp-tek3-hdmi2mipi-tc358743-dual.dtbo imx8mp-tek3-hdmi2mipi-tc358743_1.dtbo imx8mp-tek3-hdmi2mipi-tc358743_2.dtbo
