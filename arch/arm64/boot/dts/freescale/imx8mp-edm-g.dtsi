@@ -883,27 +883,27 @@
 
 	pinctrl_csi0_pwn: csi0_pwn_grp {
 		fsl,pins = <
-			MX8MP_IOMUXC_GPIO1_IO07__GPIO1_IO07	0x19
+			MX8MP_IOMUXC_GPIO1_IO07__GPIO1_IO07	0x9
 		>;
 	};
 
 	pinctrl_csi0_rst: csi0_rst_grp {
 		fsl,pins = <
-			MX8MP_IOMUXC_GPIO1_IO08__GPIO1_IO08		0x19
-			MX8MP_IOMUXC_GPIO1_IO14__CCM_CLKO1		0x59
+			MX8MP_IOMUXC_GPIO1_IO08__GPIO1_IO08	0x9
+			MX8MP_IOMUXC_GPIO1_IO14__CCM_CLKO1	0x59
 		>;
 	};
 
 	pinctrl_csi1_pwn: csi1_pwn_grp {
 		fsl,pins = <
-			MX8MP_IOMUXC_SAI1_RXD3__GPIO4_IO05	0x19
+			MX8MP_IOMUXC_SAI1_RXD3__GPIO4_IO05	0x9
 		>;
 	};
 
 	pinctrl_csi1_rst: csi1_rst_grp {
 		fsl,pins = <
-			MX8MP_IOMUXC_SAI1_RXD2__GPIO4_IO04		0x19
-			MX8MP_IOMUXC_GPIO1_IO15__CCM_CLKO2		0x59
+			MX8MP_IOMUXC_SAI1_RXD2__GPIO4_IO04	0x9
+			MX8MP_IOMUXC_GPIO1_IO15__CCM_CLKO2	0x59
 		>;
 	};
 
