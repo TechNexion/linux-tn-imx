@@ -1266,6 +1266,17 @@ config VIDEO_TEVI_AR0521
 	  This is a Video4Linux2 sensor driver for the TechNexion
 	  TEVI-AR0521 camera sensor with a MIPI CSI-2 interface.
 
+config VIDEO_TEVI_AR0144
+	tristate "TechNexion TEVI-AR0144 sensor support"
+	depends on OF
+	depends on GPIOLIB && VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+	depends on MEDIA_CAMERA_SUPPORT
+	default m
+	select V4L2_FWNODE
+	help
+	  This is a Video4Linux2 sensor driver for the TechNexion
+	  TEVI-AR0144 camera sensor with a MIPI CSI-2 interface.
+
 endmenu
 
 menu "Lens drivers"
