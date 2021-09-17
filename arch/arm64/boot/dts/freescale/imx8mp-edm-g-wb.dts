@@ -200,6 +200,11 @@
 		reg = <0x3d>;
 		status = "disabled";
 	};
+
+	tevi_ar0144_0: tevi_ar0144@3d {
+		reg = <0x3d>;
+		status = "disabled";
+	};
 };
 
 &i2c4 {
@@ -225,6 +230,11 @@
 	};
 
 	tevi_ar0521_1: tevi_ar0521@3d {
+		reg = <0x3d>;
+		status = "disabled";
+	};
+
+	tevi_ar0144_1: tevi_ar0144@3d {
 		reg = <0x3d>;
 		status = "disabled";
 	};
