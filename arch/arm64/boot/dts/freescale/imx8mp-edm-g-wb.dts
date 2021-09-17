@@ -195,6 +195,11 @@
 		reg = <0x3c>;
 		status = "disabled";
 	};
+
+	tevi_ar0521_0: tevi_ar0521@3d {
+		reg = <0x3d>;
+		status = "disabled";
+	};
 };
 
 &i2c4 {
@@ -216,6 +221,11 @@
 
 	ov5640_1: ov5640_mipi@3c {
 		reg = <0x3c>;
+		status = "disabled";
+	};
+
+	tevi_ar0521_1: tevi_ar0521@3d {
+		reg = <0x3d>;
 		status = "disabled";
 	};
 };
