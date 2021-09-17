@@ -127,3 +127,4 @@ obj-$(CONFIG_VIDEO_ST_MIPID02) += st-mipid02.o
 
 obj-$(CONFIG_SDR_MAX2175) += max2175.o
 obj-$(CONFIG_VIDEO_TEVI_AR0521) += tevi-ar0521/
+obj-$(CONFIG_VIDEO_TEVI_AR0144) += tevi-ar0144/
