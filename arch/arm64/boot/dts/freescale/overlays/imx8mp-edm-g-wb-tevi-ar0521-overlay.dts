@@ -1,0 +1,127 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2020 TechNexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *         Ray Chang <ray.chang@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/clock/imx8mp-clock.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	fragment@0 {
+		target = <&mipi_csi_0>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			port@0 {
+				reg = <0>;
+				mipi_csi0_ep: endpoint {
+					remote-endpoint = <&tevi_ar0521_0_ep>;
+					data-lanes = <4>;
+					csis-hs-settle = <13>;
+					csis-clk-settle = <2>;
+					csis-wclk;
+				};
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&mipi_csi_1>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			port@1 {
+				reg = <1>;
+				mipi_csi1_ep: endpoint {
+					remote-endpoint = <&tevi_ar0521_1_ep>;
+					data-lanes = <4>;
+					csis-hs-settle = <13>;
+					csis-clk-settle = <2>;
+					csis-wclk;
+				};
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&i2c2>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			tevi_ar0521_otp_0: tevi_ar0521_otp@54 {
+				compatible = "atmel,24c1024";
+				reg = <0x54>;
+				//read-only;
+			};
+
+			tevi_ar0521_0: tevi_ar0521@3d {
+				compatible = "tn,tevi-ar0521";
+				reg = <0x3d>;
+
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_csi0_pwn>, <&pinctrl_csi0_rst>;
+				host-power-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
+				reset-gpios = <&gpio1 8 GPIO_ACTIVE_HIGH>;
+				device-power-gpios = <&pca9555_a21 0 GPIO_ACTIVE_HIGH>;
+				standby-gpios = <&pca9555_a21 2 GPIO_ACTIVE_HIGH>;
+				nvmem = <&tevi_ar0521_otp_0>;
+				nvmem-names = "calib-data";
+				status = "okay";
+
+				port {
+					tevi_ar0521_0_ep: endpoint {
+						remote-endpoint = <&mipi_csi0_ep>;
+					};
+				};
+			};
+		};
+	};
+
+	fragment@3 {
+		target = <&i2c5>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			tevi_ar0521_otp_1: tevi_ar0521_otp@54 {
+				compatible = "atmel,24c1024";
+				reg = <0x54>;
+				//read-only;
+			};
+
+			tevi_ar0521_1: tevi_ar0521@3d {
+				compatible = "tn,tevi-ar0521";
+				reg = <0x3d>;
+
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_csi1_pwn>, <&pinctrl_csi1_rst>;
+				host-power-gpios = <&gpio4 5 GPIO_ACTIVE_HIGH>;
+				reset-gpios = <&gpio4 4 GPIO_ACTIVE_HIGH>;
+				device-power-gpios = <&pca9555_a21 8 GPIO_ACTIVE_HIGH>;
+				standby-gpios = <&pca9555_a21 10 GPIO_ACTIVE_HIGH>;
+				nvmem = <&tevi_ar0521_otp_1>;
+				nvmem-names = "calib-data";
+				status = "okay";
+
+				port {
+					tevi_ar0521_1_ep: endpoint {
+						remote-endpoint = <&mipi_csi1_ep>;
+					};
+				};
+			};
+		};
+	};
+};
