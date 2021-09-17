@@ -1241,11 +1241,9 @@
 			fec1: ethernet@30be0000 {
 				compatible = "fsl,imx7d-fec", "fsl,imx6sx-fec";
 				reg = <0x30be0000 0x10000>;
-				interrupt-names = "int0", "int1", "int2", "pps";
-				interrupts = <GIC_SPI 120 IRQ_TYPE_LEVEL_HIGH>,
-					<GIC_SPI 118 IRQ_TYPE_LEVEL_HIGH>,
+				interrupts = <GIC_SPI 118 IRQ_TYPE_LEVEL_HIGH>,
 					<GIC_SPI 119 IRQ_TYPE_LEVEL_HIGH>,
-					<GIC_SPI 121 IRQ_TYPE_LEVEL_HIGH>;
+					<GIC_SPI 120 IRQ_TYPE_LEVEL_HIGH>;
 				clocks = <&clks IMX7D_ENET1_IPG_ROOT_CLK>,
 					<&clks IMX7D_ENET_AXI_ROOT_CLK>,
 					<&clks IMX7D_ENET1_TIME_ROOT_CLK>,
@@ -1255,7 +1253,8 @@
 					"enet_clk_ref", "enet_out";
 				fsl,num-tx-queues = <3>;
 				fsl,num-rx-queues = <3>;
-				fsl,stop-mode = <&gpr 0x10 3>;
+				stop-mode = <&gpr 0x10 3>;
+				fsl,wakeup_irq = <2>;
 				status = "disabled";
 			};
 		};
