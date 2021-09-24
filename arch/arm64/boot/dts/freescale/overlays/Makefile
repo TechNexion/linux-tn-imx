@@ -37,4 +37,4 @@ dtbo-$(CONFIG_ARCH_MXC) += imx8mm-axon-wizard-voicehat.dtbo imx8mm-axon-wizard-m
 				imx8mm-axon-wizard-sn65dsi84-vl215192108.dtbo imx8mm-axon-wizard-sn65dsi84-vl15613676.dtbo \
 				imx8mm-axon-wizard-sn65dsi84-vl10112880.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mn-edm-g-wb-sn65dsi84-vl10112880.dtbo imx8mn-edm-g-wb-sn65dsi84-vl15613676.dtbo imx8mn-edm-g-wb-sn65dsi84-vl215192108.dtbo \
-			   imx8mn-edm-g-wb-ov5640.dtbo
+			   imx8mn-edm-g-wb-tevi-ov5640.dtbo
