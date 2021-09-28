@@ -582,7 +582,7 @@
 	pinctrl-1 = <&pinctrl_i2c4_gpio>;
 	scl-gpios = <&gpio5 20 GPIO_ACTIVE_HIGH>;
 	sda-gpios = <&gpio5 21 GPIO_ACTIVE_HIGH>;
-	status = "disabled";
+	status = "okay";
 };
 
 &flexspi {
