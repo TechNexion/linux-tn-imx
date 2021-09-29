@@ -284,7 +284,7 @@
 };
 
 &ecspi3 {
-	fsl,spi-num-chipselects = <2>;
+	num-cs = <2>;
 	cs-gpios = <&gpio1 20 GPIO_ACTIVE_HIGH>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_ecspi3>;
