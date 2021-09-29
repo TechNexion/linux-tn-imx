@@ -967,7 +967,7 @@
 &AXON_SPI_A {
 	cs-gpios = <AXON_EXT_GPIO_SPI_A_CS0   GPIO_ACTIVE_LOW>,
 			   <AXON_EXT_GPIO_SPI_A_CS1   GPIO_ACTIVE_LOW>;
-	fsl,spi-num-chipselects = <2>;
+	num-cs = <2>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_spi_a>;
 	#address-cells = <1>;
@@ -993,7 +993,7 @@
 				<AXON_EXT_GPIO_SPI_B_CS1         GPIO_ACTIVE_LOW>,
 				<AXON_EXT_GPIO_SPI_B_FABRIC_CS_N GPIO_ACTIVE_LOW>,
 				<AXON_EXT_GPIO_SPI_B_CORE_CS_N   GPIO_ACTIVE_LOW>;
-	fsl,spi-num-chipselects = <4>;
+	num-cs = <4>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_spi_b>;
 	assigned-clocks = <&clk IMX8MM_CLK_ECSPI3>;
