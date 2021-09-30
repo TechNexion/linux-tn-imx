@@ -195,14 +195,14 @@ void imx_gpc_pre_suspend(bool arm_power_off)
 	void __iomem *reg_imr1 = gpc_base + GPC_IMR1;
 	int i;
 
-	/* power down the mega-fast power domain */
-	if ((cpu_is_imx6sx() || cpu_is_imx6ul() || cpu_is_imx6ull() ||
-	     cpu_is_imx6ulz() || cpu_is_imx6sll()) && arm_power_off)
-		imx_gpc_mf_mix_off();
-
 	/* Tell GPC to power off ARM core when suspend */
 	if (arm_power_off)
 		imx_gpc_set_arm_power_in_lpm(arm_power_off);
+
+	/* power down the mega-fast power domain */
+	if ((cpu_is_imx6sx() || cpu_is_imx6ul() ||
+	     cpu_is_imx6ulz() || cpu_is_imx6sll()) && arm_power_off)
+		imx_gpc_mf_mix_off();
 
 	for (i = 0; i < IMR_NUM; i++) {
 		gpc_saved_imrs[i] = readl_relaxed(reg_imr1 + i * 4);
