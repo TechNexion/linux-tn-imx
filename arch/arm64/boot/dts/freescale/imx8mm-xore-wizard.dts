@@ -55,17 +55,6 @@
 	model = "TechNexion XORE-IMX8MM and WIZARD baseboard";
 	compatible = "fsl,imx8mm-xore", "fsl,imx8mm";
 
-    reserved-memory {
-        #address-cells = <2>;
-        #size-cells = <2>;
-        ranges;
-
-        rpmsg_reserved: rpmsg@0xb8000000 {
-            no-map;
-            reg = <0 0xb8000000 0 0x400000>;
-        };
-    };
-
     pcie0_refclk: pcie0-refclk {
         compatible = "fixed-clock";
         #clock-cells = <0>;
@@ -715,7 +704,6 @@
          <&pcie0_refclk>;
     clock-names = "pcie", "pcie_aux", "pcie_phy", "pcie_bus";
     ext_osc = <1>;
-    reserved-region = <&rpmsg_reserved>;
     status = "okay";
 };
 
