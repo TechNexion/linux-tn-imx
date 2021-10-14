@@ -1018,7 +1018,7 @@ config VIDEO_TEVI_AR0521
 	depends on OF
 	depends on GPIOLIB && VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
 	depends on MEDIA_CAMERA_SUPPORT
-	default m
+	default y
 	select V4L2_FWNODE
 	help
 	  This is a Video4Linux2 sensor driver for the TechNexion
@@ -1029,7 +1029,7 @@ config VIDEO_TEVI_AR0144
 	depends on OF
 	depends on GPIOLIB && VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
 	depends on MEDIA_CAMERA_SUPPORT
-	default m
+	default y
 	select V4L2_FWNODE
 	help
 	  This is a Video4Linux2 sensor driver for the TechNexion
@@ -1040,7 +1040,7 @@ config VIDEO_TEVI_AR0234
 	depends on OF
 	depends on GPIOLIB && VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
 	depends on MEDIA_CAMERA_SUPPORT
-	default m
+	default y
 	select V4L2_FWNODE
 	help
 	  This is a Video4Linux2 sensor driver for the TechNexion

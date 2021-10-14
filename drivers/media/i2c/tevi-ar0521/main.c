@@ -28,7 +28,7 @@ struct resolution {
 	u16 height;
 };
 
-struct resolution res_list[] = {
+static struct resolution res_list[] = {
 	{.width = 2592, .height = 1944},
 	{.width = 1920, .height = 1080},
 	{.width = 1280, .height = 720},
@@ -501,12 +501,12 @@ static int sensor_load_bootdata(struct sensor *instance)
 		return -EINVAL;
 	}
 
-	checksum = otp_flash_get_checksum(instance->otp_flash_instance);
+	checksum = ar0521_otp_flash_get_checksum(instance->otp_flash_instance);
 
 	//load pll
 	bootdata_temp_area[0] = cpu_to_be16(BOOT_DATA_START_REG);
-	pll_len = len = otp_flash_get_pll_section(instance->otp_flash_instance,
-						  (u8 *)(&bootdata_temp_area[1]));
+	pll_len = len = ar0521_otp_flash_get_pll_section(instance->otp_flash_instance,
+							 (u8 *)(&bootdata_temp_area[1]));
 	dev_dbg(dev, "pll len [%zu]\n", len);
 	sensor_i2c_write_bust(instance->i2c_client, (u8 *)bootdata_temp_area,
 			      len + 2);
@@ -515,9 +515,9 @@ static int sensor_load_bootdata(struct sensor *instance)
 
 	//load bootdata part1
 	bootdata_temp_area[0] = cpu_to_be16(BOOT_DATA_START_REG + pll_len);
-	len = otp_flash_read(instance->otp_flash_instance,
-			     (u8 *)(&bootdata_temp_area[1]),
-			     pll_len, BOOT_DATA_WRITE_LEN - pll_len);
+	len = ar0521_otp_flash_read(instance->otp_flash_instance,
+				    (u8 *)(&bootdata_temp_area[1]),
+				    pll_len, BOOT_DATA_WRITE_LEN - pll_len);
 	dev_dbg(dev, "len [%zu]\n", len);
 	sensor_i2c_write_bust(instance->i2c_client,
 			      (u8 *)bootdata_temp_area,
@@ -527,9 +527,9 @@ static int sensor_load_bootdata(struct sensor *instance)
 	index = len = BOOT_DATA_WRITE_LEN;
 	while(!(len < BOOT_DATA_WRITE_LEN)) {
 		bootdata_temp_area[0] = cpu_to_be16(BOOT_DATA_START_REG);
-		len = otp_flash_read(instance->otp_flash_instance,
-				     (u8 *)(&bootdata_temp_area[1]),
-				     index, BOOT_DATA_WRITE_LEN);
+		len = ar0521_otp_flash_read(instance->otp_flash_instance,
+					    (u8 *)(&bootdata_temp_area[1]),
+					    index, BOOT_DATA_WRITE_LEN);
 		dev_dbg(dev, "len [%zu]\n", len);
 		sensor_i2c_write_bust(instance->i2c_client,
 				      (u8 *)bootdata_temp_area,
@@ -595,7 +595,7 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 		return -EINVAL;
 	}
 
-	instance->otp_flash_instance = otp_flash_init(dev);
+	instance->otp_flash_instance = ar0521_otp_flash_init(dev);
 	if(IS_ERR(instance->otp_flash_instance)) {
 		dev_err(dev, "otp flash init failed\n");
 		return -EINVAL;
