@@ -10,17 +10,17 @@ struct otp_flash {
 #ifdef __FAKE__
 #include "bootdata.h"
 
-struct otp_flash *otp_flash_init(struct device *dev)
+struct otp_flash *ar0234_otp_flash_init(struct device *dev)
 {
 	return NULL;
 }
 
-u16 otp_flash_get_checksum(struct otp_flash *instance)
+u16 ar0234_otp_flash_get_checksum(struct otp_flash *instance)
 {
 	return BOOTDATA_CHECKSUM;
 }
 
-size_t otp_flash_read(struct otp_flash *instance, u8 *data, int addr, size_t len)
+size_t ar0234_otp_flash_read(struct otp_flash *instance, u8 *data, int addr, size_t len)
 {
 	size_t l;
 
@@ -33,14 +33,14 @@ size_t otp_flash_read(struct otp_flash *instance, u8 *data, int addr, size_t len
 	return l;
 }
 
-size_t otp_flash_get_pll_length(struct otp_flash *instance)
+size_t ar0234_otp_flash_get_pll_length(struct otp_flash *instance)
 {
 	return BOOTDATA_PLL_INIT_SIZE;
 }
 
-size_t otp_flash_get_pll_section(struct otp_flash *instance, u8 *data)
+size_t ar0234_otp_flash_get_pll_section(struct otp_flash *instance, u8 *data)
 {
-	otp_flash_read(instance, data, 0, BOOTDATA_PLL_INIT_SIZE);
+	ar0234_otp_flash_read(instance, data, 0, BOOTDATA_PLL_INIT_SIZE);
 	return BOOTDATA_PLL_INIT_SIZE;
 }
 #else
@@ -72,7 +72,7 @@ struct header_ver2 {
 	u16 pll_bootdata_len;
 } __attribute__((packed));
 
-struct otp_flash *otp_flash_init(struct device *dev)
+struct otp_flash *ar0234_otp_flash_init(struct device *dev)
 {
 	struct otp_flash *instance;
 	u8 __header_ver;
@@ -126,7 +126,7 @@ fail1:
 	return ERR_PTR(-EINVAL);
 }
 
-u16 otp_flash_get_checksum(struct otp_flash *instance)
+u16 ar0234_otp_flash_get_checksum(struct otp_flash *instance)
 {
 	struct header_ver2 *header;
 
@@ -138,7 +138,7 @@ u16 otp_flash_get_checksum(struct otp_flash *instance)
 	return 0xffff;
 }
 
-size_t otp_flash_read(struct otp_flash *instance, u8 *data, int addr, size_t len)
+size_t ar0234_otp_flash_read(struct otp_flash *instance, u8 *data, int addr, size_t len)
 {
 	u8 *temp;
 	struct header_ver2 *header;
@@ -162,7 +162,7 @@ size_t otp_flash_read(struct otp_flash *instance, u8 *data, int addr, size_t len
 	return 0;
 }
 
-size_t otp_flash_get_pll_length(struct otp_flash *instance)
+size_t ar0234_otp_flash_get_pll_length(struct otp_flash *instance)
 {
 	u8 *temp;
 	struct header_ver2 *header;
@@ -176,7 +176,7 @@ size_t otp_flash_get_pll_length(struct otp_flash *instance)
 	return 0;
 }
 
-size_t otp_flash_get_pll_section(struct otp_flash *instance, u8 *data)
+size_t ar0234_otp_flash_get_pll_section(struct otp_flash *instance, u8 *data)
 {
 	u8 *temp;
 	struct header_ver2 *header;
@@ -185,8 +185,8 @@ size_t otp_flash_get_pll_section(struct otp_flash *instance, u8 *data)
 	if(temp[0] == 2) {
 		header = (struct header_ver2 *)instance->header_data;
 		if (header->pll_bootdata_len != 0) {
-			otp_flash_read(instance, data, 0,
-				       header->pll_bootdata_len);
+			ar0234_otp_flash_read(instance, data, 0,
+					      header->pll_bootdata_len);
 		}
 		return header->pll_bootdata_len;
 	}
