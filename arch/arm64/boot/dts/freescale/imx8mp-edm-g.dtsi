@@ -287,7 +287,7 @@
 
 /* I2C_B on EDMG */
 &i2c2 {
-	clock-frequency = <100000>;
+	clock-frequency = <400000>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c2>;
 	status = "okay";
@@ -311,7 +311,7 @@
 
 /* I2C_C on EDMG */
 &i2c5 {
-	clock-frequency = <100000>;
+	clock-frequency = <400000>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c5>;
 	status = "okay";
