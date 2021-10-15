@@ -98,7 +98,7 @@
 		};
 	};
 
-	leds {
+	gpio-leds {
 		compatible = "gpio-leds";
 
 		led {
