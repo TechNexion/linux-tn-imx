@@ -37,20 +37,6 @@ saveenv
 
 / {
 	fragment@0 {
-		target = <&ov5640_otp_0>;
-		__overlay__ {
-			status = "disabled";
-		};
-	};
-
-	fragment@1 {
-		target = <&ov5640_0>;
-		__overlay__ {
-			status = "disabled";
-		};
-	};
-
-	fragment@2 {
 		target = <&i2c2>;
 		__overlay__ {
 			#address-cells = <1>;
@@ -81,7 +67,7 @@ saveenv
 		};
 	};
 
-	fragment@3 {
+	fragment@1 {
 		target = <&mipi_csi_0>;
 		__overlay__ {
 			#address-cells = <1>;
@@ -100,7 +86,7 @@ saveenv
 		};
 	};
 
-	fragment@4 {
+	fragment@2 {
 		target-path = "/";
 		__overlay__ {
 			sound-wm8960 {
