@@ -145,7 +145,8 @@
 		//clocks = <&codec_osc>;  /* Clock is from external osc on baseboard */
 		clock-names = "mclk";
 		wlf,shared-lrclk;
-		wlf,fixed-mclk;
+		wlf,hp-cfg = <3 2 3>;
+		wlf,gpio-cfg = <1 3>;
 	};
 
 	typec_hd3ss3220: hd3ss3220@67 {
