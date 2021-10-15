@@ -37,34 +37,6 @@ saveenv
 
 / {
 	fragment@0 {
-		target = <&ov5640_otp_0>;
-		__overlay__ {
-			status = "disabled";
-		};
-	};
-
-	fragment@1 {
-		target = <&ov5640_otp_1>;
-		__overlay__ {
-			status = "disabled";
-		};
-	};
-
-	fragment@2 {
-		target = <&ov5640_0>;
-		__overlay__ {
-			status = "disabled";
-		};
-	};
-
-	fragment@3 {
-		target = <&ov5640_1>;
-		__overlay__ {
-			status = "disabled";
-		};
-	};
-
-	fragment@4 {
 		target = <&i2c2>;
 		__overlay__ {
 			#address-cells = <1>;
@@ -91,7 +63,7 @@ saveenv
 		};
 	};
 
-	fragment@5 {
+	fragment@1 {
 		target = <&i2c5>;
 		__overlay__ {
 			#address-cells = <1>;
@@ -118,7 +90,7 @@ saveenv
 		};
 	};
 
-	fragment@6 {
+	fragment@2 {
 		target = <&mipi_csi_0>;
 		__overlay__ {
 			#address-cells = <1>;
@@ -137,7 +109,7 @@ saveenv
 		};
 	};
 
-	fragment@7 {
+	fragment@3 {
 		target = <&mipi_csi_1>;
 		__overlay__ {
 			#address-cells = <1>;
@@ -156,7 +128,7 @@ saveenv
 		};
 	};
 
-	fragment@8 {
+	fragment@4 {
 		target-path = "/";
 		__overlay__ {
 			sound-wm8960 {
