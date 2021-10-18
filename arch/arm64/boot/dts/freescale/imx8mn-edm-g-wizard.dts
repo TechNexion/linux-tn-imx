@@ -1,0 +1,326 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2021 TechNexion Ltd.
+ *
+ * Author: Andy Lin <andy.lin@technexion.com>
+ *
+ */
+
+/dts-v1/;
+
+#include "imx8mn-edm-g.dtsi"
+
+/ {
+	model = "TechNexion EDM-G-IMX8MN and WIZARD baseboard";
+	compatible = "fsl,imx8mn-edm-g", "fsl,imx8mn";
+
+	leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+
+		led {
+			label = "gpio-led";
+			gpios = <&pca9555_a23 1 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "heartbeat";
+		};
+	};
+
+	regulators {
+		reg_usdhc2_vmmc: regulator-usdhc2 {
+			compatible = "regulator-fixed";
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_reg_usdhc2_vmmc>;
+			regulator-name = "VSD_3V3";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio2 19 GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+			startup-delay-us = <100>;
+			off-on-delay-us = <12000>;
+		};
+
+		reg_usb_otg_vbus: usb_otg_vbus {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_otg_vbus>;
+			compatible = "regulator-fixed";
+			regulator-name = "usb_otg_vbus";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio1 10 GPIO_ACTIVE_LOW>;
+			enable-active-low;
+		};
+
+		reg_lvds_pwr: regulator_lvdspwr {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_lvds0_pwr>;
+			compatible = "regulator-fixed";
+			regulator-name = "lvds0_vdden";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio1 7 GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+		};
+		reg_lvds_backlight_pwr: regulator_lvdsblpwr {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_lvds0_backlight_pwr>;
+			compatible = "regulator-fixed";
+			regulator-name = "lvds0_bl_en";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio1 12 GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+			regulator-always-on;
+			status = "okay";
+		};
+	};
+
+	lvds_backlight: lvds_backlight {
+		compatible = "pwm-backlight";
+		pwms = <&pwm2 0 50000>;
+		brightness-levels = <0 36 72 108 144 180 216 255>;
+		default-brightness-level = <6>;
+		status = "okay";
+	};
+
+	sound_wm8960: sound-wm8960 {
+		compatible = "fsl,imx-audio-wm8960";
+		model = "wm8960-audio";
+		cpu-dai = <&sai2>;
+		codec-master;
+		audio-codec = <&codec_wm8960>;
+		audio-routing =
+			"Headphone Jack", "HP_L",
+			"Headphone Jack", "HP_R",
+			"Ext Spk", "SPK_LP",
+			"Ext Spk", "SPK_LN",
+			"Ext Spk", "SPK_RP",
+			"Ext Spk", "SPK_RN",
+			"LINPUT1", "Main MIC",
+			"RINPUT1", "Main MIC",
+			"Main MIC", "MICB";
+		/* JD2: hp detect high for headphone*/
+		hp-det = <2 0>;
+	};
+
+	clocks {
+		codec_osc: aud_mclk {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <24000000>;
+			clock-output-names = "wm8960-mclk";
+		};
+	};
+};
+
+&iomuxc {
+	imx8mn-edm-g {
+		pinctrl_nfc: nfcgrp {
+			fsl,pins = <
+				MX8MN_IOMUXC_SAI3_TXD_GPIO5_IO1     0x19 /* IRQ */
+			>;
+		};
+
+		pinctrl_csi_rst: csi1_rst_grp {
+			fsl,pins = <
+				MX8MN_IOMUXC_GPIO1_IO05_GPIO1_IO5       0x19
+				MX8MN_IOMUXC_GPIO1_IO14_CCMSRCGPCMIX_CLKO1  0x59
+			>;
+		};
+
+		pinctrl_touch_irq: touch_irqgrp {
+			fsl,pins = <
+				MX8MN_IOMUXC_GPIO1_IO13_GPIO1_IO13		0x41 /* Touch INT */
+			>;
+		};
+
+		pinctrl_touch_reset: touch_rstgrp {
+			fsl,pins = <
+				MX8MN_IOMUXC_SAI5_MCLK_GPIO3_IO25		0x41 /* TOUCH_nRST, LVDS1_VDDEN */
+			>;
+		};
+	};
+};
+
+&usdhc2 {
+	pinctrl-names = "default", "state_100mhz", "state_200mhz";
+	pinctrl-0 = <&pinctrl_usdhc2>, <&pinctrl_usdhc2_gpio>;
+	pinctrl-1 = <&pinctrl_usdhc2_100mhz>, <&pinctrl_usdhc2_gpio>;
+	pinctrl-2 = <&pinctrl_usdhc2_200mhz>, <&pinctrl_usdhc2_gpio>;
+	cd-gpios = <&gpio2 12 GPIO_ACTIVE_LOW>;
+	bus-width = <4>;
+	vmmc-supply = <&reg_usdhc2_vmmc>;
+	status = "okay";
+};
+
+&snvs_pwrkey {
+	linux,keycode = <KEY_SUSPEND>;
+	status = "okay";
+};
+
+&snvs_rtc {
+	status = "okay";
+};
+
+&i2c1 {
+	eeprom_baseboard: eeprom@51 {
+		compatible = "atmel,24c02";
+		reg = <0x51>;
+		pagesize = <16>;
+		status = "okay";
+	};
+
+	dsi_lvds_bridge: sn65dsi84@2d {
+		compatible = "ti,sn65dsi84";
+		#gpio-cells = <2>;
+		pinctrl-0 = <&pinctrl_mipi_dsi_en>;
+		enable-gpios = <&gpio3 9 GPIO_ACTIVE_HIGH>;
+		reg = <0x2d>;
+	};
+};
+
+&i2c2 {
+	codec_wm8960: wm8960@1a {
+		compatible = "wlf,wm8960";
+		reg = <0x1a>;
+		#sound-dai-cells = <0>;
+		//clocks = <&clk IMX8MN_CLK_SAI2>; /* Clock from internal */
+		clocks = <&codec_osc>;  /* Clock is from external osc on baseboard */
+		clock-names = "mclk";
+		wlf,shared-lrclk;
+		wlf,fixed-mclk;
+		status = "okay";
+	};
+
+	typec_hd3ss3220: hd3ss3220@67 {
+		compatible = "ti,tusb320", "ti,hd3ss3220";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_hd3ss3220_irq>;
+		reg = <0x67>;
+		vbus-supply = <&reg_usb_otg_vbus>;
+		tusb320,int-gpio = <&gpio2 10 GPIO_ACTIVE_LOW>;
+		tusb320,select-mode = <0>;
+		tusb320,dfp-power = <0>;
+	};
+
+	pca9555_a21: pca9555@21 {
+		compatible = "nxp,pca9555";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pca9555_a21_irq>;
+		reg = <0x21>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+		interrupt-parent = <&gpio1>;
+		interrupts = <15 IRQ_TYPE_LEVEL_LOW>;
+		status = "okay";
+		gpio-line-names = "EXPOSURE_TRIG_IN1", "FLASH_OUT1", "INFO_TRIG_IN1", "CAM_SHUTTER1",
+							"XVS1", "PWR1_TIME0", "PWR1_TIME1", "PWR1_TIME2",
+							"EXPOSURE_TRIG_IN2", "FLASH_OUT2", "INFO_TRIG_IN2", "CAM_SHUTTER2",
+							"XVS2", "PWR2_TIME0", "PWR2_TIME1", "PWR2_TIME2";
+	};
+
+	pca9555_a23: pca9555@23 {
+		compatible = "nxp,pca9555";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pca9555_a23_irq>;
+		reg = <0x23>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+		interrupt-parent = <&gpio4>;
+		interrupts = <28 IRQ_TYPE_LEVEL_LOW>;
+		status = "okay";
+		gpio-line-names = "M2_DISABLE_N", "LED_EN", "", "",
+							"", "", "", "USB_OTG_OC",
+							"EXT_GPIO8", "EXT_GPIO9", "", "",
+							"", "CSI1_PDB", "CSI2_PDB", "PD_FAULT";
+	};
+
+	tevi_ov5640_0: tevi_ov5640_mipi@3c {
+		reg = <0x3c>;
+		status = "disabled";
+	};
+};
+
+&i2c3 {
+	sensor_5v0:ina219_5v0@44 {/* Power monitor for 5V SOM input supply */
+		compatible = "ti,ina219";
+		reg = <0x44>;
+		shunt-resistor = <200000>; /* .2 Ohm resistor = 200000 uOhms*/
+	};
+};
+
+&i2c4 {
+	status = "okay";
+
+	rtc_ds1337: ds1337@68 {
+		compatible = "dallas,ds1337";
+		reg = <0x68>;
+	};
+
+	pn547: pn547@2a {
+		compatible = "nxp,pn547";
+		reg = <0x2a>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_nfc>;
+		clock-frequency = <100000>;
+		interrupt-gpios = <&gpio5 1 0>;
+		status = "okay";
+	};
+};
+
+&ecspi3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_ecspi3 &pinctrl_ecspi3_cs>;
+	num-cs = <1>;
+	cs-gpios = <&gpio5 25 GPIO_ACTIVE_LOW>;
+	status = "okay";
+
+	spidev1: spi@0 {
+		reg = <0>;
+		compatible = "rohm,dh2228fv";
+		spi-max-frequency = <500000>;
+	};
+};
+
+&pwm2 { /* LVDS0_BL_PWM */
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_lvds0_backlight_pwm>;
+	status = "okay";
+};
+
+&usbotg1 {
+	dr_mode = "otg";
+	status = "okay";
+};
+
+&sai2 { /* AUD_A */
+	#sound-dai-cells = <0>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_sai2>;
+	assigned-clocks = <&clk IMX8MN_AUDIO_PLL1>, <&clk IMX8MN_AUDIO_PLL2>, <&clk IMX8MN_CLK_SAI2>;
+	assigned-clock-parents = <0>, <0>, <&clk IMX8MN_AUDIO_PLL1_OUT>;
+	assigned-clock-rates = <786432000>, <722534400>, <12288000>;
+	status = "okay";
+};
+
+&mipi_csi_1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "disabled";
+};
+
+&cameradev {
+	status = "okay";
+};
+
+&isi_0 {
+	status = "okay";
+
+	cap_device {
+		status = "okay";
+	};
+};
+
