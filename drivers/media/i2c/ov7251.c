@@ -91,7 +91,8 @@ struct ov7251 {
 	struct mutex lock; /* lock to protect power state, ctrls and mode */
 	bool power_on;
 
-	struct gpio_desc *enable_gpio;
+	struct gpio_desc *power_gpio;
+	struct gpio_desc *reset_gpio;
 };
 
 static inline struct ov7251 *to_ov7251(struct v4l2_subdev *sd)
@@ -122,10 +123,10 @@ static const struct reg_value ov7251_setting_vga_30fps[] = {
 	{ 0x309a, 0x05 }, /* pll2 sys divider */
 	{ 0x309b, 0x04 }, /* pll2 adc divider */
 	{ 0x309d, 0x00 }, /* pll2 divider */
-	{ 0x30b0, 0x0a }, /* pll1 pix divider */
+	{ 0x30b0, 0x08 }, /* pll1 pix divider */
 	{ 0x30b1, 0x01 }, /* pll1 divider */
-	{ 0x30b3, 0x64 }, /* pll1 multiplier */
-	{ 0x30b4, 0x03 }, /* pll1 pre divider */
+	{ 0x30b3, 0x32 }, /* pll1 multiplier */
+	{ 0x30b4, 0x04 }, /* pll1 pre divider */
 	{ 0x30b5, 0x05 }, /* pll1 mipi divider */
 	{ 0x3106, 0xda },
 	{ 0x3503, 0x07 },
@@ -140,7 +141,7 @@ static const struct reg_value ov7251_setting_vga_30fps[] = {
 	{ 0x3631, 0x35 },
 	{ 0x3634, 0x60 },
 	{ 0x3636, 0x00 },
-	{ 0x3662, 0x01 },
+	{ 0x3662, 0x03 }, //RAW8
 	{ 0x3663, 0x70 },
 	{ 0x3664, 0x50 },
 	{ 0x3666, 0x0a },
@@ -260,10 +261,10 @@ static const struct reg_value ov7251_setting_vga_60fps[] = {
 	{ 0x309a, 0x05 }, /* pll2 sys divider */
 	{ 0x309b, 0x04 }, /* pll2 adc divider */
 	{ 0x309d, 0x00 }, /* pll2 divider */
-	{ 0x30b0, 0x0a }, /* pll1 pix divider */
+	{ 0x30b0, 0x08 }, /* pll1 pix divider */
 	{ 0x30b1, 0x01 }, /* pll1 divider */
-	{ 0x30b3, 0x64 }, /* pll1 multiplier */
-	{ 0x30b4, 0x03 }, /* pll1 pre divider */
+	{ 0x30b3, 0x32 }, /* pll1 multiplier */
+	{ 0x30b4, 0x04 }, /* pll1 pre divider */
 	{ 0x30b5, 0x05 }, /* pll1 mipi divider */
 	{ 0x3106, 0xda },
 	{ 0x3503, 0x07 },
@@ -278,7 +279,7 @@ static const struct reg_value ov7251_setting_vga_60fps[] = {
 	{ 0x3631, 0x35 },
 	{ 0x3634, 0x60 },
 	{ 0x3636, 0x00 },
-	{ 0x3662, 0x01 },
+	{ 0x3662, 0x03 }, //RAW8
 	{ 0x3663, 0x70 },
 	{ 0x3664, 0x50 },
 	{ 0x3666, 0x0a },
@@ -398,10 +399,10 @@ static const struct reg_value ov7251_setting_vga_90fps[] = {
 	{ 0x309a, 0x05 }, /* pll2 sys divider */
 	{ 0x309b, 0x04 }, /* pll2 adc divider */
 	{ 0x309d, 0x00 }, /* pll2 divider */
-	{ 0x30b0, 0x0a }, /* pll1 pix divider */
+	{ 0x30b0, 0x08 }, /* pll1 pix divider */
 	{ 0x30b1, 0x01 }, /* pll1 divider */
-	{ 0x30b3, 0x64 }, /* pll1 multiplier */
-	{ 0x30b4, 0x03 }, /* pll1 pre divider */
+	{ 0x30b3, 0x32 }, /* pll1 multiplier */
+	{ 0x30b4, 0x04 }, /* pll1 pre divider */
 	{ 0x30b5, 0x05 }, /* pll1 mipi divider */
 	{ 0x3106, 0xda },
 	{ 0x3503, 0x07 },
@@ -416,7 +417,7 @@ static const struct reg_value ov7251_setting_vga_90fps[] = {
 	{ 0x3631, 0x35 },
 	{ 0x3634, 0x60 },
 	{ 0x3636, 0x00 },
-	{ 0x3662, 0x01 },
+	{ 0x3662, 0x03 }, //RAW8
 	{ 0x3663, 0x70 },
 	{ 0x3664, 0x50 },
 	{ 0x3666, 0x0a },
@@ -518,11 +519,164 @@ static const struct reg_value ov7251_setting_vga_90fps[] = {
 	{ 0x5001, 0x80 },
 };
 
+static const struct reg_value ov7251_setting_vga_100fps[] = {
+	{ 0x3005, 0x00 },
+	{ 0x3012, 0xc0 },
+	{ 0x3013, 0xd2 },
+	{ 0x3014, 0x04 },
+	{ 0x3016, 0x10 },
+	{ 0x3017, 0x00 },
+	{ 0x3018, 0x00 },
+	{ 0x301a, 0x00 },
+	{ 0x301b, 0x00 },
+	{ 0x301c, 0x00 },
+	{ 0x3023, 0x05 },
+	{ 0x3037, 0xf0 },
+	{ 0x3098, 0x04 }, /* pll2 pre divider */
+	{ 0x3099, 0x28 }, /* pll2 multiplier */
+	{ 0x309a, 0x05 }, /* pll2 sys divider */
+	{ 0x309b, 0x04 }, /* pll2 adc divider */
+	{ 0x309d, 0x00 }, /* pll2 divider */
+	{ 0x30b0, 0x08 }, /* pll1 pix divider */
+	{ 0x30b1, 0x01 }, /* pll1 divider */
+	{ 0x30b3, 0x32 }, /* pll1 multiplier */
+	{ 0x30b4, 0x04 }, /* pll1 pre divider */
+	{ 0x30b5, 0x05 }, /* pll1 mipi divider */
+	{ 0x3106, 0xda },
+	{ 0x3503, 0x07 },
+	{ 0x3509, 0x10 },
+	{ 0x3600, 0x1c },
+	{ 0x3602, 0x62 },
+	{ 0x3620, 0xb7 },
+	{ 0x3622, 0x04 },
+	{ 0x3626, 0x21 },
+	{ 0x3627, 0x30 },
+	{ 0x3630, 0x44 },
+	{ 0x3631, 0x35 },
+	{ 0x3634, 0x60 },
+	{ 0x3636, 0x00 },
+	{ 0x3662, 0x03 }, //RAW8
+	{ 0x3663, 0x70 },
+	{ 0x3664, 0x50 },
+	{ 0x3666, 0x0a },
+	{ 0x3669, 0x1a },
+	{ 0x366a, 0x00 },
+	{ 0x366b, 0x50 },
+	{ 0x3673, 0x01 },
+	{ 0x3674, 0xff },
+	{ 0x3675, 0x03 },
+	{ 0x3705, 0xc1 },
+	{ 0x3709, 0x40 },
+	{ 0x373c, 0x08 },
+	{ 0x3742, 0x00 },
+	{ 0x3757, 0xb3 },
+	{ 0x3788, 0x00 },
+	{ 0x37a8, 0x01 },
+	{ 0x37a9, 0xc0 },
+	{ 0x3800, 0x00 },
+	{ 0x3801, 0x04 },
+	{ 0x3802, 0x00 },
+	{ 0x3803, 0x04 },
+	{ 0x3804, 0x02 },
+	{ 0x3805, 0x8b },
+	{ 0x3806, 0x01 },
+	{ 0x3807, 0xeb },
+	{ 0x3808, 0x02 }, /* width high */
+	{ 0x3809, 0x80 }, /* width low */
+	{ 0x380a, 0x01 }, /* height high */
+	{ 0x380b, 0xe0 }, /* height low */
+	{ 0x380c, 0x03 }, /* total horiz timing high */
+	{ 0x380d, 0xa0 }, /* total horiz timing low */
+	{ 0x380e, 0x02 }, /* total vertical timing high */
+	{ 0x380f, 0x1c }, /* total vertical timing low */
+	{ 0x3810, 0x00 },
+	{ 0x3811, 0x04 },
+	{ 0x3812, 0x00 },
+	{ 0x3813, 0x05 },
+	{ 0x3814, 0x11 },
+	{ 0x3815, 0x11 },
+	{ 0x3820, 0x40 },
+	{ 0x3821, 0x00 },
+	{ 0x382f, 0x0e },
+	{ 0x3832, 0x00 },
+	{ 0x3833, 0x05 },
+	{ 0x3834, 0x00 },
+	{ 0x3835, 0x0c },
+	{ 0x3837, 0x00 },
+	{ 0x3b80, 0x00 },
+	{ 0x3b81, 0xa5 },
+	{ 0x3b82, 0x10 },
+	{ 0x3b83, 0x00 },
+	{ 0x3b84, 0x08 },
+	{ 0x3b85, 0x00 },
+	{ 0x3b86, 0x01 },
+	{ 0x3b87, 0x00 },
+	{ 0x3b88, 0x00 },
+	{ 0x3b89, 0x00 },
+	{ 0x3b8a, 0x00 },
+	{ 0x3b8b, 0x05 },
+	{ 0x3b8c, 0x00 },
+	{ 0x3b8d, 0x00 },
+	{ 0x3b8e, 0x00 },
+	{ 0x3b8f, 0x1a },
+	{ 0x3b94, 0x05 },
+	{ 0x3b95, 0xf2 },
+	{ 0x3b96, 0x40 },
+	{ 0x3c00, 0x89 },
+	{ 0x3c01, 0x63 },
+	{ 0x3c02, 0x01 },
+	{ 0x3c03, 0x00 },
+	{ 0x3c04, 0x00 },
+	{ 0x3c05, 0x03 },
+	{ 0x3c06, 0x00 },
+	{ 0x3c07, 0x06 },
+	{ 0x3c0c, 0x01 },
+	{ 0x3c0d, 0xd0 },
+	{ 0x3c0e, 0x02 },
+	{ 0x3c0f, 0x0a },
+	{ 0x4001, 0x42 },
+	{ 0x4004, 0x04 },
+	{ 0x4005, 0x00 },
+	{ 0x404e, 0x01 },
+	{ 0x4300, 0xff },
+	{ 0x4301, 0x00 },
+	{ 0x4315, 0x00 },
+	{ 0x4501, 0x48 },
+	{ 0x4600, 0x00 },
+	{ 0x4601, 0x4e },
+	{ 0x4801, 0x0f },
+	{ 0x4806, 0x0f },
+	{ 0x4819, 0xaa },
+	{ 0x4823, 0x3e },
+	{ 0x4837, 0x19 },
+	{ 0x4a0d, 0x00 },
+	{ 0x4a47, 0x7f },
+	{ 0x4a49, 0xf0 },
+	{ 0x4a4b, 0x30 },
+	{ 0x5000, 0x85 },
+	{ 0x5001, 0x80 },
+};
+
+
 static const s64 link_freq[] = {
 	240000000,
 };
 
 static const struct ov7251_mode_info ov7251_mode_info_data[] = {
+	{
+		.width = 640,
+		.height = 480,
+		.data = ov7251_setting_vga_100fps,
+		.data_size = ARRAY_SIZE(ov7251_setting_vga_100fps),
+		.pixel_clock = 48000000,
+		.link_freq = 0, /* an index in link_freq[] */
+		.exposure_max = 552,
+		.exposure_def = 504,
+		.timeperframe = {
+			.numerator = 1,
+			.denominator = 100
+		}
+	},
 	{
 		.width = 640,
 		.height = 480,
@@ -748,7 +902,9 @@ static int ov7251_set_power_on(struct ov7251 *ov7251)
 		return ret;
 	}
 
-	gpiod_set_value_cansleep(ov7251->enable_gpio, 1);
+	gpiod_set_value_cansleep(ov7251->power_gpio, 1);
+	msleep(1);
+	gpiod_set_value_cansleep(ov7251->reset_gpio, 1);
 
 	/* wait at least 65536 external clock cycles */
 	wait_us = DIV_ROUND_UP(65536 * 1000,
@@ -761,7 +917,9 @@ static int ov7251_set_power_on(struct ov7251 *ov7251)
 static void ov7251_set_power_off(struct ov7251 *ov7251)
 {
 	clk_disable_unprepare(ov7251->xclk);
-	gpiod_set_value_cansleep(ov7251->enable_gpio, 0);
+	gpiod_set_value_cansleep(ov7251->reset_gpio, 0);
+	msleep(1);
+	gpiod_set_value_cansleep(ov7251->power_gpio, 0);
 	ov7251_regulators_disable(ov7251);
 }
 
@@ -904,7 +1062,7 @@ static int ov7251_enum_mbus_code(struct v4l2_subdev *sd,
 	if (code->index > 0)
 		return -EINVAL;
 
-	code->code = MEDIA_BUS_FMT_Y10_1X10;
+	code->code = MEDIA_BUS_FMT_SBGGR8_1X8;
 
 	return 0;
 }
@@ -913,7 +1071,7 @@ static int ov7251_enum_frame_size(struct v4l2_subdev *subdev,
 				  struct v4l2_subdev_state *sd_state,
 				  struct v4l2_subdev_frame_size_enum *fse)
 {
-	if (fse->code != MEDIA_BUS_FMT_Y10_1X10)
+	if (fse->code != MEDIA_BUS_FMT_SBGGR8_1X8)
 		return -EINVAL;
 
 	if (fse->index >= ARRAY_SIZE(ov7251_mode_info_data))
@@ -1084,7 +1242,7 @@ static int ov7251_set_format(struct v4l2_subdev *sd,
 					   format->which);
 	__format->width = __crop->width;
 	__format->height = __crop->height;
-	__format->code = MEDIA_BUS_FMT_Y10_1X10;
+	__format->code = MEDIA_BUS_FMT_SBGGR8_1X8;
 	__format->field = V4L2_FIELD_NONE;
 	__format->colorspace = V4L2_COLORSPACE_SRGB;
 	__format->ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(__format->colorspace);
@@ -1262,6 +1420,8 @@ static int ov7251_probe(struct i2c_client *client)
 	u8 chip_id_high, chip_id_low, chip_rev;
 	int ret;
 
+	dev_info(dev, "start to probe ov7251...");
+
 	ov7251 = devm_kzalloc(dev, sizeof(struct ov7251), GFP_KERNEL);
 	if (!ov7251)
 		return -ENOMEM;
@@ -1333,10 +1493,16 @@ static int ov7251_probe(struct i2c_client *client)
 		return PTR_ERR(ov7251->analog_regulator);
 	}
 
-	ov7251->enable_gpio = devm_gpiod_get(dev, "enable", GPIOD_OUT_HIGH);
-	if (IS_ERR(ov7251->enable_gpio)) {
-		dev_err(dev, "cannot get enable gpio\n");
-		return PTR_ERR(ov7251->enable_gpio);
+	ov7251->power_gpio = devm_gpiod_get(dev, "power", GPIOD_OUT_HIGH);
+	ov7251->reset_gpio = devm_gpiod_get(dev, "reset", GPIOD_OUT_HIGH);
+	if (IS_ERR(ov7251->power_gpio)) {
+		dev_err(dev, "cannot get power gpio. dts file is correct?\n");
+		return -EINVAL;
+	}
+
+	if (IS_ERR(ov7251->reset_gpio)) {
+		dev_err(dev, "cannot get reset gpio. dts file is correct?\n");
+		return -EINVAL;
 	}
 
 	mutex_init(&ov7251->lock);
@@ -1457,6 +1623,8 @@ static int ov7251_probe(struct i2c_client *client)
 	}
 
 	ov7251_entity_init_cfg(&ov7251->sd, NULL);
+
+	dev_info(dev, "probe ov7251 driver finish.");
 
 	return 0;
 
