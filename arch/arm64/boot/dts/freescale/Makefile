@@ -283,6 +283,7 @@ dtb-$(CONFIG_ARCH_MXC) += imx8mp-dhcom-pdk2.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-dhcom-pdk3.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-dhcom-picoitx.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wb.dtb imx8mp-edm-g-wb-lvds-vl10112880.dtb imx8mp-edm-g-wb-lvds-vl215192108.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wizard.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-tek.dtb imx8mp-tek-rpmsg.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-evk.dtb imx8mp-evk-rm67191.dtb imx8mp-evk-it6263-lvds-dual-channel.dtb \
 			  imx8mp-evk-rpmsg.dtb imx8mp-evk-ecspi-slave.dtb \
