@@ -1,0 +1,75 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2020 TechNexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *         Ray Chang <ray.chang@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/clock/imx8mm-clock.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	fragment@0 {
+		target = <&csi1_bridge>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@1 {
+		target = <&mipi_csi_1>;
+		__overlay__ {
+			status = "okay";
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port {
+				mipi1_sensor_ep: endpoint@1 {
+					remote-endpoint = <&ov5640_mipi1_ep>;
+					data-lanes = <2>;
+					csis-hs-settle = <13>;
+					csis-clk-settle = <2>;
+					csis-wclk;
+				};
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&i2c2>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			ov5640_mipi: ov5640_mipi@3c {
+				compatible = "ovti,ov5640_mipi";
+				reg = <0x3c>;
+				status = "okay";
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_csi_rst>;
+				clocks = <&clk IMX8MM_CLK_CLKO1>;
+				clock-names = "csi_mclk";
+				assigned-clocks = <&clk IMX8MM_CLK_CLKO1>;
+				assigned-clock-parents = <&clk IMX8MM_CLK_24M>;
+				assigned-clock-rates = <24000000>;
+				csi_id = <0>;
+				pwn-gpios = <&pca9555_a21 2 GPIO_ACTIVE_HIGH>;
+				rst-gpios = <&gpio1 5 GPIO_ACTIVE_HIGH>;
+				mclk = <24000000>;
+				mclk_source = <0>;
+				port {
+					ov5640_mipi1_ep: endpoint {
+						remote-endpoint = <&mipi1_sensor_ep>;
+					};
+				};
+			};
+		};
+	};
+};
