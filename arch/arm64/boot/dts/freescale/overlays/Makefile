@@ -32,6 +32,8 @@ dtbo-$(CONFIG_ARCH_MXC) += imx8mq-pico-wizard-ili9881c.dtbo imx8mq-pico-wizard-g
 			   imx8mq-pico-wizard-mipi2hdmi-adv7535.dtbo imx8mq-pico-wizard-voicehat.dtbo imx8mq-pico-wizard-tevi-ov5640.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mn-edm-g-wb-sn65dsi84-vl10112880.dtbo imx8mn-edm-g-wb-sn65dsi84-vl15613676.dtbo imx8mn-edm-g-wb-sn65dsi84-vl215192108.dtbo \
 			   imx8mn-edm-g-wb-tevi-ov5640.dtbo
+dtbo-$(CONFIG_ARCH_MXC) += imx8mn-edm-g-wizard-sn65dsi84-vl10112880.dtbo imx8mn-edm-g-wizard-sn65dsi84-vl15613676.dtbo imx8mn-edm-g-wizard-sn65dsi84-vl215192108.dtbo \
+			   imx8mn-edm-g-wizard-tevi-ov5640.dtbo
 
 targets += dtbs dtbs_install
 targets += $(dtbo-y)
