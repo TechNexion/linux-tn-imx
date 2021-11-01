@@ -279,8 +279,7 @@
 	usb_typec: usb-typec@67 {
 		compatible = "ti,hd3ss3220";
 		reg = <0x67>;
-		interrupt-parent = <&gpio4>;
-		interrupts = <8 IRQ_TYPE_LEVEL_LOW>;
+		interrupts-extended = <&gpio4 8 IRQ_TYPE_LEVEL_LOW>;
 		pinctrl-0 = <&pinctrl_hd3ss3220_irq>;
 		pinctrl-names = "default";
 
@@ -364,13 +363,11 @@
 };
 
 &usb_dwc3_0 {
-	/* dual role is implemented but not a full featured OTG */
-	adp-disable;
 	dr_mode = "otg";
-	hnp-disable;
-	role-switch-default-mode = "peripheral";
-	srp-disable;
+	pinctrl-names = "default";
 	usb-role-switch;
+	vbus-supply = <&reg_usb_otg_vbus>;
+	status = "okay";
 
 	ports {
 		#address-cells = <1>;
