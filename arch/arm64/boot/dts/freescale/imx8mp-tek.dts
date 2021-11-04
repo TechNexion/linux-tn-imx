@@ -125,26 +125,26 @@
 		pinctrl-0 = <&pinctrl_gpio_leds>;
 
 		led_1 {
-			label = "SYSTEM-LED";
+			label = "ALERT1-LED";
 			gpios = <&gpio3 21 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+		};
+
+		led_2 {
+			label = "SYSTEM1-LED";
+			gpios = <&pca9555_a26 0 GPIO_ACTIVE_HIGH>;
 			default-state = "on";
 			linux,default-trigger = "heartbeat";
 		};
 
-		led_2 {
-			label = "WWAN-LED";
-			gpios = <&pca9555_a26 0 GPIO_ACTIVE_HIGH>;
-			default-state = "on";
-		};
-
 		led_3 {
-			label = "NETWORK-LED";
+			label = "ALERT2-LED";
 			gpios = <&pca9555_a26 1 GPIO_ACTIVE_HIGH>;
 			default-state = "on";
 		};
 
 		led_4 {
-			label = "SYSTEM_LED";
+			label = "SYSTEM2_LED";
 			gpios = <&pca9555_a26 2 GPIO_ACTIVE_HIGH>;
 			default-state = "on";
 		};
