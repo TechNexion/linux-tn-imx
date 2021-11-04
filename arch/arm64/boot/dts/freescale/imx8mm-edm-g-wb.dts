@@ -259,14 +259,30 @@
 	};
 
 	typec_hd3ss3220: hd3ss3220@67 {
-		compatible = "ti,tusb320", "ti,hd3ss3220";
+		compatible = "ti,hd3ss3220";
+		interrupts-extended = <&gpio2 10 IRQ_TYPE_LEVEL_LOW>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_hd3ss3220_irq>;
 		reg = <0x67>;
-		vbus-supply = <&reg_usb_otg_vbus>;
-		tusb320,int-gpio = <&gpio2 10 GPIO_ACTIVE_LOW>;
-		tusb320,select-mode = <0>;
-		tusb320,dfp-power = <0>;
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				hd3ss3220_in_ep: endpoint {
+					remote-endpoint = <&otg1_out_ep>;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+				hd3ss3220_out_ep: endpoint {
+					remote-endpoint = <&otg1_in_ep>;
+				};
+			};
+		};
 	};
 
 	pca9555_a21: pca9555@21 {
@@ -355,8 +371,30 @@
 
 &usbotg1 {
 	dr_mode = "otg";
-	extcon = <0>, <&typec_hd3ss3220>;
+	over-current-active-low;
+	pinctrl-names = "default";
+	power-active-high;
+	vbus-supply = <&reg_usb_otg_vbus>;
 	status = "okay";
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			otg1_out_ep: endpoint {
+				remote-endpoint = <&hd3ss3220_in_ep>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			otg1_in_ep: endpoint {
+				remote-endpoint = <&hd3ss3220_out_ep>;
+			};
+		};
+	};
 };
 
 &usbotg2 {
