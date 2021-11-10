@@ -29,9 +29,9 @@ struct resolution {
 };
 
 static struct resolution res_list[] = {
-	{.width = 2592, .height = 1944},
-	{.width = 1920, .height = 1080},
 	{.width = 1280, .height = 720},
+	{.width = 1920, .height = 1080},
+	{.width = 2592, .height = 1944},
 };
 
 static int sensor_standby(struct i2c_client *client, int enable);
@@ -197,6 +197,12 @@ static int ops_set_stream(struct v4l2_subdev *sub_dev, int enable)
 		return -EINVAL;
 
 	if (enable == 0) {
+		sensor_i2c_write_16b(instance->i2c_client, 0x1184, 1); //ATOMIC
+		//VIDEO_WIDTH
+		sensor_i2c_write_16b(instance->i2c_client, 0x4000, 1280);
+		//VIDEO_HEIGHT
+		sensor_i2c_write_16b(instance->i2c_client, 0x4002, 720);
+		sensor_i2c_write_16b(instance->i2c_client, 0x1184, 0xb); //ATOMIC
 		ret = sensor_standby(instance->i2c_client, 1);
 	} else {
 		ret = sensor_standby(instance->i2c_client, 0);
