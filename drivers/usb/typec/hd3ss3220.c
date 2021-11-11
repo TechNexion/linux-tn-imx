@@ -132,6 +132,9 @@ static void hd3ss3220_set_role(struct hd3ss3220 *hd3ss3220)
 	case USB_ROLE_DEVICE:
 		typec_set_data_role(hd3ss3220->port, TYPEC_DEVICE);
 		break;
+	case USB_ROLE_NONE:
+		typec_set_data_role(hd3ss3220->port, TYPEC_NONE);
+		break;
 	default:
 		break;
 	}
