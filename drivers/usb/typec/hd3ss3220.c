@@ -15,6 +15,7 @@
 #include <linux/usb/typec.h>
 #include <linux/delay.h>
 #include <linux/workqueue.h>
+#include <linux/regulator/consumer.h>
 
 #define HD3SS3220_REG_CN_STAT		0x08
 #define HD3SS3220_REG_CN_STAT_CTRL	0x09
@@ -47,6 +48,7 @@
 #define HD3SS3220_REG_GEN_CTRL_MODE_SELECT_DRP		(BIT(5) | BIT(4))
 
 struct hd3ss3220 {
+	struct regulator *vbus_reg;
 	struct device *dev;
 	struct regmap *regmap;
 	struct usb_role_switch	*role_sw;
@@ -164,12 +166,27 @@ static enum usb_role hd3ss3220_get_attached_state(struct hd3ss3220 *hd3ss3220)
 
 	switch (reg_val & HD3SS3220_REG_CN_STAT_CTRL_ATTACHED_STATE_MASK) {
 	case HD3SS3220_REG_CN_STAT_CTRL_AS_DFP:
+		if (hd3ss3220->vbus_reg) {
+			ret = regulator_enable(hd3ss3220->vbus_reg);
+			if (ret)
+				dev_err(hd3ss3220->dev, "regulator enable failed\n");
+		}
 		attached_state = USB_ROLE_HOST;
 		break;
 	case HD3SS3220_REG_CN_STAT_CTRL_AS_UFP:
+		if (hd3ss3220->vbus_reg && regulator_is_enabled(hd3ss3220->vbus_reg)) {
+			ret = regulator_disable(hd3ss3220->vbus_reg);
+			if (ret)
+				dev_err(hd3ss3220->dev, "regulator disable failed\n");
+		}
 		attached_state = USB_ROLE_DEVICE;
 		break;
-	default:
+	default:	//vbus default disable
+		if (hd3ss3220->vbus_reg && regulator_is_enabled(hd3ss3220->vbus_reg)) {
+			ret = regulator_disable(hd3ss3220->vbus_reg);
+			if (ret)
+				dev_err(hd3ss3220->dev, "regulator disable failed\n");
+		}
 		attached_state = USB_ROLE_NONE;
 		break;
 	}
@@ -323,6 +340,7 @@ static int hd3ss3220_probe(struct i2c_client *client)
 {
 	struct typec_capability typec_cap = { };
 	struct hd3ss3220 *hd3ss3220;
+	struct device *cdev = &client->dev;
 	struct fwnode_handle *connector, *ep;
 	int ret;
 	unsigned int data;
@@ -333,6 +351,20 @@ static int hd3ss3220_probe(struct i2c_client *client)
 		return -ENOMEM;
 
 	i2c_set_clientdata(client, hd3ss3220);
+
+	//set vbus attribute
+	if (cdev->of_node) {
+		struct device_node *dev_node = cdev->of_node;
+		if (of_property_read_bool(dev_node, "vbus-supply")) {
+			hd3ss3220->vbus_reg = devm_regulator_get(&client->dev, "vbus");
+			if (IS_ERR(hd3ss3220->vbus_reg))
+				dev_err(&client->dev, "vbus init failed\n");
+			else
+				dev_info(&client->dev, "vbus found.\n");
+		}
+		else
+			dev_info(&client->dev, "No vbus found.(Normal if USB2.0 or lower.)\n");
+	}
 
 	hd3ss3220->dev = &client->dev;
 	hd3ss3220->regmap = devm_regmap_init_i2c(client, &config);
