@@ -282,6 +282,7 @@
 		interrupts-extended = <&gpio4 8 IRQ_TYPE_LEVEL_LOW>;
 		pinctrl-0 = <&pinctrl_hd3ss3220_irq>;
 		pinctrl-names = "default";
+		vbus-supply = <&reg_usb_otg_vbus>;
 
 		ports {
 			#address-cells = <1>;
@@ -366,7 +367,6 @@
 	dr_mode = "otg";
 	pinctrl-names = "default";
 	usb-role-switch;
-	vbus-supply = <&reg_usb_otg_vbus>;
 	status = "okay";
 
 	ports {
