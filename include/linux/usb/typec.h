@@ -47,6 +47,7 @@ enum typec_plug_type {
 enum typec_data_role {
 	TYPEC_DEVICE,
 	TYPEC_HOST,
+	TYPEC_NONE,
 };
 
 enum typec_role {
