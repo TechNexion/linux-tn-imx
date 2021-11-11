@@ -79,6 +79,8 @@
 				standby-gpios = <&pca9555_a21 2 GPIO_ACTIVE_HIGH>;
 				nvmem = <&tevi_ar0234_otp_0>;
 				nvmem-names = "calib-data";
+				data-lanes = <4>;
+				continuous-clock = <0>;
 				status = "okay";
 
 				port {
@@ -114,6 +116,8 @@
 				standby-gpios = <&pca9555_a21 10 GPIO_ACTIVE_HIGH>;
 				nvmem = <&tevi_ar0234_otp_1>;
 				nvmem-names = "calib-data";
+				data-lanes = <4>;
+				continuous-clock = <0>;
 				status = "okay";
 
 				port {
