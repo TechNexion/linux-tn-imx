@@ -21,7 +21,7 @@
 		regulator-name = "usb_otg_vbus";
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
-		gpio = <&gpio3 1 GPIO_ACTIVE_LOW>;
+		gpio = <&gpio4 0 GPIO_ACTIVE_LOW>;
 		enable-active-low;
 	};
 
@@ -32,7 +32,7 @@
 		regulator-name = "backlight_pwr";
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
-		gpio = <&gpio4 28 GPIO_ACTIVE_HIGH>;
+		gpio = <&gpio4 14 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
 		regulator-always-on;
 	};
@@ -84,7 +84,7 @@
 	lvds_backlight: lvds_backlight {
 		compatible = "pwm-backlight";
 		//power-supply = <&reg_backlight_pwr>;
-		pwms = <&pwm1 0 50000>;
+		pwms = <&pwm2 0 50000>;
 		brightness-levels = <0 36 72 108 144 180 216 255>;
 		default-brightness-level = <6>;
 		status = "disabled";
@@ -92,7 +92,7 @@
 
 	mipi_backlight: mipi_backlight {
 		compatible = "pwm-backlight";
-		pwms = <&pwm4 0 50000>;
+		pwms = <&pwm1 0 50000>;
 		brightness-levels = <0 36 72 108 144 180 216 255>;
 		default-brightness-level = <6>;
 		status = "disabled";
@@ -134,11 +134,10 @@
 	leds {
 		compatible = "gpio-leds";
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_gpio_led>;
 
 		led {
 			label = "gpio-led";
-			gpios = <&gpio1 12 GPIO_ACTIVE_HIGH>;
+			gpios = <&pca9554 0 GPIO_ACTIVE_HIGH>;
 		};
 	};
 
@@ -193,7 +192,65 @@
 	status = "disabled";
 };
 
-&i2c2 {
+&i2c2 {	/* I2C_B on AXON */
+	status = "okay";
+
+	pca9555_a21: pca9555@21 {
+		compatible = "nxp,pca9555";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pca9555_a21_irq>;
+		reg = <0x21>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+		interrupt-parent = <&gpio4>;
+		interrupts = <11 IRQ_TYPE_LEVEL_LOW>;
+		status = "okay";
+		gpio-line-names = "EXPOSURE_TRIG_IN1", "FLASH_OUT1", "INFO_TRIG_IN1", "CAM_SHUTTER1", "XVS1", "PWR1_TIME0", "PWR1_TIME1", "PWR1_TIME2",
+							"EXPOSURE_TRIG_IN2", "FLASH_OUT2", "INFO_TRIG_IN2", "CAM_SHUTTER2", "XVS2", "PWR2_TIME0", "PWR2_TIME1", "PWR2_TIME2";
+	};
+
+	ov5640_otp_0: eeprom@54 {
+		compatible = "atmel,24c64";
+		reg = <0x54>;
+		//read-only;
+	};
+
+	ov5640_0: ov5640_mipi@3c {
+		compatible = "ovti,ov5640";
+		reg = <0x3c>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_csi0_rst>;
+		clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO1>;
+		clock-names = "xclk";
+		assigned-clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO1>;
+		assigned-clock-parents = <&clk IMX8MP_CLK_24M>;
+		assigned-clock-rates = <24000000>;
+		csi_id = <0>;
+		powerdown-gpios = <&pca9555_a21 2 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&gpio1 8 GPIO_ACTIVE_LOW>;
+		mclk = <24000000>;
+		mclk_source = <0>;
+		mipi_csi;
+		nvmem = <&ov5640_otp_0>;
+		nvmem-names = "calib-data";
+		status = "okay";
+		port {
+			ov5640_mipi_0_ep: endpoint {
+				remote-endpoint = <&mipi_csi0_ep>;
+				data-lanes = <1 2>;
+				clock-lanes = <0>;
+			};
+		};
+	};
+};
+
+&i2c3 { /* I2C_D on AXON */
+	status = "okay";
+};
+
+&i2c4 { /* I2C_A on AXON */
 	status = "okay";
 
 	codec: wm8960@1a {
@@ -212,7 +269,7 @@
 		pinctrl-0 = <&pinctrl_tusb320_irq>;
 		reg = <0x47>;
 		vbus-supply = <&reg_usb_otg_vbus>;
-		tusb320,int-gpio = <&gpio5 8 GPIO_ACTIVE_LOW>;
+		tusb320,int-gpio = <&gpio5 12 GPIO_ACTIVE_LOW>;
 		tusb320,select-mode = <0>;
 		tusb320,dfp-power = <0>;
 	};
@@ -224,7 +281,7 @@
 		reg = <0x68>;
 		wakeup-source;
 		interrupt-parent = <&gpio5>;
-		interrupts = <9 0>;
+		interrupts = <13 0>;
 	};
 
 	pca9554: pca9554@23 {
@@ -237,66 +294,42 @@
 	};
 };
 
-&i2c3 {
-	status = "okay";
+&i2c5 { /* I2C_C on AXON */
+	clock-frequency = <400000>;
 
-    ov5640_0: ov5640_mipi@3c {
-        compatible = "ovti,ov5640";
-        reg = <0x3c>;
-        pinctrl-names = "default";
-        pinctrl-0 = <&pinctrl_csi0_pwn>, <&pinctrl_csi0_rst>;
-        clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO1>;
-        clock-names = "xclk";
-        assigned-clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO1>;
-        assigned-clock-parents = <&clk IMX8MP_CLK_24M>;
-        assigned-clock-rates = <24000000>;
-        csi_id = <0>;
-        pwn-gpios = <&gpio4 19 GPIO_ACTIVE_HIGH>;
-        rst-gpios = <&gpio4 18 GPIO_ACTIVE_LOW>;
-        mclk = <24000000>;
-        mclk_source = <0>;
-        mipi_csi;
-        status = "okay";
+	ov5640_otp_1: eeprom@54 {
+		compatible = "atmel,24c64";
+		reg = <0x54>;
+		//read-only;
+	};
 
-        port {
-            ov5640_mipi_0_ep: endpoint {
-                remote-endpoint = <&mipi_csi0_ep>;
-                data-lanes = <1 2>;
-                clock-lanes = <0>;
-            };
-        };
-    };
-};
-
-&i2c4 {
-	status = "okay";
-
-    ov5640_1:ov5640_mipi@3c {
-        compatible = "ovti,ov5640";
-        reg = <0x3c>;
-        pinctrl-names = "default";
-        pinctrl-0 = <&pinctrl_csi1_pwn>, <&pinctrl_csi1_rst>;
-        clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO2>;
-        clock-names = "xclk";
-        assigned-clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO2>;
-        assigned-clock-parents = <&clk IMX8MP_CLK_24M>;
-        assigned-clock-rates = <24000000>;
-        csi_id = <0>;
-        pwn-gpios = <&gpio4 7 GPIO_ACTIVE_HIGH>;
-        rst-gpios = <&gpio4 6 GPIO_ACTIVE_LOW>;
-        mclk = <24000000>;
-        mclk_source = <0>;
-        mipi_csi;
-        status = "okay";
-
-        port {
-            ov5640_mipi_1_ep: endpoint {
-                remote-endpoint = <&mipi_csi1_ep>;
-                data-lanes = <1 2>;
-                clock-lanes = <0>;
-            };
-        };
-    };
+	ov5640_1: ov5640_mipi@3c {
+		compatible = "ovti,ov5640";
+		reg = <0x3c>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_csi1_rst>;
+		clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO2>;
+		clock-names = "xclk";
+		assigned-clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO2>;
+		assigned-clock-parents = <&clk IMX8MP_CLK_24M>;
+		assigned-clock-rates = <24000000>;
+		csi_id = <0>;
+		powerdown-gpios = <&pca9555_a21 10 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&gpio1 8 GPIO_ACTIVE_LOW>;
+		mclk = <24000000>;
+		mclk_source = <0>;
+		mipi_csi;
+		nvmem = <&ov5640_otp_1>;
+		nvmem-names = "calib-data";
+		status = "okay";
+		port {
+			ov5640_mipi_1_ep: endpoint {
+				remote-endpoint = <&mipi_csi1_ep>;
+				data-lanes = <1 2>;
+				clock-lanes = <0>;
+			};
+		};
+	};
 
 	pca9554_27: pca9554_27@27 {
 		compatible = "nxp,pca9554";
@@ -329,56 +362,56 @@
 
 	pinctrl_otg_vbus: otgvbusgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_NAND_CE0_B__GPIO3_IO01		0x19   /* GPIO_X1_P66, USB OTG VBUS Enable */
+			MX8MP_IOMUXC_SAI1_RXFS__GPIO4_IO00		0x19   /* GPIO_X1_P66, USB OTG VBUS Enable */
 		>;
 	};
 
 	pinctrl_tusb320_irq: tusb320_irqgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_ECSPI1_MISO__GPIO5_IO08	0x41    /* UART_B_CTS */
+			MX8MP_IOMUXC_ECSPI2_MISO__GPIO5_IO12	0x41    /* UART_B_CTS */
 		>;
 	};
 
 	pinctrl_backlight_pwr: backlight_pwrgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_SAI3_RXFS__GPIO4_IO28		0x19
+			MX8MP_IOMUXC_SAI1_TXD2__GPIO4_IO14		0x19	/* GPIO_X4_P7, LVDS_A_BLT_EN */
 		>;
 	};
 
 	pinctrl_ft5336_touch_irq: ft5336_irqgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_GPIO1_IO05__GPIO1_IO05		0x41   /* GPIO_X2_P20, Touch INT */
+			MX8MP_IOMUXC_SAI1_TXD3__GPIO4_IO15		0x41   /* GPIO_X2_P20, Touch INT */
 		>;
 	};
 
 	pinctrl_tfa98xx: tfa98xx_ctrlgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_ECSPI2_SCLK__GPIO5_IO10	0x19 /* RST */
-			MX8MP_IOMUXC_ECSPI2_MISO__GPIO5_IO12	0x19 /* INT */
+			MX8MP_IOMUXC_SAI1_TXFS__GPIO4_IO10	0x19 /* GPIO_X1_P80, INT */
+			MX8MP_IOMUXC_SAI2_TXFS__GPIO4_IO24	0x19 /* AUD_B_TXFS, RST */
 		>;
 	};
 
 	pinctrl_pca9955: pca9955_ctrlgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_GPIO1_IO08__GPIO1_IO08		0x16 /* RST */
+			MX8MP_IOMUXC_SAI1_TXD0__GPIO4_IO12		0x16 /* GPIO_X1_P78, RST */
+		>;
+	};
+
+	pinctrl_pca9555_a21_irq: pca9555_a21_irqgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_TXC__GPIO4_IO11		0x140 /* GPIO_X1_P70 */
 		>;
 	};
 
 	pinctrl_rtc_ds1337_irq: pinctrl_rtc_ds1337_irqgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_ECSPI1_SS0__GPIO5_IO09		0x19
-		>;
-	};
-
-	pinctrl_gpio_led: gpioledgrp {
-		fsl,pins = <
-			MX8MP_IOMUXC_GPIO1_IO12__GPIO1_IO12		0x19
+			MX8MP_IOMUXC_ECSPI2_SS0__GPIO5_IO13		0x19 /* UART_B_RTS, INT */
 		>;
 	};
 
 	pinctrl_gpio_key_user1: gpiokey_user1grp {
 		fsl,pins = <
-			MX8MP_IOMUXC_GPIO1_IO11__GPIO1_IO11	0x41
+			MX8MP_IOMUXC_SAI1_RXD5__GPIO4_IO07		0x41 /* GPIO_X1_P72 */
 		>;
 	};
 
