@@ -473,5 +473,6 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_usdhc3>;
 	cd-gpios = <&gpio3 9 GPIO_ACTIVE_LOW>;
+	no-1-8-v;
 	status = "okay";
 };
