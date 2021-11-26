@@ -30,6 +30,7 @@ static struct __reg8b_v __9096x_i2c_setting [] = {
 
 	{.reg = 0x32, .value = 0x01}, //CSI_PORT_SEL
 	{.reg = 0x33, .value = 0x20}, //CSI_CTL
+	{.reg = 0x1F, .value = 0x00}, //CSI_PLL_CTL
 
 	//Port config/setting
 	{.reg = 0x4C, .value = 0x01}, //FPD3_PORT_SEL,Port 0
