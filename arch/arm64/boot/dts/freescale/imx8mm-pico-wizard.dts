@@ -153,7 +153,7 @@
 			MX8MM_IOMUXC_SAI3_MCLK_PWM4_OUT			0x16	/* PWM for FAN */
 		>;
 	};
-	pinctrl_tusb320_irq: tusb320_irqgrp {
+	pinctrl_hd3ss3220_irq: hd3ss3220_irqgrp {
 		fsl,pins = <
 			MX8MM_IOMUXC_I2C4_SDA_GPIO5_IO21		0x41	/* GPIO_P48	*/
 		>;
@@ -234,15 +234,31 @@
 	pinctrl-0 = <&pinctrl_i2c2>;
 	status = "okay";
 
-	typec_tusb320:tusb320@67 {
-		compatible = "ti,tusb320";
+	typec_hd3ss3220: hd3ss3220@67 {
+		compatible = "ti,hd3ss3220";
+		interrupts-extended = <&gpio5 21 IRQ_TYPE_LEVEL_LOW>;
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_tusb320_irq>;
+		pinctrl-0 = <&pinctrl_hd3ss3220_irq>;
 		reg = <0x67>;
-		vbus-supply = <&reg_usb_otg_vbus>;
-		tusb320,int-gpio = <&gpio5 21 GPIO_ACTIVE_LOW>;
-		tusb320,select-mode = <0>;
-		tusb320,dfp-power = <0>;
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				hd3ss3220_in_ep: endpoint {
+					remote-endpoint = <&otg1_out_ep>;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+				hd3ss3220_out_ep: endpoint {
+					remote-endpoint = <&otg1_in_ep>;
+				};
+			};
+		};
 	};
 
 	rtc_ds1337: ds1337@68 {
@@ -387,9 +403,32 @@
 
 &usbotg1 {
 	dr_mode = "otg";
-	extcon = <0>, <&typec_tusb320>;
+	over-current-active-low;
+	pinctrl-names = "default";
+	power-active-high;
+	vbus-supply = <&reg_usb_otg_vbus>;
 	status = "okay";
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			otg1_out_ep: endpoint {
+				remote-endpoint = <&hd3ss3220_in_ep>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			otg1_in_ep: endpoint {
+				remote-endpoint = <&hd3ss3220_out_ep>;
+			};
+		};
+	};
 };
+
 
 &usbotg2 {
 	dr_mode = "host";
