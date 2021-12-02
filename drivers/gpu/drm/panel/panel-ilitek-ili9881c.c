@@ -491,6 +491,10 @@ static int ili9881c_dsi_probe(struct mipi_dsi_device *dsi)
 		dev_err(&dsi->dev, "Couldn't get our reset GPIO\n");
 	}
 
+	ret = drm_panel_of_backlight(&ctx->panel);
+	if (ret)
+		return ret;
+
 	drm_panel_add(&ctx->panel);
 
 	ret = of_property_read_u32(np, "timing-mode", &ctx->timing_mode);
