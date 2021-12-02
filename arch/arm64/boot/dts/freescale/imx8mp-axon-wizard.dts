@@ -25,24 +25,24 @@
 		enable-active-low;
 	};
 
-	reg_backlight_pwr: regulator_blpwr {
+	reg_lvds_backlight_pwr: regulator_lvdsblpwr {
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_backlight_pwr>;
+		pinctrl-0 = <&pinctrl_lvds0_backlight_pwr>;
 		compatible = "regulator-fixed";
-		regulator-name = "backlight_pwr";
-		regulator-min-microvolt = <5000000>;
-		regulator-max-microvolt = <5000000>;
+		regulator-name = "lvds0_bl_en";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
 		gpio = <&gpio4 14 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
 		regulator-always-on;
 	};
 
-	reg_mipi_pwr: regulator_mipipwr {
+	reg_mipi_pwr: regulator_mipipwr {	/* MIPI_5V control */
 		pinctrl-names = "default";
 		compatible = "regulator-fixed";
 		regulator-name = "mipi_pwr";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
 		gpio = <&pca9554 0 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
 		status = "disabled";
@@ -63,8 +63,8 @@
 		pinctrl-names = "default";
 		compatible = "regulator-fixed";
 		regulator-name = "mipi_vdden";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
 		gpio = <&pca9554 2 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
 		status = "disabled";
@@ -83,7 +83,6 @@
 
 	lvds_backlight: lvds_backlight {
 		compatible = "pwm-backlight";
-		//power-supply = <&reg_backlight_pwr>;
 		pwms = <&pwm2 0 50000>;
 		brightness-levels = <0 36 72 108 144 180 216 255>;
 		default-brightness-level = <6>;
@@ -188,8 +187,9 @@
     };
 };
 
-&snvs_rtc {
-	status = "disabled";
+&snvs_pwrkey {
+	linux,keycode = <KEY_SUSPEND>;
+	status = "okay";
 };
 
 &i2c2 {	/* I2C_B on AXON */
@@ -263,15 +263,32 @@
 		wlf,fixed-mclk;
 	};
 
-	typec_tusb320:tusb320@47 {
-		compatible = "ti,tusb320";
+	typec_hd3ss3220: hd3ss3220@47 {
+		compatible = "ti,hd3ss3220";
+		interrupts-extended = <&gpio5 12 IRQ_TYPE_LEVEL_LOW>;
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_tusb320_irq>;
-		reg = <0x47>;
+		pinctrl-0 = <&pinctrl_hd3ss3220_irq>;
 		vbus-supply = <&reg_usb_otg_vbus>;
-		tusb320,int-gpio = <&gpio5 12 GPIO_ACTIVE_LOW>;
-		tusb320,select-mode = <0>;
-		tusb320,dfp-power = <0>;
+		reg = <0x47>;
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				hd3ss3220_in_ep: endpoint {
+					remote-endpoint = <&dwc3_out_ep>;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+				hd3ss3220_out_ep: endpoint {
+					remote-endpoint = <&dwc3_in_ep>;
+				};
+			};
+		};
 	};
 
 	rtc_ds1337: ds1337@68 {
@@ -331,6 +348,15 @@
 		};
 	};
 
+	tca9554_22: tca9554_22@22 {
+		compatible = "nxp,pca9554";
+		pinctrl-names = "default";
+		reg =<0x22>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		status = "okay";
+	};
+
 	pca9554_27: pca9554_27@27 {
 		compatible = "nxp,pca9554";
 		pinctrl-names = "default";
@@ -338,6 +364,27 @@
 		gpio-controller;
 		#gpio-cells = <2>;
 		status = "okay";
+	};
+
+	/* Power monitor for 3.3V SOM output supply */
+	sensor_3v3:ina219_3v3@45 {
+		compatible = "ti,ina219";
+		reg = <0x45>;
+		shunt-resistor = <200000>; /* .2 Ohm resistor = 200000 uOhms*/
+	};
+
+	/* Power monitor for 1.8V SOM output supply */
+	sensor_1v8:ina219_1v8@40 {
+		compatible = "ti,ina219";
+		reg = <0x40>;
+		shunt-resistor = <200000>; /* .2 Ohm resistor = 200000 uOhms*/
+	};
+
+	/* Power monitor for 5V SOM input supply */
+	sensor_5v0:ina219_5v0@44 {
+		compatible = "ti,ina219";
+		reg = <0x44>;
+		shunt-resistor = <200000>; /* .2 Ohm resistor = 200000 uOhms*/
 	};
 };
 
@@ -354,8 +401,29 @@
 	hnp-disable;
 	srp-disable;
 	adp-disable;
-	extcon = <&typec_tusb320>;
+	usb-role-switch;
+	snps,dis-u1-entry-quirk;
+	snps,dis-u2-entry-quirk;
 	status = "okay";
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			dwc3_out_ep: endpoint {
+				remote-endpoint = <&hd3ss3220_in_ep>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			dwc3_in_ep: endpoint {
+				remote-endpoint = <&hd3ss3220_out_ep>;
+			};
+		};
+	};
 };
 
 &iomuxc {
@@ -366,15 +434,15 @@
 		>;
 	};
 
-	pinctrl_tusb320_irq: tusb320_irqgrp {
+	pinctrl_hd3ss3220_irq: hd3ss3220_irqgrp {
 		fsl,pins = <
 			MX8MP_IOMUXC_ECSPI2_MISO__GPIO5_IO12	0x41    /* UART_B_CTS */
 		>;
 	};
 
-	pinctrl_backlight_pwr: backlight_pwrgrp {
+	pinctrl_lvds0_backlight_pwr: lvds0_bl_pwrgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_SAI1_TXD2__GPIO4_IO14		0x19	/* GPIO_X4_P7, LVDS_A_BLT_EN */
+			MX8MP_IOMUXC_SAI1_TXD2__GPIO4_IO14		0x19	/* GPIO_X4_P7, LVDS_BL_EN */
 		>;
 	};
 
