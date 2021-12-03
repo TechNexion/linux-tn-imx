@@ -100,7 +100,7 @@
 	sound-wm8960 {
 		compatible = "fsl,imx7d-evk-wm8960", "fsl,imx-audio-wm8960";
 		model = "wm8960-audio";
-		cpu-dai = <&sai3>;
+		cpu-dai = <&sai3>;	/* AUD_A */
 		audio-codec = <&codec>;
 		asrc-controller = <&easrc>;
 		codec-master;
@@ -136,7 +136,7 @@
 
 		led {
 			label = "gpio-led";
-			gpios = <&pca9554 0 GPIO_ACTIVE_HIGH>;
+			gpios = <&tca9554_22 0 GPIO_ACTIVE_HIGH>;
 		};
 	};
 
@@ -253,6 +253,15 @@
 &i2c4 { /* I2C_A on AXON */
 	status = "okay";
 
+	pca9554: pca9554@23 {
+		compatible = "nxp,pca9554";
+		pinctrl-names = "default";
+		reg =<0x23>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		status = "okay";
+	};
+
 	codec: wm8960@1a {
 		compatible = "wlf,wm8960";
 		reg = <0x1a>;
@@ -300,19 +309,28 @@
 		interrupt-parent = <&gpio5>;
 		interrupts = <13 0>;
 	};
-
-	pca9554: pca9554@23 {
-		compatible = "nxp,pca9554";
-		pinctrl-names = "default";
-		reg =<0x23>;
-		gpio-controller;
-		#gpio-cells = <2>;
-		status = "okay";
-	};
 };
 
 &i2c5 { /* I2C_C on AXON */
 	clock-frequency = <400000>;
+
+	tca9554_22: tca9554_22@22 {
+		compatible = "nxp,pca9554";
+		pinctrl-names = "default";
+		reg =<0x22>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		status = "okay";
+	};
+
+	pca9554_27: pca9554_27@27 {
+		compatible = "nxp,pca9554";
+		pinctrl-names = "default";
+		reg =<0x27>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		status = "okay";
+	};
 
 	ov5640_otp_1: eeprom@54 {
 		compatible = "atmel,24c64";
@@ -348,24 +366,6 @@
 		};
 	};
 
-	tca9554_22: tca9554_22@22 {
-		compatible = "nxp,pca9554";
-		pinctrl-names = "default";
-		reg =<0x22>;
-		gpio-controller;
-		#gpio-cells = <2>;
-		status = "okay";
-	};
-
-	pca9554_27: pca9554_27@27 {
-		compatible = "nxp,pca9554";
-		pinctrl-names = "default";
-		reg =<0x27>;
-		gpio-controller;
-		#gpio-cells = <2>;
-		status = "okay";
-	};
-
 	/* Power monitor for 3.3V SOM output supply */
 	sensor_3v3:ina219_3v3@45 {
 		compatible = "ti,ina219";
@@ -398,12 +398,7 @@
 
 &usb_dwc3_0 {
 	dr_mode = "otg";
-	hnp-disable;
-	srp-disable;
-	adp-disable;
 	usb-role-switch;
-	snps,dis-u1-entry-quirk;
-	snps,dis-u2-entry-quirk;
 	status = "okay";
 
 	ports {
