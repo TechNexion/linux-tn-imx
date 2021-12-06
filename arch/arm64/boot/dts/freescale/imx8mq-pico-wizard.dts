@@ -219,7 +219,7 @@
 			MX8MQ_IOMUXC_SAI3_MCLK_PWM4_OUT			0x16	/* FAN PWM */
 		>;
 	};
-	pinctrl_tusb320_irq: tusb320_irqgrp {
+	pinctrl_hd3ss3220_irq: hd3ss3220_irqgrp {
 		fsl,pins = <
 			MX8MQ_IOMUXC_NAND_DATA00_GPIO3_IO6	0x41	/* GPIO_P48 */
 		>;
@@ -316,15 +316,32 @@
 		interrupts = <1 0>;
 	};
 
-	typec_tusb320:tusb320@67 {
-		compatible = "ti,tusb320";
+	typec_hd3ss3220: hd3ss3220@67 {
+		compatible = "ti,hd3ss3220";
+		interrupts-extended = <&gpio3 6 IRQ_TYPE_LEVEL_LOW>;
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_tusb320_irq>;
-		reg = <0x67>;
+		pinctrl-0 = <&pinctrl_hd3ss3220_irq>;
 		vbus-supply = <&reg_usb_otg_vbus>;
-		tusb320,int-gpio = <&gpio3 6 GPIO_ACTIVE_LOW>;
-		tusb320,select-mode = <0>;
-		tusb320,dfp-power = <0>;
+		reg = <0x67>;
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				hd3ss3220_in_ep: endpoint {
+					remote-endpoint = <&dwc3_out_ep>;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+				hd3ss3220_out_ep: endpoint {
+					remote-endpoint = <&dwc3_in_ep>;
+				};
+			};
+		};
 	};
 
 	/* PCA9554 on camera tev_mipi board */
@@ -447,9 +464,29 @@
 };
 
 &usb_dwc3_0 {
-	extcon = <&typec_tusb320>;
 	dr_mode = "otg";
+	pinctrl-names = "default";
+	usb-role-switch;
 	status = "okay";
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			dwc3_out_ep: endpoint {
+				remote-endpoint = <&hd3ss3220_in_ep>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			dwc3_in_ep: endpoint {
+				remote-endpoint = <&hd3ss3220_out_ep>;
+			};
+		};
+	};
 };
 
 &usb3_phy1 {
