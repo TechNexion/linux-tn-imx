@@ -110,10 +110,7 @@ dtb-$(CONFIG_ARCH_MXC) += imx8mn-ddr4-evk.dtb imx8mn-ddr4-evk-ak5558.dtb imx8mn-
 dtb-$(CONFIG_ARCH_MXC) += imx8mn-ddr4-evk-root.dtb imx8mn-ddr4-evk-inmate.dtb imx8mn-evk-root.dtb imx8mn-evk-inmate.dtb imx8mn-evk-lk.dtb imx8mn-ddr4-evk-lk.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mn-ab2.dtb imx8mn-ddr4-ab2.dtb imx8mn-ddr3l-ab2.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mn-var-som-symphony.dtb
-dtb-$(CONFIG_ARCH_MXC) += imx8mp-axon-wizard.dtb imx8mp-axon-wizard-g080uan01.dtb imx8mp-axon-wizard-g101uan02.dtb \
-			  imx8mp-axon-wizard-ili9881c.dtb imx8mp-axon-wizard-lvds-vl10112880.dtb imx8mp-axon-wizard-lvds-vl215192108.dtb \
-			  imx8mp-axon-wizard-voicehat.dtb imx8mp-axon-wizard-adv7533.dtb imx8mp-axon-wizard-ov5645tn.dtb \
-			  imx8mp-axon-wizard-sn65dsi84-vl10112880.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-axon-wizard.dtb imx8mp-axon-wizard-voicehat.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wb.dtb imx8mp-edm-g-wb-lvds-vl10112880.dtb imx8mp-edm-g-wb-lvds-vl215192108.dtb \
 			  imx8mp-edm-g-wb-tevi-ar0521.dtb imx8mp-edm-g-wb-tevi-ar0144.dtb imx8mp-edm-g-wb-tevi-ar0234.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wizard.dtb
