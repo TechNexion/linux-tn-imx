@@ -102,40 +102,12 @@
  * board, e.g., USB OTG(hd3ss3220), I/O expander(pca9555) and camera(ov5640).
  */
 
-/delete-node/ &i2c2;
-/delete-node/ &usb_dwc3_0;
-/delete-node/ &ov5640_1;
-
 &mipi_csi_0 {
 	/delete-node/ port@0;
 };
 
 &mipi_csi_1 {
 	/delete-node/ port@1;
-};
-
-&i2c_rpbus_3 {
-	compatible = "fsl,i2c-rpbus";
-	#address-cells = <1>;
-	#size-cells = <0>;
-	status = "okay";
-
-	codec: wm8960@1a {
-		compatible = "wlf,wm8960,lpa";
-		reg = <0x1a>;
-		wlf,shared-lrclk;
-	};
-};
-
-&rpmsg{
-	/*
-	 * 64K for one rpmsg instance:
-	 * --0x55000000~0x5500ffff: pingpong
-	 */
-	vdev-nums = <1>;
-	reg = <0x0 0x55000000 0x0 0x10000>;
-	memory-region = <&vdevbuffer>;
-	status = "disabled";
 };
 
 &uart4 {
