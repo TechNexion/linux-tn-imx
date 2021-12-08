@@ -461,10 +461,6 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6dl-nitrogen6x.dtb \
 	imx6dl-phytec-mira-rdk-nand.dtb \
 	imx6dl-phytec-pbab01.dtb \
-	imx6dl-pico-dwarf.dtb \
-	imx6dl-pico-hobbit.dtb \
-	imx6dl-pico-nymph.dtb \
-	imx6dl-pico-pi.dtb \
 	imx6dl-pico-nymph-qca.dtb \
 	imx6dl-pico-pi-qca.dtb \
 	imx6dl-prtrvt.dtb \
