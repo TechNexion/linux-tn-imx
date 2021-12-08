@@ -856,10 +856,6 @@ dtb-$(CONFIG_SOC_IMX7D) += \
 	imx7d-mba7.dtb \
 	imx7d-meerkat96.dtb \
 	imx7d-nitrogen7.dtb \
-	imx7d-pico-dwarf.dtb \
-	imx7d-pico-hobbit.dtb \
-	imx7d-pico-nymph.dtb \
-	imx7d-pico-pi.dtb \
 	imx7d-pico-hobbit-qca.dtb \
 	imx7d-pico-pi-qca.dtb \
 	imx7d-remarkable2.dtb \
