@@ -229,6 +229,11 @@
 		reg = <0x3d>;
 		status = "disabled";
 	};
+
+	vizionlink_0: vizionlink@30 {
+		reg = <0x30>;
+		status = "disabled";
+	};
 };
 
 &i2c4 {
@@ -265,6 +270,11 @@
 
 	tevi_ar0234_1: tevi_ar0234@3d {
 		reg = <0x3d>;
+		status = "disabled";
+	};
+
+	vizionlink_1: vizionlink@30 {
+		reg = <0x30>;
 		status = "disabled";
 	};
 };
