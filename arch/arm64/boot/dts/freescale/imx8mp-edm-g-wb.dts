@@ -214,6 +214,11 @@
 		reg = <0x3c>;
 		status = "disabled";
 	};
+
+	vizionlink_0: vizionlink@30 {
+		reg = <0x30>;
+		status = "disabled";
+	};
 };
 
 &i2c4 {
@@ -235,6 +240,11 @@
 
 	ov5640_1: ov5640_mipi@3c {
 		reg = <0x3c>;
+		status = "disabled";
+	};
+
+	vizionlink_1: vizionlink@30 {
+		reg = <0x30>;
 		status = "disabled";
 	};
 };
