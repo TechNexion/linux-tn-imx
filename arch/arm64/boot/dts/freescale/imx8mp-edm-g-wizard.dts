@@ -56,6 +56,25 @@
 		status = "disabled";
 	};
 
+	reg_mipi_bl_pwr: regulator_mipi_blpwr {
+		pinctrl-names = "default";
+		compatible = "regulator-fixed";
+		regulator-name = "mipi_backlight_pwr";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		gpio = <&gpio4 17 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+
+	backlight_mipi {
+		compatible = "pwm-backlight";
+		pwms = <&pwm1 0 50000 0>;
+		brightness-levels = <0 36 72 108 144 180 216 255>;
+		default-brightness-level = <6>;
+		power-supply = <&reg_mipi_bl_pwr>;
+		status = "disabled";
+	};
+
 	usb_hub_rst: usb_hub_rst {
 		compatible = "gpio-reset";
 		pinctrl-names = "default";
@@ -397,7 +416,7 @@
 
 	pinctrl_nfc: nfcgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_SAI1_TXFS__GPIO4_IO10		0x41 /* DSI_RST */
+			MX8MP_IOMUXC_SAI1_TXFS__GPIO4_IO10		0x41
 		>;
 	};
 
