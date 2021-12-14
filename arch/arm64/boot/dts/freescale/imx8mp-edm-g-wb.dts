@@ -218,6 +218,26 @@
 	vizionlink_0: vizionlink@30 {
 		reg = <0x30>;
 		status = "disabled";
+
+		i2c_dev_list {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			vizionlink_pca9554_a25_0: vizionlink_pca9554@25 {
+				reg = <0x25>;
+				status = "disabled";
+			};
+
+			vizionlink_tevi_ov5640_0: vizionlink_ov5640_mipi@3c {
+				reg = <0x3c>;
+				status = "disabled";
+			};
+
+			vizionlink_tevi_ar0144_0: vizionlink_tevi_ar0144@3d {
+				reg = <0x3d>;
+				status = "disabled";
+			};
+		};
 	};
 };
 
@@ -246,6 +266,26 @@
 	vizionlink_1: vizionlink@30 {
 		reg = <0x30>;
 		status = "disabled";
+
+		i2c_dev_list {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			vizionlink_pca9554_a25_1: vizionlink_pca9554@25 {
+				reg = <0x25>;
+				status = "disabled";
+			};
+
+			vizionlink_tevi_ov5640_1: vizionlink_ov5640_mipi@3c {
+				reg = <0x3c>;
+				status = "disabled";
+			};
+
+			vizionlink_tevi_ar0144_1: vizionlink_tevi_ar0144@3d {
+				reg = <0x3d>;
+				status = "disabled";
+			};
+		};
 	};
 };
 
