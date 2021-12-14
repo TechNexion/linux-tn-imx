@@ -2207,8 +2207,8 @@ static void sdma_load_firmware(const struct firmware *fw, void *context)
 	const struct sdma_firmware_header *header;
 
 	if (!fw) {
-		/* Load firmware once more time if timeout */
-		if (sdma->fw_fail)
+		/* Load firmware three more time if timeout */
+		if (sdma->fw_fail == 3)
 			dev_info(sdma->dev, "external firmware not found, using ROM firmware\n");
 		else {
 			request_firmware_nowait(THIS_MODULE,
