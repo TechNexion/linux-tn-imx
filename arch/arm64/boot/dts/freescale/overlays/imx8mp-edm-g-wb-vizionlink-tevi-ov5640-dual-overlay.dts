@@ -86,7 +86,7 @@
 					#address-cells = <1>;
 					#size-cells = <0>;
 
-					pca9554_a25_1: pca9554@25 {
+					vizionlink_pca9554_a25_0: vizionlink_pca9554@25 {
 						compatible = "nxp,pca9554";
 						reg = <0x25>;
 						gpio-controller;
@@ -101,7 +101,7 @@
 						//read-only;
 					};
 
-					ov5640_mipi@3c {
+					vizionlink_tevi_ov5640_0: vizionlink_ov5640_mipi@3c {
 						compatible = "ovti,ov5640";
 						reg = <0x3c>;
 						clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO1>;
@@ -110,8 +110,8 @@
 						assigned-clock-parents = <&clk IMX8MP_CLK_24M>;
 						assigned-clock-rates = <24000000>;
 						csi_id = <0>;
-						powerdown-gpios = <&pca9554_a25_1 2 GPIO_ACTIVE_HIGH>;
-						reset-gpios = <&pca9554_a25_1 4 GPIO_ACTIVE_LOW>;
+						powerdown-gpios = <&vizionlink_pca9554_a25_0 2 GPIO_ACTIVE_HIGH>;
+						reset-gpios = <&vizionlink_pca9554_a25_0 4 GPIO_ACTIVE_LOW>;
 						mclk = <24000000>;
 						mclk_source = <0>;
 						mipi_csi;
@@ -166,7 +166,7 @@
 					#address-cells = <1>;
 					#size-cells = <0>;
 
-					pca9554_a25_2: pca9554@25 {
+					vizionlink_pca9554_a25_1: vizionlink_pca9554@25 {
 						compatible = "nxp,pca9554";
 						reg = <0x25>;
 						gpio-controller;
@@ -181,7 +181,7 @@
 						//read-only;
 					};
 
-					ov5640_mipi@3c {
+					vizionlink_tevi_ov5640_1: vizionlink_ov5640_mipi@3c {
 						compatible = "ovti,ov5640";
 						reg = <0x3c>;
 						clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO1>;
@@ -190,8 +190,8 @@
 						assigned-clock-parents = <&clk IMX8MP_CLK_24M>;
 						assigned-clock-rates = <24000000>;
 						csi_id = <0>;
-						powerdown-gpios = <&pca9554_a25_2 2 GPIO_ACTIVE_HIGH>;
-						reset-gpios = <&pca9554_a25_2 4 GPIO_ACTIVE_LOW>;
+						powerdown-gpios = <&vizionlink_pca9554_a25_1 2 GPIO_ACTIVE_HIGH>;
+						reset-gpios = <&vizionlink_pca9554_a25_1 4 GPIO_ACTIVE_LOW>;
 						mclk = <24000000>;
 						mclk_source = <0>;
 						mipi_csi;
