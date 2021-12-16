@@ -265,6 +265,11 @@
 				reg = <0x3d>;
 				status = "disabled";
 			};
+
+			vizionlink_tevi_ar0521_0: vizionlink_tevi_ar0521@3d {
+				reg = <0x3d>;
+				status = "disabled";
+			};
 		};
 	};
 };
@@ -330,6 +335,11 @@
 			};
 
 			vizionlink_tevi_ar0234_1: vizionlink_tevi_ar0234@3d {
+				reg = <0x3d>;
+				status = "disabled";
+			};
+
+			vizionlink_tevi_ar0521_1: vizionlink_tevi_ar0521@3d {
 				reg = <0x3d>;
 				status = "disabled";
 			};
