@@ -170,7 +170,7 @@
 						reg = <0x25>;
 						gpio-controller;
 						#gpio-cells = <2>;
-						status = "disabled";
+						status = "okay";
 					};
 
 					vizionlink_tevi_ar0144_otp_1: eeprom@54 {
