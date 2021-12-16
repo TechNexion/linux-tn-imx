@@ -304,7 +304,7 @@
 };
 
 &flexcan2 {
-	status = "disabled";
+	status = "okay";
 };
 
 &usb_dwc3_0 {
