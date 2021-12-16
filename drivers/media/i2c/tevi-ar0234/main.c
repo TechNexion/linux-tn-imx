@@ -564,6 +564,9 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 	struct sensor *instance = NULL;
 	struct device *dev = &client->dev;
 	struct v4l2_mbus_framefmt *fmt;
+	int vizionlink_mode;
+	int data_lanes;
+	int continuous_clock;
 	int ret;
 
 	dev_info(&client->dev, "%s() device node: %s\n",
@@ -589,6 +592,33 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 	    IS_ERR(instance->standby_gpio) ) {
 		dev_err(dev, "get gpio object failed\n");
 		return -EINVAL;
+	}
+
+	ret = of_property_read_u32(dev->of_node, "vizionlink-mode", &vizionlink_mode);
+	if (!ret) {
+		if(vizionlink_mode == 1) {
+			/* non-burst mode with sync event */
+			data_lanes = 4;
+			if (of_property_read_u32(dev->of_node, "data-lanes", &data_lanes) == 0) {
+				if ((data_lanes < 1) || (data_lanes > 4)) {
+					dev_err(dev, "value of 'data-lanes' property is invaild\n");
+					data_lanes = 4;
+				}
+			}
+
+			continuous_clock = 0;
+			if (of_property_read_u32(dev->of_node, "continuous-clock",
+				&continuous_clock) == 0) {
+				if (continuous_clock > 1) {
+					dev_err(dev, "value of 'continuous-clock' property is invaild\n");
+					continuous_clock = 0;
+				}
+			}
+			dev_dbg(dev, "data-lanes [%d] ,continuous-clock [%d]\n",
+				data_lanes, continuous_clock);
+		} else {
+			dev_dbg(dev, "disabled vizionlink mode\n");
+		}
 	}
 
 	if (sensor_try_on(instance) != 0) {
@@ -643,8 +673,16 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 	//sensor_i2c_write_16b(instance->i2c_client, 0x4012, 0x50); //VIDEO_OUT_FMT
 	//Video max fps 30
 	//sensor_i2c_write_16b(instance->i2c_client, 0x4020, 0x1e00); //VIDEO_MAX_FPS
-	//continuous clock
-	//sensor_i2c_write_16b(instance->i2c_client, 0x4030, 0x34); //VIDEO_HINF_CTRL
+
+	if(vizionlink_mode == 1) {
+		//continuous clock, data-lanes
+		sensor_i2c_write_16b(instance->i2c_client, 0x4030,
+			0x10 | (continuous_clock << 5) | (data_lanes)); //VIDEO_HINF_CTRL
+	} else {
+		//continuous clock
+		sensor_i2c_write_16b(instance->i2c_client, 0x4030, 0x34); //VIDEO_HINF_CTRL
+	}
+
 	//sensor_i2c_write_16b(instance->i2c_client, 0x4014, 0); //VIDEO_SENSOR_MODE
 	sensor_i2c_write_16b(instance->i2c_client, 0x1184, 0xb); //ATOMIC
 
