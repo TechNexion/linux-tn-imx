@@ -49,6 +49,7 @@ dtbo-$(CONFIG_ARCH_MXC) += imx8mm-axon-wizard-voicehat.dtbo imx8mm-axon-wizard-m
 				imx8mm-axon-wizard-ili9881c.dtbo imx8mm-axon-wizard-g101uan02.dtbo \
 				imx8mm-axon-wizard-sn65dsi84-vl215192108.dtbo imx8mm-axon-wizard-sn65dsi84-vl15613676.dtbo \
 				imx8mm-axon-wizard-sn65dsi84-vl10112880.dtbo
+dtbo-$(CONFIG_ARCH_MXC) += imx8mp-axon-wizard-tevi-ov5640.dtbo imx8mp-axon-wizard-tevi-ar0144.dtbo imx8mp-axon-wizard-tevi-ar0234.dtbo imx8mp-axon-wizard-tevi-ar0521.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mp-axon-wizard-lvds-vl10112880.dtbo imx8mp-axon-wizard-lvds-vl15613676.dtbo \
 			   imx8mp-axon-wizard-lvds-vl215192108.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mp-axon-wizard-ili9881c.dtbo imx8mp-axon-wizard-g101uan02.dtbo imx8mp-axon-wizard-g080uan01.dtbo imx8mp-axon-wizard-mipi2hdmi-adv7535.dtbo

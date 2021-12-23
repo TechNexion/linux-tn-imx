@@ -868,7 +868,7 @@
 
 	pinctrl_csi0_pwn: csi0_pwn_grp {
 		fsl,pins = <
-			/* CSI1_PWDN, GPIO_X3_P65 */
+			/* CSI1_PWDN, GPIO_X3_P67 */
 			MX8MP_IOMUXC_GPIO1_IO07__GPIO1_IO07	0x9
 		>;
 	};
