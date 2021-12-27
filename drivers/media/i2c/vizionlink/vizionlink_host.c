@@ -371,6 +371,7 @@ static int vh_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
 	struct vh_st *obj = NULL;
 	u32 temp;
+	int error;
 
 	dev_info(&client->dev, "%s\n", client->dev.of_node->full_name);
 
@@ -394,9 +395,12 @@ static int vh_probe(struct i2c_client *client, const struct i2c_device_id *id)
 
 	obj->pdb_gpio = devm_gpiod_get(&client->dev, "pdb", GPIOD_OUT_LOW);
 	if (IS_ERR(obj->pdb_gpio)) {
-		dev_err(&client->dev,
+		error = PTR_ERR(obj->pdb_gpio);
+		if (error != EPROBE_DEFER)
+			dev_err(&client->dev,
 			"Failed to get gpio pin setting 'pdb'\n");
-		return -EINVAL;
+
+		return error;
 	}
 
 	if (vh_is_exist(obj) != 0) {
