@@ -218,6 +218,11 @@ static int ops_set_stream(struct v4l2_subdev *sub_dev, int enable)
 			//VIDEO_HEIGHT
 			sensor_i2c_write_16b(instance->i2c_client, 0x2002,
 					     res_list[instance->selected_mode].height);
+			if(res_list[instance->selected_mode].width == 3840 &&
+				res_list[instance->selected_mode].height == 2160)
+				sensor_i2c_write_16b(instance->i2c_client, 0x2020, 0x1400); //VIDEO_MAX_FPS
+			else
+				sensor_i2c_write_16b(instance->i2c_client, 0x2020, 0x1e00); //VIDEO_MAX_FPS
 			sensor_i2c_write_16b(instance->i2c_client, 0x1184, 0xb); //ATOMIC
 		}
 	}
@@ -417,8 +422,8 @@ static int sensor_standby(struct i2c_client *client, int enable)
 			return -EINVAL;
 		}
 
-		sensor_i2c_write_16b(client, 0x601a, 0x241);
-		usleep_range(1000, 2000);
+		sensor_i2c_write_16b(client, 0x601a, 0x340);
+		usleep_range(1000, 5000);
 		for (timeout = 0 ; timeout < 10 ; timeout ++) {
 			usleep_range(9000, 10000);
 			sensor_i2c_read_16b(client, 0x601a, &v);
@@ -426,30 +431,18 @@ static int sensor_standby(struct i2c_client *client, int enable)
 				break;
 		}
 		if (timeout >= 10) {
-			dev_err(&client->dev, "timeout: line[%d]\n", __LINE__);
+			dev_err(&client->dev, "timeout: line[%d]v=%x\n", __LINE__, v);
 			return -EINVAL;
 		}
 
 		for (timeout = 0 ; timeout < 10 ; timeout ++) {
 			usleep_range(9000, 10000);
 			sensor_i2c_read_16b(client, 0x601a, &v);
-			if ((v & 0x8000) == 0x8000)
+			if ((v & 0x200) == 0x0)
 				break;
 		}
 		if (timeout >= 10) {
-			dev_err(&client->dev, "timeout: line[%d]\n", __LINE__);
-			return -EINVAL;
-		}
-
-		sensor_i2c_write_16b(client, 0x601a, v | 0x10);
-		for (timeout = 0 ; timeout < 10 ; timeout ++) {
-			usleep_range(9000, 10000);
-			sensor_i2c_read_16b(client, 0x601a, &v);
-			if (v == 0x8040)
-				break;
-		}
-		if (timeout >= 10) {
-			dev_err(&client->dev, "timeout: line[%d]\n", __LINE__);
+			dev_err(&client->dev, "timeout: line[%d]v=%x\n", __LINE__, v);
 			return -EINVAL;
 		}
 	}
