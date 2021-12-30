@@ -438,6 +438,41 @@
 		clock-names = "mclk";
 		wlf,shared-lrclk;
 	};
+
+	vizionlink_1: vizionlink@30 {
+		reg = <0x30>;
+		status = "disabled";
+
+		i2c_dev_list {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			vizionlink_pca9554_a25_1: vizionlink_pca9554@25 {
+				reg = <0x25>;
+				status = "disabled";
+			};
+
+			vizionlink_tevi_ov5640_1: vizionlink_ov5640_mipi@3c {
+				reg = <0x3c>;
+				status = "disabled";
+			};
+
+			vizionlink_tevi_ar0144_1: vizionlink_tevi_ar0144@3d {
+				reg = <0x3d>;
+				status = "disabled";
+			};
+
+			vizionlink_tevi_ar0234_1: vizionlink_tevi_ar0234@3d {
+				reg = <0x3d>;
+				status = "disabled";
+			};
+
+			vizionlink_tevi_ar0521_1: vizionlink_tevi_ar0521@3d {
+				reg = <0x3d>;
+				status = "disabled";
+			};
+		};
+	};
 };
 
 &i2c4 {
@@ -477,6 +512,41 @@
 	pcie-clock@68 {
 		compatible = "idt,9FGV0241AKILF";
 		reg = <0x68>;
+	};
+
+	vizionlink_0: vizionlink@30 {
+		reg = <0x30>;
+		status = "disabled";
+
+		i2c_dev_list {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			vizionlink_pca9554_a25_0: vizionlink_pca9554@25 {
+				reg = <0x25>;
+				status = "disabled";
+			};
+
+			vizionlink_tevi_ov5640_0: vizionlink_ov5640_mipi@3c {
+				reg = <0x3c>;
+				status = "disabled";
+			};
+
+			vizionlink_tevi_ar0144_0: vizionlink_tevi_ar0144@3d {
+				reg = <0x3d>;
+				status = "disabled";
+			};
+
+			vizionlink_tevi_ar0234_0: vizionlink_tevi_ar0234@3d {
+				reg = <0x3d>;
+				status = "disabled";
+			};
+
+			vizionlink_tevi_ar0521_0: vizionlink_tevi_ar0521@3d {
+				reg = <0x3d>;
+				status = "disabled";
+			};
+		};
 	};
 };
 
@@ -1074,6 +1144,24 @@
 	pinctrl_pca9555_a26_irq: pca9555_a26_irqgrp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SAI2_MCLK__GPIO4_IO27	0x140
+		>;
+	};
+
+	pinctrl_csi2_pdb: csi2_pdbgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_RXD1__GPIO4_IO03	0x29
+		>;
+	};
+
+	pinctrl_csi1_dummy_host_power: csi1_dummyhostpowergrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SD2_WP__GPIO2_IO20	0x29
+		>;
+	};
+
+	pinctrl_csi2_dummy_host_power: csi2_dummyhostpowergrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SD1_DATA0__GPIO2_IO02	0x29
 		>;
 	};
 };
