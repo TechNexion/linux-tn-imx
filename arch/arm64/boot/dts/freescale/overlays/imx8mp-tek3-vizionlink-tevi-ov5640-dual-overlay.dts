@@ -1,0 +1,216 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2021 TechNexion Ltd.
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/clock/imx8mp-clock.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	fragment@0 {
+		target = <&mipi_csi_0>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			port@0 {
+				reg = <0>;
+				mipi_csi0_ep: endpoint {
+					remote-endpoint = <&ov5640_mipi_0_ep>;
+					data-lanes = <4>;
+					csis-hs-settle = <13>;
+					csis-clk-settle = <2>;
+					csis-wclk;
+				};
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&mipi_csi_1>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			port@1 {
+				reg = <1>;
+				mipi_csi1_ep: endpoint {
+					remote-endpoint = <&ov5640_mipi_1_ep>;
+					data-lanes = <4>;
+					csis-hs-settle = <13>;
+					csis-clk-settle = <2>;
+					csis-wclk;
+				};
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&i2c2>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			vizionlink@30 {
+				compatible = "tn,vizionlink";
+				reg = <0x30>;
+				pinctrl-0 = <&pinctrl_csi2_pdb>;
+				pdb-gpios = <&gpio4 3 GPIO_ACTIVE_HIGH>;
+				ser_alias_id = <0x1b>;
+
+				//i2c addr alias map "gpio extender, eeprom , sensor"
+				i2c_addr_alias_map_local = <0x25 0x54 0x3c>;
+				i2c_addr_alias_map_remote = <0x25 0x54 0x3c>;
+
+				//deserializer output csi lanes 1~4. default 4
+				des_csi_lanes = <4>;
+
+				//1: Enable 0: Disable continuous clock. default 0
+				des_csi_continuous_clock = <0>;
+
+				//serializer input csi lanes 1~4. default 4
+				ser_csi_lanes = <2>;
+
+				//1: Enable 0: Disable continuous clock. default 0
+				ser_csi_continuous_clock = <0>;
+
+				status = "okay";
+
+				i2c_dev_list {
+					#address-cells = <1>;
+					#size-cells = <0>;
+
+					vizionlink_pca9554_a25_1: vizionlink_pca9554@25 {
+						compatible = "nxp,pca9554";
+						reg = <0x25>;
+						gpio-controller;
+						#gpio-cells = <2>;
+						status = "okay";
+					};
+
+					ov5640_otp_1: eeprom@54 {
+						compatible = "atmel,24c64";
+						pagesize = <128>;
+						reg = <0x54>;
+						//read-only;
+					};
+
+					vizionlink_tevi_ov5640_1: vizionlink_ov5640_mipi@3c {
+						compatible = "ovti,ov5640";
+						reg = <0x3c>;
+						clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO1>;
+						clock-names = "xclk";
+						assigned-clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO1>;
+						assigned-clock-parents = <&clk IMX8MP_CLK_24M>;
+						assigned-clock-rates = <24000000>;
+						csi_id = <0>;
+						powerdown-gpios = <&vizionlink_pca9554_a25_1 2 GPIO_ACTIVE_HIGH>;
+						reset-gpios = <&vizionlink_pca9554_a25_1 4 GPIO_ACTIVE_LOW>;
+						mclk = <24000000>;
+						mclk_source = <0>;
+						mipi_csi;
+						nvmem = <&ov5640_otp_1>;
+						nvmem-names = "calib-data";
+						status = "okay";
+
+						port {
+							ov5640_mipi_1_ep: endpoint {
+								remote-endpoint = <&mipi_csi1_ep>;
+								data-lanes = <1 2>;
+								clock-lanes = <0>;
+							};
+						};
+					};
+				};
+			};
+		};
+	};
+
+	fragment@3 {
+		target = <&i2c5>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			vizionlink@30 {
+				compatible = "tn,vizionlink";
+				reg = <0x30>;
+				pinctrl-names = "default";
+				pdb-gpios = <&pca9555_a26 6 GPIO_ACTIVE_HIGH>;
+				ser_alias_id = <0x1b>;
+
+				//i2c addr alias map "gpio extender, eeprom , sensor"
+				i2c_addr_alias_map_local = <0x25 0x54 0x3c>;
+				i2c_addr_alias_map_remote = <0x25 0x54 0x3c>;
+
+				//deserializer output csi lanes 1~4. default 4
+				des_csi_lanes = <4>;
+
+				//1: Enable 0: Disable continuous clock. default 0
+				des_csi_continuous_clock = <0>;
+
+				//serializer input csi lanes 1~4. default 4
+				ser_csi_lanes = <2>;
+
+				//1: Enable 0: Disable continuous clock. default 0
+				ser_csi_continuous_clock = <0>;
+
+				status = "okay";
+
+				i2c_dev_list {
+					#address-cells = <1>;
+					#size-cells = <0>;
+
+					vizionlink_pca9554_a25_0: vizionlink_pca9554@25 {
+						compatible = "nxp,pca9554";
+						reg = <0x25>;
+						gpio-controller;
+						#gpio-cells = <2>;
+						status = "okay";
+					};
+
+					ov5640_otp_0: eeprom@54 {
+						compatible = "atmel,24c64";
+						pagesize = <128>;
+						reg = <0x54>;
+						//read-only;
+					};
+
+					vizionlink_tevi_ov5640_0: vizionlink_ov5640_mipi@3c {
+						compatible = "ovti,ov5640";
+						reg = <0x3c>;
+						clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO1>;
+						clock-names = "xclk";
+						assigned-clocks = <&clk IMX8MP_CLK_IPP_DO_CLKO1>;
+						assigned-clock-parents = <&clk IMX8MP_CLK_24M>;
+						assigned-clock-rates = <24000000>;
+						csi_id = <0>;
+						powerdown-gpios = <&vizionlink_pca9554_a25_0 2 GPIO_ACTIVE_HIGH>;
+						reset-gpios = <&vizionlink_pca9554_a25_0 4 GPIO_ACTIVE_LOW>;
+						mclk = <24000000>;
+						mclk_source = <0>;
+						mipi_csi;
+						nvmem = <&ov5640_otp_0>;
+						nvmem-names = "calib-data";
+						status = "okay";
+
+						port {
+							ov5640_mipi_0_ep: endpoint {
+								remote-endpoint = <&mipi_csi0_ep>;
+								data-lanes = <1 2>;
+								clock-lanes = <0>;
+							};
+						};
+					};
+				};
+			};
+		};
+	};
+};
