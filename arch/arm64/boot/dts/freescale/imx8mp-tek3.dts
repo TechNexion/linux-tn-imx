@@ -416,7 +416,7 @@
 		interrupt-parent = <&gpio4>;
 		interrupts = <27 IRQ_TYPE_LEVEL_LOW>;
 		status = "okay";
-		gpio-line-names = "LED2", "LED3", "LED4", "OTG_PD_INT", "OTG_PD_FAULT", "CSI1_INT", "CSI2_PD", "M2_1_DISABLE_N",
+		gpio-line-names = "LED2", "LED3", "LED4", "OTG_PD_INT", "OTG_PD_FAULT", "CSI1_INT", "CSI1_PD", "M2_1_DISABLE_N",
 							"M2_2_DISABLE_N", "EXT_GPIO1", "EXT_GPIO2", "EXT_GPIO3", "M2_1_POWEROFF", "M2_2_POWEROFF", "M2_2_WWAN_WAKE", "M2_1_WWAN_WAKE";
 	};
 
