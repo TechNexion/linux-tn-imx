@@ -548,6 +548,14 @@
 	status = "disabled";
 };
 
+&mipi_csi_0 {
+	status = "disabled";
+};
+
+&mipi_csi_1 {
+	status = "disabled";
+};
+
 &easrc {
 	fsl,asrc-rate  = <48000>;
 	status = "okay";
