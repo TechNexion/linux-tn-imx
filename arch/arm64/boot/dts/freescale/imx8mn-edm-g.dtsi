@@ -432,7 +432,7 @@
 
 	pmic: pca9450@25 {
 		reg = <0x25>;
-		compatible = "nxp,pca9450";
+		compatible = "nxp,pca9450c";
 		/* PMIC PCA9450 PMIC_nINT GPIO3_IO7 */
 		pinctrl-0 = <&pinctrl_pmic>;
 		gpio_intr = <&gpio3 7 GPIO_ACTIVE_LOW>;
