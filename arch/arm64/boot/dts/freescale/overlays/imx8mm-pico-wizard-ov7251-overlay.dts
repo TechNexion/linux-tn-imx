@@ -1,14 +1,19 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2020 TechNexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *
+ */
+
 /dts-v1/;
 /plugin/;
 
-#include "../imx8mq-pinfunc.h"
-#include <dt-bindings/clock/imx8mq-clock.h>
 #include <dt-bindings/interrupt-controller/irq.h>
-#include <dt-bindings/input/input.h>
+#include <dt-bindings/clock/imx8mm-clock.h>
 #include <dt-bindings/gpio/gpio.h>
 
 / {
-
 	fragment@0 {
 		target = <&csi1_bridge>;
 		__overlay__ {
@@ -24,8 +29,8 @@
 			#size-cells = <0>;
 
 			port {
-				mipi1_sensor_ep: endpoint@0 {
-					remote-endpoint = <&ov7251_1_ep>;
+				mipi1_sensor_ep: endpoint@1 {
+					remote-endpoint = <&ov7251_mipi1_ep>;
 					data-lanes = <1>;
 					csis-hs-settle = <13>;
 					csis-clk-settle = <2>;
@@ -42,23 +47,23 @@
 			#size-cells = <0>;
 			status = "okay";
 
-			ov7251_mipi1: ov7251@60 {
+			ov7251_mipi: ov7251_mipi@60 {
 				compatible = "ovti,ov7251";
 				reg = <0x60>;
 				status = "okay";
 
 				pinctrl-names = "default";
-				pinctrl-0 = <&pinctrl_csi1>;
-				clocks = <&clk IMX8MQ_CLK_CLKO2>;
+				pinctrl-0 = <&pinctrl_csi_rst>;
+				clocks = <&clk IMX8MM_CLK_CLKO1>;
 				clock-names = "xclk";
 				clock-frequency = <24000000>;
 
 				csi_id = <0>;
-				power-gpios = <&pca9555_26 15 GPIO_ACTIVE_HIGH>;
-				reset-gpios = <&gpio1 12 GPIO_ACTIVE_HIGH>;
+				power-gpios = <&pca9555_26 15 GPIO_ACTIVE_LOW>;
+				reset-gpios = <&gpio1 5 GPIO_ACTIVE_HIGH>;
 
 				port {
-					ov7251_1_ep: endpoint {
+					ov7251_mipi1_ep: endpoint {
 						data-lanes = <0>;
 						remote-endpoint = <&mipi1_sensor_ep>;
 					};
