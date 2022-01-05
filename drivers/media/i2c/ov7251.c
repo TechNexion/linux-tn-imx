@@ -1497,12 +1497,12 @@ static int ov7251_probe(struct i2c_client *client)
 	ov7251->reset_gpio = devm_gpiod_get(dev, "reset", GPIOD_OUT_HIGH);
 	if (IS_ERR(ov7251->power_gpio)) {
 		dev_err(dev, "cannot get power gpio. dts file is correct?\n");
-		return -EINVAL;
+		return -EPROBE_DEFER;
 	}
 
 	if (IS_ERR(ov7251->reset_gpio)) {
 		dev_err(dev, "cannot get reset gpio. dts file is correct?\n");
-		return -EINVAL;
+		return -EPROBE_DEFER;
 	}
 
 	mutex_init(&ov7251->lock);
