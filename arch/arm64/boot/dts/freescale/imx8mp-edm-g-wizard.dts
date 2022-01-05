@@ -11,7 +11,7 @@
 #include "imx8mp-edm-g.dtsi"
 
 / {
-	model = "TechNexion EDM-G-IMX8MP and wizard baseboard";
+	model = "TechNexion EDM-G-IMX8MP and WIZARD baseboard";
 	compatible = "fsl,imx8mp-edmg", "fsl,imx8mp";
 
 	reg_usb_otg_vbus: usb_otg_vbus {
