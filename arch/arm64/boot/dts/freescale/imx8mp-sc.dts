@@ -31,8 +31,8 @@
 		pinctrl-0 = <&pinctrl_otg_vbus>;
 		compatible = "regulator-fixed";
 		regulator-name = "usb_otg_vbus";
-		regulator-min-microvolt = <5000000>;
-		regulator-max-microvolt = <5000000>;
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
 		gpio = <&gpio4 12 GPIO_ACTIVE_LOW>;
 		enable-active-low;
 	};
@@ -330,20 +330,37 @@
 	pinctrl-0 = <&pinctrl_i2c2>;
 	status = "okay";
 
-	typec_tusb320:tusb320@47 {
-		compatible = "ti,tusb320";
+	typec_hd3ss3220: hd3ss3220@47 {
+		compatible = "ti,hd3ss3220";
+		interrupts-extended = <&gpio4 15 IRQ_TYPE_LEVEL_LOW>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_tusb320_irq>;
-		reg = <0x47>;
 		vbus-supply = <&reg_usb_otg_vbus>;
-		tusb320,int-gpio = <&gpio4 15 GPIO_ACTIVE_LOW>;
-		tusb320,select-mode = <0>;
-		tusb320,dfp-power = <0>;
+		reg = <0x47>;
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				hd3ss3220_in_ep: endpoint {
+					remote-endpoint = <&dwc3_out_ep>;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+				hd3ss3220_out_ep: endpoint {
+					remote-endpoint = <&dwc3_in_ep>;
+				};
+			};
+		};
 	};
 };
 
 &i2c3 {
-	clock-frequency = <100000>;
+	clock-frequency = <400000>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c3>;
 	status = "okay";
@@ -460,11 +477,32 @@
 
 &usb_dwc3_0 {
 	dr_mode = "otg";
+	pinctrl-names = "default";
 	hnp-disable;
 	srp-disable;
 	adp-disable;
-	extcon = <&typec_tusb320>;
+	usb-role-switch;
 	status = "okay";
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			dwc3_out_ep: endpoint {
+				remote-endpoint = <&hd3ss3220_in_ep>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			dwc3_in_ep: endpoint {
+				remote-endpoint = <&hd3ss3220_out_ep>;
+			};
+		};
+	};
+
 };
 
 &usb3_phy1 {
