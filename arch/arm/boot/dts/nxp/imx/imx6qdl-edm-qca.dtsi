@@ -336,14 +336,14 @@
 
 	backlight_lvds {
 		compatible = "pwm-backlight";
-		pwms = <&pwm3 0 50000>;
+		pwms = <&pwm3 0 50000 0>;
 		brightness-levels = <0 36 72 108 144 180 216 255>;
 		default-brightness-level = <6>;
 	};
 
 	backlight_lcd {
 		compatible = "pwm-backlight";
-		pwms = <&pwm4 0 50000>;
+		pwms = <&pwm4 0 50000 0>;
 		brightness-levels = <0 36 72 108 144 180 216 255>;
 		default-brightness-level = <6>;
 	};
