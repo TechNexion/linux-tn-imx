@@ -10,6 +10,9 @@
 #include <media/v4l2-subdev.h>
 #include "otp_flash.h"
 
+#define HORIZONTAL_FLIP_ON      (1u << 0)
+#define VERTICAL_FLIP_ON        (1u << 1)
+
 struct sensor {
 	struct v4l2_subdev v4l2_subdev;
 	struct media_pad pad;
@@ -544,6 +547,7 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 	int data_lanes;
 	int continuous_clock;
 	int ret;
+	u16 orientation_data;
 
 	dev_info(&client->dev, "%s() device node: %s\n",
 		       __func__, client->dev.of_node->full_name);
@@ -643,6 +647,11 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 	sensor_i2c_write_16b(instance->i2c_client, 0x1184, 0xb); //ATOMIC
 	msleep(1);
 	sensor_i2c_write_16b(instance->i2c_client, 0x1184, 1); //ATOMIC
+
+	sensor_i2c_read_16b(instance->i2c_client, 0x100c, &orientation_data);
+	msleep(1);
+	sensor_i2c_write_16b(instance->i2c_client, 0x100c, (orientation_data | HORIZONTAL_FLIP_ON | VERTICAL_FLIP_ON));
+
 	//Video output 1280x800,YUV422
 	sensor_i2c_write_16b(instance->i2c_client, 0x4000, 1280); //VIDEO_WIDTH
 	sensor_i2c_write_16b(instance->i2c_client, 0x4002, 800); //VIDEO_HEIGHT
