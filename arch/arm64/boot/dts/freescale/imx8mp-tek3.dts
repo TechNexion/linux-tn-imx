@@ -104,7 +104,6 @@
 			"IN1R", "Mic Jack";
 
 		mic-det-gpios = <&gpio4 18 0>;
-		hp-det-gpios = <&gpio1 5 0>;
 	};
 
  gpio_keys {
@@ -421,14 +420,31 @@
 	};
 
 	typec_hd3ss3220: hd3ss3220@47 {
-		compatible = "ti,tusb320", "ti,hd3ss3220";
+		compatible = "ti,hd3ss3220";
+		interrupts-extended = <&gpio1 5 IRQ_TYPE_LEVEL_LOW>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_hd3ss3220_irq>;
-		reg = <0x47>;
 		vbus-supply = <&reg_usb_otg_vbus>;
-		tusb320,int-gpio = <&gpio1 5 GPIO_ACTIVE_LOW>;
-		tusb320,select-mode = <0>;
-		tusb320,dfp-power = <0>;
+		reg = <0x47>;
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				hd3ss3220_in_ep: endpoint {
+					remote-endpoint = <&dwc3_out_ep>;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+				hd3ss3220_out_ep: endpoint {
+					remote-endpoint = <&dwc3_in_ep>;
+				};
+			};
+		};
 	};
 
 	wm8904: wm8904@1a {
@@ -570,11 +586,31 @@
 
 &usb_dwc3_0 {
 	dr_mode = "otg";
+	pinctrl-names = "default";
 	hnp-disable;
 	srp-disable;
 	adp-disable;
-	extcon = <&typec_hd3ss3220>;
+	usb-role-switch;
 	status = "okay";
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			dwc3_out_ep: endpoint {
+				remote-endpoint = <&hd3ss3220_in_ep>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			dwc3_in_ep: endpoint {
+				remote-endpoint = <&hd3ss3220_out_ep>;
+			};
+		};
+	};
 };
 
 &usb_dwc3_1 {
