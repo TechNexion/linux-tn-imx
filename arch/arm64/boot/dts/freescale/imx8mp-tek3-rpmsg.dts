@@ -89,8 +89,6 @@
  * board, e.g., USB OTG(hd3ss3220), I/O expander(pca9555) and camera(ov5640).
  */
 
-/delete-node/ &usb_dwc3_0;
-
 &uart4 {
 	status = "disabled";
 };
