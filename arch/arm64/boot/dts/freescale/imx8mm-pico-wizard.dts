@@ -96,7 +96,8 @@
 
 		led {
 			label = "gpio-led";
-			gpios = <&pca9555_21 8 GPIO_ACTIVE_LOW>;
+			default-state = "on";
+			gpios = <&pca9555_21 8 GPIO_ACTIVE_HIGH>;
 		};
 	};
 
