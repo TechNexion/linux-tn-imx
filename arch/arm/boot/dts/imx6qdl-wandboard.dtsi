@@ -137,6 +137,18 @@
 		gpio = <&gpio3 22 GPIO_ACTIVE_HIGH>;
 	};
 
+	bt_reg_on: btreg_on {
+		compatible = "regulator-fixed";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_bt_ctrl>;
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-name = "btreg_on";
+		gpio = <&gpio5 30 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		regulator-always-on;
+	};
+
 	v4l2_cap_0 {
 		compatible = "fsl,imx6q-v4l2-capture";
 		ipu_id = <0>;
@@ -381,6 +393,14 @@
 		pinctrl_hdmi_cec: hdmicecgrp {
 			fsl,pins = <
 				MX6QDL_PAD_EIM_A25__HDMI_TX_CEC_LINE	0x1f8b0
+			>;
+		};
+
+		pinctrl_bt_ctrl: bt_ctrlgrp {
+			fsl,pins = <
+			MX6QDL_PAD_CSI0_DAT12__GPIO5_IO30       0x000b0         /* BT_RST_N */
+			MX6QDL_PAD_CSI0_VSYNC__GPIO5_IO21       0x000b0         /* BT_WAKE - output */
+			MX6QDL_PAD_CSI0_DATA_EN__GPIO5_IO20     0x80000000      /* BT_HOST_WAKE - input */
 			>;
 		};
 	};
