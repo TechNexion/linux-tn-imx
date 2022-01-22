@@ -112,4 +112,10 @@ EDM_TC700_GPIO_DEFS();
 
 &ecspi1 {
 	status = "okay";
+
+	spidev@0 {
+		compatible = "rohm,dh2228fv";
+		spi-max-frequency = <10000000>;
+		reg = <0>;
+	};
 };
