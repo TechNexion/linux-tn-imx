@@ -184,6 +184,14 @@
 	};
 };
 
+&cpu0 {
+	cpu-supply = <&sw1a_reg>;
+};
+
+&cpu1 {
+	cpu-supply = <&sw1a_reg>;
+};
+
 EDM_TEP1_GPIO_DEFS();
 
 &iomuxc {
