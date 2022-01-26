@@ -516,10 +516,6 @@
 		reg = <0x23>;
 		gpio-controller;
 		#gpio-cells = <2>;
-		interrupt-controller;
-		#interrupt-cells = <2>;
-		interrupt-parent = <&gpio4>;
-		interrupts = <26 IRQ_TYPE_LEVEL_LOW>;
 		status = "okay";
 		gpio-line-names = "IO0_0", "IO0_1", "IO0_2", "IO0_3", "IO0_4", "IO0_5", "IO0_6", "IO0_7",
 							"IO1_0", "IO1_1", "IO1_2", "IO1_3", "IO1_4", "IO1_5", "IO1_6", "IO1_7";
