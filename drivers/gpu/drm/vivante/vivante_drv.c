@@ -49,7 +49,13 @@
 #include <linux/component.h>
 #include <linux/version.h>
 #include <linux/module.h>
-#include <drm/drmP.h>
+#include <linux/platform_device.h>
+#include <drm/drm_drv.h>
+#include <drm/drm_fb_helper.h>
+#include <drm/drm_gem_cma_helper.h>
+#include <drm/drm_of.h>
+#include <drm/drm_probe_helper.h>
+#include <drm/drm_vblank.h>
 #include <drm/drm_pciids.h>
 #include <drm/drm_legacy.h>
 
@@ -104,7 +110,7 @@ static int drm_get_platform_dev(struct platform_device *platdev,
 	return 0;
 
 err_free:
-	drm_dev_unref(dev);
+	drm_dev_put(dev);
 	return ret;
 }
 
