@@ -668,7 +668,7 @@
 	pinctrl-0 = <&pinctrl_pcie>;
 	clkreq-gpio = <&gpio1 13 GPIO_ACTIVE_LOW>;
 	reset-gpio = <&gpio1 1 GPIO_ACTIVE_LOW>;
-	ext_osc = <0>;
+	ext_osc = <1>;
 	clocks = <&clk IMX8MP_CLK_HSIO_ROOT>,
 		 <&clk IMX8MP_CLK_PCIE_AUX>,
 		 <&clk IMX8MP_CLK_HSIO_AXI>,
@@ -683,6 +683,7 @@
 };
 
 &pcie_phy{
+	ext_osc = <1>;
 	status = "okay";
 };
 
