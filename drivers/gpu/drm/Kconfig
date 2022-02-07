@@ -229,7 +229,6 @@ config DRM_GEM_SHMEM_HELPER
 config DRM_VM
 	bool
 	depends on DRM && MMU
-	default y
 
 config DRM_SCHED
 	tristate
