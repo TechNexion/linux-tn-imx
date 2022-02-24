@@ -137,4 +137,5 @@ obj-$(CONFIG_SDR_MAX2175) += max2175.o
 obj-$(CONFIG_VIDEO_TEVI_AR0521) += tevi-ar0521/
 obj-$(CONFIG_VIDEO_TEVI_AR0144) += tevi-ar0144/
 obj-$(CONFIG_VIDEO_TEVI_AR0234) += tevi-ar0234/
+obj-$(CONFIG_VIDEO_TEVI_AP1302) += tevi-ap1302/
 obj-$(CONFIG_SERDES_VIZIONLINK) += vizionlink/
