@@ -223,6 +223,11 @@
 		status = "disabled";
 	};
 
+	tevi_ap1302_0: tevi_ap1302@3d {
+		reg = <0x3d>;
+		status = "disabled";
+	};
+
 	vizionlink_0: vizionlink@30 {
 		reg = <0x30>;
 		status = "disabled";
@@ -241,7 +246,7 @@
 				status = "disabled";
 			};
 
-			vizionlink_tevi_ar0144_0: vizionlink_tevi_ar0144@3d {
+			vizionlink_tevi_ap1302_0: vizionlink_tevi_ap1302@3d {
 				reg = <0x3d>;
 				status = "disabled";
 			};
@@ -271,6 +276,11 @@
 		status = "disabled";
 	};
 
+	tevi_ap1032_1: tevi_ap1302@3d {
+		reg = <0x3d>;
+		status = "disabled";
+	};
+
 	vizionlink_1: vizionlink@30 {
 		reg = <0x30>;
 		status = "disabled";
@@ -289,7 +299,7 @@
 				status = "disabled";
 			};
 
-			vizionlink_tevi_ar0144_1: vizionlink_tevi_ar0144@3d {
+			vizionlink_tevi_ap1302_1: vizionlink_tevi_ap1302@3d {
 				reg = <0x3d>;
 				status = "disabled";
 			};
