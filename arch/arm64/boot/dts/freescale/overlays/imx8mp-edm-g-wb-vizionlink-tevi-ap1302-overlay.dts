@@ -22,7 +22,7 @@
 			port@0 {
 				reg = <0>;
 				mipi_csi0_ep: endpoint {
-					remote-endpoint = <&ar0144_0_ep>;
+					remote-endpoint = <&ap1302_0_ep>;
 					data-lanes = <4>;
 					csis-hs-settle = <13>;
 					csis-clk-settle = <2>;
@@ -42,7 +42,7 @@
 			port@1 {
 				reg = <1>;
 				mipi_csi1_ep: endpoint {
-					remote-endpoint = <&ar0144_1_ep>;
+					remote-endpoint = <&ap1302_1_ep>;
 					data-lanes = <4>;
 					csis-hs-settle = <13>;
 					csis-clk-settle = <2>;
@@ -93,38 +93,34 @@
 						#gpio-cells = <2>;
 						status = "okay";
 					};
+				};
+			};
 
-					vizionlink_tevi_ar0144_otp_0: eeprom@54 {
-						compatible = "atmel,24c1024";
-						pagesize = <128>;
-						reg = <0x54>;
-						//read-only;
-					};
+			tevi_ap1302_otp_0: tevi_ap1302_otp@54 {
+				compatible = "atmel,24c1024";
+				pagesize = <128>;
+				reg = <0x54>;
+			};
 
-					vizionlink_tevi_ar0144_0: vizionlink_tevi_ar0144@3d {
-						compatible = "tn,tevi-ar0144";
-						reg = <0x3d>;
-						pinctrl-names = "default";
-						pinctrl-0 = <&pinctrl_csi0_pwn>;
+			tevi_ap1302_0: tevi_ap1302@3d {
+				compatible = "tn,tevi-ap1302";
+				reg = <0x3d>;
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_csi0_pwn>, <&pinctrl_csi0_rst>;
 
-						host-power-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
-						reset-gpios = <&vizionlink_pca9554_a25_0 4 GPIO_ACTIVE_HIGH>;
-						device-power-gpios = <&vizionlink_pca9554_a25_0 0 GPIO_ACTIVE_HIGH>;
-						standby-gpios = <&vizionlink_pca9554_a25_0 2 GPIO_ACTIVE_HIGH>;
-						nvmem = <&vizionlink_tevi_ar0144_otp_0>;
-						nvmem-names = "calib-data";
-						data-lanes = <2>;
-						continuous-clock = <0>;
-						status = "okay";
+				host-power-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
+				reset-gpios = <&vizionlink_pca9554_a25_0 4 GPIO_ACTIVE_HIGH>;
+				device-power-gpios = <&vizionlink_pca9554_a25_0 0 GPIO_ACTIVE_HIGH>;
+				standby-gpios = <&vizionlink_pca9554_a25_0 2 GPIO_ACTIVE_HIGH>;
+				nvmem = <&tevi_ap1302_otp_0>;
+				nvmem-names = "calib-data";
+				data-lanes = <2>;
+				continuous-clock = <0>;
+				status = "okay";
 
-						// Enable vizionlink mode = 1
-						vizionlink-mode = <1>;
-
-						port {
-							ar0144_0_ep: endpoint {
-								remote-endpoint = <&mipi_csi0_ep>;
-							};
-						};
+				port {
+					ap1302_0_ep: endpoint {
+					remote-endpoint = <&mipi_csi0_ep>;
 					};
 				};
 			};
@@ -172,38 +168,34 @@
 						#gpio-cells = <2>;
 						status = "okay";
 					};
+				};
+			};
 
-					vizionlink_tevi_ar0144_otp_1: eeprom@54 {
-						compatible = "atmel,24c1024";
-						pagesize = <128>;
-						reg = <0x54>;
-						//read-only;
-					};
+			tevi_ap1302_otp_1: tevi_ap1302_otp@54 {
+				compatible = "atmel,24c1024";
+				pagesize = <128>;
+				reg = <0x54>;
+			};
 
-					vizionlink_tevi_ar0144_1: vizionlink_tevi_ar0144@3d {
-						compatible = "tn,tevi-ar0144";
-						reg = <0x3d>;
-						pinctrl-names = "default";
-						pinctrl-0 = <&pinctrl_csi1_pwn>;
+			tevi_ap1302_1: tevi_ap1302@3d {
+				compatible = "tn,tevi-ap1302";
+				reg = <0x3d>;
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_csi1_pwn>, <&pinctrl_csi1_rst>;
 
-						host-power-gpios = <&gpio4 5 GPIO_ACTIVE_HIGH>;
-						reset-gpios = <&vizionlink_pca9554_a25_1 4 GPIO_ACTIVE_HIGH>;
-						device-power-gpios = <&vizionlink_pca9554_a25_1 0 GPIO_ACTIVE_HIGH>;
-						standby-gpios = <&vizionlink_pca9554_a25_1 2 GPIO_ACTIVE_HIGH>;
-						nvmem = <&vizionlink_tevi_ar0144_otp_1>;
-						nvmem-names = "calib-data";
-						data-lanes = <2>;
-						continuous-clock = <0>;
-						status = "okay";
+				host-power-gpios = <&gpio4 5 GPIO_ACTIVE_HIGH>;
+				reset-gpios = <&vizionlink_pca9554_a25_1 4 GPIO_ACTIVE_HIGH>;
+				device-power-gpios = <&vizionlink_pca9554_a25_1 0 GPIO_ACTIVE_HIGH>;
+				standby-gpios = <&vizionlink_pca9554_a25_1 2 GPIO_ACTIVE_HIGH>;
+				nvmem = <&tevi_ap1302_otp_1>;
+				nvmem-names = "calib-data";
+				data-lanes = <2>;
+				continuous-clock = <0>;
+				status = "okay";
 
-						// Enable vizionlink mode = 1
-						vizionlink-mode = <1>;
-
-						port {
-							ar0144_1_ep: endpoint {
-								remote-endpoint = <&mipi_csi1_ep>;
-							};
-						};
+				port {
+					ap1302_1_ep: endpoint {
+						remote-endpoint = <&mipi_csi1_ep>;
 					};
 				};
 			};
