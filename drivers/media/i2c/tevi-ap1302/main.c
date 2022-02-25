@@ -658,7 +658,7 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 	    IS_ERR(instance->device_power_gpio) ||
 	    IS_ERR(instance->standby_gpio) ) {
 		dev_err(dev, "get gpio object failed\n");
-		return -EINVAL;
+		return -EPROBE_DEFER;
 	}
 
 	data_lanes = 4;
