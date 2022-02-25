@@ -218,6 +218,11 @@
 							"EXT_GPIO8", "EXT_GPIO9", "", "", "", "CSI1_PDB", "CSI2_PDB", "PD_FAULT";
 	};
 
+	vizionlink_0: vizionlink@30 {
+		reg = <0x30>;
+		status = "disabled";
+	};
+
 	ov5640_0: ov5640_mipi@3c {
 		reg = <0x3c>;
 		status = "disabled";
@@ -226,31 +231,6 @@
 	tevi_ap1302_0: tevi_ap1302@3d {
 		reg = <0x3d>;
 		status = "disabled";
-	};
-
-	vizionlink_0: vizionlink@30 {
-		reg = <0x30>;
-		status = "disabled";
-
-		i2c_dev_list {
-			#address-cells = <1>;
-			#size-cells = <0>;
-
-			vizionlink_pca9554_a25_0: vizionlink_pca9554@25 {
-				reg = <0x25>;
-				status = "disabled";
-			};
-
-			vizionlink_tevi_ov5640_0: vizionlink_ov5640_mipi@3c {
-				reg = <0x3c>;
-				status = "disabled";
-			};
-
-			vizionlink_tevi_ap1302_0: vizionlink_tevi_ap1302@3d {
-				reg = <0x3d>;
-				status = "disabled";
-			};
-		};
 	};
 };
 
@@ -271,39 +251,19 @@
 &i2c5 {
 	clock-frequency = <400000>;
 
+	vizionlink_1: vizionlink@30 {
+		reg = <0x30>;
+		status = "disabled";
+	};
+
 	ov5640_1: ov5640_mipi@3c {
 		reg = <0x3c>;
 		status = "disabled";
 	};
 
-	tevi_ap1032_1: tevi_ap1302@3d {
+	tevi_ap1302_1: tevi_ap1302@3d {
 		reg = <0x3d>;
 		status = "disabled";
-	};
-
-	vizionlink_1: vizionlink@30 {
-		reg = <0x30>;
-		status = "disabled";
-
-		i2c_dev_list {
-			#address-cells = <1>;
-			#size-cells = <0>;
-
-			vizionlink_pca9554_a25_1: vizionlink_pca9554@25 {
-				reg = <0x25>;
-				status = "disabled";
-			};
-
-			vizionlink_tevi_ov5640_1: vizionlink_ov5640_mipi@3c {
-				reg = <0x3c>;
-				status = "disabled";
-			};
-
-			vizionlink_tevi_ap1302_1: vizionlink_tevi_ap1302@3d {
-				reg = <0x3d>;
-				status = "disabled";
-			};
-		};
 	};
 };
 
