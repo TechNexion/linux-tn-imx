@@ -1115,7 +1115,7 @@ static int axonf_probe(struct i2c_client *client,
 	 * applied to all other i2c-controlled GPIO expanders (and potentially
 	 * regmap-i2c).
 	 */
-	lockdep_set_subclass(&chip->i2c_lock, i2c_adapter_depth(client->adapter));
+	lockdep_set_subclass(&chip->io_lock, i2c_adapter_depth(client->adapter));
 
 	ret = device_reset(&client->dev);
 	if (ret == -EPROBE_DEFER)
