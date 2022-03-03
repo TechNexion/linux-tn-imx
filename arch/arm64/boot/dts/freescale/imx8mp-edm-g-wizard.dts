@@ -234,17 +234,7 @@
 		status = "disabled";
 	};
 
-	tevi_ar0521_0: tevi_ar0521@3d {
-		reg = <0x3d>;
-		status = "disabled";
-	};
-
-	tevi_ar0144_0: tevi_ar0144@3d {
-		reg = <0x3d>;
-		status = "disabled";
-	};
-
-	tevi_ar0234_0: tevi_ar0234@3d {
+	tevi_ap1302_0: tevi_ap1302@3d {
 		reg = <0x3d>;
 		status = "disabled";
 	};
@@ -283,17 +273,7 @@
 		status = "disabled";
 	};
 
-	tevi_ar0521_1: tevi_ar0521@3d {
-		reg = <0x3d>;
-		status = "disabled";
-	};
-
-	tevi_ar0144_1: tevi_ar0144@3d {
-		reg = <0x3d>;
-		status = "disabled";
-	};
-
-	tevi_ar0234_1: tevi_ar0234@3d {
+	tevi_ap1302_1: tevi_ap1302@3d {
 		reg = <0x3d>;
 		status = "disabled";
 	};
