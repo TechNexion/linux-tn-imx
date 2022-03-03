@@ -370,17 +370,7 @@
 		status = "disabled";
 	};
 
-	tevi_ar0521_0: tevi_ar0521@3d {
-		reg = <0x3d>;
-		status = "disabled";
-	};
-
-	tevi_ar0144_0: tevi_ar0144@3d {
-		reg = <0x3d>;
-		status = "disabled";
-	};
-
-	tevi_ar0234_0: tevi_ar0234@3d {
+	tevi_ap1302_0: tevi_ap1302@3d {
 		reg = <0x3d>;
 		status = "disabled";
 	};
