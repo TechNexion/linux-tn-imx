@@ -53,6 +53,16 @@ static struct resolution ar0821_res_list[] = {
 	{.width = 3840, .height = 2160},
 };
 
+static struct resolution ar1335_res_list[] = {
+	{.width = 1280, .height = 720},    //HD  720p
+	{.width = 1920, .height = 1080},   //FHD 1080p
+	{.width = 2560, .height = 1440},   //2K  1440p
+	{.width = 3840, .height = 2160},   //4K  2160p
+	// ISI Cannot support the resolutions because of width over 4K(4096)
+	// {.width = 4192, .height = 3120},
+	// {.width = 4208, .height = 3120},
+};
+
 struct sensor_info {
 	const char* sensor_name;
 	const struct resolution *res_list;
@@ -84,6 +94,11 @@ static struct sensor_info ap1302_sensor_table[] = {
 		.sensor_name = "TEVI-AR0821",
 		.res_list = ar0821_res_list,
 		.res_list_size = ARRAY_SIZE(ar0821_res_list)
+	},
+	{
+		.sensor_name = "TEVI-AR1335",
+		.res_list = ar1335_res_list,
+		.res_list_size = ARRAY_SIZE(ar1335_res_list)
 	},
 };
 
