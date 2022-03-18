@@ -2,6 +2,7 @@
 #include <linux/delay.h>
 #include <linux/kthread.h>
 #include <linux/i2c.h>
+#include <linux/init.h>
 #include <media/v4l2-async.h>
 #include <media/v4l2-ctrls.h>
 #include <media/v4l2-device.h>
@@ -22,6 +23,7 @@ struct sensor {
 	struct gpio_desc *standby_gpio;
 	u8 selected_mode;
 	u8 selected_sensor;
+	bool supports_over_4k_res;
 	char *sensor_name;
 };
 
@@ -58,9 +60,8 @@ static struct resolution ar1335_res_list[] = {
 	{.width = 1920, .height = 1080},   //FHD 1080p
 	{.width = 2560, .height = 1440},   //2K  1440p
 	{.width = 3840, .height = 2160},   //4K  2160p
-	// ISI Cannot support the resolutions because of width over 4K(4096)
-	// {.width = 4192, .height = 3120},
-	// {.width = 4208, .height = 3120},
+	{.width = 4192, .height = 3120},
+	{.width = 4208, .height = 3120},
 };
 
 struct sensor_info {
@@ -392,6 +393,10 @@ static int ops_enum_frame_size(struct v4l2_subdev *sub_dev,
 	    (fse->index >= ap1302_sensor_table[instance->selected_sensor].res_list_size))
 		return -EINVAL;
 
+	if(!instance->supports_over_4k_res &&
+	    ap1302_sensor_table[instance->selected_sensor].res_list[fse->index].width > 4096)
+		return -EINVAL;
+
 	fse->min_width = fse->max_width = ap1302_sensor_table[instance->selected_sensor].res_list[fse->index].width;
 	fse->min_height = fse->max_height = ap1302_sensor_table[instance->selected_sensor].res_list[fse->index].height;
 
@@ -692,8 +697,11 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 			continuous_clock = 0;
 		}
 	}
-	dev_dbg(dev, "data-lanes [%d] ,continuous-clock [%d]\n",
-		data_lanes, continuous_clock);
+
+	instance->supports_over_4k_res = of_property_read_bool(dev->of_node, "supports-over-4k-res");
+
+	dev_dbg(dev, "data-lanes [%d] ,continuous-clock [%d], supports-over-4k-res [%d]\n",
+		data_lanes, continuous_clock, instance->supports_over_4k_res);
 
 	if (sensor_try_on(instance) != 0) {
 		return -EINVAL;
