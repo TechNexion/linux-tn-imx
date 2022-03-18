@@ -70,6 +70,7 @@
 				nvmem-names = "calib-data";
 				data-lanes = <4>;
 				continuous-clock = <0>;
+				supports-over-4k-res;
 				status = "okay";
 
 				port {
