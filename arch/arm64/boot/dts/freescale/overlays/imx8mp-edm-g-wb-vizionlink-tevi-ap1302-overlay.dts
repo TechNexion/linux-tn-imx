@@ -104,12 +104,6 @@
 				};
 			};
 
-			// tevi_ap1302_otp_0: tevi_ap1302_otp@54 {
-			// 	compatible = "atmel,24c1024";
-			// 	pagesize = <128>;
-			// 	reg = <0x54>;
-			// };
-
 			tevi_ap1302_0: tevi_ap1302@3d {
 				compatible = "tn,tevi-ap1302";
 				reg = <0x3d>;
@@ -184,12 +178,6 @@
 					};
 				};
 			};
-
-			// tevi_ap1302_otp_1: tevi_ap1302_otp@54 {
-			// 	compatible = "atmel,24c1024";
-			// 	pagesize = <128>;
-			// 	reg = <0x54>;
-			// };
 
 			tevi_ap1302_1: tevi_ap1302@3d {
 				compatible = "tn,tevi-ap1302";
