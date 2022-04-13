@@ -27,7 +27,7 @@
 				mipi_csi0_ep: endpoint {
 					remote-endpoint = <&tevi_ap1302_0_ep>;
 					data-lanes = <4>;
-					csis-hs-settle = <13>;
+					csis-hs-settle = <19>;
 					csis-clk-settle = <2>;
 					csis-wclk;
 				};
@@ -47,7 +47,7 @@
 				mipi_csi1_ep: endpoint {
 					remote-endpoint = <&tevi_ap1302_1_ep>;
 					data-lanes = <4>;
-					csis-hs-settle = <13>;
+					csis-hs-settle = <19>;
 					csis-clk-settle = <2>;
 					csis-wclk;
 				};
