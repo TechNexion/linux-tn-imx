@@ -33,6 +33,7 @@ struct resolution {
 };
 
 static struct resolution ar0144_res_list[] = {
+	{.width = 1280, .height = 720},
 	{.width = 1280, .height = 800},
 };
 
@@ -455,6 +456,41 @@ static const struct media_entity_operations sensor_media_entity_ops = {
 	.link_setup = ops_media_link_setup,
 };
 
+static int check_sensor_chip_id(struct i2c_client *client, u16* chip_id)
+{
+	int timeout;
+
+	for (timeout = 0 ; timeout < 100 ; timeout ++) {
+		usleep_range(9000, 10000);
+		sensor_i2c_read_16b(client, 0x60AC, chip_id);
+		if ((*chip_id & 0x7) == 0)
+			break;
+	}
+	if (timeout >= 100) {
+		dev_err(&client->dev, "timeout: line[%d]v=%x\n", __LINE__, *chip_id);
+		return -EINVAL;
+	}
+	sensor_i2c_write_16b(client, 0x60AA, 0x0002); // DMA_SIZE
+	sensor_i2c_write_16b(client, 0x60A0, 0x0320); // DMA_SRC_0
+	sensor_i2c_write_16b(client, 0x60A2, 0x3000); // DMA_SRC_1
+	sensor_i2c_write_16b(client, 0x60A4, 0x0000); // DMA_DST_0
+	sensor_i2c_write_16b(client, 0x60A6, 0x60A4); // DMA_DST_1
+	sensor_i2c_write_16b(client, 0x60AC, 0x0032); // DMA_CTRL
+	for (timeout = 0 ; timeout < 100 ; timeout ++) {
+		usleep_range(9000, 10000);
+		sensor_i2c_read_16b(client, 0x60AC, chip_id);
+		if ((*chip_id & 0x7) == 0)
+			break;
+	}
+	if (timeout >= 100) {
+		dev_err(&client->dev, "timeout: line[%d]v=%x\n", __LINE__, *chip_id);
+		return -EINVAL;
+	}
+	sensor_i2c_read_16b(client, 0x60A4, chip_id);
+
+	return 0;
+}
+
 static int sensor_standby(struct i2c_client *client, int enable)
 {
 	u16 v = 0;
@@ -462,74 +498,102 @@ static int sensor_standby(struct i2c_client *client, int enable)
 	dev_dbg(&client->dev, "%s():enable=%d\n", __func__, enable);
 
 	if (enable == 1) {
-		sensor_i2c_write_16b(client, 0x601a, 0x140);
-		for (timeout = 0 ; timeout < 50 ; timeout ++) {
+		sensor_i2c_write_16b(client, 0xf056, 0x0000);
+		sensor_i2c_write_16b(client, 0x601a, 0x8140);
+		for (timeout = 0 ; timeout < 500 ; timeout ++) {
 			usleep_range(9000, 10000);
 			sensor_i2c_read_16b(client, 0x601a, &v);
 			if ((v & 0x200) == 0x200)
 				break;
 		}
-		if (timeout < 50) {
+		if (timeout < 500) {
+			if(check_sensor_chip_id(client, &v) == 0) {
+				if (v == 0x356) {
+					dev_dbg(&client->dev, "sensor check: v=0x%x\nbypass standby and set fw stall gate frames.\n", v);
+					return 0;
+				}
+			}
+			// Reset ADV_GPIO in Advanced Registers
+			sensor_i2c_write_16b(client, 0xF038, 0x002A);
+			sensor_i2c_write_16b(client, 0xF03A, 0x0000);
+			sensor_i2c_write_16b(client, 0xE002, 0x0490);
 			sensor_i2c_write_16b(client, 0xFFFE, 1);
-			msleep(10);
+			msleep(100);
 		} else {
 			dev_err(&client->dev, "timeout: line[%d]\n", __LINE__);
 			return -EINVAL;
 		}
 	} else {
 		sensor_i2c_write_16b(client, 0xFFFE, 0);
-		for (timeout = 0 ; timeout < 50 ; timeout ++) {
+		for (timeout = 0 ; timeout < 500 ; timeout ++) {
 			usleep_range(9000, 10000);
 			sensor_i2c_read_16b(client, 0, &v);
 			if (v != 0)
 				break;
 		}
-		if (timeout >= 50) {
+		if (timeout >= 500) {
 			dev_err(&client->dev, "timeout: line[%d]v=%x\n", __LINE__, v);
 			return -EINVAL;
 		}
 
+		if(check_sensor_chip_id(client, &v) == 0) {
+			if (v == 0x356) {
+				dev_dbg(&client->dev, "sensor check: v=0x%x\nrecover status from fw stall gate frames.\n", v);
+				sensor_i2c_write_16b(client, 0x601a, 0x8340);
+				msleep(10);
+			}
+		}
+
+		sensor_i2c_read_16b(client, 0x601a, &v);
+		if ((v & 0x200) != 0x200){
+			dev_dbg(&client->dev, "stop waking up: camera is working.\n");
+			return 0;
+		}
+
 		sensor_i2c_write_16b(client, 0x601a, 0x241);
 		usleep_range(1000, 2000);
-		for (timeout = 0 ; timeout < 10 ; timeout ++) {
+		for (timeout = 0 ; timeout < 100 ; timeout ++) {
 			usleep_range(9000, 10000);
 			sensor_i2c_read_16b(client, 0x601a, &v);
 			if ((v & 1) == 0)
 				break;
 		}
-		if (timeout >= 10) {
+		if (timeout >= 100) {
 			dev_err(&client->dev, "timeout: line[%d]v=%x\n", __LINE__, v);
 			return -EINVAL;
 		}
 
-		for (timeout = 0 ; timeout < 10 ; timeout ++) {
+		for (timeout = 0 ; timeout < 100 ; timeout ++) {
 			usleep_range(9000, 10000);
 			sensor_i2c_read_16b(client, 0x601a, &v);
 			if ((v & 0x8000) == 0x8000)
 				break;
 		}
-		if (timeout >= 10) {
+		if (timeout >= 100) {
 			dev_err(&client->dev, "timeout: line[%d]v=%x\n", __LINE__, v);
 			return -EINVAL;
 		}
 
-		sensor_i2c_write_16b(client, 0x601a, v | 0x10);
-		for (timeout = 0 ; timeout < 10 ; timeout ++) {
+		sensor_i2c_write_16b(client, 0x601a, 0x8250);
+		for (timeout = 0 ; timeout < 100 ; timeout ++) {
 			usleep_range(9000, 10000);
 			sensor_i2c_read_16b(client, 0x601a, &v);
 			if ((v & 0x8040) == 0x8040)
 				break;
 		}
-		if (timeout >= 10) {
+		if (timeout >= 100) {
 			dev_err(&client->dev, "timeout: line[%d]v=%x\n", __LINE__, v);
 			return -EINVAL;
 		}
+		sensor_i2c_write_16b(client, 0xF056, 0x0000);
+
+		dev_dbg(&client->dev, "sensor wake up\n");
 	}
 
 	return 0;
 }
 
-static void sensor_power_on(struct sensor *instance)
+static int sensor_power_on(struct sensor *instance)
 {
 	dev_dbg(&instance->i2c_client->dev, "%s()\n", __func__);
 	gpiod_set_value_cansleep(instance->host_power_gpio, 1);
@@ -537,9 +601,11 @@ static void sensor_power_on(struct sensor *instance)
 	usleep_range(500, 5000);
 	gpiod_set_value_cansleep(instance->reset_gpio, 1);
 	msleep(10);
+
+	return 0;
 }
 
-static void sensor_power_off(struct sensor *instance)
+static int sensor_power_off(struct sensor *instance)
 {
 	dev_dbg(&instance->i2c_client->dev, "%s()\n", __func__);
 	gpiod_set_value_cansleep(instance->standby_gpio, 0);
@@ -548,6 +614,8 @@ static void sensor_power_off(struct sensor *instance)
 	gpiod_set_value_cansleep(instance->device_power_gpio, 0);
 	gpiod_set_value_cansleep(instance->host_power_gpio, 0);
 	msleep(10);
+
+	return 0;
 }
 
 static int sensor_try_on(struct sensor *instance)
@@ -751,7 +819,7 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 		return -EINVAL;
 	}
 
-	////set something reference from DevX tool register log
+	//set something reference from DevX tool register log
 	//cntx select 'Video'
 	sensor_i2c_write_16b(instance->i2c_client, 0x1184, 1); //ATOMIC
 	sensor_i2c_write_16b(instance->i2c_client, 0x1000, 0); //CTRL
@@ -770,7 +838,7 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 	//sensor_i2c_write_16b(instance->i2c_client, 0x4014, 0); //VIDEO_SENSOR_MODE
 	sensor_i2c_write_16b(instance->i2c_client, 0x1184, 0xb); //ATOMIC
 
-	////let ap1302 go to standby mode
+	//let ap1302 go to standby mode
 	ret = sensor_standby(instance->i2c_client, 1);
 	if (ret == 0)
 		dev_info(&client->dev, "probe success\n");
