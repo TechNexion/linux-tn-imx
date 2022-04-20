@@ -169,6 +169,11 @@
 /* RTL8211E and RTL8211F support up to three LEDs */
 #define RTL8211x_LED_COUNT			3
 
+/* page 0xd04, register 0x10-0x11 */
+#define RTL8211F_PHYLED_PAGE			0x0d04
+#define RTL8211F_EEE_LED_REG			0x11
+#define RTL8211F_LED_REG			0x10
+
 MODULE_DESCRIPTION("Realtek PHY driver");
 MODULE_AUTHOR("Johnson Leung");
 MODULE_LICENSE("GPL");
@@ -677,6 +682,18 @@ static int rtl8211f_config_init(struct phy_device *phydev)
 			       RTL8211F_PHYCR2_PHY_EEE_ENABLE, 0);
 	if (ret)
 		return ret;
+
+	/* disable EEE LED*/
+	ret = phy_modify_paged_changed(phydev, RTL8211F_PHYLED_PAGE, RTL8211F_EEE_LED_REG,
+				       0xffff, 0x0000);
+	if (ret < 0)
+		dev_err(&phydev->mdio.dev, "write EEE register failed\n");
+
+	/* setting 1000Mbps for orange LED, 100Mbps for green LED */
+	ret = phy_modify_paged_changed(phydev, RTL8211F_PHYLED_PAGE, RTL8211F_LED_REG,
+				       0xffff, 0x091f);
+	if (ret < 0)
+		dev_err(&phydev->mdio.dev, "select LED register failed\n");
 
 	return genphy_soft_reset(phydev);
 }
