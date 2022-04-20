@@ -71,6 +71,11 @@
 
 #define RTL_GENERIC_PHYID			0x001cc800
 
+/* page 0xd04, register 0x10-0x11 */
+#define RTL8211F_PHYLED_PAGE			0x0d04
+#define RTL8211F_EEE_LED_REG			0x11
+#define RTL8211F_LED_REG			0x10
+
 MODULE_DESCRIPTION("Realtek PHY driver");
 MODULE_AUTHOR("Johnson Leung");
 MODULE_LICENSE("GPL");
@@ -333,7 +338,7 @@ static int rtl8211f_config_init(struct phy_device *phydev)
 {
 	struct rtl821x_priv *priv = phydev->priv;
 	struct device *dev = &phydev->mdio.dev;
-	u16 val_txdly, val_rxdly;
+	u16 val_txdly, val_rxdly, oldpage;
 	int ret;
 
 	ret = phy_modify_paged_changed(phydev, 0xa43, RTL8211F_PHYCR1,
@@ -407,6 +412,22 @@ static int rtl8211f_config_init(struct phy_device *phydev)
 			ERR_PTR(ret));
 		return ret;
 	}
+
+	oldpage = phy_select_page(phydev, RTL8211F_PHYLED_PAGE);
+	if (oldpage < 0)
+		dev_err(&phydev->mdio.dev, "select page failed\n");
+
+	/* disable EEE LED*/
+	ret = __phy_write(phydev, RTL8211F_EEE_LED_REG, 0x0000);
+	if (ret < 0)
+		dev_err(&phydev->mdio.dev, "write EEE register failed\n");
+
+	/* setting 1000Mbps for orange LED, 100Mbps for green LED */
+	ret = __phy_write(phydev, RTL8211F_LED_REG, 0x091f);
+	if (ret < 0)
+		dev_err(&phydev->mdio.dev, "select LED register failed\n");
+
+	phy_restore_page(phydev, oldpage, ret);
 
 	return genphy_soft_reset(phydev);
 }
