@@ -918,6 +918,8 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_enet>;
 	phy-reset-gpios = <&gpio3 29 GPIO_ACTIVE_LOW>;
+	phy-reset-duration = <35>;
+	phy-reset-post-delay = <75>;
 	phy-supply = <&reg_3v3_phy>;
 	phy-mode = "rgmii-id";
 	fsl,magic-packet;
