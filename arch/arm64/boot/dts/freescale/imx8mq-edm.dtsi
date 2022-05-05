@@ -111,6 +111,7 @@
 			reg = <1>;
 			at803x,led-act-blind-workaround;
 			at803x,eee-disabled;
+			realtek,clkout-disable;
 		};
 	};
 };
