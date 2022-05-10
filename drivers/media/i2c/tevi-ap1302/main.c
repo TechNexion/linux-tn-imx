@@ -9,6 +9,7 @@
 #include <media/v4l2-event.h>
 #include <media/v4l2-fwnode.h>
 #include <media/v4l2-subdev.h>
+#include "sensor_tbls.h"
 #include "otp_flash.h"
 
 struct sensor {
@@ -25,83 +26,6 @@ struct sensor {
 	u8 selected_sensor;
 	bool supports_over_4k_res;
 	char *sensor_name;
-};
-
-struct resolution {
-	u16 width;
-	u16 height;
-};
-
-static struct resolution ar0144_res_list[] = {
-	{.width = 1280, .height = 720},
-	{.width = 1280, .height = 800},
-};
-
-static struct resolution ar0234_res_list[] = {
-	{.width = 1920, .height = 1200},
-	{.width = 1920, .height = 1080},
-	{.width = 1280, .height = 720},
-};
-
-static struct resolution ar0521_res_list[] = {
-	{.width = 1280, .height = 720},
-	{.width = 1920, .height = 1080},
-	{.width = 2592, .height = 1944},
-};
-
-static struct resolution ar0821_res_list[] = {
-	{.width = 1280, .height = 720},
-	{.width = 1920, .height = 1080},
-	{.width = 2560, .height = 1440},
-	{.width = 3840, .height = 2160},
-};
-
-static struct resolution ar1335_res_list[] = {
-	{.width = 1280, .height = 720},    //HD  720p
-	{.width = 1920, .height = 1080},   //FHD 1080p
-	{.width = 2560, .height = 1440},   //2K  1440p
-	{.width = 3840, .height = 2160},   //4K  2160p
-	{.width = 4192, .height = 3120},
-	{.width = 4208, .height = 3120},
-};
-
-struct sensor_info {
-	const char* sensor_name;
-	const struct resolution *res_list;
-	u32 res_list_size;
-};
-
-static struct sensor_info ap1302_sensor_table[] = {
-	{
-		.sensor_name = "TEVI-AR0144",
-		.res_list = ar0144_res_list,
-		.res_list_size = ARRAY_SIZE(ar0144_res_list)
-	},
-	{
-		.sensor_name = "TEVI-AR0234",
-		.res_list = ar0234_res_list,
-		.res_list_size = ARRAY_SIZE(ar0234_res_list)
-	},
-	{
-		.sensor_name = "TEVI-AR0521",
-		.res_list = ar0521_res_list,
-		.res_list_size = ARRAY_SIZE(ar0521_res_list)
-	},
-	{
-		.sensor_name = "TEVI-AR0522",
-		.res_list = ar0521_res_list,
-		.res_list_size = ARRAY_SIZE(ar0521_res_list)
-	},
-	{
-		.sensor_name = "TEVI-AR0821",
-		.res_list = ar0821_res_list,
-		.res_list_size = ARRAY_SIZE(ar0821_res_list)
-	},
-	{
-		.sensor_name = "TEVI-AR1335",
-		.res_list = ar1335_res_list,
-		.res_list_size = ARRAY_SIZE(ar1335_res_list)
-	},
 };
 
 static int sensor_standby(struct i2c_client *client, int enable);
@@ -259,7 +183,7 @@ static int ops_set_frame_interval(struct v4l2_subdev *sub_dev,
 static int ops_set_stream(struct v4l2_subdev *sub_dev, int enable)
 {
 	struct sensor *instance = container_of(sub_dev, struct sensor, v4l2_subdev);
-		int ret = 0;
+	int ret = 0;
 
 	dev_dbg(sub_dev->dev, "%s() enable [%x]\n", __func__, enable);
 
@@ -277,6 +201,7 @@ static int ops_set_stream(struct v4l2_subdev *sub_dev, int enable)
 	} else {
 		ret = sensor_standby(instance->i2c_client, 0);
 		if (ret == 0) {
+			int fps = ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].framerates;
 			dev_dbg(sub_dev->dev, "%s() width=%d, height=%d\n", __func__, 
 				ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].width, 
 				ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].height);
@@ -287,7 +212,7 @@ static int ops_set_stream(struct v4l2_subdev *sub_dev, int enable)
 			//VIDEO_HEIGHT
 			sensor_i2c_write_16b(instance->i2c_client, 0x2002,
 					     ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].height);
-			sensor_i2c_write_16b(instance->i2c_client, 0x2020, 0x1e00); //VIDEO_MAX_FPS
+			sensor_i2c_write_16b(instance->i2c_client, 0x2020, fps << 8); //VIDEO_MAX_FPS
 			sensor_i2c_write_16b(instance->i2c_client, 0x1184, 0xb); //ATOMIC
 		}
 	}
@@ -408,14 +333,24 @@ static int ops_enum_frame_interval(struct v4l2_subdev *sub_dev,
 				   struct v4l2_subdev_state *sd_state,
 				   struct v4l2_subdev_frame_interval_enum *fie)
 {
-	dev_dbg(sub_dev->dev, "%s()\n", __func__);
+	struct sensor *instance = container_of(sub_dev, struct sensor, v4l2_subdev);
+	int i;
+	dev_dbg(sub_dev->dev, "%s() %x %x %x\n", __func__,
+				fie->pad, fie->code, fie->index);
 
 	if ((fie->pad != 0) ||
 	    (fie->index != 0))
 		return -EINVAL;
 
 	fie->interval.numerator = 1;
-	fie->interval.denominator = 30;
+
+	for(i = 0 ; i < ap1302_sensor_table[instance->selected_sensor].res_list_size ; i++) {
+		if(fie->width == ap1302_sensor_table[instance->selected_sensor].res_list[i].width &&
+			fie->height == ap1302_sensor_table[instance->selected_sensor].res_list[i].height) {
+				fie->interval.denominator = ap1302_sensor_table[instance->selected_sensor].res_list[i].framerates;
+				break;
+			}
+	}
 
 	return 0;
 }
