@@ -822,6 +822,8 @@ EDM_TEP1_GPIO_DEFS();
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_enet1>;
 	phy-reset-gpios = <&gpio5 11 0>;
+	phy-reset-duration = <35>;
+	phy-reset-post-delay = <75>;
 	assigned-clocks = <&clks IMX7D_ENET1_TIME_ROOT_SRC>,
 			  <&clks IMX7D_ENET1_TIME_ROOT_CLK>;
 	assigned-clock-parents = <&clks IMX7D_PLL_ENET_MAIN_100M_CLK>;
