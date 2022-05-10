@@ -109,9 +109,9 @@ struct _res
 
 struct _res tc358743_support_res[] =
 {
-	{.x = 1024, .y=768},
-	{.x = 1280, .y=720},
 	{.x = 1920, .y=1080},
+	{.x = 1280, .y=720},
+	{.x = 1024, .y=768},
 };
 
 #define TC358743_FORMATS (SNDRV_PCM_FMTBIT_S32_LE)
