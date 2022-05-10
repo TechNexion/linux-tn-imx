@@ -30,7 +30,7 @@ struct sensor {
 
 static int sensor_standby(struct i2c_client *client, int enable);
 
-static int __i2c_read(struct i2c_client *client, u16 reg, u8 *val, u8 size)
+static int sensor_i2c_read(struct i2c_client *client, u16 reg, u8 *val, u8 size)
 {
 	struct i2c_msg msg[2];
 	u8 buf[2];
@@ -56,7 +56,7 @@ static int sensor_i2c_read_16b(struct i2c_client *client, u16 reg, u16 *value)
 	u8 v[2] = {0,0};
 	int ret;
 
-	ret = __i2c_read(client, reg, v, 2);
+	ret = sensor_i2c_read(client, reg, v, 2);
 
 	if (unlikely(ret < 0)) {
 		dev_err(&client->dev, "i2c transfer error.\n");
@@ -761,16 +761,13 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 	sensor_i2c_write_16b(instance->i2c_client, 0x1184, 0xb); //ATOMIC
 	msleep(1);
 	sensor_i2c_write_16b(instance->i2c_client, 0x1184, 1); //ATOMIC
-	//Video output 1920x1080,YUV422
+	//Video output
 	sensor_i2c_write_16b(instance->i2c_client, 0x2000, ap1302_sensor_table[instance->selected_sensor].res_list[0].width); //VIDEO_WIDTH
 	sensor_i2c_write_16b(instance->i2c_client, 0x2002, ap1302_sensor_table[instance->selected_sensor].res_list[0].height); //VIDEO_HEIGHT
 	sensor_i2c_write_16b(instance->i2c_client, 0x2012, 0x50); //VIDEO_OUT_FMT
-	//Video max fps 30
-	sensor_i2c_write_16b(instance->i2c_client, 0x2020, 0x1e00); //VIDEO_MAX_FPS
 	//continuous clock, data-lanes
 	sensor_i2c_write_16b(instance->i2c_client, 0x2030,
 			     0x10 | (continuous_clock << 5) | (data_lanes)); //VIDEO_HINF_CTRL
-	//sensor_i2c_write_16b(instance->i2c_client, 0x4014, 0); //VIDEO_SENSOR_MODE
 	sensor_i2c_write_16b(instance->i2c_client, 0x1184, 0xb); //ATOMIC
 
 	//let ap1302 go to standby mode

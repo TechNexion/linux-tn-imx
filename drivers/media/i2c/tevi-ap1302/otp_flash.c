@@ -39,20 +39,6 @@ size_t ap1302_otp_flash_get_pll_section(struct otp_flash *instance, u8 *data)
 }
 #else
 #include <linux/nvmem-consumer.h>
-/*
-header Version 2 : {
-	uint8 header_version
-	uint16 content_offset //content_offset may not be equal to the size of header
-	uint8 product_name[64]
-	uint8 product_version
-	uint8 lens_name[64]
-	uint8 lens_version
-	uint8 content_version
-	uint32 content_checksum
-	uint32 content_len
-	uint16 pll_bootdata_len
-}
-*/
 
 struct otp_flash *ap1302_otp_flash_init(struct device *dev)
 {
