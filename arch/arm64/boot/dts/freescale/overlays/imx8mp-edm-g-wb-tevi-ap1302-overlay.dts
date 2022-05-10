@@ -112,8 +112,8 @@
 				pinctrl-0 = <&pinctrl_csi1_pwn>, <&pinctrl_csi1_rst>;
 				host-power-gpios = <&gpio4 5 GPIO_ACTIVE_HIGH>;
 				reset-gpios = <&gpio4 4 GPIO_ACTIVE_HIGH>;
-				device-power-gpios = <&pca9555_a21 8 GPIO_ACTIVE_HIGH>;
-				standby-gpios = <&pca9555_a21 10 GPIO_ACTIVE_HIGH>;
+				device-power-gpios = <&pca9555_a23 8 GPIO_ACTIVE_HIGH>;
+				standby-gpios = <&pca9555_a23 10 GPIO_ACTIVE_HIGH>;
 				nvmem = <&tevi_ap1302_otp_1>;
 				nvmem-names = "calib-data";
 				data-lanes = <4>;
