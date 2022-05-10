@@ -13,6 +13,20 @@ struct otp_flash {
 	void *header_data;
 };
 
+/*
+header Version 2 : {
+	uint8 header_version
+	uint16 content_offset //content_offset may not be equal to the size of header
+	uint8 product_name[64]
+	uint8 product_version
+	uint8 lens_name[64]
+	uint8 lens_version
+	uint8 content_version
+	uint32 content_checksum
+	uint32 content_len
+	uint16 pll_bootdata_len
+}
+*/
 struct header_ver2 {
 	u8 header_version;
 	u16 content_offset;
