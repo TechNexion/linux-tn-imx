@@ -244,3 +244,5 @@ dtb-$(CONFIG_ARCH_MXC) += imx93-11x11-evk.dtb \
 			  imx93-11x11-evk-mqs.dtb imx93-11x11-evk-aud-hat.dtb
 dtb-$(CONFIG_ARCH_S32) += s32v234-evb.dtb \
 			  s32v234-sbc.dtb
+
+subdir-y += overlays
