@@ -1649,7 +1649,7 @@ static int tc358743_dv_timings_cap(struct v4l2_subdev *sd,
 }
 
 static int tc358743_enum_frame_size(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
+		struct v4l2_subdev_state *sd_state,
 		struct v4l2_subdev_frame_size_enum *fse)
 {
 	if (fse->index >= (sizeof(tc358743_support_res) / sizeof(tc358743_support_res[0])))
@@ -1662,7 +1662,7 @@ static int tc358743_enum_frame_size(struct v4l2_subdev *sd,
 }
 
 static int tc358743_enum_frame_interval(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
+		struct v4l2_subdev_state *sd_state,
 		struct v4l2_subdev_frame_interval_enum *fie)
 {
 	if (fie->index != 0)
