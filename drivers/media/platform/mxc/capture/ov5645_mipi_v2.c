@@ -3356,7 +3356,7 @@ static int ov5645_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *a)
 }
 
 static int ov5645_set_fmt(struct v4l2_subdev *sd,
-			struct v4l2_subdev_pad_config *cfg,
+			struct v4l2_subdev_state *sd_state,
 			struct v4l2_subdev_format *format)
 {
 	struct v4l2_mbus_framefmt *mf = &format->format;
@@ -3391,7 +3391,7 @@ static int ov5645_set_fmt(struct v4l2_subdev *sd,
 
 
 static int ov5645_get_fmt(struct v4l2_subdev *sd,
-			  struct v4l2_subdev_pad_config *cfg,
+			  struct v4l2_subdev_state *sd_state,
 			  struct v4l2_subdev_format *format)
 {
 	struct v4l2_mbus_framefmt *mf = &format->format;
@@ -3413,7 +3413,7 @@ static int ov5645_get_fmt(struct v4l2_subdev *sd,
 }
 
 static int ov5645_enum_mbus_code(struct v4l2_subdev *sd,
-				 struct v4l2_subdev_pad_config *cfg,
+				 struct v4l2_subdev_state *sd_state,
 				 struct v4l2_subdev_mbus_code_enum *code)
 {
 	if (code->pad || code->index >= ARRAY_SIZE(ov5645_colour_fmts))
@@ -3432,7 +3432,7 @@ static int ov5645_enum_mbus_code(struct v4l2_subdev *sd,
  * Return 0 if successful, otherwise -EINVAL.
  */
 static int ov5645_enum_framesizes(struct v4l2_subdev *sd,
-			       struct v4l2_subdev_pad_config *cfg,
+			       struct v4l2_subdev_state *sd_state,
 			       struct v4l2_subdev_frame_size_enum *fse)
 {
 	if (fse->index > ov5645_mode_MAX)
@@ -3461,7 +3461,7 @@ static int ov5645_enum_framesizes(struct v4l2_subdev *sd,
  * Return 0 if successful, otherwise -EINVAL.
  */
 static int ov5645_enum_frameintervals(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
+		struct v4l2_subdev_state *sd_state,
 		struct v4l2_subdev_frame_interval_enum *fie)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
