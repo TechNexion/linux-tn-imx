@@ -216,7 +216,7 @@ static int ops_set_stream(struct v4l2_subdev *sub_dev, int enable)
 }
 
 static int ops_enum_mbus_code(struct v4l2_subdev *sub_dev,
-			      struct v4l2_subdev_pad_config *cfg,
+			      struct v4l2_subdev_state *sd_state,
 			      struct v4l2_subdev_mbus_code_enum *code)
 {
 	dev_dbg(sub_dev->dev, "%s()\n", __func__);
@@ -230,7 +230,7 @@ static int ops_enum_mbus_code(struct v4l2_subdev *sub_dev,
 }
 
 static int ops_get_fmt(struct v4l2_subdev *sub_dev,
-		       struct v4l2_subdev_pad_config *cfg,
+		       struct v4l2_subdev_state *sd_state,
 		       struct v4l2_subdev_format *format)
 {
 	struct v4l2_mbus_framefmt *fmt;
@@ -244,7 +244,7 @@ static int ops_get_fmt(struct v4l2_subdev *sub_dev,
 
 	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
 		fmt = v4l2_subdev_get_try_format(sub_dev,
-						 cfg,
+						 sd_state,
 						 format->pad);
 	else
 		fmt = &instance->fmt;
@@ -255,7 +255,7 @@ static int ops_get_fmt(struct v4l2_subdev *sub_dev,
 }
 
 static int ops_set_fmt(struct v4l2_subdev *sub_dev,
-		       struct v4l2_subdev_pad_config *cfg,
+		       struct v4l2_subdev_state *sd_state,
 		       struct v4l2_subdev_format *format)
 {
 	struct v4l2_mbus_framefmt *fmt;
@@ -293,7 +293,7 @@ static int ops_set_fmt(struct v4l2_subdev *sub_dev,
 	memset(mbus_fmt->reserved, 0, sizeof(mbus_fmt->reserved));
 
 	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
-		fmt = v4l2_subdev_get_try_format(sub_dev, cfg, 0);
+		fmt = v4l2_subdev_get_try_format(sub_dev, sd_state, 0);
 	else
 		fmt = &instance->fmt;
 
@@ -303,7 +303,7 @@ static int ops_set_fmt(struct v4l2_subdev *sub_dev,
 }
 
 static int ops_enum_frame_size(struct v4l2_subdev *sub_dev,
-			       struct v4l2_subdev_pad_config *cfg,
+			       struct v4l2_subdev_state *sd_state,
 			       struct v4l2_subdev_frame_size_enum *fse)
 {
 	dev_dbg(sub_dev->dev, "%s() %x %x %x\n", __func__,
@@ -321,7 +321,7 @@ static int ops_enum_frame_size(struct v4l2_subdev *sub_dev,
 }
 
 static int ops_enum_frame_interval(struct v4l2_subdev *sub_dev,
-				   struct v4l2_subdev_pad_config *cfg,
+				   struct v4l2_subdev_state *sd_state,
 				   struct v4l2_subdev_frame_interval_enum *fie)
 {
 	dev_dbg(sub_dev->dev, "%s()\n", __func__);
