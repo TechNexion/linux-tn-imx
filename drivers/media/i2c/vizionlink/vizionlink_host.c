@@ -48,6 +48,8 @@ static struct __reg8b_v __9096x_i2c_setting [] = {
 	{.reg = 0x4C, .value = 0x38}, //FPD3_PORT_SEL,Port 3
 	{.reg = 0x58, .value = 0x5E}, //BCC_CONFIG
 	{.reg = 0x6D, .value = 0x7C}, //PORT_CONFIG
+	{.reg = 0x7C, .value = 0x20}, //
+	{.reg = 0xB0, .value = 0x1C}, //IND_ACC_CTL
 };
 
 static int __i2c_read(struct i2c_client *client, u8 reg, u8 *val, u8 size)
@@ -148,7 +150,9 @@ static int vh_check_port_lock_pass(struct vh_st *this)
 	for (i = 0 ; i < 4 ; i++) {
 		__i2c_write(this->i2c_client, 0x4c, (i << 4) | (1 << i));
 		__i2c_read(this->i2c_client, 0x4d, &v, 1);
-
+		if((v & 0xC0) >> 6 != i){
+			return ret;
+		}
 		if ((v & 0x7) == 3) {
 			__i2c_read(this->i2c_client, 0x5b, &v, 1);
 			__i2c_write(this->i2c_client, 0x5c,
