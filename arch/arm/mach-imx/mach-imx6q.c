@@ -172,6 +172,22 @@ static int ar8035_phy_fixup(struct phy_device *dev)
 
 #define PHY_ID_AR8035 0x004dd072
 
+static int rtl8211f_phy_fixup(struct phy_device *dev)
+{
+	u16 val;
+
+	/* Energy Efficient Ethernet(EEE) feature causes bidirectional
+	 * transmission issue, so disable EEE.
+	 */
+	phy_write(dev, 0x1f, 0x0a43);
+	val = phy_read(dev, 0x19);
+	phy_write(dev, 0x19, val & ~(1 << 5));
+
+	return 0;
+}
+
+#define PHY_ID_RTL8211F 0x001cc916
+
 static void __init imx6q_enet_phy_init(void)
 {
 	if (IS_BUILTIN(CONFIG_PHYLIB)) {
@@ -183,6 +199,8 @@ static void __init imx6q_enet_phy_init(void)
 				ar8031_phy_fixup);
 		phy_register_fixup_for_uid(PHY_ID_AR8035, 0xffffffef,
 				ar8035_phy_fixup);
+		phy_register_fixup_for_uid(PHY_ID_RTL8211F, 0xffffffff,
+				rtl8211f_phy_fixup);
 	}
 }
 
