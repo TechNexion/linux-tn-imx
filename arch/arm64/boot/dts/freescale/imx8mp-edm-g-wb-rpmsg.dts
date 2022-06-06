@@ -13,7 +13,6 @@
 / {
 	aliases {
 		i2c0 = &i2c1;
-		i2c1 = &i2c_rpbus_3;
 		i2c2 = &i2c3;
 	};
 
@@ -66,18 +65,6 @@
 		status = "okay";
 	};
 
-	sound-rpmsg {
-		compatible = "fsl,imx-audio-rpmsg";
-		model = "wm8960-audio";
-		cpu-dai = <&rpmsg_i2s>;
-		audio-codec = <&codec>;
-		memory-region = <&audio_reserved>;
-		rpmsg-out;
-		audio-routing =
-			"LINPUT1", "MICB",
-			"LINPUT3", "MICB";
-	};
-
 	imx8mp-cm7 {
 		compatible = "fsl,imx8mn-cm7";
 		rsc-da = <0x55000000>;
@@ -102,12 +89,8 @@
  * board, e.g., USB OTG(hd3ss3220), I/O expander(pca9555) and camera(ov5640).
  */
 
-&mipi_csi_0 {
-	/delete-node/ port@0;
-};
-
-&mipi_csi_1 {
-	/delete-node/ port@1;
+&i2c3 {
+	status = "disabled";
 };
 
 &uart4 {
