@@ -51,6 +51,21 @@ static int bcm54220_phy_fixup(struct phy_device *dev)
 	return 0;
 }
 
+static int rtl8211f_phy_fixup(struct phy_device *dev)
+{
+	u16 val;
+
+	/* Energy Efficient Ethernet(EEE) feature causes bidirectional
+	 * transmission issue, so disable EEE.
+	 */
+	phy_write(dev, 0x1f, 0x0a43);
+	val = phy_read(dev, 0x19);
+	phy_write(dev, 0x19, val & ~(1 << 5));
+
+	return 0;
+}
+
+#define PHY_ID_RTL8211F 0x001cc916
 #define PHY_ID_AR8031	0x004dd074
 #define PHY_ID_BCM54220	0x600d8589
 
@@ -61,6 +76,8 @@ static void __init imx7d_enet_phy_init(void)
 					   ar8031_phy_fixup);
 		phy_register_fixup_for_uid(PHY_ID_BCM54220, 0xffffffff,
 					   bcm54220_phy_fixup);
+		phy_register_fixup_for_uid(PHY_ID_RTL8211F, 0xffffffff,
+					   rtl8211f_phy_fixup);
 	}
 }
 
