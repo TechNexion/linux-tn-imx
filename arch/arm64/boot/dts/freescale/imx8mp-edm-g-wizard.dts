@@ -156,6 +156,14 @@
 	status = "disabled";
 };
 
+&mipi_csi_0 {
+	status = "disabled";
+};
+
+&mipi_csi_1 {
+	status = "disabled";
+};
+
 &i2c2 {
 	status = "okay";
 
@@ -229,6 +237,11 @@
 							"EXT_GPIO8", "EXT_GPIO9", "", "", "", "CSI1_PDB", "CSI2_PDB", "PD_FAULT";
 	};
 
+	vizionlink_0: vizionlink@30 {
+		reg = <0x30>;
+		status = "disabled";
+	};
+
 	ov5640_0: ov5640_mipi@3c {
 		reg = <0x3c>;
 		status = "disabled";
@@ -261,6 +274,11 @@
 
 &i2c5 {
 	clock-frequency = <400000>;
+
+	vizionlink_1: vizionlink@30 {
+		reg = <0x30>;
+		status = "disabled";
+	};
 
 	sensor_5v0:ina219_5v0@44 {/* Power monitor for 5V SOM input supply */
 		compatible = "ti,ina219";
