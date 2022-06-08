@@ -17,6 +17,7 @@
 		__overlay__ {
 			#address-cells = <1>;
 			#size-cells = <0>;
+			clock-frequency = <400000000>;
 			status = "okay";
 
 			port@0 {
@@ -37,6 +38,7 @@
 		__overlay__ {
 			#address-cells = <1>;
 			#size-cells = <0>;
+			clock-frequency = <400000000>;
 			status = "okay";
 
 			port@1 {
