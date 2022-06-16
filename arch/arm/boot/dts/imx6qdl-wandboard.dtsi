@@ -372,6 +372,8 @@
 	pinctrl-0 = <&pinctrl_enet>;
 	phy-mode = "rgmii-id";
 	phy-handle = <&ethphy>;
+	phy-reset-duration = <35>;
+	phy-reset-post-delay = <75>;
 	phy-reset-gpios = <&gpio3 29 GPIO_ACTIVE_LOW>;
 	status = "okay";
 
