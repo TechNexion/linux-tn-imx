@@ -121,6 +121,7 @@ dtb-$(CONFIG_ARCH_MXC) += imx8mn-edm-g-wb.dtb \
 dtb-$(CONFIG_ARCH_MXC) += imx8mn-edm-g-wizard.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mn-evk-iqaudio-dacplus.dtb imx8mn-evk-iqaudio-dacpro.dtb imx8mn-evk-hifiberry-dacplus.dtb \
 			  imx8mn-evk-hifiberry-dac2.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-axon-wizard.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wb.dtb imx8mp-edm-g-wb-lvds-vl10112880.dtb imx8mp-edm-g-wb-lvds-vl215192108.dtb \
 			  imx8mp-edm-g-wb-rpmsg.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wizard.dtb
