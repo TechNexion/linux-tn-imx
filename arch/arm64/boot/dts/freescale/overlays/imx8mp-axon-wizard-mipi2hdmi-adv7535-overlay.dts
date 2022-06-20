@@ -1,0 +1,98 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2020 TechNexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	fragment@0 {
+		target-path = "/";
+		__overlay__ {
+			sound-adv7535 {
+				compatible = "simple-audio-card";
+				simple-audio-card,name = "adv7535-hdmi";
+				simple-audio-card,mclk-fs = <256>;
+				simple-audio-card,mclk-clk-id = <1>;
+				simple-audio-card,format = "i2s";
+				simple-audio-card,bitclock-master = <&sound_master>;
+				simple-audio-card,frame-master = <&sound_master>;
+
+				sound_master: simple-audio-card,cpu {
+					sound-dai = <&sai2>;	/* AUD_B */
+				};
+
+				simple-audio-card,codec {
+					sound-dai = <&adv_bridge>;
+				};
+			};
+
+			reg_mipi_pwr: regulator_mipipwr {
+				regulator-always-on;
+				status = "okay";
+			};
+
+			reg_mipi_vdden: regulator_mipivdden {
+				regulator-always-on;
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&sai2>;
+		__overlay__ {
+			#sound-dai-cells = <0>;
+			status = "okay";
+		};
+	};
+
+	fragment@2 {
+		target = <&mipi_dsi>;
+		__overlay__ {
+			status = "okay";
+
+			port@1 {
+				dsim_to_adv7535: endpoint {
+					remote-endpoint = <&adv7535_from_dsim>;
+					attach-bridge;
+				};
+			};
+		};
+	};
+
+	fragment@3 {
+		target = <&i2c5>; /* I2C_C */
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			adv_bridge: adv7535@3d {
+				compatible = "adi,adv7533";
+				reg = <0x3d>;
+				adi,addr-cec = <0x3b>;
+				adi,dsi-lanes = <4>;
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_ft5336_touch_irq>;
+				interrupt-parent = <&gpio4>;
+				interrupts = <15 IRQ_TYPE_EDGE_FALLING>;
+				status = "okay";
+				#sound-dai-cells = <0>;
+
+				port {
+					adv7535_from_dsim: endpoint {
+						remote-endpoint = <&dsim_to_adv7535>;
+					};
+				};
+			};
+		};
+	};
+};
