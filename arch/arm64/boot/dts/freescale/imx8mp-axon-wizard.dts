@@ -1,0 +1,461 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2020 Technexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *
+ */
+
+/dts-v1/;
+
+#include "imx8mp-axon.dtsi"
+
+/ {
+	model = "TechNexion AXON-IMX8MP and WIZARD baseboard";
+	compatible = "fsl,imx8mp-axon", "fsl,imx8mp";
+
+	reg_usb_otg_vbus: usb_otg_vbus {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_otg_vbus>;
+		compatible = "regulator-fixed";
+		regulator-name = "usb_otg_vbus";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		gpio = <&gpio4 0 GPIO_ACTIVE_LOW>;
+		enable-active-low;
+	};
+
+	reg_lvds_backlight_pwr: regulator_lvdsblpwr {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_lvds0_backlight_pwr>;
+		compatible = "regulator-fixed";
+		regulator-name = "lvds0_bl_en";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&gpio4 14 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		regulator-always-on;
+	};
+
+	reg_mipi_pwr: regulator_mipipwr {	/* MIPI_5V control */
+		pinctrl-names = "default";
+		compatible = "regulator-fixed";
+		regulator-name = "mipi_pwr";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		gpio = <&pca9554 0 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		status = "disabled";
+	};
+
+	reg_lvds_pwr: regulator_lvdspwr {
+		pinctrl-names = "default";
+		compatible = "regulator-fixed";
+		regulator-name = "lvds_pwr_en";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&pca9554 6 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		status = "disabled";
+	};
+
+	reg_mipi_vdden: regulator_mipivdden {
+		pinctrl-names = "default";
+		compatible = "regulator-fixed";
+		regulator-name = "mipi_vdden";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		gpio = <&pca9554 2 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		status = "disabled";
+	};
+
+	reg_mipi_bl_en: regulator_mipiblen {
+		pinctrl-names = "default";
+		compatible = "regulator-fixed";
+		regulator-name = "mipi_blen";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&pca9554 3 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		status = "disabled";
+	};
+
+	lvds_backlight: lvds_backlight {
+		compatible = "pwm-backlight";
+		pwms = <&pwm2 0 50000>;
+		brightness-levels = <0 36 72 108 144 180 216 255>;
+		default-brightness-level = <6>;
+		status = "disabled";
+	};
+
+	mipi_backlight: mipi_backlight {
+		compatible = "pwm-backlight";
+		pwms = <&pwm1 0 50000>;
+		brightness-levels = <0 36 72 108 144 180 216 255>;
+		default-brightness-level = <6>;
+		status = "disabled";
+	};
+
+	sound-wm8960 {
+		compatible = "fsl,imx7d-evk-wm8960", "fsl,imx-audio-wm8960";
+		model = "wm8960-audio";
+		cpu-dai = <&sai3>;	/* AUD_A */
+		audio-codec = <&codec>;
+		asrc-controller = <&easrc>;
+		codec-master;
+		/* JD2: hp detect high for headphone*/
+		hp-det = <2 0>;
+		audio-routing =
+			"Headphone Jack", "HP_L",
+			"Headphone Jack", "HP_R",
+			"Ext Spk", "SPK_LP",
+			"Ext Spk", "SPK_LN",
+			"Ext Spk", "SPK_RP",
+			"Ext Spk", "SPK_RN",
+			"LINPUT1", "Mic Jack",
+			"Mic Jack", "MICB",
+			"CPU-Playback", "ASRC-Playback",
+			"Playback", "CPU-Playback",
+			"ASRC-Capture", "CPU-Capture",
+			"CPU-Capture", "Capture";
+	};
+
+	clocks {
+		codec_osc: aud_mclk {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <24000000>;
+			clock-output-names = "wm8960-mclk";
+		};
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+
+		led {
+			label = "gpio-led";
+			gpios = <&tca9554_22 0 GPIO_ACTIVE_HIGH>;
+		};
+	};
+
+	gpio_keys {
+		compatible = "gpio-keys";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_gpio_key_user1>;
+
+		pair {
+			gpios = <&gpio1 11 GPIO_ACTIVE_LOW>;
+			label = "KEY PAIR";
+			linux,code = <KEY_SELECT>;
+		};
+	};
+};
+
+&snvs_pwrkey {
+	linux,keycode = <KEY_SUSPEND>;
+	status = "okay";
+};
+
+&i2c2 {	/* I2C_B on AXON */
+	status = "okay";
+
+	pca9555_a21: pca9555@21 {
+		compatible = "nxp,pca9555";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pca9555_a21_irq>;
+		reg = <0x21>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+		interrupt-parent = <&gpio4>;
+		interrupts = <11 IRQ_TYPE_LEVEL_LOW>;
+		status = "okay";
+		gpio-line-names = "EXPOSURE_TRIG_IN1", "FLASH_OUT1", "INFO_TRIG_IN1", "CAM_SHUTTER1", "XVS1", "PWR1_TIME0", "PWR1_TIME1", "PWR1_TIME2",
+							"EXPOSURE_TRIG_IN2", "FLASH_OUT2", "INFO_TRIG_IN2", "CAM_SHUTTER2", "XVS2", "PWR2_TIME0", "PWR2_TIME1", "PWR2_TIME2";
+	};
+
+	ov5640_0: ov5640_mipi@3c {
+		reg = <0x3c>;
+		status = "disabled";
+	};
+
+	tevi_ap1302_0: tevi_ap1302@3d {
+		reg = <0x3d>;
+		status = "disabled";
+	};
+
+	vizionlink_0: vizionlink@30 {
+		reg = <0x30>;
+		status = "disabled";
+
+		i2c_dev_list {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			vizionlink_pca9554_a25_0: vizionlink_pca9554@25 {
+				reg = <0x25>;
+				status = "disabled";
+			};
+
+			vizionlink_tevi_ov5640_0: vizionlink_ov5640_mipi@3c {
+				reg = <0x3c>;
+				status = "disabled";
+			};
+
+			vizionlink_tevi_ap1302_0: vizionlink_tevi_ap1302@3d {
+				reg = <0x3d>;
+				status = "disabled";
+			};
+		};
+	};
+};
+
+&i2c3 { /* I2C_D on AXON */
+	status = "okay";
+};
+
+&i2c4 { /* I2C_A on AXON */
+	status = "okay";
+
+	pca9554: pca9554@23 {
+		compatible = "nxp,pca9554";
+		pinctrl-names = "default";
+		reg =<0x23>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		status = "okay";
+	};
+
+	codec: wm8960@1a {
+		compatible = "wlf,wm8960";
+		reg = <0x1a>;
+		//clocks = <&audiomix_clk IMX8MP_CLK_AUDIOMIX_SAI3_MCLK1>;
+		clocks = <&codec_osc>;
+		clock-names = "mclk";
+		wlf,shared-lrclk;
+		wlf,fixed-mclk;
+	};
+
+	typec_hd3ss3220: hd3ss3220@47 {
+		compatible = "ti,hd3ss3220";
+		interrupts-extended = <&gpio5 12 IRQ_TYPE_LEVEL_LOW>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_hd3ss3220_irq>;
+		vbus-supply = <&reg_usb_otg_vbus>;
+		reg = <0x47>;
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				hd3ss3220_in_ep: endpoint {
+					remote-endpoint = <&dwc3_out_ep>;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+				hd3ss3220_out_ep: endpoint {
+					remote-endpoint = <&dwc3_in_ep>;
+				};
+			};
+		};
+	};
+
+	rtc_ds1337: ds1337@68 {
+		compatible = "dallas,ds1337";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_rtc_ds1337_irq>;
+		reg = <0x68>;
+		wakeup-source;
+		interrupt-parent = <&gpio5>;
+		interrupts = <13 0>;
+	};
+};
+
+&i2c5 { /* I2C_C on AXON */
+	clock-frequency = <400000>;
+
+	tca9554_22: tca9554_22@22 {
+		compatible = "nxp,pca9554";
+		pinctrl-names = "default";
+		reg =<0x22>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		status = "okay";
+	};
+
+	pca9554_27: pca9554_27@27 {
+		compatible = "nxp,pca9554";
+		pinctrl-names = "default";
+		reg =<0x27>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		status = "okay";
+	};
+
+	/* Power monitor for 3.3V SOM output supply */
+	sensor_3v3:ina219_3v3@45 {
+		compatible = "ti,ina219";
+		reg = <0x45>;
+		shunt-resistor = <200000>; /* .2 Ohm resistor = 200000 uOhms*/
+	};
+
+	/* Power monitor for 1.8V SOM output supply */
+	sensor_1v8:ina219_1v8@40 {
+		compatible = "ti,ina219";
+		reg = <0x40>;
+		shunt-resistor = <200000>; /* .2 Ohm resistor = 200000 uOhms*/
+	};
+
+	/* Power monitor for 5V SOM input supply */
+	sensor_5v0:ina219_5v0@44 {
+		compatible = "ti,ina219";
+		reg = <0x44>;
+		shunt-resistor = <200000>; /* .2 Ohm resistor = 200000 uOhms*/
+	};
+
+	ov5640_1: ov5640_mipi@3c {
+		reg = <0x3c>;
+		status = "disabled";
+	};
+
+	tevi_ap1302_1: tevi_ap1302@3d {
+		reg = <0x3d>;
+		status = "disabled";
+	};
+
+	vizionlink_1: vizionlink@30 {
+		reg = <0x30>;
+		status = "disabled";
+
+		i2c_dev_list {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			vizionlink_pca9554_a25_1: vizionlink_pca9554@25 {
+				reg = <0x25>;
+				status = "disabled";
+			};
+
+			vizionlink_tevi_ov5640_1: vizionlink_ov5640_mipi@3c {
+				reg = <0x3c>;
+				status = "disabled";
+			};
+
+			vizionlink_tevi_ap1302_1: vizionlink_tevi_ap1302@3d {
+				reg = <0x3d>;
+				status = "disabled";
+			};
+		};
+	};
+};
+
+&flexcan1 {
+	status = "okay";
+};
+
+&flexcan2 {
+	status = "okay";
+};
+
+&usb_dwc3_0 {
+	dr_mode = "otg";
+	usb-role-switch;
+	status = "okay";
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			dwc3_out_ep: endpoint {
+				remote-endpoint = <&hd3ss3220_in_ep>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			dwc3_in_ep: endpoint {
+				remote-endpoint = <&hd3ss3220_out_ep>;
+			};
+		};
+	};
+};
+
+&iomuxc {
+
+	pinctrl_otg_vbus: otgvbusgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_RXFS__GPIO4_IO00		0x19   /* GPIO_X1_P66, USB OTG VBUS Enable */
+		>;
+	};
+
+	pinctrl_hd3ss3220_irq: hd3ss3220_irqgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_ECSPI2_MISO__GPIO5_IO12	0x41    /* UART_B_CTS */
+		>;
+	};
+
+	pinctrl_lvds0_backlight_pwr: lvds0_bl_pwrgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_TXD2__GPIO4_IO14		0x19	/* GPIO_X4_P7, LVDS_BL_EN */
+		>;
+	};
+
+	pinctrl_ft5336_touch_irq: ft5336_irqgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_TXD3__GPIO4_IO15		0x41   /* GPIO_X2_P20, Touch INT */
+		>;
+	};
+
+	pinctrl_tfa98xx: tfa98xx_ctrlgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_TXFS__GPIO4_IO10	0x19 /* GPIO_X1_P80, INT */
+			MX8MP_IOMUXC_SAI2_TXFS__GPIO4_IO24	0x19 /* AUD_B_TXFS, RST */
+		>;
+	};
+
+	pinctrl_pca9955: pca9955_ctrlgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_TXD0__GPIO4_IO12		0x16 /* GPIO_X1_P78, RST */
+		>;
+	};
+
+	pinctrl_pca9555_a21_irq: pca9555_a21_irqgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_TXC__GPIO4_IO11		0x140 /* GPIO_X1_P70 */
+		>;
+	};
+
+	pinctrl_rtc_ds1337_irq: pinctrl_rtc_ds1337_irqgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_ECSPI2_SS0__GPIO5_IO13		0x19 /* UART_B_RTS, INT */
+		>;
+	};
+
+	pinctrl_gpio_key_user1: gpiokey_user1grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_RXD5__GPIO4_IO07		0x41 /* GPIO_X1_P72 */
+		>;
+	};
+
+	pinctrl_gpio_key_voicehat: gpiokey_voicehatgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SD1_DATA5__GPIO2_IO07		0x41 /* KEY_PAIR on VoiceHat */
+			MX8MP_IOMUXC_SAI5_RXFS__GPIO3_IO19		0x41 /* KEY_PLAY on VoiceHat */
+			MX8MP_IOMUXC_SAI5_MCLK__GPIO3_IO25		0x41 /* KEY_NEXT on VoiceHat */
+			MX8MP_IOMUXC_SAI5_RXD3__GPIO3_IO24		0x41 /* KEY_UP on VoiceHat */
+			MX8MP_IOMUXC_SPDIF_TX__GPIO5_IO03		0x41 /* KEY_DOWN on VoiceHat */
+			MX8MP_IOMUXC_SPDIF_RX__GPIO5_IO04		0x41 /* KEY_MUTE on VoiceHat */
+			MX8MP_IOMUXC_ECSPI2_SS0__GPIO5_IO13		0x41 /* KEY_PAIR on VoiceHat */
+			MX8MP_IOMUXC_GPIO1_IO09__GPIO1_IO09		0x41 /* KEY_ACT on VoiceHat */
+		>;
+	};
+};
