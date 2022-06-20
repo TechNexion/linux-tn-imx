@@ -1,0 +1,79 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2021 Technexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	fragment@0 {
+		target-path = "/";
+		__overlay__ {
+			reg_mipi_pwr: regulator_mipipwr {
+				regulator-always-on;
+				status = "okay";
+			};
+
+			reg_mipi_vdden: regulator_mipivdden {
+				regulator-always-on;
+				status = "okay";
+			};
+
+			mipi_backlight: mipi_backlight {
+				status = "okay";
+			};
+
+			reg_mipi_bl_en: regulator_mipiblen {
+				regulator-always-on;
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&mipi_dsi>;
+
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+			panel@0 {
+				compatible = "auo,g080uan01";
+				backlight = <&mipi_backlight>;
+				reg = <0>;
+				enable-gpios = <&pca9554 5 GPIO_ACTIVE_HIGH>;
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&i2c5>; /* I2C_C */
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			polytouch: edt-ft5626@38 {
+				compatible = "edt,edt-ft5x06";
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_ft5336_touch_irq>;
+				reg = <0x38>;
+				interrupt-parent = <&gpio4>;
+				interrupts = <15 IRQ_TYPE_EDGE_FALLING>;
+				reset-gpios = <&pca9554 1 GPIO_ACTIVE_LOW>;
+				touchscreen-size-x = <1200>;
+				touchscreen-size-y = <1920>;
+				status="okay";
+			};
+		};
+	};
+};
+
