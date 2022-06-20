@@ -33,6 +33,12 @@ dtbo-$(CONFIG_ARCH_MXC) += imx8mq-pico-wizard-ili9881c.dtbo imx8mq-pico-wizard-g
 			   imx8mq-pico-wizard-clix1nfc.dtbo imx8mq-pico-wizard-clix2nfc.dtbo \
 			   imx8mq-pico-wizard-sn65dsi84-vl10112880.dtbo imx8mq-pico-wizard-sn65dsi84-vl15613676.dtbo imx8mq-pico-wizard-sn65dsi84-vl215192108.dtbo \
 			   imx8mq-pico-wizard-mipi2hdmi-adv7535.dtbo imx8mq-pico-wizard-voicehat.dtbo imx8mq-pico-wizard-tevi-ov5640.dtbo imx8mq-pico-wizard-ov5645.dtbo imx8mq-pico-wizard-ov7251.dtbo
+dtbo-$(CONFIG_ARCH_MXC) += imx8mp-axon-wizard-tevi-ov5640.dtbo imx8mp-axon-wizard-tevi-ap1302.dtbo
+dtbo-$(CONFIG_ARCH_MXC) += imx8mp-axon-wizard-vizionlink-tevi-ov5640-csi0.dtbo imx8mp-axon-wizard-vizionlink-tevi-ov5640-csi1.dtbo imx8mp-axon-wizard-vizionlink-tevi-ov5640-dual.dtbo \
+                           imx8mp-axon-wizard-vizionlink-tevi-ap1302.dtbo imx8mp-axon-wizard-hdmi2mipi-tc358743-single-cam1.dtbo
+dtbo-$(CONFIG_ARCH_MXC) += imx8mp-axon-wizard-lvds-vl10112880.dtbo imx8mp-axon-wizard-lvds-vl15613676.dtbo \
+			   imx8mp-axon-wizard-lvds-vl215192108.dtbo
+dtbo-$(CONFIG_ARCH_MXC) += imx8mp-axon-wizard-ili9881c.dtbo imx8mp-axon-wizard-g101uan02.dtbo imx8mp-axon-wizard-g080uan01.dtbo imx8mp-axon-wizard-mipi2hdmi-adv7535.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mn-edm-g-wb-sn65dsi84-vl10112880.dtbo imx8mn-edm-g-wb-sn65dsi84-vl15613676.dtbo imx8mn-edm-g-wb-sn65dsi84-vl215192108.dtbo \
 			   imx8mn-edm-g-wb-tevi-ov5640.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mn-edm-g-wizard-sn65dsi84-vl10112880.dtbo imx8mn-edm-g-wizard-sn65dsi84-vl15613676.dtbo imx8mn-edm-g-wizard-sn65dsi84-vl215192108.dtbo \
