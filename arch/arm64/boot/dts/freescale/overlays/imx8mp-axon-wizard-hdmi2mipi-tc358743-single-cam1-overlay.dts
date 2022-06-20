@@ -1,0 +1,104 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2020 Technexion Ltd.
+ *
+ * Author: Ray Chang <ray.chang@technexion.com>
+ *
+ */
+
+/******************************************************************************
+
+USAGE NOTES:
+
+This overlay is to enable a VizionLink HDMI board connected into the CAMERA1
+slot of the AXON-WIZARD baseboard.
+
+It enables the TC358743 device and logically connects it into the MIPI-CSI of
+the i.MX8M Plus SOC. It also explicitly disables the TEVI-OV5640 cameras which
+are enabled by default on both CSI ports for the AXON.
+
+It also disables the WM8960 codec, which is shared with SAI3 (SAI3 is named
+AUD_A in the AXON-IMX8MP connection pinout). SAI3 is also the default
+interface connected to the CAMERA1 port of the AXON.
+
+This overlay can be included by configuring the 'dtoverlay' in u-boot to
+include "hdmi2mipi-tc358743-single-cam1":
+
+setenv dtoverlay ${dtoverlay} hdmi2mipi-tc358743-single-cam1
+saveenv
+
+*****************************************************************************/
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	fragment@0 {
+		target = <&i2c2>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			hdmi_in_0: tc358743@f {
+				compatible = "toshiba,tc358743";
+				reg = <0x0f>;
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_csi0_pwn>, <&pinctrl_csi0_rst>;
+				reset-gpios = <&gpio1 8 GPIO_ACTIVE_HIGH>;
+				status = "okay";
+				port {
+					hdmi_in_ep_0: endpoint {
+						remote-endpoint = <&mipi_csi0_ep>;
+						data-lanes = <1 2 3 4>;
+						clock-lanes = <0>;
+						clock-noncontinuous;
+						link-frequencies = /bits/ 64 <297000000>;
+					};
+				};
+			};
+
+			codec: wm8960@1a {
+				status = "disabled";
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&mipi_csi_0>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+			port@0 {
+				reg = <0>;
+				mipi_csi0_ep: endpoint {
+					remote-endpoint = <&hdmi_in_ep_0>;
+					data-lanes = <4>;
+					csis-hs-settle = <13>;
+					csis-clk-settle = <2>;
+					csis-wclk;
+				};
+			};
+		};
+	};
+
+	fragment@2 {
+		target-path = "/";
+		__overlay__ {
+			sound-wm8960 {
+				status = "disabled";
+			};
+
+			sound-tc358743 {
+				compatible = "nxp,imx-audio-tc358743", "nxp,imx-tc358743";
+				cpu-dai = <&sai3>;  /* AUB_A on AXON */
+				nxp,audio-codec = <&hdmi_in_0>;
+			};
+		};
+	};
+};
+

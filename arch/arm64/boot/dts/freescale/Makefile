@@ -125,6 +125,7 @@ dtb-$(CONFIG_ARCH_MXC) += imx8mn-edm-g-wizard.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mn-ab2.dtb imx8mn-ddr4-ab2.dtb imx8mn-ddr3l-ab2.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mn-var-som-symphony.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mn-venice-gw7902.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx8mp-axon-wizard.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wb.dtb imx8mp-edm-g-wb-lvds-vl10112880.dtb imx8mp-edm-g-wb-lvds-vl215192108.dtb \
 			  imx8mp-edm-g-wb-rpmsg.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wizard.dtb
