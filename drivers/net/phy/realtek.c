@@ -28,6 +28,7 @@
 #define RTL8211F_INSR		0x1d
 #define RTL8211F_PAGE_SELECT	0x1f
 #define RTL8211F_TX_DELAY	0x100
+#define RTL8211F_RX_DELAY	0x008
 
 /* page 0xd04, register 0x10-0x11 */
 #define RTL8211F_PHYLED_PAGE			0x0d04
@@ -118,6 +119,17 @@ static int rtl8211f_config_init(struct phy_device *phydev)
 		reg &= ~RTL8211F_TX_DELAY;
 
 	phy_write(phydev, 0x11, reg);
+
+	reg = phy_read(phydev, 0x15);
+
+	/* enable RX-delay for rgmii-id and rgmii-rxid, otherwise disable it */
+	if (phydev->interface == PHY_INTERFACE_MODE_RGMII_ID ||
+	    phydev->interface == PHY_INTERFACE_MODE_RGMII_RXID)
+		reg |= RTL8211F_RX_DELAY;
+	else
+		reg &= ~RTL8211F_RX_DELAY;
+
+	phy_write(phydev, 0x15, reg);
 
 	ret = phy_write(phydev, RTL8211F_PAGE_SELECT, RTL8211F_PHYLED_PAGE);
 	if (ret < 0)
