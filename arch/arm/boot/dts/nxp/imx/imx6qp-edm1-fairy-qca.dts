@@ -55,6 +55,10 @@
 	status = "okay";
 };
 
+&sata {
+	status = "okay";
+};
+
 &fec {
     /delete-property/ phy-reset-gpios;
 };
