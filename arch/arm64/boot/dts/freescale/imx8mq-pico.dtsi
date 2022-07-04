@@ -29,6 +29,8 @@
 		rpmsg_reserved: rpmsg@b8000000 {
 			no-map;
 			reg = <0 0xb8000000 0 0x400000>;
+			rtl821x,aldps-disable;
+			rtl821x,clkout-disable;
 		};
 	};
 
@@ -390,7 +392,7 @@
 			MX8MQ_IOMUXC_ENET_RXC_ENET1_RGMII_RXC	0x91
 			MX8MQ_IOMUXC_ENET_RX_CTL_ENET1_RGMII_RX_CTL	0x91
 			MX8MQ_IOMUXC_ENET_TX_CTL_ENET1_RGMII_TX_CTL	0x1f
-			MX8MQ_IOMUXC_GPIO1_IO09_GPIO1_IO9	0x19
+			MX8MQ_IOMUXC_GPIO1_IO09_GPIO1_IO9	0x36
 		>;
 	};
 
