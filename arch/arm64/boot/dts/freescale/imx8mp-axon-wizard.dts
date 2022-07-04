@@ -177,6 +177,11 @@
 							"EXPOSURE_TRIG_IN2", "FLASH_OUT2", "INFO_TRIG_IN2", "CAM_SHUTTER2", "XVS2", "PWR2_TIME0", "PWR2_TIME1", "PWR2_TIME2";
 	};
 
+	vizionlink_0: vizionlink@30 {
+		reg = <0x30>;
+		status = "disabled";
+	};
+
 	ov5640_0: ov5640_mipi@3c {
 		reg = <0x3c>;
 		status = "disabled";
@@ -185,31 +190,6 @@
 	tevi_ap1302_0: tevi_ap1302@3d {
 		reg = <0x3d>;
 		status = "disabled";
-	};
-
-	vizionlink_0: vizionlink@30 {
-		reg = <0x30>;
-		status = "disabled";
-
-		i2c_dev_list {
-			#address-cells = <1>;
-			#size-cells = <0>;
-
-			vizionlink_pca9554_a25_0: vizionlink_pca9554@25 {
-				reg = <0x25>;
-				status = "disabled";
-			};
-
-			vizionlink_tevi_ov5640_0: vizionlink_ov5640_mipi@3c {
-				reg = <0x3c>;
-				status = "disabled";
-			};
-
-			vizionlink_tevi_ap1302_0: vizionlink_tevi_ap1302@3d {
-				reg = <0x3d>;
-				status = "disabled";
-			};
-		};
 	};
 };
 
@@ -320,6 +300,11 @@
 		shunt-resistor = <200000>; /* .2 Ohm resistor = 200000 uOhms*/
 	};
 
+	vizionlink_1: vizionlink@30 {
+		reg = <0x30>;
+		status = "disabled";
+	};
+
 	ov5640_1: ov5640_mipi@3c {
 		reg = <0x3c>;
 		status = "disabled";
@@ -330,30 +315,6 @@
 		status = "disabled";
 	};
 
-	vizionlink_1: vizionlink@30 {
-		reg = <0x30>;
-		status = "disabled";
-
-		i2c_dev_list {
-			#address-cells = <1>;
-			#size-cells = <0>;
-
-			vizionlink_pca9554_a25_1: vizionlink_pca9554@25 {
-				reg = <0x25>;
-				status = "disabled";
-			};
-
-			vizionlink_tevi_ov5640_1: vizionlink_ov5640_mipi@3c {
-				reg = <0x3c>;
-				status = "disabled";
-			};
-
-			vizionlink_tevi_ap1302_1: vizionlink_tevi_ap1302@3d {
-				reg = <0x3d>;
-				status = "disabled";
-			};
-		};
-	};
 };
 
 &flexcan1 {
