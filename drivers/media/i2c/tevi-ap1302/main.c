@@ -426,7 +426,7 @@ static int check_sensor_chip_id(struct i2c_client *client, u16* chip_id)
 	return 0;
 }
 
-static int sensor_standby(struct i2c_client *client, int enable)
+static int set_standby_mode_rel419(struct i2c_client *client, int enable)
 {
 	u16 v = 0;
 	int timeout;
@@ -463,12 +463,12 @@ static int sensor_standby(struct i2c_client *client, int enable)
 		for (timeout = 0 ; timeout < 500 ; timeout ++) {
 			usleep_range(9000, 10000);
 			sensor_i2c_read_16b(client, 0, &v);
-			if (v != 0)
-				break;
+		  	if (v != 0)
+		 	  break;
 		}
 		if (timeout >= 500) {
-			dev_err(&client->dev, "timeout: line[%d]v=%x\n", __LINE__, v);
-			return -EINVAL;
+		 dev_err(&client->dev, "timeout: line[%d]v=%x\n", __LINE__, v);
+		 return -EINVAL;
 		}
 
 		if(check_sensor_chip_id(client, &v) == 0) {
@@ -522,6 +522,51 @@ static int sensor_standby(struct i2c_client *client, int enable)
 		}
 		sensor_i2c_write_16b(client, 0xF056, 0x0000);
 
+		dev_dbg(&client->dev, "sensor wake up\n");
+	}
+
+	return 0;
+}
+
+static int sensor_standby(struct i2c_client *client, int enable)
+{
+	u16 v = 0;
+	int timeout;
+	u16 checksum = 0;
+	dev_dbg(&client->dev, "%s():enable=%d\n", __func__, enable);
+
+	sensor_i2c_read_16b(client, 0x6134, &checksum);
+
+	if(checksum != 0xFFFF){
+		return set_standby_mode_rel419(client, enable); // standby for rel419
+	}
+
+	if (enable == 1) {
+		sensor_i2c_write_16b(client, 0x601a, 0x0180);
+		for (timeout = 0 ; timeout < 500 ; timeout ++) {
+			usleep_range(9000, 10000);
+			sensor_i2c_read_16b(client, 0x601a, &v);
+			if ((v & 0x200) == 0x200)
+				break;
+		}
+		if (timeout < 500) {
+			msleep(100);
+		} else {
+			dev_err(&client->dev, "timeout: line[%d]v=%x\n", __LINE__, v);
+			return -EINVAL;
+		}
+	} else {
+		sensor_i2c_write_16b(client, 0x601a, 0x0380);
+		for (timeout = 0 ; timeout < 100 ; timeout ++) {
+			usleep_range(9000, 10000);
+			sensor_i2c_read_16b(client, 0x601a, &v);
+			if ((v & 0x200) == 0)
+				break;
+		}
+		if (timeout >= 100) {
+			dev_err(&client->dev, "timeout: line[%d]v=%x\n", __LINE__, v);
+			return -EINVAL;
+		}
 		dev_dbg(&client->dev, "sensor wake up\n");
 	}
 

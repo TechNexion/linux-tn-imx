@@ -28,7 +28,7 @@ static struct resolution ar0821_res_list[] = {
 	{.width = 1280, .height = 720, .framerates = 30},
 	{.width = 1920, .height = 1080, .framerates = 30},
 	{.width = 2560, .height = 1440, .framerates = 25},
-	{.width = 3840, .height = 2160, .framerates = 25},
+	{.width = 3840, .height = 2160, .framerates = 20},
 };
 
 static struct resolution ar1335_res_list[] = {
