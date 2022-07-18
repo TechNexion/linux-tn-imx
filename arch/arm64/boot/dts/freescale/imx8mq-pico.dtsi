@@ -124,6 +124,7 @@
 		interrupt-parent = <&gpio1>;
 		interrupts = <3 GPIO_ACTIVE_LOW>;
 		interrupt-names = "irq";
+		rohm,reset-snvs-powered;
 
 		regulators {
 			buck1: BUCK1 {
