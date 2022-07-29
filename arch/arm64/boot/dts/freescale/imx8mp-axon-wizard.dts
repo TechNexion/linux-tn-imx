@@ -146,7 +146,7 @@
 		pinctrl-0 = <&pinctrl_gpio_key_user1>;
 
 		pair {
-			gpios = <&gpio1 11 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio4 7 GPIO_ACTIVE_LOW>;
 			label = "KEY PAIR";
 			linux,code = <KEY_SELECT>;
 		};
