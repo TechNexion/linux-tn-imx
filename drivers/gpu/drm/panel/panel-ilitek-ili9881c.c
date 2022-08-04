@@ -529,7 +529,7 @@ static int ili9881c_prepare(struct drm_panel *panel)
 		msleep(20);
 	}
 
-	return 0;
+	return ret;
 }
 
 static int ili9881c_enable(struct drm_panel *panel)
@@ -575,15 +575,35 @@ static int ili9881c_enable(struct drm_panel *panel)
 static int ili9881c_disable(struct drm_panel *panel)
 {
 	struct ili9881c *ctx = panel_to_ili9881c(panel);
+	struct mipi_dsi_device *dsi = ctx->dsi;
+	struct device *dev = &dsi->dev;
+	int ret;
 
-	return mipi_dsi_dcs_set_display_off(ctx->dsi);
+	ctx->dsi->mode_flags |= MIPI_DSI_MODE_LPM;
+
+	usleep_range(10000, 12000);
+
+	ret = mipi_dsi_dcs_set_display_off(ctx->dsi);
+	if (ret < 0) {
+		dev_err(dev, "Failed to set display OFF (%d)\n", ret);
+		return ret;
+	}
+
+	usleep_range(5000, 10000);
+
+	ret = mipi_dsi_dcs_enter_sleep_mode(ctx->dsi);
+	if (ret < 0) {
+		dev_err(dev, "Failed to enter sleep mode (%d)\n", ret);
+		return ret;
+	}
+
+	return 0;
 }
 
 static int ili9881c_unprepare(struct drm_panel *panel)
 {
 	struct ili9881c *ctx = panel_to_ili9881c(panel);
 
-	mipi_dsi_dcs_enter_sleep_mode(ctx->dsi);
 	if (!IS_ERR(ctx->power))
 		regulator_disable(ctx->power);
 
