@@ -28,7 +28,7 @@ static struct resolution ar0821_res_list[] = {
 	{.width = 1280, .height = 720, .framerates = 30},
 	{.width = 1920, .height = 1080, .framerates = 30},
 	{.width = 2560, .height = 1440, .framerates = 30},
-	{.width = 3840, .height = 2160, .framerates = 25},
+	{.width = 3840, .height = 2160, .framerates = 20},
 };
 
 static struct resolution ar1335_res_list[] = {
@@ -77,6 +77,11 @@ static struct sensor_info ap1302_sensor_table[] = {
 	},
 	{
 		.sensor_name = "TEVI-AR0821",
+		.res_list = ar0821_res_list,
+		.res_list_size = ARRAY_SIZE(ar0821_res_list)
+	},
+	{
+		.sensor_name = "TEVI-AR0822",
 		.res_list = ar0821_res_list,
 		.res_list_size = ARRAY_SIZE(ar0821_res_list)
 	},
