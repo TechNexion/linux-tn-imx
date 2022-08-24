@@ -542,7 +542,7 @@
 		reg = <0x3d>;
 		adi,addr-cec = <0x3b>;
 		adi,dsi-lanes = <4>;
-		status = "okay";
+		status = "disabled";
 
 		port {
 			adv7535_from_dsim: endpoint {
@@ -579,7 +579,7 @@
 		mclk = <24000000>;
 		mclk_source = <0>;
 		mipi_csi;
-		status = "okay";
+		status = "disabled";
 
 		port {
 			ov5640_mipi_0_ep: endpoint {
@@ -776,7 +776,7 @@
 };
 
 &mipi_dsi {
-	status = "okay";
+	status = "disabled";
 
 	port@1 {
 		dsim_to_adv7535: endpoint {
@@ -1421,7 +1421,7 @@
 &mipi_csi_0 {
 	#address-cells = <1>;
 	#size-cells = <0>;
-	status = "okay";
+	status = "disabled";
 
 	port@0 {
 		reg = <0>;
@@ -1469,7 +1469,7 @@
 };
 
 &isi_1 {
-	status = "disabled";
+	status = "okay";
 
 	cap_device {
 		status = "okay";
