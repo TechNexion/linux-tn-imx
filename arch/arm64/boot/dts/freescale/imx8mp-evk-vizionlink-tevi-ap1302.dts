@@ -1,0 +1,230 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2020 TechNexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *         Ray Chang <ray.chang@technexion.com>
+ *
+ */
+
+#include "imx8mp-evk.dts"
+
+&iomuxc
+{
+	ap1302_pinctrl_csi0_pwn: ap1302_csi0_pwn_grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SD1_STROBE__GPIO2_IO11	0x9 /* CSI1_PWDN for host-power-gpios */
+			MX8MP_IOMUXC_GPIO1_IO05__GPIO1_IO05	0x9 /* INFO_TRIG_IN1 for standby-gpios */
+		>;
+	};
+
+	ap1302_pinctrl_csi1_pwn: ap1302_csi1_pwn_grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SD1_STROBE__GPIO2_IO11	0x9 /* CSI1_PWDN for host-power-gpios */
+			MX8MP_IOMUXC_GPIO1_IO07__GPIO1_IO07	0x9 /* INFO_TRIG_IN1 for standby-gpios */
+		>;
+	};
+
+	ap1302_pinctrl_csi_mclk: ap1302_csi_mclk_grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_GPIO1_IO15__GPIO1_IO15	0x9
+		>;
+	};
+
+	ap1302_pinctrl_csi_rst: ap1302_csi_rst_grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_GPIO1_IO06__GPIO1_IO06		0x19
+		>;
+	};
+};
+
+&mipi_csi_0
+{
+	#address-cells = <1>;
+	#size-cells = <0>;
+	clock-frequency = <400000000>;
+	status = "okay";
+
+	port@0 {
+		reg = <0>;
+		mipi_csi0_ep: endpoint {
+			remote-endpoint = <&tevi_ap1302_0_ep>;
+			data-lanes = <4>;
+			csis-hs-settle = <19>;
+			csis-clk-settle = <2>;
+			csis-wclk;
+		};
+	};
+};
+
+
+&mipi_csi_1
+{
+	#address-cells = <1>;
+	#size-cells = <0>;
+	clock-frequency = <400000000>;
+	status = "okay";
+
+	port@1 {
+		reg = <1>;
+		mipi_csi1_ep: endpoint {
+			remote-endpoint = <&tevi_ap1302_1_ep>;
+			data-lanes = <4>;
+			csis-hs-settle = <19>;
+			csis-clk-settle = <2>;
+			csis-wclk;
+		};
+	};
+};
+
+
+&i2c2
+{
+	clock-frequency = <400000>;
+
+	/delete-node/ ov5640_mipi@3c;
+
+	vizionlink_1: vizionlink@30 {
+		compatible = "tn,vizionlink";
+		reg = <0x30>;
+		pdb-gpios = <&gpio1 5 GPIO_ACTIVE_HIGH>;
+		ser_alias_id = <0x1b>;
+
+		//i2c addr alias map "gpio extender, eeprom , sensor"
+		i2c_addr_alias_map_local = <0x25 0x54 0x55 0x3d>;
+		i2c_addr_alias_map_remote = <0x25 0x54 0x55 0x3d>;
+
+		//deserializer output csi lanes 1~4. default 4
+		des_csi_lanes = <4>;
+
+		//1: Enable 0: Disable continuous clock. default 0
+		des_csi_continuous_clock = <0>;
+
+		//serializer input csi lanes 1~4. default 4
+		ser_csi_lanes = <4>;
+
+		//1: Enable 0: Disable continuous clock. default 0
+		ser_csi_continuous_clock = <0>;
+
+		status = "okay";
+
+		i2c_dev_list {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			vizionlink_pca9554_a25_0: vizionlink_pca9554@25 {
+				compatible = "nxp,pca9554";
+				reg = <0x25>;
+				gpio-controller;
+				#gpio-cells = <2>;
+				status = "okay";
+			};
+
+			tevi_ap1302_otp_0: tevi_ap1302_otp@54 {
+				compatible = "atmel,24c1024";
+				pagesize = <256>;
+				reg = <0x54>;
+			};
+		};
+	};
+
+	tevi_ap1302_0: tevi_ap1302@3d {
+		compatible = "tn,tevi-ap1302";
+		reg = <0x3d>;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&ap1302_pinctrl_csi0_pwn>, <&ap1302_pinctrl_csi_rst>, <&ap1302_pinctrl_csi_mclk>;
+		host-power-gpios = <&gpio2 11 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&vizionlink_pca9554_a25_0 4 GPIO_ACTIVE_HIGH>;
+		device-power-gpios = <&vizionlink_pca9554_a25_0 0 GPIO_ACTIVE_HIGH>;
+		standby-gpios = <&vizionlink_pca9554_a25_0 2 GPIO_ACTIVE_HIGH>;
+		nvmem = <&tevi_ap1302_otp_0>;
+		nvmem-names = "calib-data";
+		data-lanes = <4>;
+		continuous-clock = <0>;
+		status = "okay";
+
+		port {
+			tevi_ap1302_0_ep: endpoint {
+				remote-endpoint = <&mipi_csi0_ep>;
+			};
+		};
+	};
+};
+
+
+&i2c3
+{
+	clock-frequency = <400000>;
+
+	/delete-node/ ov5640_mipi@3c;
+
+	vizionlink_0: vizionlink@30 {
+		compatible = "tn,vizionlink";
+		reg = <0x30>;
+		pdb-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
+		ser_alias_id = <0x1b>;
+
+		//i2c addr alias map "gpio extender, eeprom , sensor"
+		i2c_addr_alias_map_local = <0x25 0x54 0x55 0x3d>;
+		i2c_addr_alias_map_remote = <0x25 0x54 0x55 0x3d>;
+
+		//deserializer output csi lanes 1~4. default 4
+		des_csi_lanes = <4>;
+
+		//1: Enable 0: Disable continuous clock. default 0
+		des_csi_continuous_clock = <0>;
+
+		//serializer input csi lanes 1~4. default 4
+		ser_csi_lanes = <4>;
+
+		//1: Enable 0: Disable continuous clock. default 0
+		ser_csi_continuous_clock = <0>;
+
+		status = "okay";
+
+		i2c_dev_list {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			vizionlink_pca9554_a25_1: vizionlink_pca9554@25 {
+				compatible = "nxp,pca9554";
+				reg = <0x25>;
+				gpio-controller;
+				#gpio-cells = <2>;
+				status = "okay";
+			};
+
+			tevi_ap1302_otp_1: tevi_ap1302_otp@54 {
+				compatible = "atmel,24c1024";
+				pagesize = <256>;
+				reg = <0x54>;
+			};
+		};
+	};
+
+	tevi_ap1302_1: tevi_ap1302@3d {
+		compatible = "tn,tevi-ap1302";
+		reg = <0x3d>;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&ap1302_pinctrl_csi1_pwn>, <&ap1302_pinctrl_csi_rst>, <&ap1302_pinctrl_csi_mclk>;
+		host-power-gpios = <&gpio2 11 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&vizionlink_pca9554_a25_1 4 GPIO_ACTIVE_HIGH>;
+		device-power-gpios = <&vizionlink_pca9554_a25_1 0 GPIO_ACTIVE_HIGH>;
+		standby-gpios = <&vizionlink_pca9554_a25_1 2 GPIO_ACTIVE_HIGH>;
+		nvmem = <&tevi_ap1302_otp_1>;
+		nvmem-names = "calib-data";
+		data-lanes = <4>;
+		continuous-clock = <0>;
+		status = "okay";
+
+		port {
+			tevi_ap1302_1_ep: endpoint {
+				remote-endpoint = <&mipi_csi1_ep>;
+			};
+		};
+	};
+};
+
+
