@@ -412,6 +412,14 @@
 		>;
 	};
 
+	pinctrl_gpio4_mipi: gpio4mipigrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_RXD7__GPIO4_IO09		0x16 /* GPIO_P255 */
+			MX8MP_IOMUXC_SAI1_TXD4__GPIO4_IO16		0x16 /* DSI_BL_EN */
+			MX8MP_IOMUXC_SAI1_TXD5__GPIO4_IO17		0x16 /* DSI_VDDEN */
+		>;
+	};
+
 	pinctrl_nfc: nfcgrp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SAI1_TXFS__GPIO4_IO10		0x41
@@ -421,6 +429,18 @@
 	pinctrl_touch_irq: touch_irqgrp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SAI1_TXD3__GPIO4_IO15	0x41   /* Touch INT */
+		>;
+	};
+
+	pinctrl_mipi_touch_reset: mipi_touch_rstgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_RXD4__GPIO4_IO06	0x41   /* MIPI TOUCH_nRST */
+		>;
+	};
+
+	pinctrl_mipi_touch_irq: mipi_touch_irqgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_RXD5__GPIO4_IO07	0x41   /* MIPI Touch INT */
 		>;
 	};
 };

@@ -44,6 +44,13 @@
 	};
 
 	fragment@2 {
+		target = <&gpio4>;
+		__overlay__ {
+			pinctrl-0 = <&pinctrl_gpio4_mipi>;
+		};
+	};
+
+	fragment@3 {
 		target = <&i2c2>;
 		__overlay__ {
 			#address-cells = <1>;
@@ -54,7 +61,7 @@
 				compatible = "edt,edt-ft5x06";
 				reg = <0x38>;
 				pinctrl-names = "default";
-				pinctrl-0 = <&pinctrl_touch_irq>, <&pinctrl_touch_reset>;
+				pinctrl-0 = <&pinctrl_mipi_touch_irq>, <&pinctrl_mipi_touch_reset>;
 				interrupt-parent = <&gpio4>;
 				interrupts = <7 IRQ_TYPE_EDGE_FALLING>;
 				reset-gpios = <&gpio4 6 GPIO_ACTIVE_LOW>;
