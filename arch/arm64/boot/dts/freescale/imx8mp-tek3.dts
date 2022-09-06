@@ -238,8 +238,6 @@
 		ethphy0: ethernet-phy@1 {
 			/* Atheros AR8035 PHY */
 			compatible = "ethernet-phy-ieee802.3-c22";
-			reset-assert-us = <10000>;
-			reset-deassert-us = <30000>;
 			interrupts-extended = <&gpio1 12 IRQ_TYPE_LEVEL_LOW>;
 			reg = <1>;
 			eee-broken-1000t;
