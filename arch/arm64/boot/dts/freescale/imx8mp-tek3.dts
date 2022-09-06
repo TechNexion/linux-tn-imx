@@ -513,11 +513,6 @@
 							"IO1_0", "IO1_1", "IO1_2", "IO1_3", "IO1_4", "IO1_5", "IO1_6", "IO1_7";
 	};
 
-	pcie-clock@68 {
-		compatible = "idt,9FGV0241AKILF";
-		reg = <0x68>;
-	};
-
 	vizionlink_0: vizionlink@30 {
 		reg = <0x30>;
 		status = "disabled";
@@ -650,7 +645,7 @@
 	pinctrl-0 = <&pinctrl_pcie>;
 	clkreq-gpio = <&gpio1 13 GPIO_ACTIVE_LOW>;
 	reset-gpio = <&gpio1 1 GPIO_ACTIVE_LOW>;
-	ext_osc = <1>;
+	ext_osc = <0>;
 	clocks = <&clk IMX8MP_CLK_HSIO_ROOT>,
 		 <&clk IMX8MP_CLK_PCIE_AUX>,
 		 <&clk IMX8MP_CLK_HSIO_AXI>,
@@ -665,7 +660,6 @@
 };
 
 &pcie_phy{
-	ext_osc = <1>;
 	status = "okay";
 };
 
