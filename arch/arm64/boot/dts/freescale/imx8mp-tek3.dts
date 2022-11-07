@@ -90,6 +90,15 @@
 		status = "okay";
 	};
 
+	usb_hub_rst: usb_hub_rst {
+		compatible = "gpio-reset";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_usb_hub_ctrl>;
+		reset-gpios = <&gpio4 22 GPIO_ACTIVE_LOW>;
+		reset-delay-us = <10>;
+		#reset-cells = <0>;
+	};
+
 	sound {
 		compatible = "fsl,imx-audio-wm8904";
 		model = "wm8904-audio";
@@ -804,6 +813,13 @@
 			MX8MP_IOMUXC_HDMI_DDC_SDA__HDMIMIX_HDMI_SDA	0x400001c3
 			MX8MP_IOMUXC_HDMI_HPD__HDMIMIX_HDMI_HPD		0x40000019
 			MX8MP_IOMUXC_HDMI_CEC__HDMIMIX_HDMI_CEC		0x40000019
+		>;
+	};
+
+
+	pinctrl_usb_hub_ctrl: usbhubctrlgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI2_RXC__GPIO4_IO22		0x41 /* USB_HUB_RESET */
 		>;
 	};
 
