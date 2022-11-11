@@ -93,9 +93,11 @@ static bool is_rtl8211fvd(u32 phy_id)
 	const char *model = of_fdt_get_model();
 
 	printk(KERN_INFO "%s - model: %s\n", __func__, model);
-	if ((model != NULL) && strcmp(model, "EDM1-IMX6")) {
-		printk(KERN_INFO "%s - For EDM1-IMX6, always return true\n", __func__);
-		return(true);
+	if (model != NULL) {
+		if (strstr(model, "EDM1-IMX6") != NULL) {
+			printk(KERN_INFO "%s - For EDM1-IMX6, always return true\n", __func__);
+			return(true);
+		}
 	}
 
 	return phy_id == RTL_8211FVD_PHYID;
