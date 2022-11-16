@@ -228,7 +228,7 @@
 
 	backlight_lvds1 {
 		compatible = "pwm-backlight";
-		pwms = <&pwm3 0 50000>;
+		pwms = <&pwm3 0 50000 0>;
 		brightness-levels = <0 36 72 108 144 180 216 255>;
 		default-brightness-level = <6>;
 	};
@@ -238,7 +238,7 @@
 
 		led_d24 {
 			label = "led_d24";
-			pwms = <&pwm1 0 50000>;
+			pwms = <&pwm1 0 50000 0>;
 			max-brightness = <255>;
 			linux,default-trigger = "default-on";
 		};
