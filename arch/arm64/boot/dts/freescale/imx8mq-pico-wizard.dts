@@ -107,7 +107,7 @@
 
 	sound-hdmi {
 		compatible = "fsl,imx8mq-evk-cdnhdmi",
-				"fsl,imx-audio-cdnhdmi";
+				"fsl,imx-audio-hdmi";
 		model = "imx-audio-hdmi";
 		audio-cpu = <&sai4>;
 		protocol = <1>;
