@@ -9,8 +9,11 @@
 
 #include "imx8mp-evk.dts"
 
-&iomuxc
-{
+/ {
+	model = "NXP i.MX8MPlus EVK board with TechNexion Vizionlink camera";
+};
+
+&iomuxc {
 	ap1302_pinctrl_csi0_pwn: ap1302_csi0_pwn_grp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SD1_STROBE__GPIO2_IO11	0x9 /* CSI1_PWDN for host-power-gpios */
@@ -38,8 +41,7 @@
 	};
 };
 
-&mipi_csi_0
-{
+&mipi_csi_0 {
 	#address-cells = <1>;
 	#size-cells = <0>;
 	clock-frequency = <400000000>;
@@ -58,8 +60,7 @@
 };
 
 
-&mipi_csi_1
-{
+&mipi_csi_1 {
 	#address-cells = <1>;
 	#size-cells = <0>;
 	clock-frequency = <400000000>;
@@ -78,8 +79,7 @@
 };
 
 
-&i2c2
-{
+&i2c2 {
 	clock-frequency = <400000>;
 
 	/delete-node/ ov5640_mipi@3c;
@@ -153,8 +153,7 @@
 };
 
 
-&i2c3
-{
+&i2c3 {
 	clock-frequency = <400000>;
 
 	/delete-node/ ov5640_mipi@3c;
@@ -226,5 +225,3 @@
 		};
 	};
 };
-
-
