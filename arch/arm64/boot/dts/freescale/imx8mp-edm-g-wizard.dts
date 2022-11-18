@@ -142,7 +142,7 @@
 	pinctrl-0 = <&pinctrl_gpio4>;
 	gpio-line-names =	\
 		"", "", "", "", "", "", "GPIO_P249", "GPIO_P251",	\
-		"", "GPIO_P255", "", "", "", "", "", "",	\
+		"", "RTC_INT", "", "", "", "", "", "",	\
 		"DSI_BL_EN", "DSI_VDDEN", "", "", "", "", "", "",	\
 		"", "", "", "", "", "", "", "";
 };
@@ -259,6 +259,8 @@
 	rtc_ds1337: ds1337@68 {
 		compatible = "dallas,ds1337";
 		reg = <0x68>;
+		interrupt-parent = <&gpio4>;
+		interrupts = <9 IRQ_TYPE_LEVEL_LOW>;
 	};
 
 	pn547: pn547@2a {
@@ -406,7 +408,7 @@
 		fsl,pins = <
 			MX8MP_IOMUXC_SAI1_RXD4__GPIO4_IO06		0x16 /* GPIO_P249 */
 			MX8MP_IOMUXC_SAI1_RXD5__GPIO4_IO07		0x16 /* GPIO_P251 */
-			MX8MP_IOMUXC_SAI1_RXD7__GPIO4_IO09		0x16 /* GPIO_P255 */
+			MX8MP_IOMUXC_SAI1_RXD7__GPIO4_IO09		0x16 /* RTC_INT */
 			MX8MP_IOMUXC_SAI1_TXD4__GPIO4_IO16		0x16 /* DSI_BL_EN */
 			MX8MP_IOMUXC_SAI1_TXD5__GPIO4_IO17		0x16 /* DSI_VDDEN */
 		>;
@@ -414,7 +416,6 @@
 
 	pinctrl_gpio4_mipi: gpio4mipigrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_SAI1_RXD7__GPIO4_IO09		0x16 /* GPIO_P255 */
 			MX8MP_IOMUXC_SAI1_TXD4__GPIO4_IO16		0x16 /* DSI_BL_EN */
 			MX8MP_IOMUXC_SAI1_TXD5__GPIO4_IO17		0x16 /* DSI_VDDEN */
 		>;
