@@ -52,6 +52,7 @@ static int __i2c_write(struct i2c_client *client, u8 addr, u8 reg, u8 val)
 	struct i2c_msg msg;
 	u8 buf[2];
 	int ret;
+	int retry_tmp = 0;
 
 	dev_dbg(&client->dev,
 		"%s() addr 0x%x, read reg 0x%x, val 0x%x\n",
@@ -68,9 +69,13 @@ static int __i2c_write(struct i2c_client *client, u8 addr, u8 reg, u8 val)
 	msg.buf = buf;
 	msg.len = sizeof(buf);
 
-	ret = i2c_transfer(client->adapter, &msg, 1);
-	if (ret < 0) {
-		dev_err(&client->dev, "i2c transfer error\n");
+	while((ret = i2c_transfer(client->adapter, &msg, 1)) < 0)
+	{
+		retry_tmp++;
+		dev_err(&client->dev, "i2c transfer retry:%d.\n", retry_tmp);
+
+		if (retry_tmp > 50)
+			dev_err(&client->dev, "i2c transfer error\n");
 	}
 
 	return ret;
