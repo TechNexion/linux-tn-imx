@@ -376,6 +376,7 @@ static int vh_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	struct vh_st *obj = NULL;
 	u32 temp;
 	int error;
+	int timeout;
 
 	dev_info(&client->dev, "%s\n", client->dev.of_node->full_name);
 
@@ -424,10 +425,14 @@ static int vh_probe(struct i2c_client *client, const struct i2c_device_id *id)
 			"Failed to detect that vizionlink-cam board is connected on any port\n");
 		return -EINVAL;
 	}
-
-	if (vc_init(client, obj->ser_alias_addr) != 0) {
-		dev_err(&client->dev,
-			"Failed to initial vizionlink-cam board\n");
+	for (timeout = 0 ; timeout < 500 ; timeout ++) {
+		usleep_range(9000, 10000);
+		if (vc_init(client, obj->ser_alias_addr) == 0) {
+			break;
+		}
+	}
+	if (timeout >= 500 ) {
+		dev_err(&client->dev, "Failed to initial vizionlink-cam board\n");
 		return -EINVAL;
 	}
 
@@ -441,7 +446,13 @@ static int vh_probe(struct i2c_client *client, const struct i2c_device_id *id)
 		return -EINVAL;
 	}
 
-	if (vc_configure_ser_csi(client, obj->ser_alias_addr) != 0) {
+	for (timeout = 0 ; timeout < 500 ; timeout ++) {
+		usleep_range(9000, 10000);
+		if (vc_configure_ser_csi(client, obj->ser_alias_addr) == 0) {
+			break;
+		}
+	}
+	if (timeout >= 500 ) {
 		dev_err(&client->dev, "Failed to configure serializer csi\n");
 		return -EINVAL;
 	}
