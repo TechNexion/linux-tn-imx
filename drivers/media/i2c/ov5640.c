@@ -642,7 +642,7 @@ ov5640_mode_data[OV5640_NUM_MODES] = {
 	 2592, 2844, 1944, 1968,
 	 ov5640_setting_QSXGA_2592_1944,
 	 ARRAY_SIZE(ov5640_setting_QSXGA_2592_1944),
-	 OV5640_15_FPS},
+	 OV5640_08_FPS},
 };
 
 static int ov5640_init_slave_id(struct ov5640_dev *sensor)
@@ -988,11 +988,10 @@ static int ov5640_check_valid_mode(struct ov5640_dev *sensor,
 		break;
 	case OV5640_MODE_1080P_1920_1080:
 		if (sensor->ep.bus_type == V4L2_MBUS_CSI2_DPHY) {
-			if ((rate != OV5640_15_FPS) &&
-			    (rate != OV5640_30_FPS))
+			if ((rate != OV5640_15_FPS))
 				ret = -EINVAL;
 		 } else {
-			if ((rate != OV5640_15_FPS))
+			if ((rate != OV5640_30_FPS))
 				ret = -EINVAL;
 		 }
 		break;
