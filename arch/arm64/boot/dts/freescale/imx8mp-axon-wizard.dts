@@ -422,6 +422,12 @@
 		>;
 	};
 
+	pinctrl_touch_irq: touch_irqgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_TXD1__GPIO4_IO13	0x41   /* Touch INT */
+		>;
+	};
+
 	pinctrl_gpio_key_voicehat: gpiokey_voicehatgrp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SD1_DATA5__GPIO2_IO07		0x41 /* KEY_PAIR on VoiceHat */
