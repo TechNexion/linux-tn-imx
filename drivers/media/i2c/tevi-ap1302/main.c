@@ -771,8 +771,7 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 		instance->otp_flash_instance = ap1302_otp_flash_init(dev);
 		if(IS_ERR(instance->otp_flash_instance)) {
 			dev_err(dev, "otp flash init failed\n");
-			// retry_f |= 0x04 ;
-			return -EINVAL;
+			retry_f |= 0x04 ;
 		}
 
 		header = instance->otp_flash_instance->header_data;
