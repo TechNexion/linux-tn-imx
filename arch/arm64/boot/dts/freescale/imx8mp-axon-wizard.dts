@@ -162,6 +162,15 @@
 	};
 };
 
+&gpio4 {
+	pinctrl-0 = <&pinctrl_gpio4>;
+	gpio-line-names =	\
+		"", "", "GPIO_X1_P76", "GPIO_X1_P74", "", "", "", "GPIO_X1_P72",	\
+		"", "", "GPIO_X1_P80", "", "GPIO_X1_P78", "", "", "",	\
+		"", "", "", "", "", "", "", "",	\
+		"", "", "", "", "", "", "", "";
+};
+
 &snvs_pwrkey {
 	linux,keycode = <KEY_SUSPEND>;
 	status = "okay";
@@ -425,6 +434,16 @@
 	pinctrl_touch_irq: touch_irqgrp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SAI1_TXD1__GPIO4_IO13	0x41   /* Touch INT */
+		>;
+	};
+
+	pinctrl_gpio4: gpio4grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI1_RXD5__GPIO4_IO07		0x16 /* GPIO_X1_P72 */
+			MX8MP_IOMUXC_SAI1_RXD1__GPIO4_IO03		0x16 /* GPIO_X1_P74 */
+			MX8MP_IOMUXC_SAI1_RXD0__GPIO4_IO02		0x16 /* GPIO_X1_P76 */
+			MX8MP_IOMUXC_SAI1_TXD0__GPIO4_IO12		0x16 /* GPIO_X1_P78 */
+			MX8MP_IOMUXC_SAI1_TXFS__GPIO4_IO10		0x16 /* GPIO_X1_P80 */
 		>;
 	};
 
