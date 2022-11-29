@@ -103,29 +103,29 @@
 						reg = <0x54>;
 						//read-only;
 					};
+				};
+			};
 
-					vizionlink_tevi_ap1302_1: vizionlink_tevi_ap1302@3d {
-						compatible = "tn,tevi-ap1302";
-						reg = <0x3d>;
-						pinctrl-names = "default";
-						pinctrl-0 = <&pinctrl_csi2_dummy_host_power>;
+			vizionlink_tevi_ap1302_1: vizionlink_tevi_ap1302@3d {
+				compatible = "tn,tevi-ap1302";
+				reg = <0x3d>;
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_csi2_dummy_host_power>;
 
-						host-power-gpios = <&gpio2 2 GPIO_ACTIVE_HIGH>;
-						reset-gpios = <&vizionlink_pca9554_a25_1 4 GPIO_ACTIVE_HIGH>;
-						device-power-gpios = <&vizionlink_pca9554_a25_1 0 GPIO_ACTIVE_HIGH>;
-						standby-gpios = <&vizionlink_pca9554_a25_1 2 GPIO_ACTIVE_HIGH>;
-						nvmem = <&vizionlink_tevi_ap1302_otp_1>;
-						nvmem-names = "calib-data";
-						data-lanes = <2>;
-						continuous-clock = <0>;
-						status = "okay";
+				host-power-gpios = <&gpio2 2 GPIO_ACTIVE_HIGH>;
+				reset-gpios = <&vizionlink_pca9554_a25_1 4 GPIO_ACTIVE_HIGH>;
+				device-power-gpios = <&vizionlink_pca9554_a25_1 0 GPIO_ACTIVE_HIGH>;
+				standby-gpios = <&vizionlink_pca9554_a25_1 2 GPIO_ACTIVE_HIGH>;
+				nvmem = <&vizionlink_tevi_ap1302_otp_1>;
+				nvmem-names = "calib-data";
+				data-lanes = <2>;
+				continuous-clock = <0>;
+				status = "okay";
 
 
-						port {
-							ap1302_1_ep: endpoint {
-								remote-endpoint = <&mipi_csi1_ep>;
-							};
-						};
+				port {
+					ap1302_1_ep: endpoint {
+						remote-endpoint = <&mipi_csi1_ep>;
 					};
 				};
 			};
@@ -181,29 +181,29 @@
 						reg = <0x54>;
 						//read-only;
 					};
+				};
+			};
 
-					vizionlink_tevi_ap1302_0: vizionlink_tevi_ap1302@3d {
-						compatible = "tn,tevi-ap1302";
-						reg = <0x3d>;
-						pinctrl-names = "default";
-						pinctrl-0 = <&pinctrl_csi1_dummy_host_power>;
+			vizionlink_tevi_ap1302_0: vizionlink_tevi_ap1302@3d {
+				compatible = "tn,tevi-ap1302";
+				reg = <0x3d>;
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_csi1_dummy_host_power>;
 
-						host-power-gpios = <&gpio2 20 GPIO_ACTIVE_HIGH>;
-						reset-gpios = <&vizionlink_pca9554_a25_0 4 GPIO_ACTIVE_HIGH>;
-						device-power-gpios = <&vizionlink_pca9554_a25_0 0 GPIO_ACTIVE_HIGH>;
-						standby-gpios = <&vizionlink_pca9554_a25_0 2 GPIO_ACTIVE_HIGH>;
-						nvmem = <&vizionlink_tevi_ap1302_otp_0>;
-						nvmem-names = "calib-data";
-						data-lanes = <2>;
-						continuous-clock = <0>;
-						status = "okay";
+				host-power-gpios = <&gpio2 20 GPIO_ACTIVE_HIGH>;
+				reset-gpios = <&vizionlink_pca9554_a25_0 4 GPIO_ACTIVE_HIGH>;
+				device-power-gpios = <&vizionlink_pca9554_a25_0 0 GPIO_ACTIVE_HIGH>;
+				standby-gpios = <&vizionlink_pca9554_a25_0 2 GPIO_ACTIVE_HIGH>;
+				nvmem = <&vizionlink_tevi_ap1302_otp_0>;
+				nvmem-names = "calib-data";
+				data-lanes = <2>;
+				continuous-clock = <0>;
+				status = "okay";
 
 
-						port {
-							ap1302_0_ep: endpoint {
-								remote-endpoint = <&mipi_csi0_ep>;
-							};
-						};
+				port {
+					ap1302_0_ep: endpoint {
+						remote-endpoint = <&mipi_csi0_ep>;
 					};
 				};
 			};
