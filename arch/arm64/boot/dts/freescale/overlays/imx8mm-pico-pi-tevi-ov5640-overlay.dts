@@ -47,12 +47,21 @@
 			#size-cells = <0>;
 			status = "okay";
 
-			/* PCA9554 on camera tev_mipi board */
-			pca9554_tev_mipi: pca9554_tev_mipi@24 {
-				compatible = "nxp,pca9554";
-				reg =<0x24>;
+			ov5640_otp_0: eeprom@54 {
+				compatible = "atmel,24c64";
+				reg = <0x54>;
+				//read-only;
+				status = "okay";
+			};
+
+			pca9555_a21: pca9555@21 {
+				compatible = "nxp,pca9555";
+				reg = <0x21>;
+				status = "okay";
 				gpio-controller;
 				#gpio-cells = <2>;
+				gpio-line-names = "EXPOSURE_TRIG_IN1", "FLASH_OUT1", "INFO_TRIG_IN1", "CAM_SHUTTER1", "XVS1", "PWR1_TIME0", "PWR1_TIME1", "PWR1_TIME2",
+									"EXPOSURE_TRIG_IN2", "FLASH_OUT2", "INFO_TRIG_IN2", "CAM_SHUTTER2", "XVS2", "PWR2_TIME0", "PWR2_TIME1", "PWR2_TIME2";
 			};
 
 			ov5640_mipi: ov5640_mipi@3c {
@@ -67,7 +76,7 @@
 				assigned-clock-parents = <&clk IMX8MM_CLK_24M>;
 				assigned-clock-rates = <24000000>;
 				csi_id = <0>;
-				pwn-gpios = <&pca9554_tev_mipi 2 GPIO_ACTIVE_LOW>;
+				pwn-gpios = <&pca9555_a21 2 GPIO_ACTIVE_LOW>;
 				rst-gpios = <&gpio1 5 GPIO_ACTIVE_HIGH>;
 				mclk = <24000000>;
 				mclk_source = <0>;
