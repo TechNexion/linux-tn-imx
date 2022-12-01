@@ -33,8 +33,10 @@
 			port {
 				mipi1_sensor_ep: endpoint@0 {
 					remote-endpoint = <&ov5640_mipi1_ep>;
-					data-lanes = <1 2>;
-					bus-type = <4>;
+					data-lanes = <2>;
+					csis-hs-settle = <13>;
+					csis-clk-settle = <2>;
+					csis-wclk;
 				};
 			};
 		};
@@ -50,8 +52,10 @@
 			port {
 				mipi2_sensor_ep: endpoint@0 {
 					remote-endpoint = <&ov5640_mipi2_ep>;
-					data-lanes = <1 2>;
-					bus-type = <4>;
+					data-lanes = <2>;
+					csis-hs-settle = <13>;
+					csis-clk-settle = <2>;
+					csis-wclk;
 				};
 			};
 		};
@@ -63,13 +67,22 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 			status = "okay";
-			
-			/* PCA9554 on camera tev_mipi board */
-			pca9554_tev_mipi1: pca9554_tev_mipi@24 {
-				compatible = "nxp,pca9554";
-				reg =<0x24>;
+
+			ov5640_otp_0: eeprom@54 {
+				compatible = "atmel,24c64";
+				reg = <0x54>;
+				//read-only;
+				status = "okay";
+			};
+
+			pca9555_i2c2_a21: pca9555@21 {
+				compatible = "nxp,pca9555";
+				reg = <0x21>;
 				gpio-controller;
 				#gpio-cells = <2>;
+				status = "okay";
+				gpio-line-names = "EXPOSURE_TRIG_IN1", "FLASH_OUT1", "INFO_TRIG_IN1", "CAM_SHUTTER1", "XVS1", "PWR1_TIME0", "PWR1_TIME1", "PWR1_TIME2",
+									"EXPOSURE_TRIG_IN2", "FLASH_OUT2", "INFO_TRIG_IN2", "CAM_SHUTTER2", "XVS2", "PWR2_TIME0", "PWR2_TIME1", "PWR2_TIME2";
 			};
 
 			ov5640_mipi1: ov5640_mipi@3c {
@@ -84,7 +97,7 @@
 				assigned-clock-parents = <&clk IMX8MQ_SYS2_PLL_200M>;
 				assigned-clock-rates = <20000000>;
 				csi_id = <0>;
-				pwn-gpios = <&pca9554_tev_mipi1 2 GPIO_ACTIVE_LOW>;
+				pwn-gpios = <&pca9555_i2c2_a21 2 GPIO_ACTIVE_LOW>;
 				rst-gpios = <&gpio1 12 GPIO_ACTIVE_HIGH>;
 				mclk = <20000000>;
 				mclk_source = <0>;
@@ -103,6 +116,13 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 			status = "okay";
+
+			ov5640_otp_1: eeprom@54 {
+				compatible = "atmel,24c64";
+				reg = <0x54>;
+				//read-only;
+				status = "okay";
+			};
 
 			/* PCA9554 on camera tev_mipi board */
 			pca9554_tev_mipi2: pca9554_tev_mipi@24 {
