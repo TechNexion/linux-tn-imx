@@ -10,21 +10,21 @@
 
 USAGE NOTES:
 
-This overlay is to enable 2 VizionLink HDMI boards connected into both camera
-slots of the Wandboard-EDM-G baseboard.
+This overlay is to enable a VizionLink HDMI board connected into the CAMERA1
+slot of the Wandboard-EDM-G baseboard.
 
-It enables the TC358743 devices and logically connects them into the MIPI-CSI
-ports of the i.MX8M Plus SOC. It also explicitly disables the TEVI-OV5640
-cameras which are enabled by default on both CSI ports for the Wandboard-EDM-G.
+It enables the TC358743 device and logically connects it into the MIPI-CSI of
+the i.MX8M Plus SOC. It also explicitly disables the TEVI-OV5640 cameras which
+are enabled by default on both CSI ports for the Wandboard-EDM-G.
 
 It also disables the WM8960 codec, which is shared with SAI3 (SAI3 is named
 AUD_A in the EDM-G-IMX8M-PLUS connection pinout). SAI3 is also the default
 interface connected to the CAMERA1 port of the Wandboard-EDM-G.
 
 This overlay can be included by configuring the 'dtoverlay' in u-boot to
-include "hdmi2mipi-tc358743-dual":
+include "hdmi2mipi-tc358743-csi0":
 
-setenv dtoverlay ${dtoverlay} hdmi2mipi-tc358743-dual
+setenv dtoverlay ${dtoverlay} hdmi2mipi-tc358743-csi0
 saveenv
 
 *****************************************************************************/
@@ -42,10 +42,6 @@ saveenv
 			#address-cells = <1>;
 			#size-cells = <0>;
 			status = "okay";
-
-			codec: wm8960@1a {
-				status = "disabled";
-			};
 
 			hdmi_in_0: tc358743@f {
 				compatible = "toshiba,tc358743";
@@ -68,33 +64,6 @@ saveenv
 	};
 
 	fragment@1 {
-		target = <&i2c5>;
-		__overlay__ {
-			#address-cells = <1>;
-			#size-cells = <0>;
-			status = "okay";
-
-			hdmi_in_1: tc358743@f {
-				compatible = "toshiba,tc358743";
-				reg = <0x0f>;
-				pinctrl-names = "default";
-				pinctrl-0 = <&pinctrl_csi1_pwn>, <&pinctrl_csi1_rst>;
-				reset-gpios = <&gpio4 4 GPIO_ACTIVE_HIGH>;
-				status = "okay";
-				port {
-					hdmi_in_ep_1: endpoint {
-						remote-endpoint = <&mipi_csi1_ep>;
-						data-lanes = <1 2 3 4>;
-						clock-lanes = <0>;
-						clock-noncontinuous;
-						link-frequencies = /bits/ 64 <297000000>;
-					};
-				};
-			};
-		};
-	};
-
-	fragment@2 {
 		target = <&mipi_csi_0>;
 		__overlay__ {
 			#address-cells = <1>;
@@ -113,43 +82,22 @@ saveenv
 		};
 	};
 
-	fragment@3 {
-		target = <&mipi_csi_1>;
+	fragment@2 {
+		target-path = "/";
 		__overlay__ {
-			#address-cells = <1>;
-			#size-cells = <0>;
-			status = "okay";
-			port@1 {
-				reg = <1>;
-				mipi_csi1_ep: endpoint {
-					remote-endpoint = <&hdmi_in_ep_1>;
-					data-lanes = <4>;
-					csis-hs-settle = <13>;
-					csis-clk-settle = <2>;
-					csis-wclk;
-				};
+			sound-tc358743 {
+				compatible = "nxp,imx-audio-tc358743", "nxp,imx-tc358743";
+				cpu-dai = <&sai2>;  /* AUB_B on EDM-G */
+				nxp,audio-codec = <&hdmi_in_0>;
+				//clocks = <&clk IMX8MP_CLK_SAI2>;
 			};
 		};
 	};
 
-	fragment@4 {
-		target-path = "/";
+	fragment@3 {
+		target = <&sai2>;
 		__overlay__ {
-			sound-wm8960 {
-				status = "disabled";
-			};
-
-			sound-tc358743-csi0 {
-				compatible = "nxp,imx-audio-tc358743", "nxp,imx-tc358743";
-				cpu-dai = <&sai2>;
-				nxp,audio-codec = <&hdmi_in_0>;
-			};
-
-			sound-tc358743-csi1 {
-				compatible = "nxp,imx-audio-tc358743", "nxp,imx-tc358743";
-				cpu-dai = <&sai3>;
-				nxp,audio-codec = <&hdmi_in_1>;
-			};
+			status = "okay";
 		};
 	};
 };
