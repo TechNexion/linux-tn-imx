@@ -32,12 +32,6 @@
 
 #include "of_private.h"
 
-static const char *g_dt_model = NULL;
-
-const char *of_fdt_get_model(void) {
-	return(g_dt_model);
-}
-
 /*
  * of_fdt_limit_memory - limit the number of regions in the /memory node
  * @limit: maximum entries
@@ -900,7 +894,6 @@ const void * __init of_flat_dt_match_machine(const void *default_match,
 	}
 
 	pr_info("Machine model: %s\n", of_flat_dt_get_machine_name());
-	g_dt_model = (char *)of_flat_dt_get_machine_name();
 
 	return best_data;
 }

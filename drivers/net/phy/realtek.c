@@ -12,7 +12,6 @@
 #include <linux/phy.h>
 #include <linux/module.h>
 #include <linux/delay.h>
-#include <linux/of_fdt.h>
 
 #define RTL821x_PHYSR				0x11
 #define RTL821x_PHYSR_DUPLEX			BIT(13)
@@ -90,18 +89,6 @@ struct rtl821x_priv {
 
 static bool is_rtl8211fvd(u32 phy_id)
 {
-	const char *model = of_fdt_get_model();
-
-	printk(KERN_INFO "%s - phy_id: 0x%08x\n", __func__, phy_id);
-	printk(KERN_INFO "%s - OF fdt Machine model: %s\n", __func__, model);
-	if (model != NULL) {
-		if ((strstr(model, "EDM1-IMX6") != NULL) ||
-		    (strstr(model, "Wandboard i.MX6") != NULL)) {
-			printk(KERN_INFO "%s - For EDM1-IMX6/Wandboard i.MX6, always return true\n", __func__);
-			return(true);
-		}
-	}
-
 	return phy_id == RTL_8211FVD_PHYID;
 }
 
