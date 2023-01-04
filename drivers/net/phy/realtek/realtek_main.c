@@ -74,6 +74,7 @@
 #define RTL8211F_PHYCR2				0x19
 #define RTL8211F_CLKOUT_EN			BIT(0)
 #define RTL8211F_PHYCR2_PHY_EEE_ENABLE		BIT(5)
+#define RTL8211F_CLK_OUT_FEQ_SEL		BIT(11)
 
 #define RTL8211F_INSR_PAGE			0xa43
 #define RTL8211F_INSR				0x1d
@@ -184,6 +185,7 @@ struct rtl821x_priv {
 	struct clk *clk;
 	/* rtl8211f */
 	u16 iner;
+	u32 clkout_freq;
 };
 
 static int rtl821x_read_page(struct phy_device *phydev)
@@ -244,6 +246,9 @@ static int rtl821x_probe(struct phy_device *phydev)
 						   "realtek,aldps-enable");
 	priv->disable_clk_out = of_property_read_bool(dev->of_node,
 						      "realtek,clkout-disable");
+
+	if (!of_property_read_u32(dev->of_node, "realtek,clkout-frequency", &priv->clkout_freq))
+		return dev_err_probe(dev, -EINVAL, "invalid realtek,clkout-frequency\n");
 
 	phydev->priv = priv;
 
@@ -641,6 +646,15 @@ static int rtl8211f_config_clk_out(struct phy_device *phydev)
 				       RTL8211F_PHYCR2, RTL8211F_CLKOUT_EN, 0);
 	if (ret)
 		return ret;
+
+	/* Configure CLKOUT frequency */
+	ret = phy_modify_paged(phydev, RTL8211F_PHYCR_PAGE, RTL8211F_PHYCR2,
+		RTL8211F_CLK_OUT_FEQ_SEL, priv->clkout_freq == 125000000 ? RTL8211F_CLK_OUT_FEQ_SEL : 0);
+	if (ret < 0) {
+		phydev_err(phydev, "clkout configuration failed: %pe\n",
+			ERR_PTR(ret));
+		return ret;
+	}
 
 	return genphy_soft_reset(phydev);
 }
