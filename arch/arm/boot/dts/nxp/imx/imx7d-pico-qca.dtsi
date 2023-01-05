@@ -934,7 +934,6 @@
 	pinctrl-0 = <&pinctrl_enet1>;
 	phy-mode = "rgmii-id";
 	phy-handle = <&ethphy0>;
-	phy-reset-gpios = <&gpio6 11 GPIO_ACTIVE_LOW>;
 	fsl,magic-packet;
 	status = "okay";
 	mdio {
@@ -944,8 +943,13 @@
 		ethphy0: ethernet-phy@1 {
 			compatible = "ethernet-phy-ieee802.3-c22";
 			reg = <1>;
+			reset-gpios = <&gpio6 11 GPIO_ACTIVE_LOW>;
+			reset-assert-us = <35000>;
+			reset-deassert-us = <75000>;
 			at803x,led-act-blind-workaround;
 			at803x,eee-disabled;
+			rtl821x,aldps-disable;
+			realtek,clkout-disable;
 		};
 	};
 };
