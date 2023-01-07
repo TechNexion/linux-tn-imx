@@ -82,6 +82,9 @@
 		ethphy0: ethernet-phy@0 {
 			compatible = "ethernet-phy-ieee802.3-c22";
 			reg = <1>;
+			reset-gpios = <&gpio2 10 GPIO_ACTIVE_LOW>;
+			reset-assert-us = <35000>;
+			reset-deassert-us = <75000>;
 			at803x,led-act-blind-workaround;
 			at803x,eee-disabled;
 			rtl821x,aldps-disable;
