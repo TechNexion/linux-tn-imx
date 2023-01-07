@@ -200,7 +200,7 @@
 				MX8MN_IOMUXC_NAND_DATA01_GPIO3_IO7		0x41
 			>;
 		};
-		
+
 		pinctrl_reg_usdhc2_vmmc: regusdhc2vmmc {
 			fsl,pins = <
 				MX8MN_IOMUXC_SD2_RESET_B_GPIO2_IO19		0x41
@@ -248,7 +248,7 @@
 				MX8MN_IOMUXC_SD1_STROBE_GPIO2_IO11		0x159
 			>;
 		};
-		
+
 		pinctrl_usdhc2_gpio: usdhc2grpgpio {
 			fsl,pins = <
 				MX8MN_IOMUXC_SD2_CD_B_GPIO2_IO12		0x1c4
@@ -595,9 +595,14 @@
 		ethphy0: ethernet-phy@1 {
 			compatible = "ethernet-phy-ieee802.3-c22";
 			reg = <1>;
+			reset-gpios = <&gpio2 7 GPIO_ACTIVE_LOW>;
+			reset-assert-us = <35000>;
+			reset-deassert-us = <75000>;
 			at803x,led-act-blind-workaround;
 			at803x,eee-disabled;
 			at803x,vddio-1p8v;
+			rtl821x,aldps-disable;
+			rtl821x,clkout-disable;
 		};
 	};
 };
