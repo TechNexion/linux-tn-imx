@@ -227,6 +227,15 @@ static int rtl8211f_config_init(struct phy_device *phydev)
 	int ret;
 	struct rtl821x_priv *priv = phydev->priv;
 
+	for (oldpage = 0; oldpage < 10; oldpage++) {
+		ret = phy_read_paged(phydev, 0xa43, RTL8211F_PHYCR1);
+		if (ret < 0)
+			return ret;
+		else if (ret == 0x2118)		/* PHYCR1 default value is 0x2118 */
+			break;
+		msleep(1);
+	}
+
 	if (!(priv->quirks & RTL821X_ALDPS_DISABLE)) {
 		u16 val;
 		val = RTL8211F_ALDPS_ENABLE | RTL8211F_ALDPS_PLL_OFF | RTL8211F_ALDPS_XTAL_OFF;
