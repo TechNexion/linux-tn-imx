@@ -12,6 +12,7 @@
 #include <linux/of.h>
 #include <linux/phy.h>
 #include <linux/module.h>
+#include <linux/delay.h>
 
 #define RTL821x_PHYSR				0x11
 #define RTL821x_PHYSR_DUPLEX			BIT(13)
@@ -35,6 +36,7 @@
 #define RTL8211E_RX_DELAY			BIT(2)
 #define RTL8211E_MODE_MII_GMII			BIT(3)
 
+#define RTL8211F_PHYCR1				0x18
 #define RTL8201F_ISR				0x1e
 #define RTL8201F_IER				0x13
 
@@ -215,6 +217,15 @@ static int rtl8211f_config_init(struct phy_device *phydev)
 	u16 oldpage;
 	int ret;
 	struct rtl821x_priv *priv = phydev->priv;
+
+	for (oldpage = 0; oldpage < 10; oldpage++) {
+		ret = phy_read_paged(phydev, 0xa43, RTL8211F_PHYCR1);
+		if (ret < 0)
+			return ret;
+		else if (ret == 0x2118)		/* PHYCR1 default value is 0x2118 */
+			break;
+		msleep(1);
+	}
 
 	/* enable TX-delay for rgmii-{id,txid}, and disable it for rgmii and
 	 * rgmii-rxid. The RX-delay can be enabled by the external RXDLY pin.
