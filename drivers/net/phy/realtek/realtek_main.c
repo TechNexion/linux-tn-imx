@@ -691,7 +691,16 @@ static int rtl8211f_config_phy_eee(struct phy_device *phydev)
 static int rtl8211f_config_init(struct phy_device *phydev)
 {
 	struct device *dev = &phydev->mdio.dev;
-	int ret;
+	int ret, i;
+
+	for (i = 0; i < 10; i++) {
+		ret = phy_read_paged(phydev, RTL8211F_PHYCR_PAGE, RTL8211F_PHYCR1);
+		if (ret < 0)
+			return ret;
+		else if (ret == 0x2118)		/* PHYCR1 default value is 0x2118 */
+			break;
+		msleep(1);
+	}
 
 	ret = rtl8211f_config_aldps(phydev);
 	if (ret) {
