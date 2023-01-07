@@ -368,6 +368,15 @@ static int rtl8211f_config_init(struct phy_device *phydev)
 	u16 val_txdly, val_rxdly, oldpage;
 	int ret;
 
+	for (oldpage = 0; oldpage < 10; oldpage++) {
+		ret = phy_read_paged(phydev, 0xa43, RTL8211F_PHYCR1);
+		if (ret < 0)
+			return ret;
+		else if (ret == 0x2118)		/* PHYCR1 default value is 0x2118 */
+			break;
+		msleep(1);
+	}
+
 	ret = phy_modify_paged_changed(phydev, 0xa43, RTL8211F_PHYCR1,
 				       RTL8211F_ALDPS_PLL_OFF | RTL8211F_ALDPS_ENABLE | RTL8211F_ALDPS_XTAL_OFF,
 				       priv->phycr1);
