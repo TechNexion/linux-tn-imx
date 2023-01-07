@@ -109,6 +109,12 @@ static int rtl821x_probe(struct phy_device *phydev)
 	if (!of_property_read_bool(dev->of_node, "realtek,phy-mode-eee-disable"))
 		priv->quirks |= RTL821X_PHY_MODE_EEE_EN_FEATURE;
 
+	/* disable EEE LED*/
+	phy_write_paged(phydev, RTL8211F_PHYLED_PAGE, RTL8211F_EEE_LED_REG, 0x0000);
+
+	/* setting 1000Mbps for orange LED, 100Mbps for green LED */
+	phy_write_paged(phydev, RTL8211F_PHYLED_PAGE, RTL8211F_LED_REG, 0x091f);
+
 	phydev->priv = priv;
 
 	return 0;
