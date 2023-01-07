@@ -160,6 +160,9 @@
 			/* Atheros AR8035 PHY */
 			compatible = "ethernet-phy-ieee802.3-c22";
 			reg = <1>;
+			reset-gpios = <&gpio1 9 GPIO_ACTIVE_LOW>;
+			reset-assert-us = <35000>;
+			reset-deassert-us = <75000>;
 			eee-broken-1000t;
 			at803x,eee-disabled;
 			at803x,vddio-1p8v;
