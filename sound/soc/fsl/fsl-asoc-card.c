@@ -44,7 +44,9 @@ enum fsl_asoc_card_type {
 	CARD_SGTL5000,
 	CARD_AC97,
 	CARD_CS427X,
+	CARD_TLV320AIC31XX,
 	CARD_TLV320AIC32X4,
+	CARD_TLV320AIC3X,
 	CARD_MQS,
 	CARD_WM8524,
 	CARD_SI476X,
@@ -803,6 +805,10 @@ static int fsl_asoc_card_probe(struct platform_device *pdev)
 		priv->codec_priv.mclk_id = SGTL5000_SYSCLK;
 		priv->dai_fmt |= SND_SOC_DAIFMT_CBP_CFP;
 		priv->card_type = CARD_SGTL5000;
+	} else if (of_device_is_compatible(np, "fsl,imx-audio-tlv320aic31xx")) {
+		codec_dai_name = "tlv320aic31xx-hifi";
+		priv->dai_fmt |= SND_SOC_DAIFMT_CBM_CFM;
+		priv->card_type = CARD_TLV320AIC31XX;
 	} else if (of_device_is_compatible(np, "fsl,imx-audio-tlv320aic32x4")) {
 		codec_dai_name = "tlv320aic32x4-hifi";
 		priv->dai_fmt |= SND_SOC_DAIFMT_CBP_CFP;
@@ -810,7 +816,7 @@ static int fsl_asoc_card_probe(struct platform_device *pdev)
 	} else if (of_device_is_compatible(np, "fsl,imx-audio-tlv320aic3x")) {
 		codec_dai_name = "tlv320aic3x-hifi";
 		priv->dai_fmt |= SND_SOC_DAIFMT_CBM_CFM;
-		priv->card_type = CARD_TLV320AIC32X4;
+		priv->card_type = CARD_TLV320AIC3X;
 	} else if (of_device_is_compatible(np, "fsl,imx-audio-tlv320aic31xx")) {
 		codec_dai_name = "tlv320dac31xx-hifi";
 		priv->dai_fmt |= SND_SOC_DAIFMT_CBS_CFS;
@@ -1189,6 +1195,7 @@ static const struct of_device_id fsl_asoc_card_dt_ids[] = {
 	{ .compatible = "fsl,imx-audio-ac97", },
 	{ .compatible = "fsl,imx-audio-cs42888", },
 	{ .compatible = "fsl,imx-audio-cs427x", },
+	{ .compatible = "fsl,imx-audio-tlv320aic31xx", },
 	{ .compatible = "fsl,imx-audio-tlv320aic32x4", },
 	{ .compatible = "fsl,imx-audio-tlv320aic31xx", },
 	{ .compatible = "fsl,imx-audio-tlv320aic3x", },
