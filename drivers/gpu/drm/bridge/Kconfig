@@ -362,6 +362,13 @@ config DRM_TOSHIBA_TC358775
 	help
 	  Toshiba TC358775 DSI/LVDS bridge chip driver.
 
+config DRM_TI_DS90UB94X
+	tristate "TI DS90UB94X DSI/FPD-LINK/LVDS bridge"
+	depends on OF
+	select DRM_KMS_HELPER
+	help
+	  Texas Instruments DS90UB94X DSI/FPD-LINK/LVDS bridge chip driver.
+
 config DRM_TI_DLPC3433
 	tristate "TI DLPC3433 Display controller"
 	depends on DRM && DRM_PANEL
