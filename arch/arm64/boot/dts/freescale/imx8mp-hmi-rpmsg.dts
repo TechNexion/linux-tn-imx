@@ -1,0 +1,98 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2021 TechNexion Ltd.
+ *
+ * Author: Ray Chang <ray.chang@technexion.com>
+ *
+ */
+
+/dts-v1/;
+
+#include "imx8mp-hmi.dts"
+
+/ {
+	aliases {
+		i2c0 = &i2c1;
+		i2c2 = &i2c3;
+	};
+
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		m7_reserved: m7@6F000000 {
+			no-map;
+			reg = <0 0x6F000000 0 0x1000000>;
+		};
+
+		vdev0vring0: vdev0vring0@55000000 {
+			compatible = "shared-dma-pool";
+			reg = <0 0x55000000 0 0x8000>;
+			no-map;
+		};
+
+		vdev0vring1: vdev0vring1@55008000 {
+			compatible = "shared-dma-pool";
+			reg = <0 0x55008000 0 0x8000>;
+			no-map;
+		};
+
+		vdevbuffer: vdevbuffer@55400000 {
+			compatible = "shared-dma-pool";
+			reg = <0 0x55400000 0 0x100000>;
+			no-map;
+		};
+
+		audio_reserved: audio@70000000 {
+			compatible = "shared-dma-pool";
+			no-map;
+			reg = <0 0x70000000 0 0x10000000>;
+		};
+	};
+
+	sound {
+		status = "disabled";
+	};
+
+	rpmsg_i2s: rpmsg-i2s {
+		compatible = "fsl,imx8mp-rpmsg-i2s";
+		/* the audio device index in m7 domain */
+		fsl,audioindex = <0> ;
+		fsl,dma-buffer-size = <0x6000000>;
+		fsl,enable-lpa;
+		power-domains = <&audiomix_pd>;
+		status = "okay";
+	};
+
+	imx8mp-cm7 {
+		compatible = "fsl,imx8mn-cm7";
+		rsc-da = <0x55000000>;
+		clocks = <&clk IMX8MP_CLK_M7_DIV>;
+		mbox-names = "tx", "rx", "rxdb";
+		mboxes = <&mu 0 1
+			  &mu 1 1
+			  &mu 3 1>;
+		memory-region = <&vdev0vring0>, <&vdev0vring1>, <&vdevbuffer>;
+		status = "okay";
+	};
+
+	/delete-node/ leds;
+};
+
+/*
+ * ATTENTION: M7 may use IPs like below
+ * GPT1, I2C2, I2S3, UART4
+ *
+ * Notes: The i2c_rpbus_3 node is only used to test that sai_low_power_audio demo app.
+ * Changing the i2c2 bus to the M7 core will lose some functionality on the EDM-G-WB
+ * board, e.g., USB OTG(hd3ss3220), I/O expander(pca9555) and camera(ov5640).
+ */
+
+&uart4 {
+	status = "disabled";
+};
+
+&sai3 {
+	status = "disabled";
+};
