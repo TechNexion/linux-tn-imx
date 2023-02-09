@@ -185,6 +185,15 @@
 	};
 };
 
+&gpio2 {
+	pinctrl-0 = <&pinctrl_gpio2>;
+	gpio-line-names =
+		"", "", "", "", "", "HW_RESET", "", "", \
+		"", "", "", "", "SD_cd", "", "", "", \
+		"", "", "", "", "", "", "", "", \
+		"", "", "", "", "", "", "", "";
+};
+
 &gpio3 {
 	pinctrl-0 = <&pinctrl_gpio3>;
 
@@ -852,6 +861,12 @@
 			MX8MP_IOMUXC_GPIO1_IO06__GPIO1_IO06		0x16 /* LAN_BYPASS */
 			MX8MP_IOMUXC_GPIO1_IO07__GPIO1_IO07		0x16 /* CPU_INT */
 			MX8MP_IOMUXC_GPIO1_IO08__GPIO1_IO08		0x16 /* CPU_DET */
+		>;
+	};
+
+	pinctrl_gpio2: gpio2grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SD1_DATA3__GPIO2_IO05		0x16 /* HW_RESET */
 		>;
 	};
 
