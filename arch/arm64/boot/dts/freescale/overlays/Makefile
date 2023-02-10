@@ -22,6 +22,7 @@ dtbo-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wizard-mipi2hdmi-adv7535.dtbo imx8mp-edm
 			   imx8mp-edm-g-wizard-ili9881c.dtbo imx8mp-edm-g-wizard-g101uan02.dtbo \
 			   imx8mp-edm-g-wizard-vizionpanel-vl10112880.dtbo imx8mp-edm-g-wizard-vizionpanel-vl15010276.dtbo imx8mp-edm-g-wizard-vizionpanel-vl215192108.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mp-tek-hdmi2mipi-tc358743.dtbo
+dtbo-$(CONFIG_ARCH_MXC) += imx8mp-tep-lvds-vl10112880.dtbo imx8mp-tep-lvds-vl156192108.dtbo imx8mp-tep-lvds-vl215192108.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mq-edm-wizard-mipi2hdmi-adv7535.dtbo imx8mq-edm-wizard-ili9881c.dtbo \
 			   imx8mq-edm-wizard-g080uan01.dtbo imx8mq-edm-wizard-g101uan02.dtbo \
 			   imx8mq-edm-wizard-sn65dsi84-vl10112880.dtbo imx8mq-edm-wizard-sn65dsi84-vl15613676.dtbo imx8mq-edm-wizard-sn65dsi84-vl215192108.dtbo \
