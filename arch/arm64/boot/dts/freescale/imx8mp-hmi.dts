@@ -90,6 +90,56 @@
 		status = "okay";
 	};
 
+	reg_lvds_pwr: regulator_lvdspwr {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_lvds0_pwr>;
+		compatible = "regulator-fixed";
+		regulator-name = "lvds0_vdden";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&gpio2 20 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+
+	reg_lvds_backlight_pwr: regulator_lvdsblpwr {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_lvds0_backlight_pwr>;
+		compatible = "regulator-fixed";
+		regulator-name = "lvds0_bl_en";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&gpio1 15 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		regulator-always-on;
+	};
+
+	lvds_backlight: lvds_backlight {
+		compatible = "pwm-backlight";
+		pwms = <&pwm3 0 50000>;
+		brightness-levels = <0 36 72 108 144 180 216 255>;
+		default-brightness-level = <6>;
+		status = "disabled";
+	};
+
+	reg_mipi_bl_pwr: regulator_mipi_blpwr {
+		pinctrl-names = "default";
+		compatible = "regulator-fixed";
+		regulator-name = "mipi_backlight_pwr";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		gpio = <&pca9554bs_a23 1 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+
+	backlight_mipi {
+		compatible = "pwm-backlight";
+		pwms = <&pwm2 0 50000 0>;
+		brightness-levels = <0 36 72 108 144 180 216 255>;
+		default-brightness-level = <6>;
+		power-supply = <&reg_mipi_bl_pwr>;
+		status = "disabled";
+	};
+
 	usb_hub_rst: usb_hub_rst {
 		compatible = "gpio-reset";
 		pinctrl-names = "default";
@@ -130,30 +180,17 @@
 	leds {
 		compatible = "gpio-leds";
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_gpio_leds>;
 
 		led_1 {
-			label = "ALERT1-LED";
-			gpios = <&gpio3 21 GPIO_ACTIVE_HIGH>;
-			default-state = "on";
-		};
-
-		led_2 {
 			label = "SYSTEM1-LED";
 			gpios = <&pca9555_a26 0 GPIO_ACTIVE_HIGH>;
 			default-state = "on";
 			linux,default-trigger = "heartbeat";
 		};
 
-		led_3 {
+		led_2 {
 			label = "ALERT2-LED";
 			gpios = <&pca9555_a26 1 GPIO_ACTIVE_HIGH>;
-			default-state = "on";
-		};
-
-		led_4 {
-			label = "SYSTEM2_LED";
-			gpios = <&pca9555_a26 2 GPIO_ACTIVE_HIGH>;
 			default-state = "on";
 		};
 	};
@@ -185,13 +222,22 @@
 	};
 };
 
+&gpio2 {
+	pinctrl-0 = <&pinctrl_gpio2>;
+	gpio-line-names =	\
+		"", "", "DSI1_PWR_EN", "DSI1_INT_N", "DSI1_RST_N", "DSI_TUCH_INT_N", "TOUCH_INT", "TOUCH_RST", \
+		"", "", "", "", "", "", "", "", \
+		"", "", "", "", "LVDS0_VDDEN", "", "", "", \
+		"", "", "", "", "", "", "", "";
+};
+
 &gpio3 {
 	pinctrl-0 = <&pinctrl_gpio3>;
 
 	gpio-line-names =	\
 		"", "", "", "", "", "", "", "",	\
 		"", "", "", "", "", "", "", "",	\
-		"", "", "", "BUZZER", "", "LED1", "", "",	\
+		"", "", "", "BUZZER", "", "DSI1_BL_PWM", "", "",	\
 		"", "", "", "", "", "", "", "";
 };
 
@@ -230,6 +276,12 @@
 
 &A53_3 {
 	cpu-supply = <&buck2>;
+};
+
+&pwm3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pwm3>;
+	status = "okay";
 };
 
 &eqos {
@@ -432,7 +484,7 @@
 		interrupt-parent = <&gpio4>;
 		interrupts = <27 IRQ_TYPE_LEVEL_LOW>;
 		status = "okay";
-		gpio-line-names = "LED2", "LED3", "LED4", "OTG_PD_INT", "OTG_PD_FAULT", "CSI1_INT", "CSI1_PD", "M2_1_DISABLE_N",
+		gpio-line-names = "LED1", "LED2", "M2_1_RESET", "M2_2_RESET", "PD_FAULT", "CSI1_INT", "CSI1_PD", "M2_1_DISABLE_N",
 							"M2_2_DISABLE_N", "EXT_GPIO1", "EXT_GPIO2", "EXT_GPIO3", "M2_1_POWEROFF", "M2_2_POWEROFF", "M2_2_WWAN_WAKE", "M2_1_WWAN_WAKE";
 	};
 
@@ -507,6 +559,16 @@
 	rtc_ds1337: ds1337@68 {
 		compatible = "dallas,ds1337";
 		reg = <0x68>;
+	};
+
+	pca9554bs_a23: pca9554bs@23 {
+		compatible = "nxp,pca9554";
+		pinctrl-names = "default";
+		reg = <0x23>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		status = "okay";
+		gpio-line-names = "DSI1_TOUCH_RST_N", "DSI1_VDDEN", "DSI1_BL_EN", "DSI1_TE", "DST1_RST", "", "", "";
 	};
 };
 
@@ -640,7 +702,7 @@
 };
 
 &ldb_phy {
-	status = "disabled";
+	status = "okay";
 };
 
 &mipi_dsi {
@@ -835,9 +897,27 @@
 		>;
 	};
 
-	pinctrl_gpio_leds: gpioledsgrp {
+	pinctrl_lvds0_backlight_pwr: lvds0_bl_pwrgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_SAI5_RXD0__GPIO3_IO21		0x41
+			MX8MP_IOMUXC_GPIO1_IO15__GPIO1_IO15		0x19 /* LVDS0_BL_EN */
+		>;
+	};
+
+	pinctrl_lvds0_pwr: lvds0_pwrgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SD2_WP__GPIO2_IO20		0x19 /* LVDS0_VDDEN */
+		>;
+	};
+
+	pinctrl_touch_reset: touch_rstgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SD1_DATA5__GPIO2_IO07		0x41 /* TOUCH_nRST */
+		>;
+	};
+
+	pinctrl_touch_irq: touch_irqgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SD1_DATA4__GPIO2_IO06		0x41   /* Touch INT */
 		>;
 	};
 
@@ -847,11 +927,31 @@
 		>;
 	};
 
+	pinctrl_pwm2: pwm2grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI5_RXD0__PWM2_OUT	0x116 /* DSI1_BL_PWM */
+		>;
+	};
+
+	pinctrl_pwm3: pwm3grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_GPIO1_IO14__PWM3_OUT	0x116 /* LVDS0_BL_PWM */
+		>;
+	};
+
 	pinctrl_gpio1: gpio1grp {
 		fsl,pins = <
 			MX8MP_IOMUXC_GPIO1_IO06__GPIO1_IO06		0x16 /* LAN_BYPASS */
 			MX8MP_IOMUXC_GPIO1_IO07__GPIO1_IO07		0x16 /* CPU_INT */
 			MX8MP_IOMUXC_GPIO1_IO08__GPIO1_IO08		0x16 /* CPU_DET */
+		>;
+	};
+	pinctrl_gpio2: gpio2grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SD1_DATA0__GPIO2_IO02		0x16 /* DSI1_PWR_EN */
+			MX8MP_IOMUXC_SD1_DATA1__GPIO2_IO03		0x16 /* DSI1_INT_N */
+			MX8MP_IOMUXC_SD1_DATA2__GPIO2_IO04		0x16 /* DSI1_RST_N */
+			MX8MP_IOMUXC_SD1_DATA3__GPIO2_IO05		0x16 /* DSI1_TOUCH_INT */
 		>;
 	};
 
@@ -1000,12 +1100,12 @@
 			MX8MP_IOMUXC_SAI2_TXFS__AUDIOMIX_SAI2_TX_SYNC	0xd6
 			MX8MP_IOMUXC_SAI2_TXC__AUDIOMIX_SAI2_TX_BCLK	0xd6
 			MX8MP_IOMUXC_SAI2_RXD0__AUDIOMIX_SAI2_RX_DATA00	0xd6
+			MX8MP_IOMUXC_SAI2_TXD0__AUDIOMIX_SAI2_TX_DATA00 0xd6
 		>;
 	};
 
 	pinctrl_sai3: sai3grp {
 		fsl,pins = <
-			MX8MP_IOMUXC_SAI3_MCLK__AUDIOMIX_SAI3_MCLK		0xd6
 			MX8MP_IOMUXC_SAI3_TXFS__AUDIOMIX_SAI3_TX_SYNC	0xd6
 			MX8MP_IOMUXC_SAI3_TXC__AUDIOMIX_SAI3_TX_BCLK	0xd6
 			MX8MP_IOMUXC_SAI3_RXD__AUDIOMIX_SAI3_RX_DATA00	0xd6
@@ -1174,7 +1274,7 @@
 
 	pinctrl_pca9555_a23_irq: pca9555_a23_irqgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_SAI2_TXD0__GPIO4_IO26	0x140
+			MX8MP_IOMUXC_SAI3_MCLK__GPIO5_IO02	0x140
 		>;
 	};
 
