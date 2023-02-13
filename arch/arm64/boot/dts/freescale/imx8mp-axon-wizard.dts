@@ -133,7 +133,7 @@
 	sound {
 		compatible = "fsl,imx-audio-tlv320aic31xx";
 		model = "tlv320aic3x-audio";
-		audio-cpu = <&sai3>;
+		audio-cpu = <&sai2>;
 		audio-asrc = <&easrc>;
 		audio-codec = <&codec>;
 		audio-routing =
