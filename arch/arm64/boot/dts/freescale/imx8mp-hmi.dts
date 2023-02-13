@@ -568,7 +568,7 @@
 		gpio-controller;
 		#gpio-cells = <2>;
 		status = "okay";
-		gpio-line-names = "DSI1_TOUCH_RST_N", "DSI1_VDDEN", "DSI1_BL_EN", "DSI1_TE", "DST1_RST", "", "", "";
+		gpio-line-names = "DSI1_TOUCH_RST_N", "DSI1_VDDEN", "DSI1_BL_EN", "DSI1_TE", "DST1_RST", "CSI2_DUMMY_HOST", "CSI1_DUMMY_HOST", "";
 	};
 };
 
