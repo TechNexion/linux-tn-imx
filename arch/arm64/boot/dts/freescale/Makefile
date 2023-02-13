@@ -413,6 +413,7 @@ dtb-$(CONFIG_ARCH_MXC) += imx8qm-mek-sof-cs42888.dtb imx8qm-mek-sof-wm8960.dtb \
 subdir-y += overlays
 
 # enable creation of __symbols__ node
+DTC_FLAGS_imx8mp-axon-wizard := -@
 DTC_FLAGS_imx8mm-edm-g-wb := -@
 DTC_FLAGS_imx8mn-edm-g-wb := -@
 DTC_FLAGS_imx8mp-edm-g-wb := -@
