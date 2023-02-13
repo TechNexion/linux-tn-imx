@@ -60,10 +60,6 @@ saveenv
 					};
 				};
 			};
-
-			codec: wm8960@1a {
-				status = "disabled";
-			};
 		};
 	};
 
@@ -89,10 +85,6 @@ saveenv
 	fragment@2 {
 		target-path = "/";
 		__overlay__ {
-			sound-wm8960 {
-				status = "disabled";
-			};
-
 			sound-tc358743 {
 				compatible = "nxp,imx-audio-tc358743", "nxp,imx-tc358743";
 				cpu-dai = <&sai3>;  /* AUB_A on AXON */
