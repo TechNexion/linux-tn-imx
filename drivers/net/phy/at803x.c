@@ -819,10 +819,11 @@ static int at803x_parse_dt(struct phy_device *phydev)
 		}
 	}
 
-	/* Only supported on AR8031/AR8033, the AR8030/AR8035 use strapping
+	/* Only supported on AR8031/AR8033/AR8035, the AR8030 use strapping
 	 * options.
 	 */
-	if (phydev->drv->phy_id == ATH8031_PHY_ID) {
+	if (phydev->drv->phy_id == ATH8031_PHY_ID ||
+		phydev->drv->phy_id == ATH8035_PHY_ID) {
 		if (of_property_read_bool(node, "qca,keep-pll-enabled"))
 			priv->flags |= AT803X_KEEP_PLL_ENABLED;
 
