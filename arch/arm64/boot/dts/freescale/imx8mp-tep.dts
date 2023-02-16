@@ -1293,10 +1293,6 @@
 	status = "okay";
 };
 
-&vpu_v4l2 {
-	status = "okay";
-};
-
 &mix_gpu_ml {
 	status = "okay";
 };
