@@ -1248,14 +1248,12 @@
 	pinctrl_csi0_rst: csi0_rst_grp {
 		fsl,pins = <
 			MX8MP_IOMUXC_I2C3_SCL__GPIO5_IO18		0x29
-			MX8MP_IOMUXC_GPIO1_IO14__CCM_CLKO1		0x59
 		>;
 	};
 
 	pinctrl_csi1_rst: csi1_rst_grp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SAI1_TXD7__GPIO4_IO19		0x29
-			MX8MP_IOMUXC_GPIO1_IO15__CCM_CLKO2		0x59
 		>;
 	};
 
