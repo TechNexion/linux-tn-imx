@@ -28,24 +28,25 @@ static struct resolution ar0521_res_list[] = {
 static struct resolution ar0522_res_list[] = {
 	{.width = 1280, .height = 720, .framerates = 60},
 	{.width = 1920, .height = 1080, .framerates = 60},
-	{.width = 2560, .height = 1440, .framerates = 60},
+	{.width = 2560, .height = 1440, .framerates = 40},
 	{.width = 2592, .height = 1944, .framerates = 40},
 };
 
 static struct resolution ar0821_res_list[] = {
-	{.width = 1280, .height = 720, .framerates = 40},
-	{.width = 1920, .height = 1080, .framerates = 40},
+	{.width = 1280, .height = 720, .framerates = 30},
+	{.width = 1920, .height = 1080, .framerates = 30},
+	{.width = 2560, .height = 1440, .framerates = 30},   //2K  1440p
 	{.width = 3840, .height = 2160, .framerates = 24},
 };
 
 static struct resolution ar1335_res_list[] = {
-	{.width = 640, .height = 480, .framerates = 120},    //HD  480p
-	{.width = 1280, .height = 720, .framerates = 60},    //HD  720p
-	{.width = 1920, .height = 1080, .framerates = 60},   //FHD 1080p
+	// {.width = 640, .height = 480, .framerates = 120},    //HD  480p
+	{.width = 1280, .height = 720, .framerates = 30},    //HD  720p
+	{.width = 1920, .height = 1080, .framerates = 30},   //FHD 1080p
 	// {.width = 2560, .height = 1440, .framerates = 30},   //2K  1440p
-	// {.width = 3840, .height = 2160, .framerates = 30},   //4K  2160p
-	{.width = 4192, .height = 3120, .framerates = 24},
-	{.width = 4208, .height = 3120, .framerates = 15},
+	// {.width = 3840, .height = 2160, .framerates = 24},   //4K  2160p
+	// {.width = 4192, .height = 3120, .framerates = 24},
+	// {.width = 4208, .height = 3120, .framerates = 15},
 };
 
 static struct resolution ar1820_res_list[] = {
