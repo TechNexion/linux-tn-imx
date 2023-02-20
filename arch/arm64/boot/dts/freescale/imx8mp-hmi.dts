@@ -1049,7 +1049,7 @@
 
 	pinctrl_gpio_key_user: gpiokeyusergrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_SPDIF_EXT_CLK__GPIO5_IO05	0x19
+			MX8MP_IOMUXC_SPDIF_EXT_CLK__GPIO5_IO05	0x149
 		>;
 	};
 
