@@ -840,14 +840,14 @@ EDM_TEP1_GPIO_DEFS();
 			reset-gpios = <&gpio5 11 GPIO_ACTIVE_LOW>;
 			reset-assert-us = <35000>;
 			reset-deassert-us = <75000>;
-			rtl821x,aldps-disable;
+			realtek,aldps-disable;
 			realtek,clkout-disable;
 		};
 
 		ethphy1: ethernet-phy@2 {
 			compatible = "ethernet-phy-ieee802.3-c22";
 			reg = <2>;
-			rtl821x,aldps-disable;
+			realtek,aldps-disable;
 			realtek,clkout-disable;
 		};
 	};
