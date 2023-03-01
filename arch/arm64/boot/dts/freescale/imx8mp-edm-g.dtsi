@@ -511,7 +511,7 @@
 /* WIFI SDIO */
 &usdhc1 {
 	assigned-clocks = <&clk IMX8MP_CLK_USDHC1>;
-	assigned-clock-rates = <133333333>;
+	assigned-clock-rates = <100000000>;
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
 	pinctrl-0 = <&pinctrl_usdhc1>;
 	pinctrl-1 = <&pinctrl_usdhc1_100mhz>;
