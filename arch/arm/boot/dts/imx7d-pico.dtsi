@@ -137,7 +137,7 @@
 			reset-assert-us = <35000>;
 			reset-deassert-us = <75000>;
 			status = "okay";
-			rtl821x,aldps-disable;
+			realtek,aldps-disable;
 			realtek,clkout-disable;
 		};
 	};
