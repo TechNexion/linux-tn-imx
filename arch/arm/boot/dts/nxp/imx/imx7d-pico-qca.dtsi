@@ -948,7 +948,7 @@
 			reset-deassert-us = <75000>;
 			at803x,led-act-blind-workaround;
 			at803x,eee-disabled;
-			rtl821x,aldps-disable;
+			realtek,aldps-disable;
 			realtek,clkout-disable;
 		};
 	};
