@@ -209,12 +209,13 @@
 
 /* WIFI SDIO */
 &usdhc1 {
+	assigned-clocks = <&clk IMX8MM_CLK_USDHC1>;
+	assigned-clock-rates = <100000000>;
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
 	pinctrl-0 = <&pinctrl_usdhc1>;
 	pinctrl-1 = <&pinctrl_usdhc1_100mhz>;
 	pinctrl-2 = <&pinctrl_usdhc1_200mhz>;
 	bus-width = <4>;
-	max-frequency = <133333333>;
 	vmmc-supply = <&wl_reg_on>;
 	pm-ignore-notify;
 	keep-power-in-suspend;
