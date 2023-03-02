@@ -197,7 +197,7 @@
 
 		led_d24 {
 			label = "led_d24";
-			pwms = <&pwm1 0 50000>;
+			pwms = <&pwm1 0 50000 0>;
 			max-brightness = <255>;
 			linux,default-trigger = "default-on";
 		};
