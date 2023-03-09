@@ -642,7 +642,7 @@ ov5640_mode_data[OV5640_NUM_MODES] = {
 	 2592, 2844, 1944, 1968,
 	 ov5640_setting_QSXGA_2592_1944,
 	 ARRAY_SIZE(ov5640_setting_QSXGA_2592_1944),
-	 OV5640_08_FPS},
+	 OV5640_15_FPS},
 };
 
 static int ov5640_init_slave_id(struct ov5640_dev *sensor)
@@ -996,7 +996,7 @@ static int ov5640_check_valid_mode(struct ov5640_dev *sensor,
 		 }
 		break;
 	case OV5640_MODE_QSXGA_2592_1944:
-		if (rate != OV5640_08_FPS)
+		if (rate != OV5640_15_FPS)
 			ret = -EINVAL;
 		break;
 	default:
@@ -2353,11 +2353,11 @@ static int ov5640_try_frame_interval(struct ov5640_dev *sensor,
 				     u32 width, u32 height)
 {
 	const struct ov5640_mode_info *mode;
-	enum ov5640_frame_rate rate = OV5640_08_FPS;
+	enum ov5640_frame_rate rate = OV5640_15_FPS;
 	int minfps, maxfps, best_fps, fps;
 	int i;
 
-	minfps = ov5640_framerates[OV5640_08_FPS];
+	minfps = ov5640_framerates[OV5640_15_FPS];
 	maxfps = ov5640_framerates[OV5640_30_FPS];
 
 	if (fi->numerator == 0) {
@@ -2478,6 +2478,7 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
 
 	if (new_mode != sensor->current_mode) {
 		sensor->current_mode = new_mode;
+		sensor->current_fr = new_mode->max_fps;
 		sensor->pending_mode_change = true;
 	}
 	if (mbus_fmt->code != sensor->fmt.code)
