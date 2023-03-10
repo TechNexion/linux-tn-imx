@@ -1728,6 +1728,20 @@ static int aic31xx_i2c_probe(struct i2c_client *i2c)
 		}
 	}
 
+	regmap_update_bits(aic31xx->regmap, AIC31XX_DACMIXERROUTE, 0xff, 0x44);
+	regmap_update_bits(aic31xx->regmap, AIC31XX_LANALOGSPL, 0xff, 0x8a);
+	regmap_update_bits(aic31xx->regmap, AIC31XX_SPLGAIN, 0x1c, 0x14);
+	regmap_update_bits(aic31xx->regmap, AIC31XX_HPLGAIN, 0x7c, 0x24);
+	regmap_update_bits(aic31xx->regmap, AIC31XX_HPRGAIN, 0x7c, 0x24);
+	regmap_update_bits(aic31xx->regmap, AIC31XX_LANALOGHPL, 0xff, 0x9c);
+	regmap_update_bits(aic31xx->regmap, AIC31XX_RANALOGHPR, 0xff, 0x9c);
+	regmap_update_bits(aic31xx->regmap, AIC31XX_ADCFGA, 0xff, 0x40);
+	regmap_update_bits(aic31xx->regmap, AIC31XX_ADCVOL, 0x7f, 0x15);
+	regmap_update_bits(aic31xx->regmap, AIC31XX_MICPGA, 0xff, 0xc3);
+	regmap_update_bits(aic31xx->regmap, AIC31XX_MICPGAPI, 0x30, 0x10);
+
+	i2c_set_clientdata(i2c, aic31xx);
+
 	if (aic31xx->codec_type & DAC31XX_BIT)
 		return devm_snd_soc_register_component(&i2c->dev,
 				&soc_codec_driver_aic31xx,
