@@ -307,8 +307,8 @@
 			eee-broken-1000t;
 			at803x,eee-disabled;
 			at803x,vddio-1p8v;
-			rtl821x,aldps-disable;
-			rtl821x,clkout-disable;
+			realtek,aldps-disable;
+			realtek,clkout-disable;
 		};
 	};
 };
@@ -334,8 +334,8 @@
 			reset-deassert-us = <75000>;
 			at803x,eee-disabled;
 			at803x,vddio-1p8v;
-			rtl821x,aldps-disable;
-			rtl821x,clkout-disable;
+			realtek,aldps-disable;
+			realtek,clkout-disable;
 		};
 	};
 };
