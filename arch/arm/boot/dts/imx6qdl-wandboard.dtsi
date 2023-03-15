@@ -391,6 +391,7 @@
 	pinctrl-0 = <&pinctrl_enet>;
 	phy-mode = "rgmii-id";
 	phy-handle = <&ethphy>;
+	fsl,magic-packet;
 	status = "okay";
 
 	mdio {
