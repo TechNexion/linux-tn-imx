@@ -979,7 +979,7 @@
 	};
 
 	m2m_device {
-		status = "okay";
+		status = "disabled";
 	};
 };
 
