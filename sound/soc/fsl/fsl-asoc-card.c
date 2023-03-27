@@ -107,6 +107,7 @@ struct fsl_asoc_card_priv {
 	struct snd_soc_dai_link dai_link[3];
 	struct asoc_simple_jack hp_jack;
 	struct asoc_simple_jack mic_jack;
+	struct asoc_simple_jack headset_jack;
 	struct platform_device *pdev;
 	struct codec_priv codec_priv;
 	struct cpu_priv cpu_priv;
@@ -664,6 +665,32 @@ static struct notifier_block mic_jack_nb = {
 	.notifier_call = mic_jack_event,
 };
 
+static int headset_jack_event(struct notifier_block *nb, unsigned long event,
+			 void *data)
+{
+	struct snd_soc_jack *jack = (struct snd_soc_jack *)data;
+	struct snd_soc_dapm_context *dapm = &jack->card->dapm;
+
+	if (event & SND_JACK_HEADPHONE)
+		/* Disable speaker if headphone is plugged in */
+		snd_soc_dapm_disable_pin(dapm, "Ext Spk");
+	else
+		snd_soc_dapm_enable_pin(dapm, "Ext Spk");
+
+	if (event & SND_JACK_MICROPHONE)
+		/* Disable dmic if microphone is plugged in */
+		snd_soc_dapm_disable_pin(dapm, "DMIC");
+	else
+		snd_soc_dapm_enable_pin(dapm, "DMIC");
+
+	return 0;
+}
+
+static struct notifier_block headset_jack_nb = {
+	.notifier_call = headset_jack_event,
+};
+
+
 static int fsl_asoc_card_late_probe(struct snd_soc_card *card)
 {
 	struct fsl_asoc_card_priv *priv = snd_soc_card_get_drvdata(card);
@@ -1179,6 +1206,30 @@ static int fsl_asoc_card_probe(struct platform_device *pdev)
 			goto asrc_fail;
 
 		snd_soc_jack_notifier_register(&priv->mic_jack.jack, &mic_jack_nb);
+	}
+
+	if (of_property_read_bool(np, "headset-det")) {
+		struct snd_soc_pcm_runtime *rtd = list_first_entry(
+				&priv->card.rtd_list, struct snd_soc_pcm_runtime, list);
+		struct snd_soc_component *component = asoc_rtd_to_codec(rtd, 0)->component;
+
+		priv->headset_jack.pin.pin = "Headphone Jack";
+		priv->headset_jack.pin.mask = SND_JACK_HEADSET;
+		ret = snd_soc_card_jack_new(&priv->card, priv->headset_jack.pin.pin,
+					priv->headset_jack.pin.mask,
+					&priv->headset_jack.jack, &priv->headset_jack.pin, 1);
+		if (ret) {
+			dev_err(priv->card.dev, "HEADSET jack creation failed %d\n", ret);
+			goto asrc_fail;
+		}
+
+		ret = snd_soc_component_set_jack(component, &priv->headset_jack.jack, NULL);
+		if (ret) {
+			dev_err(&pdev->dev, "Headset Jack call-back failed: %d\n", ret);
+			goto asrc_fail;
+		}
+
+		snd_soc_jack_notifier_register(&priv->headset_jack.jack, &headset_jack_nb);
 	}
 
 asrc_fail:
