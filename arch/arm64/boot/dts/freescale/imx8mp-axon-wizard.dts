@@ -145,6 +145,7 @@
 			"MIC1LP", "MICBIAS",
 			"MIC1RP", "MICBIAS",
 			"Mic Jack", "MICBIAS";
+		headset-det;
 	};
 
 	clocks {
@@ -264,6 +265,7 @@
 		//clocks = <&audio_blk_ctrl IMX8MP_CLK_AUDIO_BLK_CTRL_SAI3_MCLK1>;
 		clocks = <&codec_osc>;
 		clock-names = "mclk";
+		hs-det;
 	};
 
 	typec_hd3ss3220: hd3ss3220@47 {
