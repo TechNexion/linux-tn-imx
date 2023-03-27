@@ -1215,7 +1215,7 @@ static int fsl_asoc_card_probe(struct platform_device *pdev)
 
 		priv->headset_jack.pin.pin = "Headphone Jack";
 		priv->headset_jack.pin.mask = SND_JACK_HEADSET;
-		ret = snd_soc_card_jack_new(&priv->card, priv->headset_jack.pin.pin,
+		ret = snd_soc_card_jack_new_pins(&priv->card, priv->headset_jack.pin.pin,
 					priv->headset_jack.pin.mask,
 					&priv->headset_jack.jack, &priv->headset_jack.pin, 1);
 		if (ret) {

@@ -171,6 +171,8 @@ struct aic31xx_priv {
 	struct aic31xx_disable_nb disable_nb[AIC31XX_NUM_SUPPLIES];
 	struct snd_soc_jack *jack;
 	u32 sysclk_id;
+	struct work_struct work;
+	int hs_det;
 	unsigned int sysclk;
 	u8 p_div;
 	int rate_div_line;
@@ -959,6 +961,60 @@ static int aic31xx_setup_pll(struct snd_soc_component *component,
 	return 0;
 }
 
+static void aic31xx_imp_meas(struct work_struct *wk)
+{
+	struct aic31xx_priv *aic31xx = container_of(wk, struct aic31xx_priv, work);
+	unsigned int value;
+	int ret;
+
+	regmap_update_bits(aic31xx->regmap, AIC31XX_HSDETECT, 0x80, 0x00);
+	regmap_update_bits(aic31xx->regmap, AIC31XX_HSDETECT, 0x80, AIC31XX_HSD_ENABLE);
+	ret = regmap_read(aic31xx->regmap, AIC31XX_INTRDACFLAG, &value);
+	if (ret) {
+		dev_err(aic31xx->dev, "Failed to read interrupt mask: %d\n", ret);
+		return;
+	}
+
+	if (value & AIC31XX_HPLSCDETECT)
+		dev_err(aic31xx->dev, "Short circuit on Left output is detected\n");
+	if (value & AIC31XX_HPRSCDETECT)
+		dev_err(aic31xx->dev, "Short circuit on Right output is detected\n");
+	if (value & (AIC31XX_HSPLUG | AIC31XX_BUTTONPRESS)) {
+		unsigned int val;
+		int status = 0;
+
+		ret = regmap_read(aic31xx->regmap, AIC31XX_INTRDACFLAG2,
+				  &val);
+		if (ret) {
+			dev_err(aic31xx->dev, "Failed to read interrupt mask: %d\n",
+				ret);
+			return;
+		}
+
+		if (val & AIC31XX_BUTTONPRESS)
+			status |= SND_JACK_BTN_0;
+
+		ret = regmap_read(aic31xx->regmap, AIC31XX_HSDETECT, &val);
+		if (ret) {
+			dev_err(aic31xx->dev, "Failed to read headset type: %d\n", ret);
+			return;
+		}
+
+		switch ((val & AIC31XX_HSD_TYPE_MASK) >>
+			AIC31XX_HSD_TYPE_SHIFT) {
+		case AIC31XX_HSD_HS:
+			status |= SND_JACK_HEADSET;
+			break;
+		default:
+			break;
+		}
+
+		if (aic31xx->jack)
+			snd_soc_jack_report(aic31xx->jack, status,
+					    AIC31XX_JACK_MASK);
+	}
+}
+
 static int aic31xx_hw_params(struct snd_pcm_substream *substream,
 			     struct snd_pcm_hw_params *params,
 			     struct snd_soc_dai *dai)
@@ -1005,6 +1061,9 @@ static int aic31xx_hw_params(struct snd_pcm_substream *substream,
 				  params_channels(params);
 		aic31xx->p_div = 1;
 	}
+
+	if (aic31xx->hs_det > 0)
+		schedule_work(&aic31xx->work);
 
 	return aic31xx_setup_pll(component, params);
 }
@@ -1727,6 +1786,12 @@ static int aic31xx_i2c_probe(struct i2c_client *i2c)
 			return ret;
 		}
 	}
+
+	if (fwnode_property_read_bool(aic31xx->dev->fwnode, "hs-det")) {
+		aic31xx->hs_det = 1;
+		INIT_WORK(&aic31xx->work, aic31xx_imp_meas);
+	} else
+		aic31xx->hs_det = 0;
 
 	regmap_update_bits(aic31xx->regmap, AIC31XX_DACMIXERROUTE, 0xff, 0x44);
 	regmap_update_bits(aic31xx->regmap, AIC31XX_LANALOGSPL, 0xff, 0x8a);
