@@ -26,7 +26,7 @@
 				simple-audio-card,frame-master = <&sound_master>;
 
 				sound_master: simple-audio-card,cpu {
-					sound-dai = <&sai2>;	/* AUD_B */
+					sound-dai = <&sai3>;	/* AUD_A */
 				};
 
 				simple-audio-card,codec {
@@ -47,7 +47,7 @@
 	};
 
 	fragment@1 {
-		target = <&sai2>;
+		target = <&sai3>;
 		__overlay__ {
 			#sound-dai-cells = <0>;
 			status = "okay";
