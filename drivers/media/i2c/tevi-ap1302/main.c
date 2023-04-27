@@ -699,7 +699,6 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 	struct sensor *instance = NULL;
 	struct device *dev = &client->dev;
 	struct v4l2_mbus_framefmt *fmt;
-	struct header_ver2 *header;
 	int data_lanes;
 	int continuous_clock;
 	int i;
@@ -775,14 +774,13 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 			return -EINVAL;
 		}
 
-		header = instance->otp_flash_instance->header_data;
 		for(i = 0 ; i < ARRAY_SIZE(ap1302_sensor_table); i++)
 		{
-			if (strcmp((const char*)header->product_name, ap1302_sensor_table[i].sensor_name) == 0)
+			if (strcmp((const char*)instance->otp_flash_instance->product_name, ap1302_sensor_table[i].sensor_name) == 0)
 				break;
 		}
 		instance->selected_sensor = i;
-		dev_dbg(dev, "selected_sensor:%d, sensor_name:%s\n", i, header->product_name);
+		dev_dbg(dev, "selected_sensor:%d, sensor_name:%s\n", i, instance->otp_flash_instance->product_name);
 
 		if(sensor_load_bootdata(instance) != 0) {
 			dev_err(dev, "load bootdata failed\n");
