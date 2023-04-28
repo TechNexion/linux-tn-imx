@@ -1,9 +1,9 @@
 # Overlays for the TechNexion platform
 
 dtbo-$(CONFIG_ARCH_MXC) += imx8mm-edm-g-wb-sn65dsi84-vl10112880.dtbo imx8mm-edm-g-wb-sn65dsi84-vl15613676.dtbo imx8mm-edm-g-wb-sn65dsi84-vl215192108.dtbo \
-			   imx8mm-edm-g-wb-tevi-ov5640.dtbo imx8mm-edm-g-wb-hdmi2mipi-tc358743.dtbo imx8mm-edm-g-wb-tevi-ap1302.dtbo 
+			   imx8mm-edm-g-wb-tevi-ov5640.dtbo imx8mm-edm-g-wb-hdmi2mipi-tc358743.dtbo imx8mm-edm-g-wb-tevi-ap1302.dtbo imx8mm-edm-g-wb-vizionlink-tevi-ap1302.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mm-edm-g-wizard-sn65dsi84-vl10112880.dtbo imx8mm-edm-g-wizard-sn65dsi84-vl15613676.dtbo imx8mm-edm-g-wizard-sn65dsi84-vl215192108.dtbo \
-			   imx8mm-edm-g-wizard-tevi-ov5640.dtbo imx8mm-edm-g-wizard-hdmi2mipi-tc358743.dtbo imx8mm-edm-g-wizard-tevi-ap1302.dtbo
+			   imx8mm-edm-g-wizard-tevi-ov5640.dtbo imx8mm-edm-g-wizard-hdmi2mipi-tc358743.dtbo imx8mm-edm-g-wizard-tevi-ap1302.dtbo imx8mm-edm-g-wizard-vizionlink-tevi-ap1302.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mm-pico-pi-ili9881c.dtbo imx8mm-pico-pi-voicehat.dtbo \
 			   imx8mm-pico-pi-clixnfc.dtbo imx8mm-pico-pi-tevi-ov5640.dtbo \
 			   imx8mm-pico-pi-tevi-ap1302.dtbo
