@@ -779,6 +779,13 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 			if (strcmp((const char*)instance->otp_flash_instance->product_name, ap1302_sensor_table[i].sensor_name) == 0)
 				break;
 		}
+
+		if(i >= ARRAY_SIZE(ap1302_sensor_table)) {
+			dev_err(dev, "cannot not support the product: %s\n",
+				(const char*)instance->otp_flash_instance->product_name);
+			return  -EINVAL;
+		}
+
 		instance->selected_sensor = i;
 		dev_dbg(dev, "selected_sensor:%d, sensor_name:%s\n", i, instance->otp_flash_instance->product_name);
 
