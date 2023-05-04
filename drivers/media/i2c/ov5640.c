@@ -3,7 +3,7 @@
  * Copyright (C) 2011-2013 Freescale Semiconductor, Inc. All Rights Reserved.
  * Copyright (C) 2014-2017 Mentor Graphics Inc.
  */
-
+#define DEBUG
 #include <linux/clk.h>
 #include <linux/clk-provider.h>
 #include <linux/clkdev.h>
@@ -612,7 +612,7 @@ ov5640_mode_data[OV5640_NUM_MODES] = {
 	 640, 1896, 480, 1080,
 	 ov5640_setting_VGA_640_480,
 	 ARRAY_SIZE(ov5640_setting_VGA_640_480),
-	 OV5640_60_FPS},
+	 OV5640_30_FPS},
 	{OV5640_MODE_NTSC_720_480, SUBSAMPLING,
 	 720, 1896, 480, 984,
 	 ov5640_setting_NTSC_720_480,
