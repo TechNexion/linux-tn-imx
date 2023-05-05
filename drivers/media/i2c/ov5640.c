@@ -596,42 +596,42 @@ ov5640_mode_data[OV5640_NUM_MODES] = {
 	 160, 1896, 120, 984,
 	 ov5640_setting_QQVGA_160_120,
 	 ARRAY_SIZE(ov5640_setting_QQVGA_160_120),
-	 OV5640_30_FPS},
+	 OV5640_60_FPS},
 	{OV5640_MODE_QCIF_176_144, SUBSAMPLING,
 	 176, 1896, 144, 984,
 	 ov5640_setting_QCIF_176_144,
 	 ARRAY_SIZE(ov5640_setting_QCIF_176_144),
-	 OV5640_30_FPS},
+	 OV5640_60_FPS},
 	{OV5640_MODE_QVGA_320_240, SUBSAMPLING,
 	 320, 1896, 240, 984,
 	 ov5640_setting_QVGA_320_240,
 	 ARRAY_SIZE(ov5640_setting_QVGA_320_240),
-	 OV5640_30_FPS},
+	 OV5640_60_FPS},
 	{OV5640_MODE_VGA_640_480, SUBSAMPLING,
 	 640, 1896, 480, 1080,
 	 ov5640_setting_VGA_640_480,
 	 ARRAY_SIZE(ov5640_setting_VGA_640_480),
-	 OV5640_30_FPS},
+	 OV5640_60_FPS},
 	{OV5640_MODE_NTSC_720_480, SUBSAMPLING,
 	 720, 1896, 480, 984,
 	 ov5640_setting_NTSC_720_480,
 	 ARRAY_SIZE(ov5640_setting_NTSC_720_480),
-	OV5640_30_FPS},
+	OV5640_60_FPS},
 	{OV5640_MODE_PAL_720_576, SUBSAMPLING,
 	 720, 1896, 576, 984,
 	 ov5640_setting_PAL_720_576,
 	 ARRAY_SIZE(ov5640_setting_PAL_720_576),
-	 OV5640_30_FPS},
+	 OV5640_60_FPS},
 	{OV5640_MODE_XGA_1024_768, SUBSAMPLING,
 	 1024, 1896, 768, 1080,
 	 ov5640_setting_XGA_1024_768,
 	 ARRAY_SIZE(ov5640_setting_XGA_1024_768),
-	 OV5640_30_FPS},
+	 OV5640_60_FPS},
 	{OV5640_MODE_720P_1280_720, SUBSAMPLING,
 	 1280, 1892, 720, 740,
 	 ov5640_setting_720P_1280_720,
 	 ARRAY_SIZE(ov5640_setting_720P_1280_720),
-	 OV5640_30_FPS},
+	 OV5640_60_FPS},
 	{OV5640_MODE_1080P_1920_1080, SCALING,
 	 1920, 2500, 1080, 1120,
 	 ov5640_setting_1080P_1920_1080,
@@ -977,6 +977,11 @@ static int ov5640_check_valid_mode(struct ov5640_dev *sensor,
 	case OV5640_MODE_XGA_1024_768:
 	case OV5640_MODE_720P_1280_720:
 	case OV5640_MODE_VGA_640_480:
+		if ((rate != OV5640_15_FPS) &&
+		    (rate != OV5640_30_FPS) &&
+		    (rate != OV5640_60_FPS))
+			ret = -EINVAL;
+		break;
 	case OV5640_MODE_1080P_1920_1080:
 		if ((rate != OV5640_15_FPS) &&
 		    (rate != OV5640_30_FPS))
@@ -1832,6 +1837,7 @@ static int ov5640_set_mode(struct ov5640_dev *sensor)
 	bool auto_gain = sensor->ctrls.auto_gain->val == 1;
 	bool auto_exp =  sensor->ctrls.auto_exp->val == V4L2_EXPOSURE_AUTO;
 	unsigned long rate;
+	int data_lane;
 	int ret;
 
 	dn_mode = mode->dn_mode;
@@ -1856,7 +1862,15 @@ static int ov5640_set_mode(struct ov5640_dev *sensor)
 	 */
 	rate = ov5640_calc_pixel_rate(sensor) * 16;
 	if (sensor->ep.bus_type == V4L2_MBUS_CSI2_DPHY) {
-		rate = rate / sensor->ep.bus.mipi_csi2.num_data_lanes;
+		if(sensor->ep.bus.mipi_csi2.num_data_lanes == 1)
+			rate = rate / sensor->ep.bus.mipi_csi2.num_data_lanes;
+		else {
+			if(rate > 982886400)
+				data_lane = sensor->ep.bus.mipi_csi2.data_lanes[1];
+			else
+				data_lane = sensor->ep.bus.mipi_csi2.data_lanes[0];
+			rate = rate / data_lane;
+		}
 		ret = ov5640_set_mipi_pclk(sensor, rate);
 	} else {
 		rate = rate / sensor->ep.bus.parallel.bus_width;
