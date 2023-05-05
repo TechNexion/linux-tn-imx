@@ -3,7 +3,6 @@
  * Copyright (C) 2011-2013 Freescale Semiconductor, Inc. All Rights Reserved.
  * Copyright (C) 2014-2017 Mentor Graphics Inc.
  */
-#define DEBUG
 #include <linux/clk.h>
 #include <linux/clk-provider.h>
 #include <linux/clkdev.h>
@@ -977,23 +976,11 @@ static int ov5640_check_valid_mode(struct ov5640_dev *sensor,
 	case OV5640_MODE_PAL_720_576 :
 	case OV5640_MODE_XGA_1024_768:
 	case OV5640_MODE_720P_1280_720:
-		if ((rate != OV5640_15_FPS) &&
-		    (rate != OV5640_30_FPS))
-			ret = -EINVAL;
-		break;
 	case OV5640_MODE_VGA_640_480:
+	case OV5640_MODE_1080P_1920_1080:
 		if ((rate != OV5640_15_FPS) &&
 		    (rate != OV5640_30_FPS))
 			ret = -EINVAL;
-		break;
-	case OV5640_MODE_1080P_1920_1080:
-		if (sensor->ep.bus_type == V4L2_MBUS_CSI2_DPHY) {
-			if ((rate != OV5640_15_FPS))
-				ret = -EINVAL;
-		 } else {
-			if ((rate != OV5640_30_FPS))
-				ret = -EINVAL;
-		 }
 		break;
 	case OV5640_MODE_QSXGA_2592_1944:
 		if (rate != OV5640_15_FPS)
