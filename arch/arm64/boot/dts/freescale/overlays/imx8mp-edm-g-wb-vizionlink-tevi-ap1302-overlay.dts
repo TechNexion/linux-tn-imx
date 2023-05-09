@@ -77,7 +77,7 @@
 				des_csi_continuous_clock = <0>;
 
 				//serializer input csi lanes 1~4. default 4
-				ser_csi_lanes = <2>;
+				ser_csi_lanes = <4>;
 
 				//1: Enable 0: Disable continuous clock. default 0
 				ser_csi_continuous_clock = <0>;
@@ -116,7 +116,7 @@
 				standby-gpios = <&vizionlink_pca9554_a25_0 2 GPIO_ACTIVE_HIGH>;
 				nvmem = <&tevi_ap1302_otp_0>;
 				nvmem-names = "calib-data";
-				data-lanes = <2>;
+				data-lanes = <4>;
 				continuous-clock = <0>;
 				status = "okay";
 
@@ -152,7 +152,7 @@
 				des_csi_continuous_clock = <0>;
 
 				//serializer input csi lanes 1~4. default 4
-				ser_csi_lanes = <2>;
+				ser_csi_lanes = <4>;
 
 				//1: Enable 0: Disable continuous clock. default 0
 				ser_csi_continuous_clock = <0>;
@@ -191,7 +191,7 @@
 				standby-gpios = <&vizionlink_pca9554_a25_1 2 GPIO_ACTIVE_HIGH>;
 				nvmem = <&tevi_ap1302_otp_1>;
 				nvmem-names = "calib-data";
-				data-lanes = <2>;
+				data-lanes = <4>;
 				continuous-clock = <0>;
 				status = "okay";
 
