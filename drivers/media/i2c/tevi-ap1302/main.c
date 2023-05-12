@@ -715,19 +715,33 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 	}
 	instance->i2c_client = client;
 
-	instance->host_power_gpio = devm_gpiod_get(dev, "host-power",
-						   GPIOD_OUT_LOW);
-	instance->device_power_gpio = devm_gpiod_get(dev, "device-power",
-						     GPIOD_OUT_LOW);
-	instance->reset_gpio = devm_gpiod_get(dev, "reset", GPIOD_OUT_LOW);
-	instance->standby_gpio = devm_gpiod_get(dev, "standby", GPIOD_OUT_LOW);
-
-	if (IS_ERR(instance->reset_gpio) ||
-	    IS_ERR(instance->host_power_gpio) ||
-	    IS_ERR(instance->device_power_gpio) ||
-	    IS_ERR(instance->standby_gpio) ) {
-		dev_err(dev, "get gpio object failed\n");
-		return -EPROBE_DEFER;
+	instance->host_power_gpio = devm_gpiod_get_optional(dev, "host-power", GPIOD_OUT_LOW);
+	if (IS_ERR(instance->host_power_gpio)) {
+		ret = PTR_ERR(instance->host_power_gpio);
+		if (ret != -EPROBE_DEFER)
+			dev_err(dev, "Cannot get host-power GPIO (%d)", ret);
+		return ret;
+	}
+	instance->device_power_gpio = devm_gpiod_get_optional(dev, "device-power", GPIOD_OUT_LOW);
+	if (IS_ERR(instance->device_power_gpio)) {
+		ret = PTR_ERR(instance->device_power_gpio);
+		if (ret != -EPROBE_DEFER)
+			dev_err(dev, "Cannot get device-power GPIO (%d)", ret);
+		return ret;
+	}
+	instance->reset_gpio = devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_LOW);
+	if (IS_ERR(instance->reset_gpio)) {
+		ret = PTR_ERR(instance->reset_gpio);
+		if (ret != -EPROBE_DEFER)
+			dev_err(dev, "Cannot get reset GPIO (%d)", ret);
+		return ret;
+	}
+	instance->standby_gpio = devm_gpiod_get_optional(dev, "standby", GPIOD_OUT_LOW);
+	if (IS_ERR(instance->standby_gpio)) {
+		ret = PTR_ERR(instance->standby_gpio);
+		if (ret != -EPROBE_DEFER)
+			dev_err(dev, "Cannot get standby GPIO (%d)", ret);
+		return ret;
 	}
 
 	data_lanes = 4;
