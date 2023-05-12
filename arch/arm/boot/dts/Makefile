@@ -487,6 +487,8 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6dl-edm1-fairy-qca.dtb \
 	imx6dl-edm1-tc0700.dtb \
 	imx6dl-edm1-tc0700-qca.dtb \
+	imx6dl-edm1-tc1000.dtb \
+	imx6dl-edm1-tc1000-qca.dtb \
         imx6dl-tep5.dtb \
         imx6dl-tep5-15inch.dtb \
         imx6dl-tek3.dtb \
@@ -595,6 +597,8 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6q-edm1-fairy-qca.dtb \
 	imx6q-edm1-tc0700.dtb \
 	imx6q-edm1-tc0700-qca.dtb \
+	imx6q-edm1-tc1000.dtb \
+	imx6q-edm1-tc1000-qca.dtb \
         imx6q-tep5.dtb \
 	imx6q-tep5-15inch.dtb \
 	imx6q-tek3.dtb \
@@ -717,6 +721,8 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6qp-vicutp.dtb \
 	imx6qp-wandboard-revd1.dtb \
 	imx6qp-yapp4-crux-plus.dtb \
+	imx6qp-edm1-tc1000.dtb \
+	imx6qp-edm1-tc1000-qca.dtb \
 	imx6qp-zii-rdu2.dtb \
 	imx6s-dhcom-drc02.dtb
 dtb-$(CONFIG_SOC_IMX6SL) += \
