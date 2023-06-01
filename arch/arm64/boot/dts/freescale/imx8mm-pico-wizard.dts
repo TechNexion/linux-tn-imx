@@ -404,7 +404,7 @@
 
 &usbotg1 {
 	dr_mode = "otg";
-	over-current-active-low;
+	disable-over-current;
 	pinctrl-names = "default";
 	power-active-high;
 	vbus-supply = <&reg_usb_otg_vbus>;
