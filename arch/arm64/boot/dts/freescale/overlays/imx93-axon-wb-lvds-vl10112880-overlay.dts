@@ -1,0 +1,131 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2020 Technexion Ltd.
+ *
+ * Author: Ray Chang <ray.chang@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	fragment@0 {
+		target-path = "/";
+		__overlay__ {
+			reg_lvds_pwr: regulator_lvdspwr {
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@1 {
+		target-path = "/";
+		__overlay__ {
+			reg_lvds_backlight_pwr: regulator_lvdsblpwr {
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@2 {
+		target-path = "/";
+		__overlay__ {
+			lvds_backlight: lvds_backlight {
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@3 {
+		target-path = "/";
+		__overlay__ {
+			lvds0_panel {
+				compatible = "vxt,vl10112880", "panel-lvds";
+				backlight = <&lvds_backlight>;
+				power-supply = <&reg_lvds_pwr>;
+
+				data-mapping = "vesa-24";
+				height-mm = <161>;
+				width-mm = <243>;
+
+				panel-timing {
+					clock-frequency = <71100000>;
+					hactive = <1280>;
+					vactive = <800>;
+					hback-porch = <40>;
+					hfront-porch = <40>;
+					vback-porch = <10>;
+					vfront-porch = <3>;
+					hsync-len = <80>;
+					vsync-len = <10>;
+					de-active = <1>;
+				};
+
+				port {
+					panel_lvds_in: endpoint {
+						remote-endpoint = <&lvds_out>;
+					};
+				};
+			};
+		};
+	};
+
+	fragment@4 {
+		target = <&ldb>;
+		__overlay__ {
+			status = "okay";
+			lvds-channel@0 {
+				#address-cells = <1>;
+				#size-cells = <0>;
+				fsl,data-mapping = "spwg";
+				fsl,data-width = <24>;
+				status = "okay";
+
+				port@1 {
+					reg = <1>;
+
+					lvds_out: endpoint {
+						remote-endpoint = <&panel_lvds_in>;
+					};
+				};
+			};
+		};
+	};
+
+	fragment@5 {
+		target = <&ldb_phy>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@6 {
+		target = <&lcdif>;
+		__overlay__ {
+			status = "okay";
+			assigned-clock-rates = <498000000>, <71100000>, <400000000>, <133333333>;
+		};
+	};
+
+	fragment@7 {
+		target = <&lpi2c3>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			exc80w46: touchscreen@2a {
+				compatible = "eeti,exc80h60";
+				reg = <0x2a>;
+				interrupt-parent = <&pcal6524>;
+				interrupts = <8 IRQ_TYPE_LEVEL_LOW>;
+				reset-gpios = <&adp5585gpio 1 GPIO_ACTIVE_HIGH>;
+				status = "okay";
+			};
+		};
+	};
+};
