@@ -339,6 +339,7 @@ static int exc3000_probe(struct i2c_client *client)
 	struct exc3000_data *data;
 	struct input_dev *input;
 	int error, max_xy, retry;
+	u8 *buf;
 
 	data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
 	if (!data)
@@ -405,6 +406,9 @@ static int exc3000_probe(struct i2c_client *client)
 	if (error)
 		return error;
 
+	buf = data->buf;
+	i2c_master_send(client, "'", 2);
+	i2c_master_recv(client, buf, EXC3000_LEN_FRAME);
 	/*
 	 * I²C does not have built-in recovery, so retry on failure. This
 	 * ensures, that the device probe will not fail for temporary issues
