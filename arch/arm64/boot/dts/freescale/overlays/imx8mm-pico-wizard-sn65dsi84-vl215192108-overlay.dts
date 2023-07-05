@@ -44,6 +44,9 @@
 			panel@0 {
 				reg = <0>;
 				compatible = "vxt,vl215192108-panel";
+				dsi,flags = <0x0007>;
+				dsi,format = <0>;
+				dsi,lanes = <4>;
 				panel-width-mm  = <476>;
 				panel-height-mm = <268>;
 				bus-format = <0x100a>;	/* MEDIA_BUS_FMT_RGB888_1X24 */
@@ -117,7 +120,6 @@
 									0x28 0x00 0x00 0x00
 									/* cha-hfp, chb-hfp, cha-vfp, chb-vfp*/
 									0x00 0x00 0x00 0x00
-
 									0x00 0x00 0x00 0x01>;
 			};
 		};
