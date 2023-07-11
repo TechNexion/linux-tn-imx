@@ -215,17 +215,22 @@ static int ops_set_stream(struct v4l2_subdev *sub_dev, int enable)
 		ret = sensor_standby(instance->i2c_client, 0);
 		if (ret == 0) {
 			int fps = ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].framerates;
-			dev_dbg(sub_dev->dev, "%s() width=%d, height=%d\n", __func__, 
-				ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].width, 
-				ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].height);
+			dev_dbg(sub_dev->dev, "%s() width=%d, height=%d, mode=%d\n", __func__,
+				ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].width,
+				ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].height,
+				ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].mode);
 			sensor_i2c_write_16b(instance->i2c_client, 0x1184, 1); //ATOMIC
-			//VIDEO_WIDTH
+			//PREVIEW_SENSOR_MODE
+			sensor_i2c_write_16b(instance->i2c_client, 0x2014,
+						ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].mode);
+			//PREVIEW_WIDTH
 			sensor_i2c_write_16b(instance->i2c_client, 0x2000,
 					     ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].width);
-			//VIDEO_HEIGHT
+			//PREVIEW_HEIGHT
 			sensor_i2c_write_16b(instance->i2c_client, 0x2002,
 					     ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].height);
-			sensor_i2c_write_16b(instance->i2c_client, 0x2020, fps << 8); //VIDEO_MAX_FPS
+			//PREVIEW_MAX_FPS
+			sensor_i2c_write_16b(instance->i2c_client, 0x2020, fps << 8);
 			sensor_i2c_write_16b(instance->i2c_client, 0x1184, 0xb); //ATOMIC
 		}
 	}
@@ -601,7 +606,6 @@ static int sensor_power_on(struct sensor *instance)
 {
 	dev_dbg(&instance->i2c_client->dev, "%s()\n", __func__);
 	gpiod_set_value_cansleep(instance->host_power_gpio, 1);
-	gpiod_set_value_cansleep(instance->device_power_gpio, 1);
 	usleep_range(500, 5000);
 	gpiod_set_value_cansleep(instance->reset_gpio, 1);
 	msleep(10);
@@ -612,10 +616,8 @@ static int sensor_power_on(struct sensor *instance)
 static int sensor_power_off(struct sensor *instance)
 {
 	dev_dbg(&instance->i2c_client->dev, "%s()\n", __func__);
-	gpiod_set_value_cansleep(instance->standby_gpio, 0);
 	gpiod_set_value_cansleep(instance->reset_gpio, 0);
 	usleep_range(50, 500);
-	gpiod_set_value_cansleep(instance->device_power_gpio, 0);
 	gpiod_set_value_cansleep(instance->host_power_gpio, 0);
 	msleep(10);
 
@@ -715,19 +717,20 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 	}
 	instance->i2c_client = client;
 
-	instance->host_power_gpio = devm_gpiod_get(dev, "host-power",
-						   GPIOD_OUT_LOW);
-	instance->device_power_gpio = devm_gpiod_get(dev, "device-power",
-						     GPIOD_OUT_LOW);
-	instance->reset_gpio = devm_gpiod_get(dev, "reset", GPIOD_OUT_LOW);
-	instance->standby_gpio = devm_gpiod_get(dev, "standby", GPIOD_OUT_LOW);
+	instance->host_power_gpio = devm_gpiod_get_optional(dev, "host-power", GPIOD_OUT_LOW);
+	if (IS_ERR(instance->host_power_gpio)) {
+		ret = PTR_ERR(instance->host_power_gpio);
+		if (ret != -EPROBE_DEFER)
+			dev_err(dev, "Cannot get host-power GPIO (%d)", ret);
+		return ret;
+	}
 
-	if (IS_ERR(instance->reset_gpio) ||
-	    IS_ERR(instance->host_power_gpio) ||
-	    IS_ERR(instance->device_power_gpio) ||
-	    IS_ERR(instance->standby_gpio) ) {
-		dev_err(dev, "get gpio object failed\n");
-		return -EPROBE_DEFER;
+	instance->reset_gpio = devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_LOW);
+	if (IS_ERR(instance->reset_gpio)) {
+		ret = PTR_ERR(instance->reset_gpio);
+		if (ret != -EPROBE_DEFER)
+			dev_err(dev, "Cannot get reset GPIO (%d)", ret);
+		return ret;
 	}
 
 	data_lanes = 4;
