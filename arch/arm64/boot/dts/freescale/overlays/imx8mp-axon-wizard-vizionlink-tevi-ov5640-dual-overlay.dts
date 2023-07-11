@@ -125,7 +125,7 @@
 				port {
 					ov5640_mipi_0_ep: endpoint {
 						remote-endpoint = <&mipi_csi0_ep>;
-						data-lanes = <2>;
+						data-lanes = <1 2>;
 						clock-lanes = <0>;
 					};
 				};
@@ -204,7 +204,7 @@
 				port {
 					ov5640_mipi_1_ep: endpoint {
 						remote-endpoint = <&mipi_csi1_ep>;
-						data-lanes = <2>;
+						data-lanes = <1 2>;
 						clock-lanes = <0>;
 					};
 				};
