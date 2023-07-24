@@ -47,21 +47,21 @@
 			exc80w46: touchscreen@2a {
 				compatible = "eeti,exc80h60";
 				pinctrl-names = "default";
-				pinctrl-0 = <&pinctrl_touch_irq>, <&pinctrl_touch_reset>;
+				pinctrl-0 = <&pinctrl_mipi_touch_irq>;
 				reg = <0x2a>;
 				interrupt-parent = <&gpio2>;
-				interrupts = <6 IRQ_TYPE_LEVEL_LOW>;
+				interrupts = <5 IRQ_TYPE_LEVEL_LOW>;
 				status = "okay";
 			};
 #if 0
 			polytouch: edt-ft5x06@38 {
                                 compatible = "edt,edt-ft5x06";
                                 pinctrl-names = "default";
-                                pinctrl-0 = <&pinctrl_touch_irq>;
+                                pinctrl-0 = <&pinctrl_mipi_touch_irq>;
                                 reg = <0x38>;
                                 interrupt-parent = <&gpio2>;
-                                interrupts = <6 IRQ_TYPE_LEVEL_LOW>;
-                                reset-gpios = <&gpio2 7 GPIO_ACTIVE_LOW>; /* PICO_P32 */
+                                interrupts = <5 IRQ_TYPE_LEVEL_LOW>;
+                                reset-gpios = <&pca9554bs_a23 0 GPIO_ACTIVE_LOW>;
                                 touchscreen-size-x = <800>;
                                 touchscreen-size-y = <480>;
                         };
@@ -69,6 +69,8 @@
 			fpdlink_dsi2lvds: ds90ub948@c {
 				compatible = "ti,ds90ub94x";
 				reg = <0x0c>;
+				status = "okay";
+				reset-gpios = <&pca9554bs_a23 4 GPIO_ACTIVE_LOW>;
 			};
 		};
 	};
