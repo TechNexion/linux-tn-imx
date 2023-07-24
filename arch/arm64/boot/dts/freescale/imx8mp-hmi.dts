@@ -1282,6 +1282,12 @@
 		>;
 	};
 
+	pinctrl_mipi_touch_irq: mipi_touch_irqgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SD1_DATA3__GPIO2_IO05	0x16 /* DSI1_TOUCH_INT */
+		>;
+	};
+
 	pinctrl_csi2_pdb: csi2_pdbgrp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SAI1_RXD1__GPIO4_IO03	0x29
