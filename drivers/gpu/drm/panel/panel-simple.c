@@ -375,10 +375,12 @@ static int panel_simple_unprepare(struct drm_panel *panel)
 	if (!p->prepared)
 		return 0;
 
-	pm_runtime_mark_last_busy(panel->dev);
-	ret = pm_runtime_put_autosuspend(panel->dev);
-	if (ret < 0)
-		return ret;
+	if (!panel->dev->power.is_suspended) {
+		pm_runtime_mark_last_busy(panel->dev);
+		ret = pm_runtime_put_autosuspend(panel->dev);
+		if (ret < 0)
+			return ret;
+	}
 	p->prepared = false;
 
 	return 0;
@@ -492,10 +494,14 @@ static int panel_simple_prepare(struct drm_panel *panel)
 	if (p->prepared)
 		return 0;
 
-	ret = pm_runtime_get_sync(panel->dev);
-	if (ret < 0) {
-		pm_runtime_put_autosuspend(panel->dev);
-		return ret;
+	if (!panel->dev->power.is_suspended) {
+		ret = pm_runtime_get_sync(panel->dev);
+		if (ret < 0) {
+			pm_runtime_put_autosuspend(panel->dev);
+			return ret;
+		}
+	} else {
+		panel_simple_prepare_once(p);
 	}
 
 	p->prepared = true;
