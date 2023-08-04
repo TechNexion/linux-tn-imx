@@ -375,12 +375,15 @@ static int panel_simple_unprepare(struct drm_panel *panel)
 	if (!p->prepared)
 		return 0;
 
-	if (!panel->dev->power.is_suspended) {
+	if ((!panel->dev->power.is_suspended) &&
+			(panel->dev->power.runtime_status == RPM_SUSPENDED)) {
 		pm_runtime_mark_last_busy(panel->dev);
 		ret = pm_runtime_put_autosuspend(panel->dev);
 		if (ret < 0)
 			return ret;
-	}
+	} else if (panel->dev->power.runtime_status == RPM_ACTIVE)
+		panel_simple_suspend(panel->dev);
+
 	p->prepared = false;
 
 	return 0;
@@ -412,6 +415,10 @@ static int panel_simple_prepare_once(struct panel_simple *p)
 	unsigned long hpd_wait_us;
 
 	panel_simple_wait(p->unprepared_time, p->desc->delay.unprepare);
+
+	/* Preparing when already prepared is a no-op */
+	if (p->prepared)
+		return 0;
 
 	err = regulator_enable(p->supply);
 	if (err < 0) {
@@ -494,15 +501,15 @@ static int panel_simple_prepare(struct drm_panel *panel)
 	if (p->prepared)
 		return 0;
 
-	if (!panel->dev->power.is_suspended) {
+	if ((!panel->dev->power.is_suspended) &&
+			(panel->dev->power.runtime_status == RPM_SUSPENDED)) {
 		ret = pm_runtime_get_sync(panel->dev);
 		if (ret < 0) {
 			pm_runtime_put_autosuspend(panel->dev);
 			return ret;
 		}
-	} else {
+	} else
 		panel_simple_prepare_once(p);
-	}
 
 	p->prepared = true;
 
