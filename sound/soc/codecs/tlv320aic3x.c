@@ -1390,7 +1390,7 @@ static int aic3x_set_power(struct snd_soc_component *component, int power)
 
 		if (aic3x->gpio_reset) {
 			udelay(1);
-			gpiod_set_value(aic3x->gpio_reset, 0);
+			gpiod_set_value_cansleep(aic3x->gpio_reset, 0);
 		}
 
 		/* Sync reg_cache with the hardware */
