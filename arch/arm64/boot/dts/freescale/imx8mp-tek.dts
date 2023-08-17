@@ -175,7 +175,7 @@
 	lanbypass_backup {
 		gpio-hog;
 		gpios = <6 GPIO_ACTIVE_HIGH>;
-		output-low;
+		output-high;
 	};
 
 	lanbypass_mcu_irq {
