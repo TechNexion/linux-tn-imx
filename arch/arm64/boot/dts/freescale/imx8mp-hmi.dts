@@ -51,20 +51,20 @@
 		compatible = "regulator-fixed";
 		regulator-name = "can1-stby";
 		pinctrl-names = "default";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
+		regulator-min-microvolt = <0>;
+		regulator-max-microvolt = <0>;
 		gpio = <&pca9555_a26 9 GPIO_ACTIVE_HIGH>;
-		enable-active-high;
+		enable-active-low;
 	};
 
 	reg_can2_stby: regulator-can2-stby {
 		compatible = "regulator-fixed";
 		regulator-name = "can2-stby";
 		pinctrl-names = "default";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
+		regulator-min-microvolt = <0>;
+		regulator-max-microvolt = <0>;
 		gpio = <&pca9555_a26 10 GPIO_ACTIVE_HIGH>;
-		enable-active-high;
+		enable-active-low;
 	};
 
 	reg_audio_vdd: regulator-audio-vdd {
