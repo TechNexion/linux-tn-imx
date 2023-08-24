@@ -698,20 +698,7 @@ static int ili9881c_get_modes(struct drm_panel *panel, struct drm_connector *con
 	connector->display_info.width_mm = 62;
 	connector->display_info.height_mm = 110;
 
-	/*
-	 * TODO: Remove once all drm drivers call
-	 * drm_connector_set_orientation_from_panel()
-	 */
-	drm_connector_set_panel_orientation(connector, ctx->orientation);
-
 	return 1;
-}
-
-static enum drm_panel_orientation ili9881c_get_orientation(struct drm_panel *panel)
-{
-	struct ili9881c *ctx = panel_to_ili9881c(panel);
-
-	return ctx->orientation;
 }
 
 static const struct drm_panel_funcs ili9881c_funcs = {
@@ -720,7 +707,6 @@ static const struct drm_panel_funcs ili9881c_funcs = {
 	.enable		= ili9881c_enable,
 	.disable	= ili9881c_disable,
 	.get_modes	= ili9881c_get_modes,
-	.get_orientation = ili9881c_get_orientation,
 };
 
 static int ili9881c_dsi_probe(struct mipi_dsi_device *dsi)
@@ -751,13 +737,6 @@ static int ili9881c_dsi_probe(struct mipi_dsi_device *dsi)
 
 	if (IS_ERR(ctx->reset)) {
 		dev_err(&dsi->dev, "Couldn't get our reset GPIO\n");
-	}
-
-	ret = of_drm_get_panel_orientation(dsi->dev.of_node, &ctx->orientation);
-	if (ret) {
-		dev_err(&dsi->dev, "%pOF: failed to get orientation: %d\n",
-			dsi->dev.of_node, ret);
-		return ret;
 	}
 
 	ret = drm_panel_of_backlight(&ctx->panel);
@@ -817,7 +796,6 @@ static void ili9881c_dsi_remove(struct mipi_dsi_device *dsi)
 
 static const struct of_device_id ili9881c_of_match[] = {
 	{ .compatible = "bananapi,lhr050h41" },
-	{ .compatible = "wanchanglong,w552946aba", .data = &w552946aba_desc },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, ili9881c_of_match);
