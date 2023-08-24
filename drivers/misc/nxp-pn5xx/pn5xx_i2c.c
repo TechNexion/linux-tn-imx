@@ -708,7 +708,7 @@ err_ven:
 #ifdef KERNEL_3_4_AND_OLDER
 static int __devexit pn54x_remove(struct i2c_client *client)
 #else
-static int pn54x_remove(struct i2c_client *client)
+void pn54x_remove(struct i2c_client *client)
 #endif
 {
 	struct pn54x_dev *pn54x_dev;
@@ -732,8 +732,6 @@ static int pn54x_remove(struct i2c_client *client)
 	regulator_put(pn54x_dev->sevdd_reg);
 
 	kfree(pn54x_dev);
-
-	return 0;
 }
 
 /*
