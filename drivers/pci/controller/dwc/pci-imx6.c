@@ -101,6 +101,7 @@ struct imx6_pcie {
 	u32			tx_swing_full;
 	u32			tx_swing_low;
 	u32			hsio_cfg;
+	u32			ext_osc;
 	u32			local_addr;
 	struct regulator	*vpcie;
 	struct regulator	*vph;
@@ -1546,6 +1547,8 @@ static int imx6_pcie_probe(struct platform_device *pdev)
 
 	if (of_property_read_u32(node, "hsio-cfg", &imx6_pcie->hsio_cfg))
 		imx6_pcie->hsio_cfg = 0;
+	if (of_property_read_u32(node, "ext_osc", &imx6_pcie->ext_osc) < 0)
+		imx6_pcie->ext_osc = 0;
 	if (of_property_read_u32(node, "local-addr", &imx6_pcie->local_addr))
 		imx6_pcie->local_addr = 0;
 
