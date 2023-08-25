@@ -181,6 +181,7 @@ struct imx_pcie {
 	u32			tx_deemph_gen2_6db;
 	u32			tx_swing_full;
 	u32			tx_swing_low;
+	u32			ext_osc;
 	struct regulator	*vph;
 	void __iomem		*phy_base;
 
@@ -1845,6 +1846,9 @@ static int imx_pcie_probe(struct platform_device *pdev)
 		if (IS_ERR(imx_pcie->phy_base))
 			return PTR_ERR(imx_pcie->phy_base);
 	}
+
+	if (of_property_read_u32(node, "ext_osc", &imx_pcie->ext_osc) < 0)
+		imx_pcie->ext_osc = 0;
 
 	/* Fetch GPIOs */
 	imx_pcie->reset_gpiod = devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_HIGH);
