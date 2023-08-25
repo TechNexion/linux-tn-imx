@@ -384,13 +384,12 @@ static int bno055_probe(struct i2c_client *client,
    return ret;
 }
 
-static int bno055_remove(struct i2c_client *client)
+void bno055_remove(struct i2c_client *client)
 {
 	struct iio_dev *indio_dev = i2c_get_clientdata(client);
 
 	device_remove_file(&indio_dev->dev, &dev_attr_calib_status);
 	iio_device_unregister(indio_dev);
-	return 0;
 }
 
 static const struct acpi_device_id bno055_acpi_match[] = {
