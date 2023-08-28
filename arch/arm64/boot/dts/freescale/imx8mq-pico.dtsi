@@ -99,9 +99,6 @@
 		ethphy0: ethernet-phy@1 {
 			compatible = "ethernet-phy-ieee802.3-c22";
 			reg = <1>;
-			reset-gpios = <&gpio1 9 GPIO_ACTIVE_LOW>;
-			reset-assert-us = <35000>;
-			reset-deassert-us = <75000>;
 			at803x,led-act-blind-workaround;
 			at803x,eee-disabled;
 			realtek,aldps-disable;
