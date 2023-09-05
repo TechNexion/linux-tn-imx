@@ -23,7 +23,7 @@ int sensor_i2c_read(struct i2c_client *client, u16 reg, u8 *val, u8 size)
 
 int sensor_i2c_read_16b(struct i2c_client *client, u16 reg, u16 *value)
 {
-	u8 v[2] = {0,0};
+	u8 v[2] = { 0 };
 	int ret;
 
 	ret = sensor_i2c_read(client, reg, v, 2);
@@ -34,8 +34,8 @@ int sensor_i2c_read_16b(struct i2c_client *client, u16 reg, u16 *value)
 	}
 
 	*value = (v[0] << 8) | v[1];
-	dev_dbg(&client->dev, "%s() read reg 0x%x, value 0x%x\n",
-		 __func__, reg, *value);
+	dev_dbg(&client->dev, "%s() read reg 0x%x, value 0x%x\n", __func__, reg,
+		*value);
 
 	return 0;
 }
@@ -56,15 +56,12 @@ int sensor_i2c_write_16b(struct i2c_client *client, u16 reg, u16 val)
 	msg.buf = buf;
 	msg.len = sizeof(buf);
 
-
-	while((i2c_transfer(client->adapter, &msg, 1)) < 0)
-	{
+	while ((i2c_transfer(client->adapter, &msg, 1)) < 0) {
 		retry_tmp++;
 		dev_err(&client->dev, "i2c transfer retry:%d.\n", retry_tmp);
 		dev_dbg(&client->dev, "write 16b reg:%x val:%x.\n", reg, val);
 
-		if (retry_tmp > 50)
-		{
+		if (retry_tmp > 50) {
 			dev_err(&client->dev, "i2c transfer error.\n");
 			return -EIO;
 		}
@@ -87,14 +84,12 @@ int sensor_i2c_write_bust(struct i2c_client *client, u8 *buf, size_t len)
 	msg.buf = buf;
 	msg.len = len;
 
-	while((i2c_transfer(client->adapter, &msg, 1)) < 0)
-	{
+	while ((i2c_transfer(client->adapter, &msg, 1)) < 0) {
 		retry_tmp++;
 		dev_err(&client->dev, "i2c transfer retry:%d.\n", retry_tmp);
 		dev_dbg(&client->dev, "write bust buf:%x.\n", client->addr);
 
-		if (retry_tmp > 50)
-		{
+		if (retry_tmp > 50) {
 			dev_err(&client->dev, "i2c transfer error.\n");
 			return -EIO;
 		}
