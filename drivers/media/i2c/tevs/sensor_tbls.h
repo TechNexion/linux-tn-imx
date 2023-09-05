@@ -1,5 +1,5 @@
-#ifndef __AP1302_SENSOR_TABLES_H__
-#define __AP1302_SENSOR_TABLES_H__
+#ifndef __SENSOR_TABLES_H__
+#define __SENSOR_TABLES_H__
 
 struct resolution {
 	u16 width;
@@ -64,45 +64,45 @@ struct sensor_info {
 
 static struct sensor_info ap1302_sensor_table[] = {
 	{
-		.sensor_name = "TEVI-AR0144",
+		.sensor_name = "TEVS-AR0144",
 		.res_list = ar0144_res_list,
 		.res_list_size = ARRAY_SIZE(ar0144_res_list)
 	},
 	{
-		.sensor_name = "TEVI-AR0234",
+		.sensor_name = "TEVS-AR0234",
 		.res_list = ar0234_res_list,
 		.res_list_size = ARRAY_SIZE(ar0234_res_list)
 	},
 	{
-		.sensor_name = "TEVI-AR0521",
+		.sensor_name = "TEVS-AR0521",
 		.res_list = ar0521_res_list,
 		.res_list_size = ARRAY_SIZE(ar0521_res_list)
 	},
 	{
-		.sensor_name = "TEVI-AR0522",
+		.sensor_name = "TEVS-AR0522",
 		.res_list = ar0522_res_list,
 		.res_list_size = ARRAY_SIZE(ar0522_res_list)
 	},
 	{
-		.sensor_name = "TEVI-AR0821",
+		.sensor_name = "TEVS-AR0821",
 		.res_list = ar0821_res_list,
 		.res_list_size = ARRAY_SIZE(ar0821_res_list)
 	},
 	{
-		.sensor_name = "TEVI-AR0822",
+		.sensor_name = "TEVS-AR0822",
 		.res_list = ar0821_res_list,
 		.res_list_size = ARRAY_SIZE(ar0821_res_list)
 	},
 	{
-		.sensor_name = "TEVI-AR1335",
+		.sensor_name = "TEVS-AR1335",
 		.res_list = ar1335_res_list,
 		.res_list_size = ARRAY_SIZE(ar1335_res_list)
 	},
 	{
-		.sensor_name = "TEVI-UNKNOWN",
+		.sensor_name = "TEVS-UNKNOWN",
 		.res_list = unknown_res_list,
 		.res_list_size = ARRAY_SIZE(unknown_res_list)
 	},
 };
 
-#endif //__AP1302_SENSOR_TABLES_H__
+#endif //__SENSOR_TABLES_H__
