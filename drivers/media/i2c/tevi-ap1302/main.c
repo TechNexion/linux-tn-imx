@@ -1223,8 +1223,6 @@ static int ops_ctrls_init(struct sensor *instance)
 	unsigned int i;
 	int ret;
 
-	dev_dbg(&instance->i2c_client->dev, "%s()\n", __func__);
-
 	ret = v4l2_ctrl_handler_init(&instance->ctrls, ARRAY_SIZE(ops_ctrls));
 	if (ret)
 		return ret;
@@ -1236,7 +1234,7 @@ static int ops_ctrls_init(struct sensor *instance)
 		ret = ops_g_ctrl(ctrl);
 		if (!ret && ctrl->default_value != ctrl->val) {
 			// Updating default value based on firmware values
-			dev_info(&instance->i2c_client->dev,"Ctrl '%s' default value updated from %lld to %d\n",
+			dev_dbg(&instance->i2c_client->dev,"Ctrl '%s' default value updated from %lld to %d\n",
 					ctrl->name, ctrl->default_value, ctrl->val);
 			ctrl->default_value = ctrl->val;
 			ctrl->cur.val = ctrl->val;
@@ -1702,6 +1700,13 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 	v4l2_i2c_subdev_init(&instance->v4l2_subdev,
 			     instance->i2c_client, &sensor_subdev_ops);
 	instance->v4l2_subdev.flags |= (V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_HAS_DEVNODE);
+
+	ret = ops_ctrls_init(instance);
+	if (ret) {
+		dev_err(&client->dev, "failed to init controls: %d", ret);
+		goto error_probe;
+	}
+
 	instance->pad.flags = MEDIA_PAD_FL_SOURCE;
 	instance->v4l2_subdev.entity.ops = &sensor_media_entity_ops;
 	instance->v4l2_subdev.entity.function = MEDIA_ENT_F_CAM_SENSOR;
@@ -1710,12 +1715,6 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 	if (ret != 0) {
 		dev_err(&instance->i2c_client->dev, "v4l2 register failed\n");
 		return -EINVAL;
-	}
-
-	ret = ops_ctrls_init(instance);
-	if (ret) {
-		dev_err(&client->dev, "failed to init controls: %d", ret);
-		goto error_probe;
 	}
 
 	//set something reference from DevX tool register log
