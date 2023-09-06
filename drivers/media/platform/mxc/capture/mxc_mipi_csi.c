@@ -945,6 +945,16 @@ static int subdev_notifier_bound(struct v4l2_async_notifier *notifier,
 	return 0;
 }
 
+static int subdev_notifier_complete(struct v4l2_async_notifier *notifier)
+{
+	struct csi_state *state = notifier_to_mipi_dev(notifier);
+
+	v4l2_info(&state->v4l2_dev, "complete callback for subdevice called");
+
+	return v4l2_device_register_subdev_nodes(&state->v4l2_dev);
+
+}
+
 static int mipi_csis_parse_dt(struct platform_device *pdev,
 			    struct csi_state *state)
 {
@@ -985,6 +995,7 @@ static const struct of_device_id mipi_csis_of_match[];
 
 static const struct v4l2_async_notifier_operations mxc_mipi_csi_subdev_ops = {
 	.bound = subdev_notifier_bound,
+	.complete = subdev_notifier_complete,
 };
 
 /* register parent dev */
