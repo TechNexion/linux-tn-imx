@@ -17,21 +17,21 @@ static struct sensor_params ar0144_res_list[] = {
 static struct sensor_params ar0234_res_list[] = {
 	{.width = 640, .height = 480, .framerates = 120, .mode = 1},
 	{.width = 1280, .height = 720, .framerates = 120, .mode = 0},
-	{.width = 1280, .height = 800, .framerates = 60, .mode = 0},
 	{.width = 1920, .height = 1080, .framerates = 85, .mode = 0},
 	{.width = 1920, .height = 1200, .framerates = 60, .mode = 0},
 };
 
 static struct sensor_params ar0521_res_list[] = {
+	{.width = 640, .height = 480, .framerates = 60, .mode = 3},
 	{.width = 1280, .height = 720, .framerates = 60, .mode = 3},
-	{.width = 1280, .height = 720, .framerates = 60, .mode = 3},
+	{.width = 1280, .height = 960, .framerates = 60, .mode = 3},
 	{.width = 1920, .height = 1080, .framerates = 60, .mode = 1},
-	{.width = 2560, .height = 1440, .framerates = 40, .mode = 1},
-	{.width = 2592, .height = 1944, .framerates = 40, .mode = 1},
+	{.width = 2560, .height = 1440, .framerates = 30, .mode = 1},
+	{.width = 2592, .height = 1944, .framerates = 30, .mode = 1},
 };
 
 static struct sensor_params ar0522_res_list[] = {
-	{.width = 1280, .height = 720, .framerates = 60, .mode = 3},
+	{.width = 640, .height = 480, .framerates = 60, .mode = 3},
 	{.width = 1280, .height = 720, .framerates = 60, .mode = 3},
 	{.width = 1920, .height = 1080, .framerates = 60, .mode = 1},
 	{.width = 2560, .height = 1440, .framerates = 40, .mode = 1},
@@ -39,10 +39,11 @@ static struct sensor_params ar0522_res_list[] = {
 };
 
 static struct sensor_params ar0821_res_list[] = {
+	{.width = 640, .height = 480, .framerates = 30, .mode = 1},
 	{.width = 1280, .height = 720, .framerates = 30, .mode = 1},
 	{.width = 1920, .height = 1080, .framerates = 30, .mode = 1},
 	{.width = 2560, .height = 1440, .framerates = 30, .mode = 0},   //2K  1440p
-	{.width = 3840, .height = 2160, .framerates = 24, .mode = 0},
+	{.width = 3840, .height = 2160, .framerates = 20, .mode = 0},
 };
 
 static struct sensor_params ar1335_res_list[] = {
@@ -51,8 +52,7 @@ static struct sensor_params ar1335_res_list[] = {
 	{.width = 1920, .height = 1080, .framerates = 60, .mode = 3},   //FHD 1080p
 	{.width = 2560, .height = 1440, .framerates = 30, .mode = 1},   //2K  1440p
 	{.width = 3840, .height = 2160, .framerates = 20, .mode = 0},   //4K  2160p
-	// {.width = 4192, .height = 3120, .framerates = 24},
-	// {.width = 4208, .height = 3120, .framerates = 15},
+	{.width = 4208, .height = 3120, .framerates = 15, .mode = 0},   //13M
 };
 
 struct sensor_info {
