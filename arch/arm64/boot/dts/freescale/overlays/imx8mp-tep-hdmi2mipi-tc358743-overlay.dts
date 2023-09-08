@@ -105,5 +105,16 @@
 			};
 		};
 	};
+
+	fragment@4 {
+		target-path = "/";
+		__overlay__ {
+			sound-tc358743_2 {
+				compatible = "nxp,imx-audio-tc358743", "nxp,imx-tc358743";
+				cpu-dai = <&sai2>;
+				nxp,audio-codec = <&hdmi_in_1>;
+			};
+		};
+	};
 };
 
