@@ -298,7 +298,7 @@
 };
 
 &snvs_rtc {
-	status = "disbaled";
+	status = "okay";
 };
 
 &snvs_pwrkey {
