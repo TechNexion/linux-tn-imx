@@ -163,6 +163,18 @@
 			"IN1R", "Mic Jack";
 
 		mic-det-gpios = <&gpio4 18 0>;
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				wm8904_machine_driver_ep: endpoint {
+					remote-endpoint = <&wm8904_codec_ep>;
+				};
+			};
+		};
 	};
 
 	gpio_keys {
@@ -522,6 +534,18 @@
 		clocks = <&audio_blk_ctrl IMX8MP_CLK_AUDIO_BLK_CTRL_SAI3_MCLK1>;
 		clock-names = "mclk";
 		wlf,shared-lrclk;
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				wm8904_codec_ep: endpoint {
+					remote-endpoint = <&wm8904_machine_driver_ep>;
+				};
+			};
+		};
 	};
 
 	vizionlink_1: vizionlink@30 {
