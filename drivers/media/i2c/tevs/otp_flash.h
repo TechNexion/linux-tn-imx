@@ -1,7 +1,7 @@
 #ifndef __OTP_FLASH_H__
 #define __OTP_FLASH_H__
 
-#include "sensor_i2c.h"
+#include "tevs_i2c.h"
 
 /* Define host command register of MCU information page */
 #define HOST_COMMAND_MCU_INFO_VERSION_MSB                       (0x0000)
@@ -178,6 +178,6 @@ struct header_ver3 {
 	u16 total_checksum;
 } __attribute__((packed));
 
-struct otp_flash *ap1302_load_bootdata(struct i2c_client *client);
+struct otp_flash *tevs_load_bootdata(struct i2c_client *client);
 
 #endif

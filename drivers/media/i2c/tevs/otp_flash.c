@@ -1,7 +1,7 @@
-#include <linux/i2c.h>
+// #include <linux/i2c.h>
 #include "otp_flash.h"
 
-struct otp_flash *ap1302_load_bootdata(struct i2c_client *client)
+struct otp_flash *tevs_load_bootdata(struct i2c_client *client)
 {
 	struct otp_flash *instance;
 	struct device *dev = &client->dev;
@@ -16,13 +16,13 @@ struct otp_flash *ap1302_load_bootdata(struct i2c_client *client)
 	}
 	instance->dev = dev;
 
-	sensor_i2c_read(client, HOST_COMMAND_ISP_BOOTDATA_1, &__header_ver, 1);
+	tevs_i2c_read(client, HOST_COMMAND_ISP_BOOTDATA_1, &__header_ver, 1);
 
 	if (__header_ver == 2) {
 		instance->header_data = devm_kzalloc(
 			dev, sizeof(struct header_ver2), GFP_KERNEL);
 
-		sensor_i2c_read(client, HOST_COMMAND_ISP_BOOTDATA_1,
+		tevs_i2c_read(client, HOST_COMMAND_ISP_BOOTDATA_1,
 				instance->header_data,
 				sizeof(struct header_ver2));
 
@@ -42,7 +42,7 @@ struct otp_flash *ap1302_load_bootdata(struct i2c_client *client)
 		instance->header_data = devm_kzalloc(
 			dev, sizeof(struct header_ver3), GFP_KERNEL);
 
-		sensor_i2c_read(client, HOST_COMMAND_ISP_BOOTDATA_1,
+		tevs_i2c_read(client, HOST_COMMAND_ISP_BOOTDATA_1,
 				instance->header_data,
 				sizeof(struct header_ver3));
 
