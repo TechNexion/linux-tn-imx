@@ -62,7 +62,7 @@ struct sensor_info {
 	u32 res_list_size;
 };
 
-static struct sensor_info ap1302_sensor_table[] = {
+static struct sensor_info tevs_sensor_table[] = {
 	{
 		.sensor_name = "TEVS-AR0144",
 		.res_list = ar0144_res_list,

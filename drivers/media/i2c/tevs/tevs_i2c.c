@@ -1,6 +1,6 @@
-#include "sensor_i2c.h"
+#include "tevs_i2c.h"
 
-int sensor_i2c_read(struct i2c_client *client, u16 reg, u8 *val, u8 size)
+int tevs_i2c_read(struct i2c_client *client, u16 reg, u8 *val, u8 size)
 {
 	struct i2c_msg msg[2];
 	u8 buf[2];
@@ -21,12 +21,12 @@ int sensor_i2c_read(struct i2c_client *client, u16 reg, u8 *val, u8 size)
 	return i2c_transfer(client->adapter, msg, 2);
 }
 
-int sensor_i2c_read_16b(struct i2c_client *client, u16 reg, u16 *value)
+int tevs_i2c_read_16b(struct i2c_client *client, u16 reg, u16 *value)
 {
 	u8 v[2] = { 0 };
 	int ret;
 
-	ret = sensor_i2c_read(client, reg, v, 2);
+	ret = tevs_i2c_read(client, reg, v, 2);
 
 	if (unlikely(ret < 0)) {
 		dev_err(&client->dev, "i2c transfer error.\n");
@@ -40,7 +40,7 @@ int sensor_i2c_read_16b(struct i2c_client *client, u16 reg, u16 *value)
 	return 0;
 }
 
-int sensor_i2c_write_16b(struct i2c_client *client, u16 reg, u16 val)
+int tevs_i2c_write_16b(struct i2c_client *client, u16 reg, u16 val)
 {
 	struct i2c_msg msg;
 	u8 buf[4];
@@ -70,7 +70,7 @@ int sensor_i2c_write_16b(struct i2c_client *client, u16 reg, u16 val)
 	return 0;
 }
 
-int sensor_i2c_write_bust(struct i2c_client *client, u8 *buf, size_t len)
+int tevs_i2c_write_bust(struct i2c_client *client, u8 *buf, size_t len)
 {
 	struct i2c_msg msg;
 	int retry_tmp = 0;
