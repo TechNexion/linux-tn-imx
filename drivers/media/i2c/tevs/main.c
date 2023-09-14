@@ -1,4 +1,3 @@
-#define DEBUG
 #include <linux/module.h>
 #include <linux/delay.h>
 #include <linux/kthread.h>
@@ -107,7 +106,7 @@
 #define AP1302_DZ_CT_MAX 						HOST_COMMAND_ISP_CTRL_CT_MAX
 #define AP1302_DZ_CT_MIN 						HOST_COMMAND_ISP_CTRL_CT_MIN
 
-struct sensor {
+struct tevs {
 	struct v4l2_subdev v4l2_subdev;
 	struct media_pad pad;
 	struct v4l2_mbus_framefmt fmt;
@@ -170,7 +169,7 @@ static int tevs_standby(struct i2c_client *client, int enable)
 	return 0;
 }
 
-static int tevs_power_on(struct sensor *instance)
+static int tevs_power_on(struct tevs *instance)
 {
 	dev_dbg(&instance->i2c_client->dev, "%s()\n", __func__);
 	// gpiod_set_value_cansleep(instance->host_power_gpio, 1);
@@ -182,7 +181,7 @@ static int tevs_power_on(struct sensor *instance)
 	return 0;
 }
 
-static int tevs_power_off(struct sensor *instance)
+static int tevs_power_off(struct tevs *instance)
 {
 	dev_dbg(&instance->i2c_client->dev, "%s()\n", __func__);
 	// gpiod_set_value_cansleep(instance->standby_gpio, 0);
@@ -197,7 +196,7 @@ static int tevs_power_off(struct sensor *instance)
 
 static int tevs_power(struct v4l2_subdev *sub_dev, int on)
 {
-	struct sensor *instance = container_of(sub_dev, struct sensor, v4l2_subdev);
+	struct tevs *instance = container_of(sub_dev, struct tevs, v4l2_subdev);
 	dev_dbg(sub_dev->dev, "%s() [%d]\n", __func__, on);
 	if(on)
 		return tevs_power_on(instance);
@@ -207,14 +206,14 @@ static int tevs_power(struct v4l2_subdev *sub_dev, int on)
 
 // static int tevs_init(struct v4l2_subdev *sub_dev, u32 val)
 // {
-// 	//struct sensor *instance = container_of(sub_dev, struct sensor, v4l2_subdev);
+// 	//struct tevs *instance = container_of(sub_dev, struct tevs, v4l2_subdev);
 // 	dev_dbg(sub_dev->dev, "%s() [%d]\n", __func__, val);
 // 	return 0;
 // }
 
 // static int tevs_load_fw(struct v4l2_subdev *sub_dev)
 // {
-// 	//struct sensor *instance = container_of(sub_dev, struct sensor, v4l2_subdev);
+// 	//struct tevs *instance = container_of(sub_dev, struct tevs, v4l2_subdev);
 
 // 	dev_dbg(sub_dev->dev, "%s()\n", __func__);
 // 	return 0;
@@ -222,7 +221,7 @@ static int tevs_power(struct v4l2_subdev *sub_dev, int on)
 
 // static int tevs_reset(struct v4l2_subdev *sub_dev, u32 val)
 // {
-// 	//struct sensor *instance = container_of(sub_dev, struct sensor, v4l2_subdev);
+// 	//struct tevs *instance = container_of(sub_dev, struct tevs, v4l2_subdev);
 
 // 	dev_dbg(sub_dev->dev, "%s() [%d]\n", __func__, val);
 // 	return 0;
@@ -258,8 +257,8 @@ static int tevs_set_frame_interval(struct v4l2_subdev *sub_dev,
 
 static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 {
-	struct sensor *instance =
-		container_of(sub_dev, struct sensor, v4l2_subdev);
+	struct tevs *instance =
+		container_of(sub_dev, struct tevs, v4l2_subdev);
 	int ret = 0;
 
 	dev_dbg(sub_dev->dev, "%s() enable [%x]\n", __func__, enable);
@@ -344,8 +343,8 @@ static int tevs_get_fmt(struct v4l2_subdev *sub_dev,
 {
 	struct v4l2_mbus_framefmt *fmt;
 	struct v4l2_mbus_framefmt *mbus_fmt = &format->format;
-	struct sensor *instance =
-		container_of(sub_dev, struct sensor, v4l2_subdev);
+	struct tevs *instance =
+		container_of(sub_dev, struct tevs, v4l2_subdev);
 
 	dev_dbg(sub_dev->dev, "%s()\n", __func__);
 
@@ -369,8 +368,8 @@ static int tevs_set_fmt(struct v4l2_subdev *sub_dev,
 {
 	struct v4l2_mbus_framefmt *fmt;
 	struct v4l2_mbus_framefmt *mbus_fmt = &format->format;
-	struct sensor *instance =
-		container_of(sub_dev, struct sensor, v4l2_subdev);
+	struct tevs *instance =
+		container_of(sub_dev, struct tevs, v4l2_subdev);
 	int i;
 
 	dev_dbg(sub_dev->dev, "%s()\n", __func__);
@@ -425,8 +424,8 @@ static int tevs_enum_frame_size(struct v4l2_subdev *sub_dev,
 			       struct v4l2_subdev_state *sd_state,
 			       struct v4l2_subdev_frame_size_enum *fse)
 {
-	struct sensor *instance =
-		container_of(sub_dev, struct sensor, v4l2_subdev);
+	struct tevs *instance =
+		container_of(sub_dev, struct tevs, v4l2_subdev);
 	// dev_dbg(sub_dev->dev, "%s() %x %x %x\n", __func__, fse->pad, fse->code,
 	// 	fse->index);
 
@@ -457,8 +456,8 @@ static int tevs_enum_frame_interval(struct v4l2_subdev *sub_dev,
 				   struct v4l2_subdev_state *sd_state,
 				   struct v4l2_subdev_frame_interval_enum *fie)
 {
-	struct sensor *instance =
-		container_of(sub_dev, struct sensor, v4l2_subdev);
+	struct tevs *instance =
+		container_of(sub_dev, struct tevs, v4l2_subdev);
 	int i;
 	// dev_dbg(sub_dev->dev, "%s() %x %x %x\n", __func__, fie->pad, fie->code,
 	// 	fie->index);
@@ -493,14 +492,14 @@ static int tevs_enum_frame_interval(struct v4l2_subdev *sub_dev,
  * V4L2 Controls
  */
 
-static int tevs_set_brightness(struct sensor *instance, s32 value)
+static int tevs_set_brightness(struct tevs *instance, s32 value)
 {
 	// Format is u3.12
 	return tevs_i2c_write_16b(instance->i2c_client, AP1302_BRIGHTNESS,
 				    value & AP1302_BRIGHTNESS_MASK);
 }
 
-static int tevs_get_brightness(struct sensor *instance, s32 *value)
+static int tevs_get_brightness(struct tevs *instance, s32 *value)
 {
 	u16 val;
 	int ret;
@@ -513,7 +512,7 @@ static int tevs_get_brightness(struct sensor *instance, s32 *value)
 	return 0;
 }
 
-static int tevs_get_brightness_max(struct sensor *instance, s64 *value)
+static int tevs_get_brightness_max(struct tevs *instance, s64 *value)
 {
 	u16 val;
 	int ret;
@@ -526,7 +525,7 @@ static int tevs_get_brightness_max(struct sensor *instance, s64 *value)
 	return 0;
 }
 
-static int tevs_get_brightness_min(struct sensor *instance, s64 *value)
+static int tevs_get_brightness_min(struct tevs *instance, s64 *value)
 {
 	u16 val;
 	int ret;
@@ -539,14 +538,14 @@ static int tevs_get_brightness_min(struct sensor *instance, s64 *value)
 	return 0;
 }
 
-static int tevs_set_contrast(struct sensor *instance, s32 value)
+static int tevs_set_contrast(struct tevs *instance, s32 value)
 {
 	// Format is u3.12
 	return tevs_i2c_write_16b(instance->i2c_client, AP1302_CONTRAST,
 				    value & AP1302_CONTRAST_MASK);
 }
 
-static int tevs_get_contrast(struct sensor *instance, s32 *value)
+static int tevs_get_contrast(struct tevs *instance, s32 *value)
 {
 	u16 val;
 	int ret;
@@ -558,7 +557,7 @@ static int tevs_get_contrast(struct sensor *instance, s32 *value)
 	return 0;
 }
 
-static int tevs_get_contrast_max(struct sensor *instance, s64 *value)
+static int tevs_get_contrast_max(struct tevs *instance, s64 *value)
 {
 	u16 val;
 	int ret;
@@ -571,7 +570,7 @@ static int tevs_get_contrast_max(struct sensor *instance, s64 *value)
 	return 0;
 }
 
-static int tevs_get_contrast_min(struct sensor *instance, s64 *value)
+static int tevs_get_contrast_min(struct tevs *instance, s64 *value)
 {
 	u16 val;
 	int ret;
@@ -584,14 +583,14 @@ static int tevs_get_contrast_min(struct sensor *instance, s64 *value)
 	return 0;
 }
 
-static int tevs_set_saturation(struct sensor *instance, s32 value)
+static int tevs_set_saturation(struct tevs *instance, s32 value)
 {
 	// Format is u3.12
 	return tevs_i2c_write_16b(instance->i2c_client, AP1302_SATURATION,
 				    value & AP1302_SATURATION_MASK);
 }
 
-static int tevs_get_saturation(struct sensor *instance, s32 *value)
+static int tevs_get_saturation(struct tevs *instance, s32 *value)
 {
 	u16 val;
 	int ret;
@@ -604,7 +603,7 @@ static int tevs_get_saturation(struct sensor *instance, s32 *value)
 	return 0;
 }
 
-static int tevs_get_saturation_max(struct sensor *instance, s64 *value)
+static int tevs_get_saturation_max(struct tevs *instance, s64 *value)
 {
 	u16 val;
 	int ret;
@@ -617,7 +616,7 @@ static int tevs_get_saturation_max(struct sensor *instance, s64 *value)
 	return 0;
 }
 
-static int tevs_get_saturation_min(struct sensor *instance, s64 *value)
+static int tevs_get_saturation_min(struct tevs *instance, s64 *value)
 {
 	u16 val;
 	int ret;
@@ -636,7 +635,7 @@ static const char *const awb_mode_strings[] = {
 	NULL,
 };
 
-static int tevs_set_awb_mode(struct sensor *instance, s32 mode)
+static int tevs_set_awb_mode(struct tevs *instance, s32 mode)
 {
 	u16 val = mode & AP1302_AWB_CTRL_MODE_MASK;
 
@@ -656,7 +655,7 @@ static int tevs_set_awb_mode(struct sensor *instance, s32 mode)
 				    val);
 }
 
-static int tevs_get_awb_mode(struct sensor *instance, s32 *mode)
+static int tevs_get_awb_mode(struct tevs *instance, s32 *mode)
 {
 	u16 val;
 	int ret;
@@ -681,14 +680,14 @@ static int tevs_get_awb_mode(struct sensor *instance, s32 *mode)
 	return 0;
 }
 
-static int tevs_set_gamma(struct sensor *instance, s32 value)
+static int tevs_set_gamma(struct tevs *instance, s32 value)
 {
 	// Format is u3.12
 	return tevs_i2c_write_16b(instance->i2c_client, AP1302_GAMMA,
 				    value & AP1302_GAMMA_MASK);
 }
 
-static int tevs_get_gamma(struct sensor *instance, s32 *value)
+static int tevs_get_gamma(struct tevs *instance, s32 *value)
 {
 	u16 val;
 	int ret;
@@ -700,7 +699,7 @@ static int tevs_get_gamma(struct sensor *instance, s32 *value)
 	return 0;
 }
 
-static int tevs_get_gamma_max(struct sensor *instance, s64 *value)
+static int tevs_get_gamma_max(struct tevs *instance, s64 *value)
 {
 	u16 val;
 	int ret;
@@ -712,7 +711,7 @@ static int tevs_get_gamma_max(struct sensor *instance, s64 *value)
 	return 0;
 }
 
-static int tevs_get_gamma_min(struct sensor *instance, s64 *value)
+static int tevs_get_gamma_min(struct tevs *instance, s64 *value)
 {
 	u16 val;
 	int ret;
@@ -724,7 +723,7 @@ static int tevs_get_gamma_min(struct sensor *instance, s64 *value)
 	return 0;
 }
 
-static int tevs_set_exposure(struct sensor *instance, s32 value)
+static int tevs_set_exposure(struct tevs *instance, s32 value)
 {
 	int ret;
 
@@ -743,7 +742,7 @@ static int tevs_set_exposure(struct sensor *instance, s32 value)
 	return 0;
 }
 
-static int tevs_get_exposure(struct sensor *instance, s32 *value)
+static int tevs_get_exposure(struct tevs *instance, s32 *value)
 {
 	u16 val_msb, val_lsb;
 	int ret;
@@ -762,7 +761,7 @@ static int tevs_get_exposure(struct sensor *instance, s32 *value)
 	return 0;
 }
 
-static int tevs_get_exposure_max(struct sensor *instance, s64 *value)
+static int tevs_get_exposure_max(struct tevs *instance, s64 *value)
 {
 	u16 val_msb, val_lsb;
 	int ret;
@@ -781,7 +780,7 @@ static int tevs_get_exposure_max(struct sensor *instance, s64 *value)
 	return 0;
 }
 
-static int tevs_get_exposure_min(struct sensor *instance, s64 *value)
+static int tevs_get_exposure_min(struct tevs *instance, s64 *value)
 {
 	u16 val_msb, val_lsb;
 	int ret;
@@ -800,14 +799,14 @@ static int tevs_get_exposure_min(struct sensor *instance, s64 *value)
 	return 0;
 }
 
-static int tevs_set_gain(struct sensor *instance, s32 value)
+static int tevs_set_gain(struct tevs *instance, s32 value)
 {
 	// Format is u8
 	return tevs_i2c_write_16b(instance->i2c_client, AP1302_AE_MANUAL_GAIN,
 				    value & AP1302_AE_MANUAL_GAIN_MASK);
 }
 
-static int tevs_get_gain(struct sensor *instance, s32 *value)
+static int tevs_get_gain(struct tevs *instance, s32 *value)
 {
 	u16 val;
 	int ret;
@@ -820,7 +819,7 @@ static int tevs_get_gain(struct sensor *instance, s32 *value)
 	return 0;
 }
 
-static int tevs_get_gain_max(struct sensor *instance, s64 *value)
+static int tevs_get_gain_max(struct tevs *instance, s64 *value)
 {
 	u16 val;
 	int ret;
@@ -833,7 +832,7 @@ static int tevs_get_gain_max(struct sensor *instance, s64 *value)
 	return 0;
 }
 
-static int tevs_get_gain_min(struct sensor *instance, s64 *value)
+static int tevs_get_gain_min(struct tevs *instance, s64 *value)
 {
 	u16 val;
 	int ret;
@@ -846,7 +845,7 @@ static int tevs_get_gain_min(struct sensor *instance, s64 *value)
 	return 0;
 }
 
-static int tevs_set_hflip(struct sensor *instance, s32 flip)
+static int tevs_set_hflip(struct tevs *instance, s32 flip)
 {
 	u16 val;
 	int ret;
@@ -863,7 +862,7 @@ static int tevs_set_hflip(struct sensor *instance, s32 flip)
 				    val);
 }
 
-static int tevs_get_hflip(struct sensor *instance, s32 *flip)
+static int tevs_get_hflip(struct tevs *instance, s32 *flip)
 {
 	u16 val;
 	int ret;
@@ -877,7 +876,7 @@ static int tevs_get_hflip(struct sensor *instance, s32 *flip)
 	return 0;
 }
 
-static int tevs_set_vflip(struct sensor *instance, s32 flip)
+static int tevs_set_vflip(struct tevs *instance, s32 flip)
 {
 	u16 val;
 	int ret;
@@ -894,7 +893,7 @@ static int tevs_set_vflip(struct sensor *instance, s32 flip)
 				    val);
 }
 
-static int tevs_get_vflip(struct sensor *instance, s32 *flip)
+static int tevs_get_vflip(struct tevs *instance, s32 *flip)
 {
 	u16 val;
 	int ret;
@@ -915,13 +914,13 @@ static int tevs_get_vflip(struct sensor *instance, s32 *flip)
 // 	AP1302_FLICK_CTRL_MODE_AUTO,
 // };
 
-// static int tevs_set_flicker_freq(struct sensor *instance, s32 val)
+// static int tevs_set_flicker_freq(struct tevs *instance, s32 val)
 // {
 // 	return tevs_i2c_write_16b(instance->i2c_client, AP1302_FLICK_CTRL,
 // 			    tevs_flicker_values[val]);
 // }
 
-// static int tevs_get_flicker_freq(struct sensor *instance, s32 *value)
+// static int tevs_get_flicker_freq(struct tevs *instance, s32 *value)
 // {
 // 	u16 val;
 // 	int ret;
@@ -952,14 +951,14 @@ static int tevs_get_vflip(struct sensor *instance, s32 *flip)
 // 	return 0;
 // }
 
-static int tevs_set_awb_temp(struct sensor *instance, s32 value)
+static int tevs_set_awb_temp(struct tevs *instance, s32 value)
 {
 	return tevs_i2c_write_16b(instance->i2c_client,
 				    AP1302_AWB_MANUAL_TEMP,
 				    value & AP1302_AWB_MANUAL_TEMP_MASK);
 }
 
-static int tevs_get_awb_temp(struct sensor *instance, s32 *value)
+static int tevs_get_awb_temp(struct tevs *instance, s32 *value)
 {
 	u16 val;
 	int ret;
@@ -972,7 +971,7 @@ static int tevs_get_awb_temp(struct sensor *instance, s32 *value)
 	return 0;
 }
 
-static int tevs_get_awb_temp_max(struct sensor *instance, s64 *value)
+static int tevs_get_awb_temp_max(struct tevs *instance, s64 *value)
 {
 	u16 val;
 	int ret;
@@ -985,7 +984,7 @@ static int tevs_get_awb_temp_max(struct sensor *instance, s64 *value)
 	return 0;
 }
 
-static int tevs_get_awb_temp_min(struct sensor *instance, s64 *value)
+static int tevs_get_awb_temp_min(struct tevs *instance, s64 *value)
 {
 	u16 val;
 	int ret;
@@ -998,14 +997,14 @@ static int tevs_get_awb_temp_min(struct sensor *instance, s64 *value)
 	return 0;
 }
 
-static int tevs_set_sharpen(struct sensor *instance, s32 value)
+static int tevs_set_sharpen(struct tevs *instance, s32 value)
 {
 	// Format is u3.12
 	return tevs_i2c_write_16b(instance->i2c_client, AP1302_SHARPEN,
 				    value & AP1302_SHARPEN_MASK);
 }
 
-static int tevs_get_sharpen(struct sensor *instance, s32 *value)
+static int tevs_get_sharpen(struct tevs *instance, s32 *value)
 {
 	u16 val;
 	int ret;
@@ -1017,7 +1016,7 @@ static int tevs_get_sharpen(struct sensor *instance, s32 *value)
 	return 0;
 }
 
-static int tevs_get_sharpen_max(struct sensor *instance, s64 *value)
+static int tevs_get_sharpen_max(struct tevs *instance, s64 *value)
 {
 	u16 val;
 	int ret;
@@ -1030,7 +1029,7 @@ static int tevs_get_sharpen_max(struct sensor *instance, s64 *value)
 	return 0;
 }
 
-static int tevs_get_sharpen_min(struct sensor *instance, s64 *value)
+static int tevs_get_sharpen_min(struct tevs *instance, s64 *value)
 {
 	u16 val;
 	int ret;
@@ -1043,7 +1042,7 @@ static int tevs_get_sharpen_min(struct sensor *instance, s64 *value)
 	return 0;
 }
 
-static int tevs_set_backlight_compensation(struct sensor *instance, s32 value)
+static int tevs_set_backlight_compensation(struct tevs *instance, s32 value)
 {
 	// Format is u3.12
 	return tevs_i2c_write_16b(instance->i2c_client,
@@ -1051,7 +1050,7 @@ static int tevs_set_backlight_compensation(struct sensor *instance, s32 value)
 				    value & AP1302_BACKLIGHT_COMPENSATION_MASK);
 }
 
-static int tevs_get_backlight_compensation(struct sensor *instance, s32 *value)
+static int tevs_get_backlight_compensation(struct tevs *instance, s32 *value)
 {
 	u16 val;
 	int ret;
@@ -1064,7 +1063,7 @@ static int tevs_get_backlight_compensation(struct sensor *instance, s32 *value)
 	return 0;
 }
 
-static int tevs_get_backlight_compensation_max(struct sensor *instance,
+static int tevs_get_backlight_compensation_max(struct tevs *instance,
 					      s64 *value)
 {
 	u16 val;
@@ -1078,7 +1077,7 @@ static int tevs_get_backlight_compensation_max(struct sensor *instance,
 	return 0;
 }
 
-static int tevs_get_backlight_compensation_min(struct sensor *instance,
+static int tevs_get_backlight_compensation_min(struct tevs *instance,
 					      s64 *value)
 {
 	u16 val;
@@ -1092,14 +1091,14 @@ static int tevs_get_backlight_compensation_min(struct sensor *instance,
 	return 0;
 }
 
-static int tevs_set_zoom_target(struct sensor *instance, s32 value)
+static int tevs_set_zoom_target(struct tevs *instance, s32 value)
 {
 	// Format u7.8
 	return tevs_i2c_write_16b(instance->i2c_client, AP1302_DZ_TGT_FCT,
 				    value & AP1302_DZ_TGT_FCT_MASK);
 }
 
-static int tevs_get_zoom_target(struct sensor *instance, s32 *value)
+static int tevs_get_zoom_target(struct tevs *instance, s32 *value)
 {
 	u16 val;
 	int ret;
@@ -1112,7 +1111,7 @@ static int tevs_get_zoom_target(struct sensor *instance, s32 *value)
 	return 0;
 }
 
-static int tevs_get_zoom_target_max(struct sensor *instance, s64 *value)
+static int tevs_get_zoom_target_max(struct tevs *instance, s64 *value)
 {
 	u16 val;
 	int ret;
@@ -1125,7 +1124,7 @@ static int tevs_get_zoom_target_max(struct sensor *instance, s64 *value)
 	return 0;
 }
 
-static int tevs_get_zoom_target_min(struct sensor *instance, s64 *value)
+static int tevs_get_zoom_target_min(struct tevs *instance, s64 *value)
 {
 	u16 val;
 	int ret;
@@ -1147,7 +1146,7 @@ static const char *const sfx_mode_strings[] = {
 	NULL,
 };
 
-static int tevs_set_special_effect(struct sensor *instance, s32 mode)
+static int tevs_set_special_effect(struct tevs *instance, s32 mode)
 {
 	u16 val = mode & AP1302_SFX_MODE_SFX_MASK;
 
@@ -1175,7 +1174,7 @@ static int tevs_set_special_effect(struct sensor *instance, s32 mode)
 	return tevs_i2c_write_16b(instance->i2c_client, AP1302_SFX_MODE, val);
 }
 
-static int tevs_get_special_effect(struct sensor *instance, s32 *mode)
+static int tevs_get_special_effect(struct tevs *instance, s32 *mode)
 {
 	u16 val;
 	int ret;
@@ -1214,7 +1213,7 @@ static const char *const ae_mode_strings[] = {
 	NULL,
 };
 
-static int tevs_set_ae_mode(struct sensor *instance, s32 mode)
+static int tevs_set_ae_mode(struct tevs *instance, s32 mode)
 {
 	u16 val = mode & AP1302_SFX_MODE_SFX_MASK;
 
@@ -1234,7 +1233,7 @@ static int tevs_set_ae_mode(struct sensor *instance, s32 mode)
 				    val);
 }
 
-static int tevs_get_ae_mode(struct sensor *instance, s32 *mode)
+static int tevs_get_ae_mode(struct tevs *instance, s32 *mode)
 {
 	u16 val;
 	int ret;
@@ -1258,14 +1257,14 @@ static int tevs_get_ae_mode(struct sensor *instance, s32 *mode)
 	return 0;
 }
 
-static int tevs_set_pan_target(struct sensor *instance, s32 value)
+static int tevs_set_pan_target(struct tevs *instance, s32 value)
 {
 	// Format u7.8
 	return tevs_i2c_write_16b(instance->i2c_client, AP1302_DZ_CT_X,
 				    value & AP1302_DZ_CT_X_MASK);
 }
 
-static int tevs_get_pan_target(struct sensor *instance, s32 *value)
+static int tevs_get_pan_target(struct tevs *instance, s32 *value)
 {
 	u16 val;
 	int ret;
@@ -1277,14 +1276,14 @@ static int tevs_get_pan_target(struct sensor *instance, s32 *value)
 	return 0;
 }
 
-static int tevs_set_tilt_target(struct sensor *instance, s32 value)
+static int tevs_set_tilt_target(struct tevs *instance, s32 value)
 {
 	// Format u7.8
 	return tevs_i2c_write_16b(instance->i2c_client, AP1302_DZ_CT_Y,
 				    value & AP1302_DZ_CT_Y_MASK);
 }
 
-static int tevs_get_tilt_target(struct sensor *instance, s32 *value)
+static int tevs_get_tilt_target(struct tevs *instance, s32 *value)
 {
 	u16 val;
 	int ret;
@@ -1296,7 +1295,7 @@ static int tevs_get_tilt_target(struct sensor *instance, s32 *value)
 	return 0;
 }
 
-static int tevs_get_pan_tilt_target_max(struct sensor *instance, s64 *value)
+static int tevs_get_pan_tilt_target_max(struct tevs *instance, s64 *value)
 {
 	u16 val;
 	int ret;
@@ -1308,7 +1307,7 @@ static int tevs_get_pan_tilt_target_max(struct sensor *instance, s64 *value)
 	return 0;
 }
 
-static int tevs_get_pan_tilt_target_min(struct sensor *instance, s64 *value)
+static int tevs_get_pan_tilt_target_min(struct tevs *instance, s64 *value)
 {
 	u16 val;
 	int ret;
@@ -1322,8 +1321,8 @@ static int tevs_get_pan_tilt_target_min(struct sensor *instance, s64 *value)
 
 static int tevs_s_ctrl(struct v4l2_ctrl *ctrl)
 {
-	struct sensor *instance =
-		container_of(ctrl->handler, struct sensor, ctrls);
+	struct tevs *instance =
+		container_of(ctrl->handler, struct tevs, ctrls);
 
 	switch (ctrl->id) {
 	case V4L2_CID_BRIGHTNESS:
@@ -1389,8 +1388,8 @@ static int tevs_s_ctrl(struct v4l2_ctrl *ctrl)
 
 static int tevs_g_ctrl(struct v4l2_ctrl *ctrl)
 {
-	struct sensor *instance =
-		container_of(ctrl->handler, struct sensor, ctrls);
+	struct tevs *instance =
+		container_of(ctrl->handler, struct tevs, ctrls);
 
 	switch (ctrl->id) {
 	case V4L2_CID_BRIGHTNESS:
@@ -1642,7 +1641,7 @@ static const struct v4l2_ctrl_config tevs_ctrls[] = {
 	},
 };
 
-static int tevs_ctrls_init(struct sensor *instance)
+static int tevs_ctrls_init(struct tevs *instance)
 {
 	unsigned int i;
 	int ret;
@@ -1772,21 +1771,27 @@ static const struct media_entity_operations tevs_media_entity_ops = {
 	.link_setup = tevs_media_link_setup,
 };
 
-static int tevs_try_on(struct sensor *instance)
+static int tevs_try_on(struct tevs *instance)
 {
-	// u16 v;
-	dev_dbg(&instance->i2c_client->dev, "%s()\n", __func__);
+	u16 val;
+	u8 count = 0;
+	int ret = 0;
 
 	tevs_power_off(instance);
-
 	tevs_power_on(instance);
 
-	// if (tevs_i2c_read_16b(instance->i2c_client, 0, &v) != 0) {
-	// 	dev_err(&instance->i2c_client->dev, "%s() try on failed\n",
-	// 		__func__);
-	// 	tevs_power_off(instance);
-	// 	return -EINVAL;
-	// }
+	while(count++ < 10) {
+		ret = tevs_i2c_read_16b(instance->i2c_client, 0, &val);
+		if (ret != 0) {
+			if(count < 10)
+				continue;
+			dev_err(&instance->i2c_client->dev, "%s() try on failed\n",
+				__func__);
+			tevs_power_off(instance);
+			return -EINVAL;
+		} else
+			break;
+	}
 
 	return 0;
 }
@@ -1794,7 +1799,7 @@ static int tevs_try_on(struct sensor *instance)
 static int tevs_probe(struct i2c_client *client,
 			const struct i2c_device_id *id)
 {
-	struct sensor *instance = NULL;
+	struct tevs *instance = NULL;
 	struct device *dev = &client->dev;
 	struct v4l2_mbus_framefmt *fmt;
 	int data_lanes;
@@ -1808,7 +1813,7 @@ static int tevs_probe(struct i2c_client *client,
 	dev_info(dev, "%s() device node: %s\n", __func__,
 		 client->dev.of_node->full_name);
 
-	instance = devm_kzalloc(dev, sizeof(struct sensor), GFP_KERNEL);
+	instance = devm_kzalloc(dev, sizeof(struct tevs), GFP_KERNEL);
 	if (instance == NULL) {
 		dev_err(dev, "allocate memory failed\n");
 		return -EINVAL;
@@ -1876,7 +1881,7 @@ static int tevs_probe(struct i2c_client *client,
 		data_lanes, continuous_clock, instance->supports_over_4k_res);
 
 	if (tevs_try_on(instance) != 0) {
-		dev_err(dev, "cannot find ap1302\n");
+		dev_err(dev, "cannot find tevs camera\n");
 		return -EINVAL;
 	}
 
