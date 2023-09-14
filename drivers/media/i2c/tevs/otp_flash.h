@@ -135,6 +135,8 @@
 #define HOST_COMMAND_ISP_CTRL_CT_MIN                            (0x2074)
 #define HOST_COMMAND_ISP_CTRL_SYSTEM_START                      (0x2076)
 
+#define DEFAULT_HEADER_VERSION 3
+
 struct otp_flash {
 	struct device *dev;
 	struct nvmem_device *nvmem;
@@ -142,20 +144,7 @@ struct otp_flash {
 	void *header_data;
 };
 
-struct header_ver2 {
-	u8 header_version;
-	u16 content_offset;
-	u8 product_name[64];
-	u8 product_version;
-	u8 lens_name[64];
-	u8 lens_version;
-	u8 content_version;
-	u32 content_checksum;
-	u32 content_len;
-	u16 pll_bootdata_len;
-} __attribute__((packed));
-
-struct header_ver3 {
+struct header_info {
 	u8 header_version;
 	u16 content_offset;
 	u16 sensor_type;
