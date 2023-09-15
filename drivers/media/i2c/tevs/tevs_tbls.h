@@ -39,6 +39,14 @@ static struct resolution ar0522_res_list[] = {
 };
 
 static struct resolution ar0821_res_list[] = {
+	{.width = 640, .height = 480, .framerates = 30, .mode = 2},
+	{.width = 1280, .height = 720, .framerates = 30, .mode = 2},
+	{.width = 1920, .height = 1080, .framerates = 30, .mode = 2},
+	{.width = 2560, .height = 1440, .framerates = 30, .mode = 0},   //2K  1440p
+	{.width = 3840, .height = 2160, .framerates = 20, .mode = 0},
+};
+
+static struct resolution ar0822_res_list[] = {
 	{.width = 640, .height = 480, .framerates = 30, .mode = 1},
 	{.width = 1280, .height = 720, .framerates = 30, .mode = 1},
 	{.width = 1920, .height = 1080, .framerates = 30, .mode = 1},
@@ -96,8 +104,8 @@ static struct sensor_info tevs_sensor_table[] = {
 	},
 	{
 		.sensor_name = "TEVS-AR0822",
-		.res_list = ar0821_res_list,
-		.res_list_size = ARRAY_SIZE(ar0821_res_list)
+		.res_list = ar0822_res_list,
+		.res_list_size = ARRAY_SIZE(ar0822_res_list)
 	},
 	{
 		.sensor_name = "TEVS-AR1335",
