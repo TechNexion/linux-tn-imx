@@ -1,3 +1,3 @@
-tevs-objs := tevs.o tevs_i2c.o
+tevs-objs := tevs_main.o tevs_i2c.o
 
 obj-$(CONFIG_VIDEO_TEVS) += tevs.o
