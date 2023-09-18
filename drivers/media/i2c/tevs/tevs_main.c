@@ -2134,6 +2134,13 @@ static int tevs_probe(struct i2c_client *client,
 
 	tevs->v4l2_subdev.flags |=
 		(V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_HAS_DEVNODE);
+
+	ret = tevs_ctrls_init(tevs);
+	if (ret) {
+		dev_err(&client->dev, "failed to init controls: %d", ret);
+		goto error_probe;
+	}
+	
 	tevs->pad.flags = MEDIA_PAD_FL_SOURCE;
 	tevs->v4l2_subdev.entity.ops = &tevs_media_entity_ops;
 	tevs->v4l2_subdev.entity.function = MEDIA_ENT_F_CAM_SENSOR;
@@ -2143,12 +2150,6 @@ static int tevs_probe(struct i2c_client *client,
 	if (ret != 0) {
 		dev_err(&tevs->i2c_client->dev, "v4l2 register failed\n");
 		return -EINVAL;
-	}
-
-	ret = tevs_ctrls_init(tevs);
-	if (ret) {
-		dev_err(&client->dev, "failed to init controls: %d", ret);
-		goto error_probe;
 	}
 
 	if(!tevs->hw_reset_mode) {
