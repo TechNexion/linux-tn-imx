@@ -2065,7 +2065,7 @@ static int tevs_probe(struct i2c_client *client,
 	msleep(100);
 	while (timeout < 20) {
 		if (++timeout >= 20) {
-			dev_err(dev, "isp bootup timeout\n");
+			dev_err(dev, "isp bootup timeout: state: 0x%02X\n", isp_state);
 			ret = -EINVAL;
 			goto error_probe;
 		}
