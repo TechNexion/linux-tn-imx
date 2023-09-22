@@ -262,10 +262,10 @@ struct header_info {
 } __attribute__((packed));
 
 struct tevs {
+	struct device *dev;
 	struct v4l2_subdev v4l2_subdev;
 	struct media_pad pad;
 	struct v4l2_mbus_framefmt fmt;
-	struct i2c_client *i2c_client;
 	struct regmap *regmap;
 	struct header_info *header_info;
 	struct gpio_desc *reset_gpio;
@@ -293,7 +293,7 @@ int tevs_i2c_read(struct tevs *tevs, u16 reg, u8 *val, u16 size)
 
 	ret = regmap_bulk_read(tevs->regmap, reg, val, size);
 	if (ret < 0) {
-		dev_err(&tevs->i2c_client->dev, "Failed to read from register: %d\n", ret);
+		dev_err(tevs->dev, "Failed to read from register: %d\n", ret);
 		return ret;
 	}
 
@@ -307,13 +307,13 @@ int tevs_i2c_read_16b(struct tevs *tevs, u16 reg, u16 *value)
 
 	ret = tevs_i2c_read(tevs, reg, v, 2);
 	if (ret < 0) {
-		dev_err(&tevs->i2c_client->dev, 
+		dev_err(tevs->dev, 
 			"Failed to read from register: %d\n", ret);
 		return ret;
 	}
 
 	*value = (v[0] << 8) | v[1];
-	dev_dbg(&tevs->i2c_client->dev, 
+	dev_dbg(tevs->dev, 
 		"%s() read reg 0x%x, value 0x%x\n", 
 		__func__, reg, *value);
 
@@ -329,11 +329,11 @@ int tevs_i2c_write_16b(struct tevs *tevs, u16 reg, u16 val)
 
 	ret = regmap_bulk_write(tevs->regmap, reg, data, 2);
 	if (ret < 0) {
-		dev_err(&tevs->i2c_client->dev, 
+		dev_err(tevs->dev, 
 			"Failed to write to register: %d\n", ret);
 		return ret;
 	}
-	dev_dbg(&tevs->i2c_client->dev, 
+	dev_dbg(tevs->dev, 
 		"%s() write reg 0x%x, value 0x%x\n", 
 		__func__, reg, val);
 
@@ -342,8 +342,7 @@ int tevs_i2c_write_16b(struct tevs *tevs, u16 reg, u16 val)
 
 int tevs_load_header_info(struct tevs *tevs)
 {
-	struct i2c_client *client = tevs->i2c_client;
-	struct device *dev = &client->dev;
+	struct device *dev = tevs->dev;
 	struct header_info *header = tevs->header_info;
 	u8 header_ver;
 	int ret = 0;
@@ -383,14 +382,14 @@ static int tevs_standby(struct tevs *tevs, int enable)
 {
 	u16 v = 0;
 	int timeout = 0;
-	dev_dbg(&tevs->i2c_client->dev, "%s():enable=%d\n", __func__, enable);
+	dev_dbg(tevs->dev, "%s():enable=%d\n", __func__, enable);
 
 	if (enable == 1) {
 		tevs_i2c_write_16b(tevs, HOST_COMMAND_ISP_CTRL_SYSTEM_START,
 				     0x0000);
 		while (timeout < 100) {
 			if (++timeout >= 100) {
-				dev_err(&tevs->i2c_client->dev, "timeout: line[%d]v=%x\n",
+				dev_err(tevs->dev, "timeout: line[%d]v=%x\n",
 					__LINE__, v);
 				return -EINVAL;
 			}
@@ -400,13 +399,13 @@ static int tevs_standby(struct tevs *tevs, int enable)
 			if ((v & 0x100) == 0)
 				break;
 		}
-		dev_dbg(&tevs->i2c_client->dev, "sensor standby\n");
+		dev_dbg(tevs->dev, "sensor standby\n");
 	} else {
 		tevs_i2c_write_16b(tevs, HOST_COMMAND_ISP_CTRL_SYSTEM_START,
 				     0x0001);
 		while (timeout < 100) {
 			if (++timeout >= 100) {
-				dev_err(&tevs->i2c_client->dev, "timeout: line[%d]v=%x\n",
+				dev_err(tevs->dev, "timeout: line[%d]v=%x\n",
 					__LINE__, v);
 				return -EINVAL;
 			}
@@ -416,7 +415,7 @@ static int tevs_standby(struct tevs *tevs, int enable)
 			if ((v & 0x100) == 0x100)
 				break;
 		}
-		dev_dbg(&tevs->i2c_client->dev, "sensor wakeup\n");
+		dev_dbg(tevs->dev, "sensor wakeup\n");
 	}
 
 	return 0;
@@ -424,7 +423,7 @@ static int tevs_standby(struct tevs *tevs, int enable)
 
 static int tevs_power_on(struct tevs *tevs)
 {
-	dev_dbg(&tevs->i2c_client->dev, "%s()\n", __func__);
+	dev_dbg(tevs->dev, "%s()\n", __func__);
 
 	gpiod_set_value_cansleep(tevs->reset_gpio, 1);
 	msleep(200);
@@ -434,7 +433,7 @@ static int tevs_power_on(struct tevs *tevs)
 
 static int tevs_power_off(struct tevs *tevs)
 {
-	dev_dbg(&tevs->i2c_client->dev, "%s()\n", __func__);
+	dev_dbg(tevs->dev, "%s()\n", __func__);
 
 	if(tevs->hw_reset_mode) {
 		gpiod_set_value_cansleep(tevs->reset_gpio, 0);
@@ -1637,7 +1636,7 @@ static int tevs_s_ctrl(struct v4l2_ctrl *ctrl)
 		return tevs_set_zoom_target(tevs, ctrl->val);
 
 	default:
-		dev_dbg(&tevs->i2c_client->dev, "Unknown control 0x%x\n",
+		dev_dbg(tevs->dev, "Unknown control 0x%x\n",
 			ctrl->id);
 		return -EINVAL;
 	}
@@ -1704,7 +1703,7 @@ static int tevs_g_ctrl(struct v4l2_ctrl *ctrl)
 		return tevs_get_zoom_target(tevs, &ctrl->val);
 
 	default:
-		dev_dbg(&tevs->i2c_client->dev, "Unknown control 0x%x\n",
+		dev_dbg(tevs->dev, "Unknown control 0x%x\n",
 			ctrl->id);
 		return -EINVAL;
 	}
@@ -1903,7 +1902,7 @@ static int tevs_ctrls_init(struct tevs *tevs)
 	unsigned int i;
 	int ret;
 
-	dev_dbg(&tevs->i2c_client->dev, "%s()\n", __func__);
+	dev_dbg(tevs->dev, "%s()\n", __func__);
 
 	ret = v4l2_ctrl_handler_init(&tevs->ctrls, ARRAY_SIZE(tevs_ctrls));
 	if (ret)
@@ -1916,7 +1915,7 @@ static int tevs_ctrls_init(struct tevs *tevs)
 		if (!ret && ctrl->default_value != ctrl->val) {
 			// Updating default value based on firmware values
 			dev_dbg(
-				&tevs->i2c_client->dev,
+				tevs->dev,
 				"Ctrl '%s' default value updated from %lld to %d\n",
 				ctrl->name, ctrl->default_value, ctrl->val);
 			ctrl->default_value = ctrl->val;
@@ -1986,7 +1985,7 @@ static int tevs_ctrls_init(struct tevs *tevs)
 	}
 
 	if (tevs->ctrls.error) {
-		dev_err(&tevs->i2c_client->dev, "ctrls error\n");
+		dev_err(tevs->dev, "ctrls error\n");
 		ret = tevs->ctrls.error;
 		v4l2_ctrl_handler_free(&tevs->ctrls);
 		return ret;
@@ -2042,7 +2041,7 @@ static int tevs_try_on(struct tevs *tevs)
 		if (ret != 0) {
 			if(count < 10)
 				continue;
-			dev_err(&tevs->i2c_client->dev, "%s() try on failed\n",
+			dev_err(tevs->dev, "%s() try on failed\n",
 				__func__);
 			tevs_power_off(tevs);
 			return -EINVAL;
@@ -2075,7 +2074,8 @@ static int tevs_probe(struct i2c_client *client,
 		return -EINVAL;
 	}
 
-	tevs->i2c_client = client;
+	i2c_set_clientdata(client, tevs);
+	tevs->dev = &client->dev;
 	tevs->regmap = devm_regmap_init_i2c(client, &tevs_regmap_config);
 	if (IS_ERR(tevs->regmap)) {
 		dev_err(dev, "Unable to initialize I2C\n");
@@ -2194,7 +2194,7 @@ static int tevs_probe(struct i2c_client *client,
 	fmt->xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(fmt->colorspace);
 	memset(fmt->reserved, 0, sizeof(fmt->reserved));
 
-	v4l2_i2c_subdev_init(&tevs->v4l2_subdev, tevs->i2c_client,
+	v4l2_i2c_subdev_init(&tevs->v4l2_subdev, client,
 			     &tevs_subdev_ops);
 
 	tevs->v4l2_subdev.flags |=
@@ -2213,7 +2213,7 @@ static int tevs_probe(struct i2c_client *client,
 				     &tevs->pad);
 	ret += v4l2_async_register_subdev(&tevs->v4l2_subdev);
 	if (ret != 0) {
-		dev_err(&tevs->i2c_client->dev, "v4l2 register failed\n");
+		dev_err(tevs->dev, "v4l2 register failed\n");
 		return -EINVAL;
 	}
 
@@ -2227,7 +2227,7 @@ static int tevs_probe(struct i2c_client *client,
 		usleep_range(9000, 10000);
 		ret = tevs_standby(tevs, 1);
 		if (ret != 0) {
-			dev_err(&tevs->i2c_client->dev, "set standby mode failed\n");
+			dev_err(tevs->dev, "set standby mode failed\n");
 			return ret;
 		}
 	}
