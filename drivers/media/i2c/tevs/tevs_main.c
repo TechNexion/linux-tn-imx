@@ -15,7 +15,6 @@
 #include <media/v4l2-event.h>
 #include <media/v4l2-fwnode.h>
 #include <media/v4l2-subdev.h>
-#include "tevs_i2c.h"
 #include "tevs_tbls.h"
 
 #define DRIVER_NAME "tevs"
@@ -267,6 +266,7 @@ struct tevs {
 	struct media_pad pad;
 	struct v4l2_mbus_framefmt fmt;
 	struct i2c_client *i2c_client;
+	struct regmap *regmap;
 	struct header_info *header_info;
 	struct gpio_desc *reset_gpio;
 
@@ -281,6 +281,65 @@ struct tevs {
 	struct v4l2_ctrl_handler ctrls;
 };
 
+static const struct regmap_config tevs_regmap_config = {
+	.reg_bits = 16,
+	.val_bits = 8,
+	.cache_type = REGCACHE_NONE,
+};
+
+int tevs_i2c_read(struct tevs *tevs, u16 reg, u8 *val, u16 size)
+{
+	int ret;
+
+	ret = regmap_bulk_read(tevs->regmap, reg, val, size);
+	if (ret < 0) {
+		dev_err(&tevs->i2c_client->dev, "Failed to read from register: %d\n", ret);
+		return ret;
+	}
+
+	return 0;
+}
+
+int tevs_i2c_read_16b(struct tevs *tevs, u16 reg, u16 *value)
+{
+	u8 v[2] = { 0 };
+	int ret;
+
+	ret = tevs_i2c_read(tevs, reg, v, 2);
+	if (ret < 0) {
+		dev_err(&tevs->i2c_client->dev, 
+			"Failed to read from register: %d\n", ret);
+		return ret;
+	}
+
+	*value = (v[0] << 8) | v[1];
+	dev_dbg(&tevs->i2c_client->dev, 
+		"%s() read reg 0x%x, value 0x%x\n", 
+		__func__, reg, *value);
+
+	return 0;
+}
+
+int tevs_i2c_write_16b(struct tevs *tevs, u16 reg, u16 val)
+{
+	int ret;
+	u8 data[2];
+	data[0] = val >> 8;
+	data[1] = val & 0xFF;
+
+	ret = regmap_bulk_write(tevs->regmap, reg, data, 2);
+	if (ret < 0) {
+		dev_err(&tevs->i2c_client->dev, 
+			"Failed to write to register: %d\n", ret);
+		return ret;
+	}
+	dev_dbg(&tevs->i2c_client->dev, 
+		"%s() write reg 0x%x, value 0x%x\n", 
+		__func__, reg, val);
+
+	return 0;
+}
+
 int tevs_load_header_info(struct tevs *tevs)
 {
 	struct i2c_client *client = tevs->i2c_client;
@@ -289,7 +348,7 @@ int tevs_load_header_info(struct tevs *tevs)
 	u8 header_ver;
 	int ret = 0;
 
-	ret = tevs_i2c_read(client, HOST_COMMAND_ISP_BOOTDATA_1, &header_ver, 1);
+	ret = tevs_i2c_read(tevs, HOST_COMMAND_ISP_BOOTDATA_1, &header_ver, 1);
 
 	if(ret < 0) {
 		dev_err(dev, "can't recognize header info\n");
@@ -297,7 +356,7 @@ int tevs_load_header_info(struct tevs *tevs)
 	}
 
 	if (header_ver == DEFAULT_HEADER_VERSION) {
-		tevs_i2c_read(client, HOST_COMMAND_ISP_BOOTDATA_1,
+		tevs_i2c_read(tevs, HOST_COMMAND_ISP_BOOTDATA_1,
 				(u8*)header,
 				sizeof(struct header_info));
 
@@ -320,44 +379,44 @@ int tevs_load_header_info(struct tevs *tevs)
 	}
 }
 
-static int tevs_standby(struct i2c_client *client, int enable)
+static int tevs_standby(struct tevs *tevs, int enable)
 {
 	u16 v = 0;
 	int timeout = 0;
-	dev_dbg(&client->dev, "%s():enable=%d\n", __func__, enable);
+	dev_dbg(&tevs->i2c_client->dev, "%s():enable=%d\n", __func__, enable);
 
 	if (enable == 1) {
-		tevs_i2c_write_16b(client, HOST_COMMAND_ISP_CTRL_SYSTEM_START,
+		tevs_i2c_write_16b(tevs, HOST_COMMAND_ISP_CTRL_SYSTEM_START,
 				     0x0000);
 		while (timeout < 100) {
 			if (++timeout >= 100) {
-				dev_err(&client->dev, "timeout: line[%d]v=%x\n",
+				dev_err(&tevs->i2c_client->dev, "timeout: line[%d]v=%x\n",
 					__LINE__, v);
 				return -EINVAL;
 			}
 			usleep_range(9000, 10000);
 			tevs_i2c_read_16b(
-				client, HOST_COMMAND_ISP_CTRL_SYSTEM_START, &v);
+				tevs, HOST_COMMAND_ISP_CTRL_SYSTEM_START, &v);
 			if ((v & 0x100) == 0)
 				break;
 		}
-		dev_dbg(&client->dev, "sensor standby\n");
+		dev_dbg(&tevs->i2c_client->dev, "sensor standby\n");
 	} else {
-		tevs_i2c_write_16b(client, HOST_COMMAND_ISP_CTRL_SYSTEM_START,
+		tevs_i2c_write_16b(tevs, HOST_COMMAND_ISP_CTRL_SYSTEM_START,
 				     0x0001);
 		while (timeout < 100) {
 			if (++timeout >= 100) {
-				dev_err(&client->dev, "timeout: line[%d]v=%x\n",
+				dev_err(&tevs->i2c_client->dev, "timeout: line[%d]v=%x\n",
 					__LINE__, v);
 				return -EINVAL;
 			}
 			usleep_range(9000, 10000);
 			tevs_i2c_read_16b(
-				client, HOST_COMMAND_ISP_CTRL_SYSTEM_START, &v);
+				tevs, HOST_COMMAND_ISP_CTRL_SYSTEM_START, &v);
 			if ((v & 0x100) == 0x100)
 				break;
 		}
-		dev_dbg(&client->dev, "sensor wakeup\n");
+		dev_dbg(&tevs->i2c_client->dev, "sensor wakeup\n");
 	}
 
 	return 0;
@@ -460,20 +519,20 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 
 	if (enable == 0) {
 		//VIDEO_WIDTH
-		tevs_i2c_write_16b(tevs->i2c_client,
+		tevs_i2c_write_16b(tevs,
 				     HOST_COMMAND_ISP_CTRL_PREVIEW_WIDTH, 1920);
 		usleep_range(9000, 10000);
 		//VIDEO_HEIGHT
-		tevs_i2c_write_16b(tevs->i2c_client,
+		tevs_i2c_write_16b(tevs,
 				     HOST_COMMAND_ISP_CTRL_PREVIEW_HEIGHT,
 				     1080);
 		usleep_range(9000, 10000);
 		if(!tevs->hw_reset_mode)
-			ret = tevs_standby(tevs->i2c_client, 1);
+			ret = tevs_standby(tevs, 1);
 
 	} else {
 		if(!tevs->hw_reset_mode)
-			ret = tevs_standby(tevs->i2c_client, 0);
+			ret = tevs_standby(tevs, 0);
 		if (ret == 0) {
 			int fps = tevs_sensor_table[tevs->selected_sensor]
 					  .res_list[tevs->selected_mode]
@@ -488,7 +547,7 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 					.height);
 			//SENSOR_MODE
 			tevs_i2c_write_16b(
-				tevs->i2c_client,
+				tevs,
 				HOST_COMMAND_ISP_CTRL_PREVIEW_SENSOR_MODE,
 				tevs_sensor_table[tevs->selected_sensor]
 					.res_list[tevs->selected_mode]
@@ -496,7 +555,7 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 			usleep_range(9000, 10000);
 			//VIDEO_WIDTH
 			tevs_i2c_write_16b(
-				tevs->i2c_client,
+				tevs,
 				HOST_COMMAND_ISP_CTRL_PREVIEW_WIDTH,
 				tevs_sensor_table[tevs->selected_sensor]
 					.res_list[tevs->selected_mode]
@@ -504,7 +563,7 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 			usleep_range(9000, 10000);
 			//VIDEO_HEIGHT
 			tevs_i2c_write_16b(
-				tevs->i2c_client,
+				tevs,
 				HOST_COMMAND_ISP_CTRL_PREVIEW_HEIGHT,
 				tevs_sensor_table[tevs->selected_sensor]
 					.res_list[tevs->selected_mode]
@@ -512,7 +571,7 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 			usleep_range(9000, 10000);
 			//VIDEO_MAX_FPS
 			tevs_i2c_write_16b(
-				tevs->i2c_client,
+				tevs,
 				HOST_COMMAND_ISP_CTRL_PREVIEW_MAX_FPS, fps);
 			usleep_range(9000, 10000);
 		}
@@ -693,7 +752,7 @@ static int tevs_enum_frame_interval(struct v4l2_subdev *sub_dev,
 static int tevs_set_brightness(struct tevs *tevs, s32 value)
 {
 	// Format is u3.12
-	return tevs_i2c_write_16b(tevs->i2c_client, TEVS_BRIGHTNESS,
+	return tevs_i2c_write_16b(tevs, TEVS_BRIGHTNESS,
 				    value & TEVS_BRIGHTNESS_MASK);
 }
 
@@ -701,7 +760,7 @@ static int tevs_get_brightness(struct tevs *tevs, s32 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_BRIGHTNESS,
+	ret = tevs_i2c_read_16b(tevs, TEVS_BRIGHTNESS,
 				  &val);
 	if (ret)
 		return ret;
@@ -714,7 +773,7 @@ static int tevs_get_brightness_max(struct tevs *tevs, s64 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_BRIGHTNESS_MAX,
+	ret = tevs_i2c_read_16b(tevs, TEVS_BRIGHTNESS_MAX,
 				  &val);
 	if (ret)
 		return ret;
@@ -727,7 +786,7 @@ static int tevs_get_brightness_min(struct tevs *tevs, s64 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_BRIGHTNESS_MIN,
+	ret = tevs_i2c_read_16b(tevs, TEVS_BRIGHTNESS_MIN,
 				  &val);
 	if (ret)
 		return ret;
@@ -739,7 +798,7 @@ static int tevs_get_brightness_min(struct tevs *tevs, s64 *value)
 static int tevs_set_contrast(struct tevs *tevs, s32 value)
 {
 	// Format is u3.12
-	return tevs_i2c_write_16b(tevs->i2c_client, TEVS_CONTRAST,
+	return tevs_i2c_write_16b(tevs, TEVS_CONTRAST,
 				    value & TEVS_CONTRAST_MASK);
 }
 
@@ -747,7 +806,7 @@ static int tevs_get_contrast(struct tevs *tevs, s32 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_CONTRAST, &val);
+	ret = tevs_i2c_read_16b(tevs, TEVS_CONTRAST, &val);
 	if (ret)
 		return ret;
 
@@ -759,7 +818,7 @@ static int tevs_get_contrast_max(struct tevs *tevs, s64 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_CONTRAST_MAX,
+	ret = tevs_i2c_read_16b(tevs, TEVS_CONTRAST_MAX,
 				  &val);
 	if (ret)
 		return ret;
@@ -772,7 +831,7 @@ static int tevs_get_contrast_min(struct tevs *tevs, s64 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_CONTRAST_MIN,
+	ret = tevs_i2c_read_16b(tevs, TEVS_CONTRAST_MIN,
 				  &val);
 	if (ret)
 		return ret;
@@ -784,7 +843,7 @@ static int tevs_get_contrast_min(struct tevs *tevs, s64 *value)
 static int tevs_set_saturation(struct tevs *tevs, s32 value)
 {
 	// Format is u3.12
-	return tevs_i2c_write_16b(tevs->i2c_client, TEVS_SATURATION,
+	return tevs_i2c_write_16b(tevs, TEVS_SATURATION,
 				    value & TEVS_SATURATION_MASK);
 }
 
@@ -792,7 +851,7 @@ static int tevs_get_saturation(struct tevs *tevs, s32 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_SATURATION,
+	ret = tevs_i2c_read_16b(tevs, TEVS_SATURATION,
 				  &val);
 	if (ret)
 		return ret;
@@ -805,7 +864,7 @@ static int tevs_get_saturation_max(struct tevs *tevs, s64 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_SATURATION_MAX,
+	ret = tevs_i2c_read_16b(tevs, TEVS_SATURATION_MAX,
 				  &val);
 	if (ret)
 		return ret;
@@ -818,7 +877,7 @@ static int tevs_get_saturation_min(struct tevs *tevs, s64 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_SATURATION_MIN,
+	ret = tevs_i2c_read_16b(tevs, TEVS_SATURATION_MIN,
 				  &val);
 	if (ret)
 		return ret;
@@ -849,7 +908,7 @@ static int tevs_set_awb_mode(struct tevs *tevs, s32 mode)
 		break;
 	}
 
-	return tevs_i2c_write_16b(tevs->i2c_client, TEVS_AWB_CTRL_MODE,
+	return tevs_i2c_write_16b(tevs, TEVS_AWB_CTRL_MODE,
 				    val);
 }
 
@@ -858,7 +917,7 @@ static int tevs_get_awb_mode(struct tevs *tevs, s32 *mode)
 	u16 val;
 	int ret;
 
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_AWB_CTRL_MODE,
+	ret = tevs_i2c_read_16b(tevs, TEVS_AWB_CTRL_MODE,
 				  &val);
 	if (ret)
 		return ret;
@@ -881,7 +940,7 @@ static int tevs_get_awb_mode(struct tevs *tevs, s32 *mode)
 static int tevs_set_gamma(struct tevs *tevs, s32 value)
 {
 	// Format is u3.12
-	return tevs_i2c_write_16b(tevs->i2c_client, TEVS_GAMMA,
+	return tevs_i2c_write_16b(tevs, TEVS_GAMMA,
 				    value & TEVS_GAMMA_MASK);
 }
 
@@ -889,7 +948,7 @@ static int tevs_get_gamma(struct tevs *tevs, s32 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_GAMMA, &val);
+	ret = tevs_i2c_read_16b(tevs, TEVS_GAMMA, &val);
 	if (ret)
 		return ret;
 
@@ -901,7 +960,7 @@ static int tevs_get_gamma_max(struct tevs *tevs, s64 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_GAMMA_MAX, &val);
+	ret = tevs_i2c_read_16b(tevs, TEVS_GAMMA_MAX, &val);
 	if (ret)
 		return ret;
 
@@ -913,7 +972,7 @@ static int tevs_get_gamma_min(struct tevs *tevs, s64 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_GAMMA_MIN, &val);
+	ret = tevs_i2c_read_16b(tevs, TEVS_GAMMA_MIN, &val);
 	if (ret)
 		return ret;
 
@@ -925,13 +984,13 @@ static int tevs_set_exposure(struct tevs *tevs, s32 value)
 {
 	int ret;
 
-	ret = tevs_i2c_write_16b(tevs->i2c_client,
+	ret = tevs_i2c_write_16b(tevs,
 				   TEVS_AE_MANUAL_EXP_TIME,
 				   (value >> 16) & 0xFFFF);
 	if (ret)
 		return ret;
 	usleep_range(9000, 10000);
-	ret = tevs_i2c_write_16b(tevs->i2c_client,
+	ret = tevs_i2c_write_16b(tevs,
 				   TEVS_AE_MANUAL_EXP_TIME + 2,
 				   value & 0xFFFF);
 	if (ret)
@@ -945,12 +1004,12 @@ static int tevs_get_exposure(struct tevs *tevs, s32 *value)
 	u16 val_msb, val_lsb;
 	int ret;
 
-	ret = tevs_i2c_read_16b(tevs->i2c_client,
+	ret = tevs_i2c_read_16b(tevs,
 				  TEVS_AE_MANUAL_EXP_TIME, &val_msb);
 	if (ret)
 		return ret;
 	usleep_range(9000, 10000);
-	ret = tevs_i2c_read_16b(tevs->i2c_client,
+	ret = tevs_i2c_read_16b(tevs,
 				  TEVS_AE_MANUAL_EXP_TIME + 2, &val_lsb);
 	if (ret)
 		return ret;
@@ -964,12 +1023,12 @@ static int tevs_get_exposure_max(struct tevs *tevs, s64 *value)
 	u16 val_msb, val_lsb;
 	int ret;
 
-	ret = tevs_i2c_read_16b(tevs->i2c_client,
+	ret = tevs_i2c_read_16b(tevs,
 				  TEVS_AE_MANUAL_EXP_TIME_MAX, &val_msb);
 	if (ret)
 		return ret;
 	usleep_range(9000, 10000);
-	ret = tevs_i2c_read_16b(tevs->i2c_client,
+	ret = tevs_i2c_read_16b(tevs,
 				  TEVS_AE_MANUAL_EXP_TIME_MAX + 2, &val_lsb);
 	if (ret)
 		return ret;
@@ -983,12 +1042,12 @@ static int tevs_get_exposure_min(struct tevs *tevs, s64 *value)
 	u16 val_msb, val_lsb;
 	int ret;
 
-	ret = tevs_i2c_read_16b(tevs->i2c_client,
+	ret = tevs_i2c_read_16b(tevs,
 				  TEVS_AE_MANUAL_EXP_TIME_MIN, &val_msb);
 	if (ret)
 		return ret;
 	usleep_range(9000, 10000);
-	ret = tevs_i2c_read_16b(tevs->i2c_client,
+	ret = tevs_i2c_read_16b(tevs,
 				  TEVS_AE_MANUAL_EXP_TIME_MIN + 2, &val_lsb);
 	if (ret)
 		return ret;
@@ -1000,7 +1059,7 @@ static int tevs_get_exposure_min(struct tevs *tevs, s64 *value)
 static int tevs_set_gain(struct tevs *tevs, s32 value)
 {
 	// Format is u8
-	return tevs_i2c_write_16b(tevs->i2c_client, TEVS_AE_MANUAL_GAIN,
+	return tevs_i2c_write_16b(tevs, TEVS_AE_MANUAL_GAIN,
 				    value & TEVS_AE_MANUAL_GAIN_MASK);
 }
 
@@ -1008,7 +1067,7 @@ static int tevs_get_gain(struct tevs *tevs, s32 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_AE_MANUAL_GAIN,
+	ret = tevs_i2c_read_16b(tevs, TEVS_AE_MANUAL_GAIN,
 				  &val);
 	if (ret)
 		return ret;
@@ -1021,7 +1080,7 @@ static int tevs_get_gain_max(struct tevs *tevs, s64 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client,
+	ret = tevs_i2c_read_16b(tevs,
 				  TEVS_AE_MANUAL_GAIN_MAX, &val);
 	if (ret)
 		return ret;
@@ -1034,7 +1093,7 @@ static int tevs_get_gain_min(struct tevs *tevs, s64 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client,
+	ret = tevs_i2c_read_16b(tevs,
 				  TEVS_AE_MANUAL_GAIN_MIN, &val);
 	if (ret)
 		return ret;
@@ -1048,7 +1107,7 @@ static int tevs_set_hflip(struct tevs *tevs, s32 flip)
 	u16 val;
 	int ret;
 
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_ORIENTATION,
+	ret = tevs_i2c_read_16b(tevs, TEVS_ORIENTATION,
 				  &val);
 	if (ret)
 		return ret;
@@ -1056,7 +1115,7 @@ static int tevs_set_hflip(struct tevs *tevs, s32 flip)
 	val &= ~TEVS_ORIENTATION_HFLIP;
 	val |= flip ? TEVS_ORIENTATION_HFLIP : 0;
 
-	return tevs_i2c_write_16b(tevs->i2c_client, TEVS_ORIENTATION,
+	return tevs_i2c_write_16b(tevs, TEVS_ORIENTATION,
 				    val);
 }
 
@@ -1065,7 +1124,7 @@ static int tevs_get_hflip(struct tevs *tevs, s32 *flip)
 	u16 val;
 	int ret;
 
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_ORIENTATION,
+	ret = tevs_i2c_read_16b(tevs, TEVS_ORIENTATION,
 				  &val);
 	if (ret)
 		return ret;
@@ -1079,7 +1138,7 @@ static int tevs_set_vflip(struct tevs *tevs, s32 flip)
 	u16 val;
 	int ret;
 
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_ORIENTATION,
+	ret = tevs_i2c_read_16b(tevs, TEVS_ORIENTATION,
 				  &val);
 	if (ret)
 		return ret;
@@ -1087,7 +1146,7 @@ static int tevs_set_vflip(struct tevs *tevs, s32 flip)
 	val &= ~TEVS_ORIENTATION_VFLIP;
 	val |= flip ? TEVS_ORIENTATION_VFLIP : 0;
 
-	return tevs_i2c_write_16b(tevs->i2c_client, TEVS_ORIENTATION,
+	return tevs_i2c_write_16b(tevs, TEVS_ORIENTATION,
 				    val);
 }
 
@@ -1096,7 +1155,7 @@ static int tevs_get_vflip(struct tevs *tevs, s32 *flip)
 	u16 val;
 	int ret;
 
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_ORIENTATION,
+	ret = tevs_i2c_read_16b(tevs, TEVS_ORIENTATION,
 				  &val);
 	if (ret)
 		return ret;
@@ -1114,7 +1173,7 @@ static int tevs_get_vflip(struct tevs *tevs, s32 *flip)
 
 // static int tevs_set_flicker_freq(struct tevs *tevs, s32 val)
 // {
-// 	return tevs_i2c_write_16b(tevs->i2c_client, TEVS_FLICK_CTRL,
+// 	return tevs_i2c_write_16b(tevs, TEVS_FLICK_CTRL,
 // 			    tevs_flicker_values[val]);
 // }
 
@@ -1123,7 +1182,7 @@ static int tevs_get_vflip(struct tevs *tevs, s32 *flip)
 // 	u16 val;
 // 	int ret;
 
-// 	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_FLICK_CTRL, &val);
+// 	ret = tevs_i2c_read_16b(tevs, TEVS_FLICK_CTRL, &val);
 // 	if (ret)
 // 		return ret;
 
@@ -1151,7 +1210,7 @@ static int tevs_get_vflip(struct tevs *tevs, s32 *flip)
 
 static int tevs_set_awb_temp(struct tevs *tevs, s32 value)
 {
-	return tevs_i2c_write_16b(tevs->i2c_client,
+	return tevs_i2c_write_16b(tevs,
 				    TEVS_AWB_MANUAL_TEMP,
 				    value & TEVS_AWB_MANUAL_TEMP_MASK);
 }
@@ -1160,7 +1219,7 @@ static int tevs_get_awb_temp(struct tevs *tevs, s32 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_AWB_MANUAL_TEMP,
+	ret = tevs_i2c_read_16b(tevs, TEVS_AWB_MANUAL_TEMP,
 				  &val);
 	if (ret)
 		return ret;
@@ -1173,7 +1232,7 @@ static int tevs_get_awb_temp_max(struct tevs *tevs, s64 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client,
+	ret = tevs_i2c_read_16b(tevs,
 				  TEVS_AWB_MANUAL_TEMP_MAX, &val);
 	if (ret)
 		return ret;
@@ -1186,7 +1245,7 @@ static int tevs_get_awb_temp_min(struct tevs *tevs, s64 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client,
+	ret = tevs_i2c_read_16b(tevs,
 				  TEVS_AWB_MANUAL_TEMP_MIN, &val);
 	if (ret)
 		return ret;
@@ -1198,7 +1257,7 @@ static int tevs_get_awb_temp_min(struct tevs *tevs, s64 *value)
 static int tevs_set_sharpen(struct tevs *tevs, s32 value)
 {
 	// Format is u3.12
-	return tevs_i2c_write_16b(tevs->i2c_client, TEVS_SHARPEN,
+	return tevs_i2c_write_16b(tevs, TEVS_SHARPEN,
 				    value & TEVS_SHARPEN_MASK);
 }
 
@@ -1206,7 +1265,7 @@ static int tevs_get_sharpen(struct tevs *tevs, s32 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_SHARPEN, &val);
+	ret = tevs_i2c_read_16b(tevs, TEVS_SHARPEN, &val);
 	if (ret)
 		return ret;
 
@@ -1218,7 +1277,7 @@ static int tevs_get_sharpen_max(struct tevs *tevs, s64 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_SHARPEN_MAX,
+	ret = tevs_i2c_read_16b(tevs, TEVS_SHARPEN_MAX,
 				  &val);
 	if (ret)
 		return ret;
@@ -1231,7 +1290,7 @@ static int tevs_get_sharpen_min(struct tevs *tevs, s64 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_SHARPEN_MIN,
+	ret = tevs_i2c_read_16b(tevs, TEVS_SHARPEN_MIN,
 				  &val);
 	if (ret)
 		return ret;
@@ -1243,7 +1302,7 @@ static int tevs_get_sharpen_min(struct tevs *tevs, s64 *value)
 static int tevs_set_backlight_compensation(struct tevs *tevs, s32 value)
 {
 	// Format is u3.12
-	return tevs_i2c_write_16b(tevs->i2c_client,
+	return tevs_i2c_write_16b(tevs,
 				    TEVS_BACKLIGHT_COMPENSATION,
 				    value & TEVS_BACKLIGHT_COMPENSATION_MASK);
 }
@@ -1252,7 +1311,7 @@ static int tevs_get_backlight_compensation(struct tevs *tevs, s32 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client,
+	ret = tevs_i2c_read_16b(tevs,
 				  TEVS_BACKLIGHT_COMPENSATION, &val);
 	if (ret)
 		return ret;
@@ -1266,7 +1325,7 @@ static int tevs_get_backlight_compensation_max(struct tevs *tevs,
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client,
+	ret = tevs_i2c_read_16b(tevs,
 				  TEVS_BACKLIGHT_COMPENSATION_MAX, &val);
 	if (ret)
 		return ret;
@@ -1280,7 +1339,7 @@ static int tevs_get_backlight_compensation_min(struct tevs *tevs,
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client,
+	ret = tevs_i2c_read_16b(tevs,
 				  TEVS_BACKLIGHT_COMPENSATION_MIN, &val);
 	if (ret)
 		return ret;
@@ -1292,7 +1351,7 @@ static int tevs_get_backlight_compensation_min(struct tevs *tevs,
 static int tevs_set_zoom_target(struct tevs *tevs, s32 value)
 {
 	// Format u7.8
-	return tevs_i2c_write_16b(tevs->i2c_client, TEVS_DZ_TGT_FCT,
+	return tevs_i2c_write_16b(tevs, TEVS_DZ_TGT_FCT,
 				    value & TEVS_DZ_TGT_FCT_MASK);
 }
 
@@ -1300,7 +1359,7 @@ static int tevs_get_zoom_target(struct tevs *tevs, s32 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_DZ_TGT_FCT,
+	ret = tevs_i2c_read_16b(tevs, TEVS_DZ_TGT_FCT,
 				  &val);
 	if (ret)
 		return ret;
@@ -1313,7 +1372,7 @@ static int tevs_get_zoom_target_max(struct tevs *tevs, s64 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_DZ_TGT_FCT_MAX,
+	ret = tevs_i2c_read_16b(tevs, TEVS_DZ_TGT_FCT_MAX,
 				  &val);
 	if (ret)
 		return ret;
@@ -1326,7 +1385,7 @@ static int tevs_get_zoom_target_min(struct tevs *tevs, s64 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_DZ_TGT_FCT_MIN,
+	ret = tevs_i2c_read_16b(tevs, TEVS_DZ_TGT_FCT_MIN,
 				  &val);
 	if (ret)
 		return ret;
@@ -1369,7 +1428,7 @@ static int tevs_set_special_effect(struct tevs *tevs, s32 mode)
 		break;
 	}
 
-	return tevs_i2c_write_16b(tevs->i2c_client, TEVS_SFX_MODE, val);
+	return tevs_i2c_write_16b(tevs, TEVS_SFX_MODE, val);
 }
 
 static int tevs_get_special_effect(struct tevs *tevs, s32 *mode)
@@ -1377,7 +1436,7 @@ static int tevs_get_special_effect(struct tevs *tevs, s32 *mode)
 	u16 val;
 	int ret;
 
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_SFX_MODE, &val);
+	ret = tevs_i2c_read_16b(tevs, TEVS_SFX_MODE, &val);
 	if (ret)
 		return ret;
 
@@ -1427,7 +1486,7 @@ static int tevs_set_ae_mode(struct tevs *tevs, s32 mode)
 		break;
 	}
 
-	return tevs_i2c_write_16b(tevs->i2c_client, TEVS_AE_CTRL_MODE,
+	return tevs_i2c_write_16b(tevs, TEVS_AE_CTRL_MODE,
 				    val);
 }
 
@@ -1436,7 +1495,7 @@ static int tevs_get_ae_mode(struct tevs *tevs, s32 *mode)
 	u16 val;
 	int ret;
 
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_AE_CTRL_MODE,
+	ret = tevs_i2c_read_16b(tevs, TEVS_AE_CTRL_MODE,
 				  &val);
 	if (ret)
 		return ret;
@@ -1458,7 +1517,7 @@ static int tevs_get_ae_mode(struct tevs *tevs, s32 *mode)
 static int tevs_set_pan_target(struct tevs *tevs, s32 value)
 {
 	// Format u7.8
-	return tevs_i2c_write_16b(tevs->i2c_client, TEVS_DZ_CT_X,
+	return tevs_i2c_write_16b(tevs, TEVS_DZ_CT_X,
 				    value & TEVS_DZ_CT_X_MASK);
 }
 
@@ -1466,7 +1525,7 @@ static int tevs_get_pan_target(struct tevs *tevs, s32 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_DZ_CT_X, &val);
+	ret = tevs_i2c_read_16b(tevs, TEVS_DZ_CT_X, &val);
 	if (ret)
 		return ret;
 
@@ -1477,7 +1536,7 @@ static int tevs_get_pan_target(struct tevs *tevs, s32 *value)
 static int tevs_set_tilt_target(struct tevs *tevs, s32 value)
 {
 	// Format u7.8
-	return tevs_i2c_write_16b(tevs->i2c_client, TEVS_DZ_CT_Y,
+	return tevs_i2c_write_16b(tevs, TEVS_DZ_CT_Y,
 				    value & TEVS_DZ_CT_Y_MASK);
 }
 
@@ -1485,7 +1544,7 @@ static int tevs_get_tilt_target(struct tevs *tevs, s32 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_DZ_CT_Y, &val);
+	ret = tevs_i2c_read_16b(tevs, TEVS_DZ_CT_Y, &val);
 	if (ret)
 		return ret;
 
@@ -1497,7 +1556,7 @@ static int tevs_get_pan_tilt_target_max(struct tevs *tevs, s64 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_DZ_CT_MAX, &val);
+	ret = tevs_i2c_read_16b(tevs, TEVS_DZ_CT_MAX, &val);
 	if (ret)
 		return ret;
 
@@ -1509,7 +1568,7 @@ static int tevs_get_pan_tilt_target_min(struct tevs *tevs, s64 *value)
 {
 	u16 val;
 	int ret;
-	ret = tevs_i2c_read_16b(tevs->i2c_client, TEVS_DZ_CT_MIN, &val);
+	ret = tevs_i2c_read_16b(tevs, TEVS_DZ_CT_MIN, &val);
 	if (ret)
 		return ret;
 
@@ -1979,7 +2038,7 @@ static int tevs_try_on(struct tevs *tevs)
 	tevs_power_on(tevs);
 
 	while(count++ < 10) {
-		ret = tevs_i2c_read_16b(tevs->i2c_client, 0, &val);
+		ret = tevs_i2c_read_16b(tevs, 0, &val);
 		if (ret != 0) {
 			if(count < 10)
 				continue;
@@ -2015,7 +2074,13 @@ static int tevs_probe(struct i2c_client *client,
 		dev_err(dev, "allocate memory failed\n");
 		return -EINVAL;
 	}
+
 	tevs->i2c_client = client;
+	tevs->regmap = devm_regmap_init_i2c(client, &tevs_regmap_config);
+	if (IS_ERR(tevs->regmap)) {
+		dev_err(dev, "Unable to initialize I2C\n");
+		return -ENODEV;
+	}
 
 	tevs->reset_gpio =
 		devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_LOW);
@@ -2069,7 +2134,7 @@ static int tevs_probe(struct i2c_client *client,
 			ret = -EINVAL;
 			goto error_probe;
 		}
-		tevs_i2c_read(tevs->i2c_client,
+		tevs_i2c_read(tevs,
 				HOST_COMMAND_MCU_BOOT_STATE, &isp_state, 1);
 		dev_dbg(dev, "isp bootup state: %d\n", isp_state);
 		if (isp_state == 0x08)
@@ -2153,17 +2218,18 @@ static int tevs_probe(struct i2c_client *client,
 	}
 
 	if(!tevs->hw_reset_mode) {
-		tevs_standby(tevs->i2c_client, 0);
-		usleep_range(9000, 10000);
-		tevs_i2c_write_16b(tevs->i2c_client,
+		tevs_i2c_write_16b(tevs,
 					HOST_COMMAND_ISP_CTRL_PREVIEW_FORMAT,
-					0x50); //VIDEO_OUT_FMT
-		usleep_range(9000, 10000);
-		// continuous clock, data-lanes
-		tevs_i2c_write_16b(tevs->i2c_client,
+					0x50);
+		tevs_i2c_write_16b(tevs,
 					HOST_COMMAND_ISP_CTRL_PREVIEW_HINF_CTRL,
 					0x10 | (continuous_clock << 5) | (data_lanes));
 		usleep_range(9000, 10000);
+		ret = tevs_standby(tevs, 1);
+		if (ret != 0) {
+			dev_err(&tevs->i2c_client->dev, "set standby mode failed\n");
+			return ret;
+		}
 	}
 	else 
 		ret = tevs_power_off(tevs);
