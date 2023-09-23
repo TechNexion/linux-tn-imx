@@ -416,38 +416,38 @@ static int tevs_standby(struct tevs *tevs, int enable)
 {
 	u16 v = 0;
 	int timeout = 0;
-	dev_info(tevs->dev, "%s():enable=%d\n", __func__, enable);
+	dev_dbg(tevs->dev, "%s():enable=%d\n", __func__, enable);
 
 	if (enable == 1) {
 		tevs_i2c_write_16b(tevs, HOST_COMMAND_ISP_CTRL_SYSTEM_START,
 				     0x0000);
 		while (timeout < 100) {
+			tevs_i2c_read_16b(
+				tevs, HOST_COMMAND_ISP_CTRL_SYSTEM_START, &v);
+			if ((v & 0x100) == 0)
+				break;
 			if (++timeout >= 100) {
 				dev_err(tevs->dev, "timeout: line[%d]v=%x\n",
 					__LINE__, v);
 				return -EINVAL;
 			}
-			usleep_range(5000, 5000);
-			tevs_i2c_read_16b(
-				tevs, HOST_COMMAND_ISP_CTRL_SYSTEM_START, &v);
-			if ((v & 0x100) == 0)
-				break;
+			usleep_range(9000, 10000);
 		}
 		dev_dbg(tevs->dev, "sensor standby\n");
 	} else {
 		tevs_i2c_write_16b(tevs, HOST_COMMAND_ISP_CTRL_SYSTEM_START,
 				     0x0001);
 		while (timeout < 100) {
+			tevs_i2c_read_16b(
+				tevs, HOST_COMMAND_ISP_CTRL_SYSTEM_START, &v);
+			if ((v & 0x100) == 0x100)
+				break;
 			if (++timeout >= 100) {
 				dev_err(tevs->dev, "timeout: line[%d]v=%x\n",
 					__LINE__, v);
 				return -EINVAL;
 			}
-			usleep_range(5000, 5000);
-			tevs_i2c_read_16b(
-				tevs, HOST_COMMAND_ISP_CTRL_SYSTEM_START, &v);
-			if ((v & 0x100) == 0x100)
-				break;
+			usleep_range(9000, 10000);
 		}
 		dev_dbg(tevs->dev, "sensor wakeup\n");
 	}
@@ -471,7 +471,7 @@ static int tevs_power_off(struct tevs *tevs)
 
 	if(tevs->hw_reset_mode) {
 		gpiod_set_value_cansleep(tevs->reset_gpio, 0);
-		msleep(10);
+		// msleep(10);
 	}
 
 	return 0;
@@ -999,17 +999,16 @@ static int tevs_get_gamma_min(struct tevs *tevs, s64 *value)
 
 static int tevs_set_exposure(struct tevs *tevs, s32 value)
 {
+	u8 val[4];
+	__be32 temp;
 	int ret;
 
-	ret = tevs_i2c_write_16b(tevs,
+	temp = cpu_to_be32(value);
+	memcpy(val, &temp, 4);
+
+	ret = tevs_i2c_write(tevs,
 				   TEVS_AE_MANUAL_EXP_TIME,
-				   (value >> 16) & 0xFFFF);
-	if (ret)
-		return ret;
-	usleep_range(9000, 10000);
-	ret = tevs_i2c_write_16b(tevs,
-				   TEVS_AE_MANUAL_EXP_TIME + 2,
-				   value & 0xFFFF);
+				   val, 4);
 	if (ret)
 		return ret;
 
@@ -1018,64 +1017,47 @@ static int tevs_set_exposure(struct tevs *tevs, s32 value)
 
 static int tevs_get_exposure(struct tevs *tevs, s32 *value)
 {
-	u16 val_msb, val_lsb;
+	u8 val[4] = { 0 };
 	int ret;
 
-	ret = tevs_i2c_read_16b(tevs,
-				  TEVS_AE_MANUAL_EXP_TIME, &val_msb);
-	if (ret)
-		return ret;
-	usleep_range(9000, 10000);
-	ret = tevs_i2c_read_16b(tevs,
-				  TEVS_AE_MANUAL_EXP_TIME + 2, &val_lsb);
+	ret = tevs_i2c_read(tevs,
+				  TEVS_AE_MANUAL_EXP_TIME, val, 4);
 	if (ret)
 		return ret;
 
-	*value = ((u32)(val_msb) << 16) + val_lsb;
+	*value = be32_to_cpup((__be32*)val);
 	return 0;
 }
 
 static int tevs_get_exposure_max(struct tevs *tevs, s64 *value)
 {
-	u16 val_msb, val_lsb;
+	u8 val[4] = { 0 };
 	int ret;
 
-	ret = tevs_i2c_read_16b(tevs,
-				  TEVS_AE_MANUAL_EXP_TIME_MAX, &val_msb);
-	if (ret)
-		return ret;
-	usleep_range(9000, 10000);
-	ret = tevs_i2c_read_16b(tevs,
-				  TEVS_AE_MANUAL_EXP_TIME_MAX + 2, &val_lsb);
+	ret = tevs_i2c_read(tevs,
+				  TEVS_AE_MANUAL_EXP_TIME_MAX, val, 4);
 	if (ret)
 		return ret;
 
-	*value = ((u32)(val_msb) << 16) + val_lsb;
+	*value = be32_to_cpup((__be32*)val);
 	return 0;
 }
 
 static int tevs_get_exposure_min(struct tevs *tevs, s64 *value)
 {
-	u16 val_msb, val_lsb;
+	u8 val[4] = {0};
 	int ret;
 
-	ret = tevs_i2c_read_16b(tevs,
-				  TEVS_AE_MANUAL_EXP_TIME_MIN, &val_msb);
+	ret = tevs_i2c_read(tevs,
+				  TEVS_AE_MANUAL_EXP_TIME_MIN, val, 4);
 	if (ret)
 		return ret;
-	usleep_range(9000, 10000);
-	ret = tevs_i2c_read_16b(tevs,
-				  TEVS_AE_MANUAL_EXP_TIME_MIN + 2, &val_lsb);
-	if (ret)
-		return ret;
-
-	*value = ((u32)(val_msb) << 16) + val_lsb;
+	*value = be32_to_cpup((__be32*)val);
 	return 0;
 }
 
 static int tevs_set_gain(struct tevs *tevs, s32 value)
 {
-	// Format is u8
 	return tevs_i2c_write_16b(tevs, TEVS_AE_MANUAL_GAIN,
 				    value & TEVS_AE_MANUAL_GAIN_MASK);
 }
@@ -2045,24 +2027,25 @@ static const struct media_entity_operations tevs_media_entity_ops = {
 
 static int tevs_try_on(struct tevs *tevs)
 {
-	u16 val;
-	u8 count = 0;
+	u8 isp_state;
+	u8 timeout = 0;
 	int ret = 0;
 
 	tevs_power_off(tevs);
 	tevs_power_on(tevs);
 
-	while(count++ < 10) {
-		ret = tevs_i2c_read_16b(tevs, HOST_COMMAND_TEVS_INFO_VERSION_MSB, &val);
-		if (ret != 0) {
-			if(count < 10)
-				continue;
-			dev_err(tevs->dev, "%s() try on failed\n",
-				__func__);
-			tevs_power_off(tevs);
-			return -EINVAL;
-		} else
+	// dev_dbg(tevs->dev, "check for isp bootup ... \n");
+	while (timeout < 20) {
+		tevs_i2c_read(tevs,
+				HOST_COMMAND_TEVS_BOOT_STATE, &isp_state, 1);
+		if (isp_state == 0x08)
 			break;
+		dev_info(tevs->dev, "isp bootup state: %d\n", isp_state);
+		if (++timeout >= 20) {
+			dev_err(tevs->dev, "isp bootup timeout: state: 0x%02X\n", isp_state);
+			ret = -EINVAL;
+		}
+		msleep(20);
 	}
 
 	return 0;
@@ -2078,8 +2061,6 @@ static int tevs_probe(struct i2c_client *client,
 	int continuous_clock;
 	int i = ARRAY_SIZE(tevs_sensor_table);
 	int ret;
-	int timeout = 0;
-	uint8_t isp_state = 0;
 
 	dev_info(dev, "%s() device node: %s\n", __func__,
 		 client->dev.of_node->full_name);
@@ -2099,7 +2080,7 @@ static int tevs_probe(struct i2c_client *client,
 	}
 
 	tevs->reset_gpio =
-		devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_LOW);
+		devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_HIGH);
 	if (IS_ERR(tevs->reset_gpio)) {
 		ret = PTR_ERR(tevs->reset_gpio);
 		if (ret != -EPROBE_DEFER)
@@ -2147,22 +2128,6 @@ static int tevs_probe(struct i2c_client *client,
 		return -EINVAL;
 	}
 
-	dev_dbg(dev, "check for isp bootup ... \n");
-	msleep(100);
-	while (timeout < 20) {
-		if (++timeout >= 20) {
-			dev_err(dev, "isp bootup timeout: state: 0x%02X\n", isp_state);
-			ret = -EINVAL;
-			goto error_probe;
-		}
-		tevs_i2c_read(tevs,
-				HOST_COMMAND_TEVS_BOOT_STATE, &isp_state, 1);
-		dev_dbg(dev, "isp bootup state: %d\n", isp_state);
-		if (isp_state == 0x08)
-			break;
-		msleep(50);
-	}
-
 	tevs->header_info = devm_kzalloc(
 			dev, sizeof(struct header_info), GFP_KERNEL);
 	if (tevs->header_info == NULL) {
@@ -2176,8 +2141,8 @@ static int tevs_probe(struct i2c_client *client,
 		return -EINVAL;
 	} else {
 		for (i = 0; i < ARRAY_SIZE(tevs_sensor_table); i++) {
-			dev_info(dev, "tevs product name:%s\n", 
-						tevs->header_info->product_name);
+			// dev_info(dev, "tevs product name:%s\n", 
+			// 			tevs->header_info->product_name);
 			if (strcmp((const char *)tevs->header_info
 					   ->product_name,
 				   tevs_sensor_table[i].sensor_name) == 0)
@@ -2190,7 +2155,6 @@ static int tevs_probe(struct i2c_client *client,
 			(const char *)
 				tevs->header_info->product_name);
 		return -EINVAL;
-		i = ARRAY_SIZE(tevs_sensor_table) - 1;
 	}
 
 	tevs->selected_sensor = i;
@@ -2249,7 +2213,6 @@ static int tevs_probe(struct i2c_client *client,
 		tevs_i2c_write_16b(tevs,
 					HOST_COMMAND_ISP_CTRL_PREVIEW_HINF_CTRL,
 					0x10 | (continuous_clock << 5) | (data_lanes));
-		usleep_range(9000, 10000);
 		ret = tevs_standby(tevs, 1);
 		if (ret != 0) {
 			dev_err(tevs->dev, "set standby mode failed\n");
