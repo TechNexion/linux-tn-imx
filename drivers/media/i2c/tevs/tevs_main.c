@@ -19,159 +19,166 @@
 
 #define DRIVER_NAME "tevs"
 
-/* Define host command register of MCU information page */
-#define HOST_COMMAND_MCU_INFO_VERSION_MSB                       (0x0000)
-#define HOST_COMMAND_MCU_INFO_VERSION_LSB                       (0x0002)
-#define HOST_COMMAND_MCU_BOOT_STATE                             (0x0004)
-
-/* Define host command register of ISP bootdata page */
-#define HOST_COMMAND_ISP_BOOTDATA_1                             (0x1000)
-#define HOST_COMMAND_ISP_BOOTDATA_2                             (0x1002)
-#define HOST_COMMAND_ISP_BOOTDATA_3                             (0x1004)
-#define HOST_COMMAND_ISP_BOOTDATA_4                             (0x1006)
-#define HOST_COMMAND_ISP_BOOTDATA_5                             (0x1008)
-#define HOST_COMMAND_ISP_BOOTDATA_6                             (0x100A)
-#define HOST_COMMAND_ISP_BOOTDATA_7                             (0x100C)
-#define HOST_COMMAND_ISP_BOOTDATA_8                             (0x100E)
-#define HOST_COMMAND_ISP_BOOTDATA_9                             (0x1010)
-#define HOST_COMMAND_ISP_BOOTDATA_10                            (0x1012)
-#define HOST_COMMAND_ISP_BOOTDATA_11                            (0x1014)
-#define HOST_COMMAND_ISP_BOOTDATA_12                            (0x1016)
-#define HOST_COMMAND_ISP_BOOTDATA_13                            (0x1018)
-#define HOST_COMMAND_ISP_BOOTDATA_14                            (0x101A)
-#define HOST_COMMAND_ISP_BOOTDATA_15                            (0x101C)
-#define HOST_COMMAND_ISP_BOOTDATA_16                            (0x101E)
-#define HOST_COMMAND_ISP_BOOTDATA_17                            (0x1020)
-#define HOST_COMMAND_ISP_BOOTDATA_18                            (0x1022)
-#define HOST_COMMAND_ISP_BOOTDATA_19                            (0x1024)
-#define HOST_COMMAND_ISP_BOOTDATA_20                            (0x1026)
-#define HOST_COMMAND_ISP_BOOTDATA_21                            (0x1028)
-#define HOST_COMMAND_ISP_BOOTDATA_22                            (0x102A)
-#define HOST_COMMAND_ISP_BOOTDATA_23                            (0x102C)
-#define HOST_COMMAND_ISP_BOOTDATA_24                            (0x102E)
-#define HOST_COMMAND_ISP_BOOTDATA_25                            (0x1030)
-#define HOST_COMMAND_ISP_BOOTDATA_26                            (0x1032)
-#define HOST_COMMAND_ISP_BOOTDATA_27                            (0x1034)
-#define HOST_COMMAND_ISP_BOOTDATA_28                            (0x1036)
-#define HOST_COMMAND_ISP_BOOTDATA_29                            (0x1038)
-#define HOST_COMMAND_ISP_BOOTDATA_30                            (0x103A)
-#define HOST_COMMAND_ISP_BOOTDATA_31                            (0x103C)
-#define HOST_COMMAND_ISP_BOOTDATA_32                            (0x103E)
-#define HOST_COMMAND_ISP_BOOTDATA_33                            (0x1040)
-#define HOST_COMMAND_ISP_BOOTDATA_34                            (0x1042)
-#define HOST_COMMAND_ISP_BOOTDATA_35                            (0x1044)
-#define HOST_COMMAND_ISP_BOOTDATA_36                            (0x1046)
-#define HOST_COMMAND_ISP_BOOTDATA_37                            (0x1048)
-#define HOST_COMMAND_ISP_BOOTDATA_38                            (0x104A)
-#define HOST_COMMAND_ISP_BOOTDATA_39                            (0x104C)
-#define HOST_COMMAND_ISP_BOOTDATA_40                            (0x104E)
-#define HOST_COMMAND_ISP_BOOTDATA_41                            (0x1050)
-#define HOST_COMMAND_ISP_BOOTDATA_42                            (0x1052)
-#define HOST_COMMAND_ISP_BOOTDATA_43                            (0x1054)
-#define HOST_COMMAND_ISP_BOOTDATA_44                            (0x1056)
-#define HOST_COMMAND_ISP_BOOTDATA_45                            (0x1058)
-#define HOST_COMMAND_ISP_BOOTDATA_46                            (0x105A)
-#define HOST_COMMAND_ISP_BOOTDATA_47                            (0x105C)
-#define HOST_COMMAND_ISP_BOOTDATA_48                            (0x105E)
-#define HOST_COMMAND_ISP_BOOTDATA_49                            (0x1060)
-#define HOST_COMMAND_ISP_BOOTDATA_50                            (0x1062)
-#define HOST_COMMAND_ISP_BOOTDATA_51                            (0x1064)
-#define HOST_COMMAND_ISP_BOOTDATA_52                            (0x1066)
-#define HOST_COMMAND_ISP_BOOTDATA_53                            (0x1068)
-#define HOST_COMMAND_ISP_BOOTDATA_54                            (0x106A)
-#define HOST_COMMAND_ISP_BOOTDATA_55                            (0x106C)
-#define HOST_COMMAND_ISP_BOOTDATA_56                            (0x106E)
-#define HOST_COMMAND_ISP_BOOTDATA_57                            (0x1070)
-#define HOST_COMMAND_ISP_BOOTDATA_58                            (0x1072)
-#define HOST_COMMAND_ISP_BOOTDATA_59                            (0x1074)
-#define HOST_COMMAND_ISP_BOOTDATA_60                            (0x1076)
-#define HOST_COMMAND_ISP_BOOTDATA_61                            (0x1078)
-#define HOST_COMMAND_ISP_BOOTDATA_62                            (0x107A)
-#define HOST_COMMAND_ISP_BOOTDATA_63                            (0x107C)
+/* Define host command register of TEVS information page */
+#define HOST_COMMAND_TEVS_INFO_VERSION_MSB                      (0x3000)
+#define HOST_COMMAND_TEVS_INFO_VERSION_LSB                      (0x3002)
+#define HOST_COMMAND_TEVS_BOOT_STATE                            (0x3004)
 
 /* Define host command register of ISP control page */
-#define HOST_COMMAND_ISP_CTRL_PREVIEW_WIDTH                     (0x2000)
-#define HOST_COMMAND_ISP_CTRL_PREVIEW_HEIGHT                    (0x2002)
-#define HOST_COMMAND_ISP_CTRL_PREVIEW_FORMAT                    (0x2004)
-#define HOST_COMMAND_ISP_CTRL_PREVIEW_SENSOR_MODE               (0x2006)
-#define HOST_COMMAND_ISP_CTRL_PREVIEW_THROUGHPUT                (0x2008)
-#define HOST_COMMAND_ISP_CTRL_PREVIEW_MAX_FPS                   (0x200A)
-#define HOST_COMMAND_ISP_CTRL_PREVIEW_EXP_TIME_UPPER_MSB        (0x200C)
-#define HOST_COMMAND_ISP_CTRL_PREVIEW_EXP_TIME_UPPER_LSB        (0x200E)
-#define HOST_COMMAND_ISP_CTRL_PREVIEW_EXP_TIME_MAX_MSB          (0x2010)
-#define HOST_COMMAND_ISP_CTRL_PREVIEW_EXP_TIME_MAX_LSB          (0x2012)
-#define HOST_COMMAND_ISP_CTRL_PREVIEW_HINF_CTRL                 (0x2014)
-#define HOST_COMMAND_ISP_CTRL_AE_MODE                           (0x2016)
-#define HOST_COMMAND_ISP_CTRL_EXP_TIME_MSB                      (0x2018)
-#define HOST_COMMAND_ISP_CTRL_EXP_TIME_LSB                      (0x201A)
-#define HOST_COMMAND_ISP_CTRL_EXP_TIME_MAX_MSB                  (0x201C)
-#define HOST_COMMAND_ISP_CTRL_EXP_TIME_MAX_LSB                  (0x201E)
-#define HOST_COMMAND_ISP_CTRL_EXP_TIME_MIN_MSB                  (0x2020)
-#define HOST_COMMAND_ISP_CTRL_EXP_TIME_MIN_LSB                  (0x2022)
-#define HOST_COMMAND_ISP_CTRL_EXP_GAIN                          (0x2024)
-#define HOST_COMMAND_ISP_CTRL_EXP_GAIN_MAX                      (0x2026)
-#define HOST_COMMAND_ISP_CTRL_EXP_GAIN_MIN                      (0x2028)
-#define HOST_COMMAND_ISP_CTRL_CURRENT_EXP_TIME_MSB              (0x202A)
-#define HOST_COMMAND_ISP_CTRL_CURRENT_EXP_TIME_LSB              (0x202C)
-#define HOST_COMMAND_ISP_CTRL_CURRENT_EXP_GAIN                  (0x202E)
-#define HOST_COMMAND_ISP_CTRL_BACKLIGHT_COMPENSATION            (0x2030)
-#define HOST_COMMAND_ISP_CTRL_BACKLIGHT_COMPENSATION_MAX        (0x2032)
-#define HOST_COMMAND_ISP_CTRL_BACKLIGHT_COMPENSATION_MIN        (0x2034)
-#define HOST_COMMAND_ISP_CTRL_AWB_MODE                          (0x2036)
-#define HOST_COMMAND_ISP_CTRL_AWB_TEMP                          (0x2038)
-#define HOST_COMMAND_ISP_CTRL_AWB_TEMP_MAX                      (0x203A)
-#define HOST_COMMAND_ISP_CTRL_AWB_TEMP_MIN                      (0x203C)
-#define HOST_COMMAND_ISP_CTRL_BRIGHTNESS                        (0x203E)
-#define HOST_COMMAND_ISP_CTRL_BRIGHTNESS_MAX                    (0x2040)
-#define HOST_COMMAND_ISP_CTRL_BRIGHTNESS_MIN                    (0x2042)
-#define HOST_COMMAND_ISP_CTRL_CONTRAST                          (0x2044)
-#define HOST_COMMAND_ISP_CTRL_CONTRAST_MAX                      (0x2046)
-#define HOST_COMMAND_ISP_CTRL_CONTRAST_MIN                      (0x2048)
-#define HOST_COMMAND_ISP_CTRL_SATURATION                        (0x204A)
-#define HOST_COMMAND_ISP_CTRL_SATURATION_MAX                    (0x204C)
-#define HOST_COMMAND_ISP_CTRL_SATURATION_MIN                    (0x204E)
-#define HOST_COMMAND_ISP_CTRL_GAMMA                             (0x2050)
-#define HOST_COMMAND_ISP_CTRL_GAMMA_MAX                         (0x2052)
-#define HOST_COMMAND_ISP_CTRL_GAMMA_MIN                         (0x2054)
-#define HOST_COMMAND_ISP_CTRL_DENOISE                           (0x2056)
-#define HOST_COMMAND_ISP_CTRL_DENOISE_MAX                       (0x2058)
-#define HOST_COMMAND_ISP_CTRL_DENOISE_MIN                       (0x205A)
-#define HOST_COMMAND_ISP_CTRL_SHARPEN                         	(0x205C)
-#define HOST_COMMAND_ISP_CTRL_SHARPEN_MAX                     	(0x205E)
-#define HOST_COMMAND_ISP_CTRL_SHARPEN_MIN                     	(0x2060)
-#define HOST_COMMAND_ISP_CTRL_FLIP                              (0x2062)
-#define HOST_COMMAND_ISP_CTRL_EFFECT                            (0x2064)
-#define HOST_COMMAND_ISP_CTRL_ZOOM_TYPE                         (0x2066)
-#define HOST_COMMAND_ISP_CTRL_ZOOM_TIMES                        (0x2068)
-#define HOST_COMMAND_ISP_CTRL_ZOOM_TIMES_MAX                    (0x206A)
-#define HOST_COMMAND_ISP_CTRL_ZOOM_TIMES_MIN                    (0x206C)
-#define HOST_COMMAND_ISP_CTRL_CT_X                              (0x206E)
-#define HOST_COMMAND_ISP_CTRL_CT_Y                              (0x2070)
-#define HOST_COMMAND_ISP_CTRL_CT_MAX                            (0x2072)
-#define HOST_COMMAND_ISP_CTRL_CT_MIN                            (0x2074)
-#define HOST_COMMAND_ISP_CTRL_SYSTEM_START                      (0x2076)
+#define HOST_COMMAND_ISP_CTRL_PREVIEW_WIDTH                     (0x3100)
+#define HOST_COMMAND_ISP_CTRL_PREVIEW_HEIGHT                    (0x3102)
+#define HOST_COMMAND_ISP_CTRL_PREVIEW_FORMAT                    (0x3104)
+#define HOST_COMMAND_ISP_CTRL_PREVIEW_SENSOR_MODE               (0x3106)
+#define HOST_COMMAND_ISP_CTRL_PREVIEW_THROUGHPUT                (0x3108)
+#define HOST_COMMAND_ISP_CTRL_PREVIEW_MAX_FPS                   (0x310A)
+#define HOST_COMMAND_ISP_CTRL_PREVIEW_EXP_TIME_UPPER_MSB        (0x310C)
+#define HOST_COMMAND_ISP_CTRL_PREVIEW_EXP_TIME_UPPER_LSB        (0x310E)
+#define HOST_COMMAND_ISP_CTRL_PREVIEW_EXP_TIME_MAX_MSB          (0x3110)
+#define HOST_COMMAND_ISP_CTRL_PREVIEW_EXP_TIME_MAX_LSB          (0x3112)
+#define HOST_COMMAND_ISP_CTRL_PREVIEW_HINF_CTRL                 (0x3114)
+#define HOST_COMMAND_ISP_CTRL_AE_MODE                           (0x3116)
+#define HOST_COMMAND_ISP_CTRL_EXP_TIME_MSB                      (0x3118)
+#define HOST_COMMAND_ISP_CTRL_EXP_TIME_LSB                      (0x311A)
+#define HOST_COMMAND_ISP_CTRL_EXP_TIME_MAX_MSB                  (0x311C)
+#define HOST_COMMAND_ISP_CTRL_EXP_TIME_MAX_LSB                  (0x311E)
+#define HOST_COMMAND_ISP_CTRL_EXP_TIME_MIN_MSB                  (0x3120)
+#define HOST_COMMAND_ISP_CTRL_EXP_TIME_MIN_LSB                  (0x3122)
+#define HOST_COMMAND_ISP_CTRL_EXP_GAIN                          (0x3124)
+#define HOST_COMMAND_ISP_CTRL_EXP_GAIN_MAX                      (0x3126)
+#define HOST_COMMAND_ISP_CTRL_EXP_GAIN_MIN                      (0x3128)
+#define HOST_COMMAND_ISP_CTRL_CURRENT_EXP_TIME_MSB              (0x312A)
+#define HOST_COMMAND_ISP_CTRL_CURRENT_EXP_TIME_LSB              (0x312C)
+#define HOST_COMMAND_ISP_CTRL_CURRENT_EXP_GAIN                  (0x312E)
+#define HOST_COMMAND_ISP_CTRL_BACKLIGHT_COMPENSATION            (0x3130)
+#define HOST_COMMAND_ISP_CTRL_BACKLIGHT_COMPENSATION_MAX        (0x3132)
+#define HOST_COMMAND_ISP_CTRL_BACKLIGHT_COMPENSATION_MIN        (0x3134)
+#define HOST_COMMAND_ISP_CTRL_AWB_MODE                          (0x3136)
+#define HOST_COMMAND_ISP_CTRL_AWB_TEMP                          (0x3138)
+#define HOST_COMMAND_ISP_CTRL_AWB_TEMP_MAX                      (0x313A)
+#define HOST_COMMAND_ISP_CTRL_AWB_TEMP_MIN                      (0x313C)
+#define HOST_COMMAND_ISP_CTRL_BRIGHTNESS                        (0x313E)
+#define HOST_COMMAND_ISP_CTRL_BRIGHTNESS_MAX                    (0x3140)
+#define HOST_COMMAND_ISP_CTRL_BRIGHTNESS_MIN                    (0x3142)
+#define HOST_COMMAND_ISP_CTRL_CONTRAST                          (0x3144)
+#define HOST_COMMAND_ISP_CTRL_CONTRAST_MAX                      (0x3146)
+#define HOST_COMMAND_ISP_CTRL_CONTRAST_MIN                      (0x3148)
+#define HOST_COMMAND_ISP_CTRL_SATURATION                        (0x314A)
+#define HOST_COMMAND_ISP_CTRL_SATURATION_MAX                    (0x314C)
+#define HOST_COMMAND_ISP_CTRL_SATURATION_MIN                    (0x314E)
+#define HOST_COMMAND_ISP_CTRL_GAMMA                             (0x3150)
+#define HOST_COMMAND_ISP_CTRL_GAMMA_MAX                         (0x3152)
+#define HOST_COMMAND_ISP_CTRL_GAMMA_MIN                         (0x3154)
+#define HOST_COMMAND_ISP_CTRL_DENOISE                           (0x3156)
+#define HOST_COMMAND_ISP_CTRL_DENOISE_MAX                       (0x3158)
+#define HOST_COMMAND_ISP_CTRL_DENOISE_MIN                       (0x315A)
+#define HOST_COMMAND_ISP_CTRL_SHARPEN                           (0x315C)
+#define HOST_COMMAND_ISP_CTRL_SHARPEN_MAX                       (0x315E)
+#define HOST_COMMAND_ISP_CTRL_SHARPEN_MIN                       (0x3160)
+#define HOST_COMMAND_ISP_CTRL_FLIP                              (0x3162)
+#define HOST_COMMAND_ISP_CTRL_EFFECT                            (0x3164)
+#define HOST_COMMAND_ISP_CTRL_ZOOM_TYPE                         (0x3166)
+#define HOST_COMMAND_ISP_CTRL_ZOOM_TIMES                        (0x3168)
+#define HOST_COMMAND_ISP_CTRL_ZOOM_TIMES_MAX                    (0x316A)
+#define HOST_COMMAND_ISP_CTRL_ZOOM_TIMES_MIN                    (0x316C)
+#define HOST_COMMAND_ISP_CTRL_CT_X                              (0x316E)
+#define HOST_COMMAND_ISP_CTRL_CT_Y                              (0x3170)
+#define HOST_COMMAND_ISP_CTRL_CT_MAX                            (0x3172)
+#define HOST_COMMAND_ISP_CTRL_CT_MIN                            (0x3174)
+#define HOST_COMMAND_ISP_CTRL_SYSTEM_START                      (0x3176)
+#define HOST_COMMAND_ISP_CTRL_ISP_RESET                         (0x3178)
+
+/* Define host command register of ISP bootdata page */
+#define HOST_COMMAND_ISP_BOOTDATA_1                             (0x4000)
+#define HOST_COMMAND_ISP_BOOTDATA_2                             (0x4002)
+#define HOST_COMMAND_ISP_BOOTDATA_3                             (0x4004)
+#define HOST_COMMAND_ISP_BOOTDATA_4                             (0x4006)
+#define HOST_COMMAND_ISP_BOOTDATA_5                             (0x4008)
+#define HOST_COMMAND_ISP_BOOTDATA_6                             (0x400A)
+#define HOST_COMMAND_ISP_BOOTDATA_7                             (0x400C)
+#define HOST_COMMAND_ISP_BOOTDATA_8                             (0x400E)
+#define HOST_COMMAND_ISP_BOOTDATA_9                             (0x4010)
+#define HOST_COMMAND_ISP_BOOTDATA_10                            (0x4012)
+#define HOST_COMMAND_ISP_BOOTDATA_11                            (0x4014)
+#define HOST_COMMAND_ISP_BOOTDATA_12                            (0x4016)
+#define HOST_COMMAND_ISP_BOOTDATA_13                            (0x4018)
+#define HOST_COMMAND_ISP_BOOTDATA_14                            (0x401A)
+#define HOST_COMMAND_ISP_BOOTDATA_15                            (0x401C)
+#define HOST_COMMAND_ISP_BOOTDATA_16                            (0x401E)
+#define HOST_COMMAND_ISP_BOOTDATA_17                            (0x4020)
+#define HOST_COMMAND_ISP_BOOTDATA_18                            (0x4022)
+#define HOST_COMMAND_ISP_BOOTDATA_19                            (0x4024)
+#define HOST_COMMAND_ISP_BOOTDATA_20                            (0x4026)
+#define HOST_COMMAND_ISP_BOOTDATA_21                            (0x4028)
+#define HOST_COMMAND_ISP_BOOTDATA_22                            (0x402A)
+#define HOST_COMMAND_ISP_BOOTDATA_23                            (0x402C)
+#define HOST_COMMAND_ISP_BOOTDATA_24                            (0x402E)
+#define HOST_COMMAND_ISP_BOOTDATA_25                            (0x4030)
+#define HOST_COMMAND_ISP_BOOTDATA_26                            (0x4032)
+#define HOST_COMMAND_ISP_BOOTDATA_27                            (0x4034)
+#define HOST_COMMAND_ISP_BOOTDATA_28                            (0x4036)
+#define HOST_COMMAND_ISP_BOOTDATA_29                            (0x4038)
+#define HOST_COMMAND_ISP_BOOTDATA_30                            (0x403A)
+#define HOST_COMMAND_ISP_BOOTDATA_31                            (0x403C)
+#define HOST_COMMAND_ISP_BOOTDATA_32                            (0x403E)
+#define HOST_COMMAND_ISP_BOOTDATA_33                            (0x4040)
+#define HOST_COMMAND_ISP_BOOTDATA_34                            (0x4042)
+#define HOST_COMMAND_ISP_BOOTDATA_35                            (0x4044)
+#define HOST_COMMAND_ISP_BOOTDATA_36                            (0x4046)
+#define HOST_COMMAND_ISP_BOOTDATA_37                            (0x4048)
+#define HOST_COMMAND_ISP_BOOTDATA_38                            (0x404A)
+#define HOST_COMMAND_ISP_BOOTDATA_39                            (0x404C)
+#define HOST_COMMAND_ISP_BOOTDATA_40                            (0x404E)
+#define HOST_COMMAND_ISP_BOOTDATA_41                            (0x4050)
+#define HOST_COMMAND_ISP_BOOTDATA_42                            (0x4052)
+#define HOST_COMMAND_ISP_BOOTDATA_43                            (0x4054)
+#define HOST_COMMAND_ISP_BOOTDATA_44                            (0x4056)
+#define HOST_COMMAND_ISP_BOOTDATA_45                            (0x4058)
+#define HOST_COMMAND_ISP_BOOTDATA_46                            (0x405A)
+#define HOST_COMMAND_ISP_BOOTDATA_47                            (0x405C)
+#define HOST_COMMAND_ISP_BOOTDATA_48                            (0x405E)
+#define HOST_COMMAND_ISP_BOOTDATA_49                            (0x4060)
+#define HOST_COMMAND_ISP_BOOTDATA_50                            (0x4062)
+#define HOST_COMMAND_ISP_BOOTDATA_51                            (0x4064)
+#define HOST_COMMAND_ISP_BOOTDATA_52                            (0x4066)
+#define HOST_COMMAND_ISP_BOOTDATA_53                            (0x4068)
+#define HOST_COMMAND_ISP_BOOTDATA_54                            (0x406A)
+#define HOST_COMMAND_ISP_BOOTDATA_55                            (0x406C)
+#define HOST_COMMAND_ISP_BOOTDATA_56                            (0x406E)
+#define HOST_COMMAND_ISP_BOOTDATA_57                            (0x4070)
+#define HOST_COMMAND_ISP_BOOTDATA_58                            (0x4072)
+#define HOST_COMMAND_ISP_BOOTDATA_59                            (0x4074)
+#define HOST_COMMAND_ISP_BOOTDATA_60                            (0x4076)
+#define HOST_COMMAND_ISP_BOOTDATA_61                            (0x4078)
+#define HOST_COMMAND_ISP_BOOTDATA_62                            (0x407A)
+#define HOST_COMMAND_ISP_BOOTDATA_63                            (0x407C)
+
+/* Define special method for controlling ISP with I2C */
+#define HOST_COMMAND_ISP_CTRL_I2C_ADDR                          (0xF000)
+#define HOST_COMMAND_ISP_CTRL_I2C_DATA                          (0xF002)
+
+#define TEVS_TRIGGER_CTRL                   	(0x1186)
 
 #define TEVS_BRIGHTNESS 						HOST_COMMAND_ISP_CTRL_BRIGHTNESS
 #define TEVS_BRIGHTNESS_MAX 					HOST_COMMAND_ISP_CTRL_BRIGHTNESS_MAX
 #define TEVS_BRIGHTNESS_MIN 					HOST_COMMAND_ISP_CTRL_BRIGHTNESS_MIN
 #define TEVS_BRIGHTNESS_MASK 					(0xFFFF)
-#define TEVS_CONTRAST 						HOST_COMMAND_ISP_CTRL_CONTRAST
-#define TEVS_CONTRAST_MAX 					HOST_COMMAND_ISP_CTRL_CONTRAST_MAX
-#define TEVS_CONTRAST_MIN 					HOST_COMMAND_ISP_CTRL_CONTRAST_MIN
-#define TEVS_CONTRAST_MASK 					(0xFFFF)
+#define TEVS_CONTRAST 							HOST_COMMAND_ISP_CTRL_CONTRAST
+#define TEVS_CONTRAST_MAX 						HOST_COMMAND_ISP_CTRL_CONTRAST_MAX
+#define TEVS_CONTRAST_MIN 						HOST_COMMAND_ISP_CTRL_CONTRAST_MIN
+#define TEVS_CONTRAST_MASK 						(0xFFFF)
 #define TEVS_SATURATION 						HOST_COMMAND_ISP_CTRL_SATURATION
 #define TEVS_SATURATION_MAX 					HOST_COMMAND_ISP_CTRL_SATURATION_MAX
 #define TEVS_SATURATION_MIN 					HOST_COMMAND_ISP_CTRL_SATURATION_MIN
 #define TEVS_SATURATION_MASK 					(0xFFFF)
-#define TEVS_AWB_CTRL_MODE 					HOST_COMMAND_ISP_CTRL_AWB_MODE
+#define TEVS_AWB_CTRL_MODE 						HOST_COMMAND_ISP_CTRL_AWB_MODE
 #define TEVS_AWB_CTRL_MODE_MASK 				(0x00FF)
-#define TEVS_AWB_CTRL_MODE_MANUAL_TEMP 		(7U << 0)
+#define TEVS_AWB_CTRL_MODE_MANUAL_TEMP 			(7U << 0)
 #define TEVS_AWB_CTRL_MODE_AUTO 				(15U << 0)
-#define TEVS_AWB_CTRL_MODE_MANUAL_TEMP_IDX 	(0U << 0)
+#define TEVS_AWB_CTRL_MODE_MANUAL_TEMP_IDX 		(0U << 0)
 #define TEVS_AWB_CTRL_MODE_AUTO_IDX 			(1U << 0)
-#define TEVS_GAMMA 							HOST_COMMAND_ISP_CTRL_GAMMA
-#define TEVS_GAMMA_MAX 						HOST_COMMAND_ISP_CTRL_GAMMA_MAX
-#define TEVS_GAMMA_MIN 						HOST_COMMAND_ISP_CTRL_GAMMA_MIN
+#define TEVS_GAMMA 								HOST_COMMAND_ISP_CTRL_GAMMA
+#define TEVS_GAMMA_MAX 							HOST_COMMAND_ISP_CTRL_GAMMA_MAX
+#define TEVS_GAMMA_MIN 							HOST_COMMAND_ISP_CTRL_GAMMA_MIN
 #define TEVS_GAMMA_MASK 						(0xFFFF)
 #define TEVS_AE_MANUAL_EXP_TIME 				HOST_COMMAND_ISP_CTRL_EXP_TIME_MSB
 #define TEVS_AE_MANUAL_EXP_TIME_MAX 			HOST_COMMAND_ISP_CTRL_EXP_TIME_MAX_MSB
@@ -182,8 +189,8 @@
 #define TEVS_AE_MANUAL_GAIN_MIN 				HOST_COMMAND_ISP_CTRL_EXP_GAIN_MIN
 #define TEVS_AE_MANUAL_GAIN_MASK 				(0x00FF)
 #define TEVS_ORIENTATION 						HOST_COMMAND_ISP_CTRL_FLIP
-#define TEVS_ORIENTATION_HFLIP 				(1U << 0)
-#define TEVS_ORIENTATION_VFLIP 				(1U << 1)
+#define TEVS_ORIENTATION_HFLIP 					(1U << 0)
+#define TEVS_ORIENTATION_VFLIP 					(1U << 1)
 // #define TEVS_FLICK_CTRL						(0xFFFF) // TEVS_REG_16BIT(0x5440)
 // #define TEVS_FLICK_CTRL_FREQ(n)				((n) << 8)
 // #define TEVS_FLICK_CTRL_ETC_IHDR_UP			BIT(6)
@@ -198,11 +205,11 @@
 #define TEVS_AWB_MANUAL_TEMP 					HOST_COMMAND_ISP_CTRL_AWB_TEMP
 #define TEVS_AWB_MANUAL_TEMP_MAX 				HOST_COMMAND_ISP_CTRL_AWB_TEMP_MAX
 #define TEVS_AWB_MANUAL_TEMP_MIN 				HOST_COMMAND_ISP_CTRL_AWB_TEMP_MIN
-#define TEVS_AWB_MANUAL_TEMP_MASK 			(0xFFFF)
+#define TEVS_AWB_MANUAL_TEMP_MASK 				(0xFFFF)
 #define TEVS_SHARPEN 							HOST_COMMAND_ISP_CTRL_SHARPEN
 #define TEVS_SHARPEN_MAX 						HOST_COMMAND_ISP_CTRL_SHARPEN_MAX
 #define TEVS_SHARPEN_MIN 						HOST_COMMAND_ISP_CTRL_SHARPEN_MIN
-#define TEVS_SHARPEN_MASK 					(0xFFFF)
+#define TEVS_SHARPEN_MASK 						(0xFFFF)
 #define TEVS_BACKLIGHT_COMPENSATION 			HOST_COMMAND_ISP_CTRL_BACKLIGHT_COMPENSATION
 #define TEVS_BACKLIGHT_COMPENSATION_MAX 		HOST_COMMAND_ISP_CTRL_BACKLIGHT_COMPENSATION_MAX
 #define TEVS_BACKLIGHT_COMPENSATION_MIN 		HOST_COMMAND_ISP_CTRL_BACKLIGHT_COMPENSATION_MIN
@@ -211,33 +218,30 @@
 #define TEVS_DZ_TGT_FCT_MAX 					HOST_COMMAND_ISP_CTRL_ZOOM_TIMES_MAX
 #define TEVS_DZ_TGT_FCT_MIN 					HOST_COMMAND_ISP_CTRL_ZOOM_TIMES_MIN
 #define TEVS_DZ_TGT_FCT_MASK 					(0xFFFF)
-#define TEVS_SFX_MODE 						HOST_COMMAND_ISP_CTRL_EFFECT
-#define TEVS_SFX_MODE_SFX_MASK 				(0x00FF)
+#define TEVS_SFX_MODE 							HOST_COMMAND_ISP_CTRL_EFFECT
+#define TEVS_SFX_MODE_SFX_MASK 					(0x00FF)
 #define TEVS_SFX_MODE_SFX_NORMAL 				(0U << 0)
 #define TEVS_SFX_MODE_SFX_BW 					(3U << 0)
 #define TEVS_SFX_MODE_SFX_GRAYSCALE 			(6U << 0)
-#define TEVS_SFX_MODE_SFX_NEGATIVE 			(7U << 0)
+#define TEVS_SFX_MODE_SFX_NEGATIVE 				(7U << 0)
 #define TEVS_SFX_MODE_SFX_SKETCH 				(15U << 0)
 #define TEVS_SFX_MODE_SFX_NORMAL_IDX 			(0U << 0)
 #define TEVS_SFX_MODE_SFX_BW_IDX 				(1U << 0)
 #define TEVS_SFX_MODE_SFX_GRAYSCALE_IDX 		(2U << 0)
-#define TEVS_SFX_MODE_SFX_NEGATIVE_IDX 		(3U << 0)
+#define TEVS_SFX_MODE_SFX_NEGATIVE_IDX 			(3U << 0)
 #define TEVS_SFX_MODE_SFX_SKETCH_IDX 			(4U << 0)
-#define TEVS_AE_CTRL_MODE 					HOST_COMMAND_ISP_CTRL_AE_MODE
-#define TEVS_AE_CTRL_MODE_MASK 				(0x00FF)
-#define TEVS_AE_CTRL_MANUAL_EXP_TIME_GAIN 	(0U << 0)
-#define TEVS_AE_CTRL_FULL_AUTO 				(12U << 0)
-#define TEVS_AE_CTRL_MANUAL_EXP_TIME_GAIN_IDX (0U << 0)
-#define TEVS_AE_CTRL_FULL_AUTO_IDX 			(1U << 0)
+#define TEVS_AE_CTRL_MODE 						HOST_COMMAND_ISP_CTRL_AE_MODE
+#define TEVS_AE_CTRL_MODE_MASK 					(0x00FF)
+#define TEVS_AE_CTRL_MANUAL_EXP_TIME_GAIN 		(0U << 0)
+#define TEVS_AE_CTRL_FULL_AUTO 					(12U << 0)
+#define TEVS_AE_CTRL_MANUAL_EXP_TIME_GAIN_IDX 	(0U << 0)
+#define TEVS_AE_CTRL_FULL_AUTO_IDX 				(1U << 0)
 #define TEVS_DZ_CT_X 							HOST_COMMAND_ISP_CTRL_CT_X
-#define TEVS_DZ_CT_X_MASK 					(0xFFFF)
+#define TEVS_DZ_CT_X_MASK 						(0xFFFF)
 #define TEVS_DZ_CT_Y 							HOST_COMMAND_ISP_CTRL_CT_Y
-#define TEVS_DZ_CT_Y_MASK 					(0xFFFF)
-#define TEVS_DZ_CT_MAX 						HOST_COMMAND_ISP_CTRL_CT_MAX
-#define TEVS_DZ_CT_MIN 						HOST_COMMAND_ISP_CTRL_CT_MIN
-
-#define TEVS_EXT_CTRL                       (0x3000)
-#define TEVS_TRIGGER_CTRL                   (0x1186)
+#define TEVS_DZ_CT_Y_MASK 						(0xFFFF)
+#define TEVS_DZ_CT_MAX 							HOST_COMMAND_ISP_CTRL_CT_MAX
+#define TEVS_DZ_CT_MIN 							HOST_COMMAND_ISP_CTRL_CT_MIN
 
 #define DEFAULT_HEADER_VERSION 3
 
@@ -367,7 +371,7 @@ int tevs_enable_trigger_mode(struct tevs *tevs, int enable)
 	trigger_data[2] = 0x3;
 	trigger_data[3] = (enable > 0) ? 0x82 : 0x80;
 
-	return tevs_i2c_write(tevs, TEVS_EXT_CTRL, trigger_data, sizeof(trigger_data));
+	return tevs_i2c_write(tevs, HOST_COMMAND_ISP_CTRL_I2C_ADDR, trigger_data, sizeof(trigger_data));
 }
 
 int tevs_load_header_info(struct tevs *tevs)
@@ -423,7 +427,7 @@ static int tevs_standby(struct tevs *tevs, int enable)
 					__LINE__, v);
 				return -EINVAL;
 			}
-			usleep_range(9000, 10000);
+			usleep_range(5000, 5000);
 			tevs_i2c_read_16b(
 				tevs, HOST_COMMAND_ISP_CTRL_SYSTEM_START, &v);
 			if ((v & 0x100) == 0)
@@ -439,7 +443,7 @@ static int tevs_standby(struct tevs *tevs, int enable)
 					__LINE__, v);
 				return -EINVAL;
 			}
-			usleep_range(9000, 10000);
+			usleep_range(5000, 5000);
 			tevs_i2c_read_16b(
 				tevs, HOST_COMMAND_ISP_CTRL_SYSTEM_START, &v);
 			if ((v & 0x100) == 0x100)
@@ -456,7 +460,7 @@ static int tevs_power_on(struct tevs *tevs)
 	dev_dbg(tevs->dev, "%s()\n", __func__);
 
 	gpiod_set_value_cansleep(tevs->reset_gpio, 1);
-	msleep(200);
+	msleep(100);
 
 	return 0;
 }
@@ -467,7 +471,7 @@ static int tevs_power_off(struct tevs *tevs)
 
 	if(tevs->hw_reset_mode) {
 		gpiod_set_value_cansleep(tevs->reset_gpio, 0);
-		msleep(200);
+		msleep(10);
 	}
 
 	return 0;
@@ -1916,8 +1920,6 @@ static int tevs_ctrls_init(struct tevs *tevs)
 	unsigned int i;
 	int ret;
 
-	dev_dbg(tevs->dev, "%s()\n", __func__);
-
 	ret = v4l2_ctrl_handler_init(&tevs->ctrls, ARRAY_SIZE(tevs_ctrls));
 	if (ret)
 		return ret;
@@ -2051,7 +2053,7 @@ static int tevs_try_on(struct tevs *tevs)
 	tevs_power_on(tevs);
 
 	while(count++ < 10) {
-		ret = tevs_i2c_read_16b(tevs, HOST_COMMAND_MCU_INFO_VERSION_MSB, &val);
+		ret = tevs_i2c_read_16b(tevs, HOST_COMMAND_TEVS_INFO_VERSION_MSB, &val);
 		if (ret != 0) {
 			if(count < 10)
 				continue;
@@ -2154,7 +2156,7 @@ static int tevs_probe(struct i2c_client *client,
 			goto error_probe;
 		}
 		tevs_i2c_read(tevs,
-				HOST_COMMAND_MCU_BOOT_STATE, &isp_state, 1);
+				HOST_COMMAND_TEVS_BOOT_STATE, &isp_state, 1);
 		dev_dbg(dev, "isp bootup state: %d\n", isp_state);
 		if (isp_state == 0x08)
 			break;
@@ -2260,6 +2262,9 @@ static int tevs_probe(struct i2c_client *client,
 		dev_info(dev, "probe success\n");
 	else
 		dev_err(dev, "probe failed\n");
+
+	// release reset and standby control
+	devm_gpiod_put(dev, tevs->reset_gpio);
 
 error_probe:
 	mutex_destroy(&tevs->lock);
