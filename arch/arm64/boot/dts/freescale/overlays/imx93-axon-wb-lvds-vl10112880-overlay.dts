@@ -122,9 +122,8 @@
 				compatible = "eeti,exc80h60";
 				reg = <0x2a>;
 				interrupt-parent = <&pcal6524>;
-				interrupts = <8 IRQ_TYPE_LEVEL_LOW>;
-				reset-gpios = <&adp5585gpio 1 GPIO_ACTIVE_HIGH>;
-				status = "okay";
+				interrupts = <8 IRQ_TYPE_EDGE_FALLING>;
+				reset-gpios = <&adp5585gpio 1 GPIO_ACTIVE_LOW>;
 			};
 		};
 	};
