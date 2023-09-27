@@ -89,7 +89,7 @@
 				reg = <0x2a>;
 				interrupt-parent = <&pcal6524>;
 				interrupts = <8 IRQ_TYPE_EDGE_FALLING>;
-				status = "okay";
+				reset-gpios = <&adp5585gpio 1 GPIO_ACTIVE_LOW>;
 			};
 		};
 	};
