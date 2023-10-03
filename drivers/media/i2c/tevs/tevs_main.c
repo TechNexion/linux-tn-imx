@@ -243,6 +243,11 @@
 #define TEVS_DZ_CT_MAX 							HOST_COMMAND_ISP_CTRL_CT_MAX
 #define TEVS_DZ_CT_MIN 							HOST_COMMAND_ISP_CTRL_CT_MIN
 
+#define V4L2_CID_TEVS_BSL_MODE            (V4L2_CID_USER_BASE + 44)
+#define TEVS_TRIGGER_CTRL_MODE_MASK 		(0x0001)
+#define TEVS_BSL_MODE_NORMAL_IDX 		    (0U << 0)
+#define TEVS_BSL_MODE_FLASH_IDX 			(1U << 0)
+
 #define DEFAULT_HEADER_VERSION 3
 
 struct header_info {
@@ -276,7 +281,10 @@ struct tevs {
 	struct regmap *regmap;
 	struct header_info *header_info;
 	struct gpio_desc *reset_gpio;
+	struct gpio_desc *standby_gpio;
 
+	int data_lanes;
+	int continuous_clock;
 	u8 selected_mode;
 	u8 selected_sensor;
 	bool supports_over_4k_res;
@@ -412,6 +420,27 @@ int tevs_load_header_info(struct tevs *tevs)
 	}
 }
 
+int tevs_init_setting(struct tevs *tevs)
+{
+	int ret = 0;
+
+	if(tevs->trigger_mode) {
+		ret = tevs_enable_trigger_mode(tevs, 1);
+		if (ret != 0) {
+			dev_err(tevs->dev, "set trigger mode failed\n");
+			return ret;
+		}
+	}
+
+	ret += tevs_i2c_write_16b(tevs,
+				HOST_COMMAND_ISP_CTRL_PREVIEW_FORMAT,
+				0x50);
+	ret += tevs_i2c_write_16b(tevs,
+				HOST_COMMAND_ISP_CTRL_PREVIEW_HINF_CTRL,
+				0x10 | (tevs->continuous_clock << 5) | (tevs->data_lanes));
+	return ret;
+}
+
 static int tevs_standby(struct tevs *tevs, int enable)
 {
 	u16 v = 0;
@@ -457,12 +486,34 @@ static int tevs_standby(struct tevs *tevs, int enable)
 
 static int tevs_power_on(struct tevs *tevs)
 {
+	u8 isp_state;
+	u8 timeout = 0;
+	int ret = 0;
 	dev_dbg(tevs->dev, "%s()\n", __func__);
 
 	gpiod_set_value_cansleep(tevs->reset_gpio, 1);
 	msleep(100);
 
-	return 0;
+	while (timeout < 20) {
+		tevs_i2c_read(tevs,
+				HOST_COMMAND_TEVS_BOOT_STATE, &isp_state, 1);
+		if (isp_state == 0x08)
+			break;
+		dev_dbg(tevs->dev, "isp bootup state: %d\n", isp_state);
+		if (++timeout >= 20) {
+			dev_err(tevs->dev, "isp bootup timeout: state: 0x%02X\n", isp_state);
+			ret = -EINVAL;
+		}
+		msleep(20);
+	}
+
+	if((tevs->hw_reset_mode | tevs->trigger_mode)) {
+		ret = tevs_init_setting(tevs);
+		if (ret != 0) 
+			dev_err(tevs->dev, "init setting failed\n");
+	}
+
+	return ret;
 }
 
 static int tevs_power_off(struct tevs *tevs)
@@ -471,7 +522,6 @@ static int tevs_power_off(struct tevs *tevs)
 
 	if(tevs->hw_reset_mode) {
 		gpiod_set_value_cansleep(tevs->reset_gpio, 0);
-		// msleep(10);
 	}
 
 	return 0;
@@ -556,8 +606,8 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 	} else {
 		if(!(tevs->hw_reset_mode | tevs->trigger_mode))
 			ret = tevs_standby(tevs, 0);
-		if(tevs->trigger_mode)
-			ret = tevs_enable_trigger_mode(tevs, enable);
+		// if(tevs->trigger_mode)
+		// 	ret = tevs_enable_trigger_mode(tevs, enable);
 		if (ret == 0) {
 			int fps = tevs_sensor_table[tevs->selected_sensor]
 					  .res_list[tevs->selected_mode]
@@ -601,8 +651,6 @@ static int tevs_enum_mbus_code(struct v4l2_subdev *sub_dev,
 			      struct v4l2_subdev_state *sd_state,
 			      struct v4l2_subdev_mbus_code_enum *code)
 {
-	dev_dbg(sub_dev->dev, "%s()\n", __func__);
-
 	if (code->pad || code->index > 0)
 		return -EINVAL;
 
@@ -619,8 +667,6 @@ static int tevs_get_fmt(struct v4l2_subdev *sub_dev,
 	struct v4l2_mbus_framefmt *mbus_fmt = &format->format;
 	struct tevs *tevs =
 		container_of(sub_dev, struct tevs, v4l2_subdev);
-
-	dev_dbg(sub_dev->dev, "%s()\n", __func__);
 
 	if (format->pad != 0)
 		return -EINVAL;
@@ -645,8 +691,6 @@ static int tevs_set_fmt(struct v4l2_subdev *sub_dev,
 	struct tevs *tevs =
 		container_of(sub_dev, struct tevs, v4l2_subdev);
 	int i;
-
-	dev_dbg(sub_dev->dev, "%s()\n", __func__);
 
 	if (format->pad != 0)
 		return -EINVAL;
@@ -700,8 +744,6 @@ static int tevs_enum_frame_size(struct v4l2_subdev *sub_dev,
 {
 	struct tevs *tevs =
 		container_of(sub_dev, struct tevs, v4l2_subdev);
-	// dev_dbg(sub_dev->dev, "%s() %x %x %x\n", __func__, fse->pad, fse->code,
-	// 	fse->index);
 
 	if ((fse->pad != 0) ||
 	    (fse->index >=
@@ -733,8 +775,6 @@ static int tevs_enum_frame_interval(struct v4l2_subdev *sub_dev,
 	struct tevs *tevs =
 		container_of(sub_dev, struct tevs, v4l2_subdev);
 	int i;
-	// dev_dbg(sub_dev->dev, "%s() %x %x %x\n", __func__, fie->pad, fie->code,
-	// 	fie->index);
 
 	if ((fie->pad != 0) || (fie->index != 0))
 		return -EINVAL;
@@ -1469,6 +1509,38 @@ static const char *const ae_mode_strings[] = {
 	NULL,
 };
 
+static int tevs_set_bsl_mode(struct tevs *tevs, s32 mode)
+{
+	u8 val;
+	u8 bootcmd[6] = {0x00, 0x12, 0x3A, 0x61, 0x44, 0xDE};
+	u8 startup[6] = {0x00, 0x40, 0xE2, 0x51, 0x21, 0x5B};
+	dev_dbg(tevs->dev, "%s(): set bls mode: %d", __func__, mode);
+
+	switch (mode) {
+	case 0:
+		tevs_i2c_write(tevs, 0x8001, startup, 6);
+		tevs_i2c_read(tevs, 0x8001, &val, 1);
+		break;
+	case 1:
+		gpiod_set_value_cansleep(tevs->reset_gpio, 0);
+		usleep_range(9000, 10000);
+		gpiod_set_value_cansleep(tevs->standby_gpio, 1);
+		msleep(100);
+		gpiod_set_value_cansleep(tevs->reset_gpio, 1);
+		usleep_range(9000, 10000);
+		gpiod_set_value_cansleep(tevs->standby_gpio, 0);
+		msleep(100);
+		tevs_i2c_write(tevs, 0x8001, bootcmd, 6);
+		tevs_i2c_read(tevs, 0x8001, &val, 1);
+		break;
+	default:
+		dev_err(tevs->dev, "%s(): set err bls mode: %d", __func__, mode);
+		break;
+	}
+
+	return 0;
+}
+
 static int tevs_set_ae_mode(struct tevs *tevs, s32 mode)
 {
 	u16 val = mode & TEVS_SFX_MODE_SFX_MASK;
@@ -1575,6 +1647,14 @@ static int tevs_get_pan_tilt_target_min(struct tevs *tevs, s64 *value)
 	return 0;
 }
 
+static const char *const bsl_mode_strings[] = {
+	"Normal Mode",
+	"Bootstrap Mode",
+	NULL,
+};
+
+
+
 static int tevs_s_ctrl(struct v4l2_ctrl *ctrl)
 {
 	struct tevs *tevs =
@@ -1634,6 +1714,8 @@ static int tevs_s_ctrl(struct v4l2_ctrl *ctrl)
 
 	case V4L2_CID_ZOOM_ABSOLUTE:
 		return tevs_set_zoom_target(tevs, ctrl->val);
+	case V4L2_CID_TEVS_BSL_MODE:
+		return tevs_set_bsl_mode(tevs, ctrl->val);
 
 	default:
 		dev_dbg(tevs->dev, "Unknown control 0x%x\n",
@@ -1701,6 +1783,11 @@ static int tevs_g_ctrl(struct v4l2_ctrl *ctrl)
 
 	case V4L2_CID_ZOOM_ABSOLUTE:
 		return tevs_get_zoom_target(tevs, &ctrl->val);
+
+	case V4L2_CID_TEVS_BSL_MODE:
+		// ctrl->val = 0;
+		// dev_info(tevs->dev, "get tevs flash mode: %d", ctrl->val);
+		return 0;
 
 	default:
 		dev_dbg(tevs->dev, "Unknown control 0x%x\n",
@@ -1895,6 +1982,15 @@ static const struct v4l2_ctrl_config tevs_ctrls[] = {
 		.step = 0x1,
 		.def = 0x0,
 	},
+	{
+		.ops = &tevs_ctrl_ops,
+		.id = V4L2_CID_TEVS_BSL_MODE,
+		.name = "BSL_Mode",
+		.type = V4L2_CTRL_TYPE_MENU,
+		.max = TEVS_BSL_MODE_FLASH_IDX,
+		.def = TEVS_BSL_MODE_NORMAL_IDX,
+		.qmenu = bsl_mode_strings,
+	},
 };
 
 static int tevs_ctrls_init(struct tevs *tevs)
@@ -2027,28 +2123,8 @@ static const struct media_entity_operations tevs_media_entity_ops = {
 
 static int tevs_try_on(struct tevs *tevs)
 {
-	u8 isp_state;
-	u8 timeout = 0;
-	int ret = 0;
-
 	tevs_power_off(tevs);
-	tevs_power_on(tevs);
-
-	// dev_dbg(tevs->dev, "check for isp bootup ... \n");
-	while (timeout < 20) {
-		tevs_i2c_read(tevs,
-				HOST_COMMAND_TEVS_BOOT_STATE, &isp_state, 1);
-		if (isp_state == 0x08)
-			break;
-		dev_info(tevs->dev, "isp bootup state: %d\n", isp_state);
-		if (++timeout >= 20) {
-			dev_err(tevs->dev, "isp bootup timeout: state: 0x%02X\n", isp_state);
-			ret = -EINVAL;
-		}
-		msleep(20);
-	}
-
-	return 0;
+	return tevs_power_on(tevs);
 }
 
 static int tevs_probe(struct i2c_client *client,
@@ -2057,8 +2133,6 @@ static int tevs_probe(struct i2c_client *client,
 	struct tevs *tevs = NULL;
 	struct device *dev = &client->dev;
 	struct v4l2_mbus_framefmt *fmt;
-	int data_lanes;
-	int continuous_clock;
 	int i = ARRAY_SIZE(tevs_sensor_table);
 	int ret;
 
@@ -2080,7 +2154,7 @@ static int tevs_probe(struct i2c_client *client,
 	}
 
 	tevs->reset_gpio =
-		devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_HIGH);
+		devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_LOW);
 	if (IS_ERR(tevs->reset_gpio)) {
 		ret = PTR_ERR(tevs->reset_gpio);
 		if (ret != -EPROBE_DEFER)
@@ -2088,23 +2162,32 @@ static int tevs_probe(struct i2c_client *client,
 		return ret;
 	}
 
-	data_lanes = 4;
-	if (of_property_read_u32(dev->of_node, "data-lanes", &data_lanes) ==
+	tevs->standby_gpio =
+		devm_gpiod_get_optional(dev, "standby", GPIOD_OUT_LOW);
+	if (IS_ERR(tevs->standby_gpio)) {
+		ret = PTR_ERR(tevs->standby_gpio);
+		if (ret != -EPROBE_DEFER)
+			dev_err(dev, "Cannot get standby GPIO (%d)", ret);
+		return ret;
+	}
+
+	tevs->data_lanes = 4;
+	if (of_property_read_u32(dev->of_node, "data-lanes", &tevs->data_lanes) ==
 	    0) {
-		if ((data_lanes < 1) || (data_lanes > 4)) {
+		if ((tevs->data_lanes < 1) || (tevs->data_lanes > 4)) {
 			dev_err(dev,
 				"value of 'data-lanes' property is invaild\n");
-			data_lanes = 4;
+			tevs->data_lanes = 4;
 		}
 	}
 
-	continuous_clock = 0;
+	tevs->continuous_clock = 0;
 	if (of_property_read_u32(dev->of_node, "continuous-clock",
-				 &continuous_clock) == 0) {
-		if (continuous_clock > 1) {
+				 &tevs->continuous_clock) == 0) {
+		if (tevs->continuous_clock > 1) {
 			dev_err(dev,
 				"value of 'continuous-clock' property is invaild\n");
-			continuous_clock = 0;
+			tevs->continuous_clock = 0;
 		}
 	}
 
@@ -2120,7 +2203,7 @@ static int tevs_probe(struct i2c_client *client,
 	dev_dbg(dev,
 		"data-lanes [%d] ,continuous-clock [%d], supports-over-4k-res [%d]," 
 		" hw-reset [%d], trigger-mode [%d]\n",
-		data_lanes, continuous_clock, tevs->supports_over_4k_res, 
+		tevs->data_lanes, tevs->continuous_clock, tevs->supports_over_4k_res, 
 		tevs->hw_reset_mode, tevs->trigger_mode);
 
 	if (tevs_try_on(tevs) != 0) {
@@ -2141,8 +2224,6 @@ static int tevs_probe(struct i2c_client *client,
 		return -EINVAL;
 	} else {
 		for (i = 0; i < ARRAY_SIZE(tevs_sensor_table); i++) {
-			// dev_info(dev, "tevs product name:%s\n", 
-			// 			tevs->header_info->product_name);
 			if (strcmp((const char *)tevs->header_info
 					   ->product_name,
 				   tevs_sensor_table[i].sensor_name) == 0)
@@ -2198,21 +2279,14 @@ static int tevs_probe(struct i2c_client *client,
 		return -EINVAL;
 	}
 
-	if(tevs->trigger_mode) {
-		ret = tevs_enable_trigger_mode(tevs, 1);
+	if(tevs_init_setting(tevs)){
 		if (ret != 0) {
-			dev_err(tevs->dev, "set trigger mode failed\n");
+			dev_err(tevs->dev, "init setting failed\n");
 			return ret;
 		}
 	}
 
 	if(!(tevs->hw_reset_mode | tevs->trigger_mode)) {
-		tevs_i2c_write_16b(tevs,
-					HOST_COMMAND_ISP_CTRL_PREVIEW_FORMAT,
-					0x50);
-		tevs_i2c_write_16b(tevs,
-					HOST_COMMAND_ISP_CTRL_PREVIEW_HINF_CTRL,
-					0x10 | (continuous_clock << 5) | (data_lanes));
 		ret = tevs_standby(tevs, 1);
 		if (ret != 0) {
 			dev_err(tevs->dev, "set standby mode failed\n");
@@ -2225,9 +2299,6 @@ static int tevs_probe(struct i2c_client *client,
 		dev_info(dev, "probe success\n");
 	else
 		dev_err(dev, "probe failed\n");
-
-	// release reset and standby control
-	devm_gpiod_put(dev, tevs->reset_gpio);
 
 error_probe:
 	mutex_destroy(&tevs->lock);
