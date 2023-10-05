@@ -33,6 +33,7 @@ static struct resolution ar0521_res_list[] = {
 static struct resolution ar0522_res_list[] = {
 	{.width = 640, .height = 480, .framerates = 60, .mode = 3},
 	{.width = 1280, .height = 720, .framerates = 60, .mode = 3},
+	{.width = 1280, .height = 960, .framerates = 60, .mode = 3},
 	{.width = 1920, .height = 1080, .framerates = 60, .mode = 1},
 	{.width = 2560, .height = 1440, .framerates = 40, .mode = 1},
 	{.width = 2592, .height = 1944, .framerates = 40, .mode = 1},
