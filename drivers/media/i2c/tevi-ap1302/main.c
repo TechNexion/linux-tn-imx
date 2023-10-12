@@ -71,7 +71,22 @@
 #define AP1302_DZ_CT_X_MASK						(0xFFFF)
 #define AP1302_DZ_CT_Y							(0x118E)
 #define AP1302_DZ_CT_Y_MASK						(0xFFFF)
-
+#define AP1302_FLICK_CTRL                       (0x5440)
+#define AP1302_FLICK_CTRL_FREQ(n)				((n) << 8)
+#define AP1302_FLICK_CTRL_ETC_IHDR_UP			BIT(6)
+#define AP1302_FLICK_CTRL_ETC_DIS				BIT(5)
+#define AP1302_FLICK_CTRL_FRC_OVERRIDE_MAX_ET	BIT(4)
+#define AP1302_FLICK_CTRL_FRC_OVERRIDE_UPPER_ET	BIT(3)
+#define AP1302_FLICK_CTRL_FRC_EN				BIT(2)
+#define AP1302_FLICK_CTRL_MODE_MASK				(0x03)
+#define AP1302_FLICK_CTRL_MODE_DISABLED         (0U << 0)
+#define AP1302_FLICK_CTRL_MODE_MANUAL           (1U << 0)
+#define AP1302_FLICK_CTRL_MODE_AUTO             (2U << 0)
+#define AP1302_FLICK_CTRL_FREQ_MASK			    (0xFF00)
+#define AP1302_FLICK_CTRL_MODE_50HZ             (AP1302_FLICK_CTRL_FREQ(50) | AP1302_FLICK_CTRL_MODE_MANUAL)
+#define AP1302_FLICK_CTRL_MODE_60HZ             (AP1302_FLICK_CTRL_FREQ(60) | AP1302_FLICK_CTRL_MODE_MANUAL)
+#define AP1302_FLICK_MODE_DISABLED_IDX			(0U << 0)
+#define AP1302_FLICK_MODE_ENABLED_IDX			(3U << 0)
 // TODO This should go in v4l2-controls.h after V4L2_CID_USER_CCS_BASE
 /* The base for the AP1302 driver controls.
  * We reserve 32 controls for this driver. */
@@ -833,18 +848,18 @@ static const char * const ae_mode_strings[] = {
 
 static int ops_set_ae_mode(struct sensor *instance, s32 mode)
 {
-	u16 val = mode & AP1302_SFX_MODE_SFX_MASK;
+	u16 val = mode & AP1302_AE_CTRL_MODE_MASK;
 
 	switch(val)
 	{
 	case 0:
-		val = AP1302_AE_CTRL_MANUAL_EXP_TIME_GAIN;
+		val |= AP1302_AE_CTRL_MANUAL_EXP_TIME_GAIN;
 		break;
 	case 1:
-		val = AP1302_AE_CTRL_FULL_AUTO;
+		val |= AP1302_AE_CTRL_FULL_AUTO;
 		break;
 	default:
-		val = AP1302_AE_CTRL_FULL_AUTO;
+		val |= AP1302_AE_CTRL_FULL_AUTO;
 		break;
 	}
 
@@ -870,6 +885,69 @@ static int ops_get_ae_mode(struct sensor *instance, s32 *mode)
 		break;
 	default:
 		*mode = 1;
+		break;
+	}
+	return 0;
+}
+
+static const char * const flick_mode_strings[] = {
+	"Disabled", 
+	"50 Hz",
+	"60 Hz",
+	"Auto",
+	NULL,
+};
+
+static int ops_set_flick_mode(struct sensor *instance, s32 mode)
+{
+	u16 val = 0;
+	switch(mode)
+	{
+	case 0:
+		val = AP1302_FLICK_CTRL_MODE_DISABLED;
+		break;
+	case 1:
+		val = AP1302_FLICK_CTRL_MODE_50HZ;
+		break;
+	case 2:
+		val = AP1302_FLICK_CTRL_MODE_60HZ;
+		break;
+	case 3:
+		val = AP1302_FLICK_CTRL_MODE_AUTO;
+		break;
+	default:
+		val = AP1302_FLICK_CTRL_MODE_DISABLED;
+		break;
+	}
+
+	return sensor_i2c_write_16b(instance->i2c_client, AP1302_FLICK_CTRL, val);
+}
+
+static int ops_get_flick_mode(struct sensor *instance, s32 *mode)
+{
+	u16 val;
+	int ret;
+
+	ret = sensor_i2c_read_16b(instance->i2c_client, AP1302_FLICK_CTRL, &val);
+	if (ret)
+		return ret;
+
+	switch (val & AP1302_FLICK_CTRL_MODE_MASK)
+	{
+	case AP1302_FLICK_CTRL_MODE_DISABLED:
+		*mode = 0;
+		break;
+	case AP1302_FLICK_CTRL_MODE_MANUAL:
+		if((val & AP1302_FLICK_CTRL_FREQ_MASK) == AP1302_FLICK_CTRL_FREQ(50))
+			*mode = 1;
+		else if((val & AP1302_FLICK_CTRL_FREQ_MASK)  == AP1302_FLICK_CTRL_FREQ(50))
+			*mode = 2;
+		break;
+	case AP1302_FLICK_CTRL_MODE_AUTO:
+		*mode = 3;
+		break;
+	default:
+		*mode = 0;
 		break;
 	}
 	return 0;
@@ -944,6 +1022,9 @@ static int ops_s_ctrl(struct v4l2_ctrl *ctrl)
 	case V4L2_CID_VFLIP:
 		return ops_set_vflip(instance, ctrl->val);
 
+	case V4L2_CID_POWER_LINE_FREQUENCY:
+		return ops_set_flick_mode(instance, ctrl->val);
+
 	case V4L2_CID_WHITE_BALANCE_TEMPERATURE:
 		return ops_set_awb_temp(instance, ctrl->val);
 
@@ -1006,6 +1087,9 @@ static int ops_g_ctrl(struct v4l2_ctrl *ctrl)
 
 	case V4L2_CID_VFLIP:
 		return ops_get_vflip(instance, &ctrl->val);
+
+	case V4L2_CID_POWER_LINE_FREQUENCY:
+		return ops_get_flick_mode(instance, &ctrl->val);
 
 	case V4L2_CID_WHITE_BALANCE_TEMPERATURE:
 		return ops_get_awb_temp(instance, &ctrl->val);
@@ -1138,6 +1222,15 @@ static const struct v4l2_ctrl_config ops_ctrls[] = {
 		.step = 1,
 		.def = 0,
 	}, 
+	{
+		.ops = &sensor_ctrl_ops,
+		.id = V4L2_CID_POWER_LINE_FREQUENCY,
+		.name = "Power_Line_Frequency",
+		.type = V4L2_CTRL_TYPE_MENU,
+		.max = AP1302_FLICK_MODE_ENABLED_IDX,
+		.def = AP1302_FLICK_MODE_DISABLED_IDX,
+		.qmenu = flick_mode_strings,
+	},
 	{
 		.ops = &sensor_ctrl_ops,
 		.id = V4L2_CID_WHITE_BALANCE_TEMPERATURE,
