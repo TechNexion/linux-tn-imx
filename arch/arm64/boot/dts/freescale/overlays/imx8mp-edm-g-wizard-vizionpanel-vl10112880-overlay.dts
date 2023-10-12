@@ -73,7 +73,6 @@
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_gpio1>;
 				reset-gpios = <&gpio1 6 GPIO_ACTIVE_LOW>;
-				vizionpanel-dual-lvds-channel;
 			};
 		};
 	};
