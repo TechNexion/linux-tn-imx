@@ -12,6 +12,7 @@ struct otp_flash {
 	struct nvmem_device *nvmem;
 	char* product_name;
 	void *header_data;
+	u32 flash_id;
 };
 
 /*
