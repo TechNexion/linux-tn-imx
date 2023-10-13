@@ -40,6 +40,29 @@ size_t ap1302_otp_flash_get_pll_section(struct otp_flash *instance, u8 *data)
 #else
 #include <linux/nvmem-consumer.h>
 
+int get_flash_id(struct otp_flash *instance)
+{
+	struct device_node *flash_node;
+	struct device *dev = instance->dev;
+	int flash_id;
+	int ret = 0;
+	flash_node = of_parse_phandle(dev->of_node, "nvmem", 0);
+	if (flash_node == NULL) {
+		dev_err(dev, "missing nvmem handle\n");
+		return -EINVAL;
+	}
+
+	ret = of_property_read_u32(flash_node, "reg", &flash_id);
+	if (ret) {
+		dev_err(dev, "invalid flash id on %pOF\n", flash_node);
+		return ret;
+	}
+	dev_dbg(dev, "flash id: 0x%02x\n", flash_id);
+	instance->flash_id = flash_id;
+
+	return ret;
+}
+
 struct otp_flash *ap1302_otp_flash_init(struct device *dev)
 {
 	struct otp_flash *instance;
@@ -53,6 +76,8 @@ struct otp_flash *ap1302_otp_flash_init(struct device *dev)
 		return ERR_PTR(-EINVAL);
 	}
 	instance->dev = dev;
+
+	get_flash_id(instance);
 
 	instance->nvmem = devm_nvmem_device_get(dev, "calib-data");
 	if (IS_ERR(instance->nvmem)) {
