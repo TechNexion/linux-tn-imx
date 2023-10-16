@@ -119,6 +119,8 @@ struct i2c_config ds90ub948_probe_config[] = {
 	{0x03, 0xF8}, //enable CRC, i2c pass through
 	{0x49, 0x62}, //Set FPD_TX_MODE, MAPSEL=1(SPWG), Single OLDI output
 	{0x34, 0x02}, //Select FPD-Link III Port 0, GPIOx instead of D_GPIOx
+	{0x26, 0x19}, //SCL_HIGH_TIME: 1.5 us (50 ns * 0x19)
+	{0x27, 0x19}, //SCL_LOW_TIME: 1.5 us (50 ns * 0x19)
 	{0x1D, 0x19}, //GPIO0, MIPI_BL_EN
 	{0x1E, 0x99}, //GPIO1, MIPI_VDDEN; GPIO2, MIPI_BL_PWM
 
