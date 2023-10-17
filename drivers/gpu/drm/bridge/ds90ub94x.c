@@ -104,6 +104,9 @@ struct i2c_config ds90ub941_probe_config[] = {
 	{0x1E, 0x01}, //Select FPD-Link III Port 0
 	{0x5B, 0x21}, //FPD3_TX_MODE=single, Reset PLL
 	{0x4F, 0x8C}, //DSI Continuous Clock Mode,DSI 4 lanes
+	{0x0D, 0x33}, //GPIO0, MIPI_BL_EN
+	{0x0E, 0x33}, //GPIO1, MIPI_VDDEN; GPIO2, MIPI_BL_PWM
+	{0x0F, 0x03}, //Reset touch interrupt
 
 	{0x01, 0x00}, //Release DSI/DIGITLE reset
 
@@ -118,13 +121,12 @@ struct i2c_config ds90ub941_probe_config[] = {
 struct i2c_config ds90ub948_probe_config[] = {
 	{0x03, 0xF8}, //enable CRC, i2c pass through
 	{0x49, 0x62}, //Set FPD_TX_MODE, MAPSEL=1(SPWG), Single OLDI output
-	{0x34, 0x02}, //Select FPD-Link III Port 0, GPIOx instead of D_GPIOx
+	{0x34, 0x01}, //Select FPD-Link III Port 0
 	{0x26, 0x19}, //SCL_HIGH_TIME: 1.5 us (50 ns * 0x19)
 	{0x27, 0x19}, //SCL_LOW_TIME: 1.5 us (50 ns * 0x19)
-	{0x1D, 0x19}, //GPIO0, MIPI_BL_EN
-	{0x1E, 0x99}, //GPIO1, MIPI_VDDEN; GPIO2, MIPI_BL_PWM
-
-	{0x1F, 0x09}, //Reset touch interrupt
+	{0x1D, 0x15}, //GPIO0, MIPI_BL_EN
+	{0x1E, 0x55}, //GPIO1, MIPI_VDDEN; GPIO2, MIPI_BL_PWM
+	{0x1F, 0x05}, //Reset touch interrupt
 
 	{0x08, 0x54}, //TargetID_0: touch panel, 0x2A << 1
 	{0x10, 0x54}, //TargetALIAS_0: touch panel, 0x2A << 1
