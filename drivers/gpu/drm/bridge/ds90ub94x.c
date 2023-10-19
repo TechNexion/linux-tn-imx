@@ -6,8 +6,7 @@
 
 #define DS90UB941_I2C_ADDR 0x0c
 #define DS90UB948_I2C_ADDR 0x2c
-#define BYTE_MASK 0xFF
-#define XNOR(x, y)	(~(x ^ y) & BYTE_MASK)
+#define XNOR(x, y)	~(x ^ y)
 
 #define RESET_MDELAY 50
 #define I2C_RW_MDELAY 50
