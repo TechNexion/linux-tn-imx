@@ -486,7 +486,7 @@ static int tevs_standby(struct tevs *tevs, int enable)
 
 static int tevs_power_on(struct tevs *tevs)
 {
-	u8 isp_state;
+	u16 isp_state;
 	u8 timeout = 0;
 	int ret = 0;
 	dev_dbg(tevs->dev, "%s()\n", __func__);
@@ -495,8 +495,7 @@ static int tevs_power_on(struct tevs *tevs)
 	msleep(100);
 
 	while (timeout < 20) {
-		tevs_i2c_read(tevs,
-				HOST_COMMAND_TEVS_BOOT_STATE, &isp_state, 1);
+		tevs_i2c_read_16b(tevs, HOST_COMMAND_TEVS_BOOT_STATE, &isp_state);
 		if (isp_state == 0x08)
 			break;
 		dev_dbg(tevs->dev, "isp bootup state: %d\n", isp_state);
