@@ -6,7 +6,7 @@ dtbo-$(CONFIG_ARCH_MXC) += imx8mm-edm-g-wizard-sn65dsi84-vl10112880.dtbo imx8mm-
 			   imx8mm-edm-g-wizard-tevi-ov5640.dtbo imx8mm-edm-g-wizard-hdmi2mipi-tc358743.dtbo imx8mm-edm-g-wizard-tevi-ap1302.dtbo imx8mm-edm-g-wizard-vizionlink-tevi-ap1302.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mm-pico-pi-ili9881c.dtbo imx8mm-pico-pi-voicehat.dtbo \
 			   imx8mm-pico-pi-clixnfc.dtbo imx8mm-pico-pi-tevi-ov5640.dtbo \
-			   imx8mm-pico-pi-tevi-ap1302.dtbo
+			   imx8mm-pico-pi-tevi-ap1302.dtbo imx8mm-pico-pi-tevs.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mm-pico-wizard-ili9881c.dtbo imx8mm-pico-wizard-voicehat.dtbo imx8mm-pico-wizard-mipi2hdmi-adv7535.dtbo \
 			   imx8mm-pico-wizard-g080uan01.dtbo imx8mm-pico-wizard-g101uan02.dtbo \
 			   imx8mm-pico-wizard-clix1nfc.dtbo imx8mm-pico-wizard-clix2nfc.dtbo \
