@@ -194,17 +194,23 @@
 #define TEVS_ORIENTATION 						HOST_COMMAND_ISP_CTRL_FLIP
 #define TEVS_ORIENTATION_HFLIP 					(1U << 0)
 #define TEVS_ORIENTATION_VFLIP 					(1U << 1)
-// #define TEVS_FLICK_CTRL						(0xFFFF) // TEVS_REG_16BIT(0x5440)
-// #define TEVS_FLICK_CTRL_FREQ(n)				((n) << 8)
-// #define TEVS_FLICK_CTRL_ETC_IHDR_UP			BIT(6)
-// #define TEVS_FLICK_CTRL_ETC_DIS				BIT(5)
-// #define TEVS_FLICK_CTRL_FRC_OVERRIDE_MAX_ET	BIT(4)
-// #define TEVS_FLICK_CTRL_FRC_OVERRIDE_UPPER_ET	BIT(3)
-// #define TEVS_FLICK_CTRL_FRC_EN				BIT(2)
-// #define TEVS_FLICK_CTRL_MODE_MASK				(3U << 0)
-// #define TEVS_FLICK_CTRL_MODE_DISABLED			(0U << 0)
-// #define TEVS_FLICK_CTRL_MODE_MANUAL			(1U << 0)
-// #define TEVS_FLICK_CTRL_MODE_AUTO				(2U << 0)
+#define TEVS_FLICK_CTRL    						HOST_COMMAND_ISP_CTRL_FLICK_CTRL
+#define TEVS_FLICK_CTRL_MASK					(0xFFFF) // TEVS_REG_16BIT(0x5440)
+#define TEVS_FLICK_CTRL_FREQ(n)					((n) << 8)
+#define TEVS_FLICK_CTRL_ETC_IHDR_UP				BIT(6)
+#define TEVS_FLICK_CTRL_ETC_DIS					BIT(5)
+#define TEVS_FLICK_CTRL_FRC_OVERRIDE_MAX_ET		BIT(4)
+#define TEVS_FLICK_CTRL_FRC_OVERRIDE_UPPER_ET	BIT(3)
+#define TEVS_FLICK_CTRL_FRC_EN					BIT(2)
+#define TEVS_FLICK_CTRL_MODE_MASK				(3U << 0)
+#define TEVS_FLICK_CTRL_MODE_DISABLED			(0U << 0)
+#define TEVS_FLICK_CTRL_MODE_MANUAL				(1U << 0)
+#define TEVS_FLICK_CTRL_MODE_AUTO				(2U << 0)
+#define TEVS_FLICK_CTRL_FREQ_MASK			    (0xFF00)
+#define TEVS_FLICK_CTRL_MODE_50HZ             (TEVS_FLICK_CTRL_FREQ(50) | TEVS_FLICK_CTRL_MODE_MANUAL)
+#define TEVS_FLICK_CTRL_MODE_60HZ             (TEVS_FLICK_CTRL_FREQ(60) | TEVS_FLICK_CTRL_MODE_MANUAL)
+#define TEVS_FLICK_MODE_DISABLED_IDX			(0U << 0)
+#define TEVS_FLICK_MODE_ENABLED_IDX			(3U << 0)
 #define TEVS_AWB_MANUAL_TEMP 					HOST_COMMAND_ISP_CTRL_AWB_TEMP
 #define TEVS_AWB_MANUAL_TEMP_MAX 				HOST_COMMAND_ISP_CTRL_AWB_TEMP_MAX
 #define TEVS_AWB_MANUAL_TEMP_MIN 				HOST_COMMAND_ISP_CTRL_AWB_TEMP_MIN
@@ -1218,49 +1224,70 @@ static int tevs_get_vflip(struct tevs *tevs, s32 *flip)
 	return 0;
 }
 
-// static const u16 tevs_flicker_values[] = {
-// 	TEVS_FLICK_CTRL_MODE_DISABLED,
-// 	TEVS_FLICK_CTRL_FREQ(50) | TEVS_FLICK_CTRL_MODE_MANUAL,
-// 	TEVS_FLICK_CTRL_FREQ(60) | TEVS_FLICK_CTRL_MODE_MANUAL,
-// 	TEVS_FLICK_CTRL_MODE_AUTO,
-// };
+static const char * const flick_mode_strings[] = {
+	"Disabled", 
+	"50 Hz",
+	"60 Hz",
+	"Auto",
+	NULL,
+};
 
-// static int tevs_set_flicker_freq(struct tevs *tevs, s32 val)
-// {
-// 	return tevs_i2c_write_16b(tevs, TEVS_FLICK_CTRL,
-// 			    tevs_flicker_values[val]);
-// }
+static int tevs_set_flick_mode(struct tevs *tevs, s32 mode)
+{
+	u16 val = 0;
+	switch(mode)
+	{
+	case 0:
+		val = TEVS_FLICK_CTRL_MODE_DISABLED;
+		break;
+	case 1:
+		val = TEVS_FLICK_CTRL_MODE_50HZ;
+		break;
+	case 2:
+		val = TEVS_FLICK_CTRL_MODE_60HZ;
+		break;
+	case 3:
+		val = TEVS_FLICK_CTRL_MODE_AUTO | 
+				TEVS_FLICK_CTRL_FRC_OVERRIDE_UPPER_ET | 
+				TEVS_FLICK_CTRL_FRC_EN;
+		break;
+	default:
+		val = TEVS_FLICK_CTRL_MODE_DISABLED;
+		break;
+	}
 
-// static int tevs_get_flicker_freq(struct tevs *tevs, s32 *value)
-// {
-// 	u16 val;
-// 	int ret;
+	return tevs_i2c_write_16b(tevs, TEVS_FLICK_CTRL, val);
+}
 
-// 	ret = tevs_i2c_read_16b(tevs, TEVS_FLICK_CTRL, &val);
-// 	if (ret)
-// 		return ret;
+static int tevs_get_flick_mode(struct tevs *tevs, s32 *mode)
+{
+	u16 val;
+	int ret;
 
-// 	*value = V4L2_CID_POWER_LINE_FREQUENCY_AUTO; // Default
+	ret = tevs_i2c_read_16b(tevs, TEVS_FLICK_CTRL, &val);
+	if (ret)
+		return ret;
 
-// 	if ((val & TEVS_FLICK_CTRL_MODE_MASK) ==
-// 			TEVS_FLICK_CTRL_MODE_DISABLED) {
-// 		*value = V4L2_CID_POWER_LINE_FREQUENCY_DISABLED;
-// 	}
-// 	else if ((val & TEVS_FLICK_CTRL_MODE_MASK) ==
-// 			TEVS_FLICK_CTRL_MODE_MANUAL) {
-// 		if ((val >> 8) == 50)
-// 			*value = V4L2_CID_POWER_LINE_FREQUENCY_50HZ;
-// 		if ((val >> 8) == 60)
-// 			*value = V4L2_CID_POWER_LINE_FREQUENCY_60HZ;
-
-// 	}
-// 	else if((val & TEVS_FLICK_CTRL_MODE_MASK) ==
-// 			TEVS_FLICK_CTRL_MODE_AUTO) {
-// 		*value = V4L2_CID_POWER_LINE_FREQUENCY_AUTO;
-// 	}
-
-// 	return 0;
-// }
+	switch (val & TEVS_FLICK_CTRL_MODE_MASK)
+	{
+	case TEVS_FLICK_CTRL_MODE_DISABLED:
+		*mode = 0;
+		break;
+	case TEVS_FLICK_CTRL_MODE_MANUAL:
+		if((val & TEVS_FLICK_CTRL_FREQ_MASK) == TEVS_FLICK_CTRL_FREQ(50))
+			*mode = 1;
+		else if((val & TEVS_FLICK_CTRL_FREQ_MASK)  == TEVS_FLICK_CTRL_FREQ(50))
+			*mode = 2;
+		break;
+	case TEVS_FLICK_CTRL_MODE_AUTO:
+		*mode = 3;
+		break;
+	default:
+		*mode = 0;
+		break;
+	}
+	return 0;
+}
 
 static int tevs_set_awb_temp(struct tevs *tevs, s32 value)
 {
@@ -1703,8 +1730,8 @@ static int tevs_s_ctrl(struct v4l2_ctrl *ctrl)
 	case V4L2_CID_VFLIP:
 		return tevs_set_vflip(tevs, ctrl->val);
 
-		// case V4L2_CID_POWER_LINE_FREQUENCY:
-		// 	return tevs_set_flicker_freq(tevs, ctrl->val);
+	case V4L2_CID_POWER_LINE_FREQUENCY:
+		return tevs_set_flick_mode(tevs, ctrl->val);
 
 	case V4L2_CID_WHITE_BALANCE_TEMPERATURE:
 		return tevs_set_awb_temp(tevs, ctrl->val);
@@ -1772,8 +1799,8 @@ static int tevs_g_ctrl(struct v4l2_ctrl *ctrl)
 	case V4L2_CID_VFLIP:
 		return tevs_get_vflip(tevs, &ctrl->val);
 
-		// case V4L2_CID_POWER_LINE_FREQUENCY:
-		// 	return tevs_get_flicker_freq(tevs, &ctrl->val);
+	case V4L2_CID_POWER_LINE_FREQUENCY:
+		return tevs_get_flick_mode(tevs, &ctrl->val);
 
 	case V4L2_CID_WHITE_BALANCE_TEMPERATURE:
 		return tevs_get_awb_temp(tevs, &ctrl->val);
@@ -1912,13 +1939,15 @@ static const struct v4l2_ctrl_config tevs_ctrls[] = {
 		.step = 1,
 		.def = 0,
 	},
-	// {
-	// 	.ops = &tevs_ctrl_ops,
-	// 	.id = V4L2_CID_POWER_LINE_FREQUENCY,
-	// 	.min = 0,
-	// 	.max = 3,
-	// 	.def = 3,
-	// },
+	{
+		.ops = &tevs_ctrl_ops,
+		.id = V4L2_CID_POWER_LINE_FREQUENCY,
+		.name = "Power_Line_Frequency",
+		.type = V4L2_CTRL_TYPE_MENU,
+		.max = TEVS_FLICK_MODE_ENABLED_IDX,
+		.def = TEVS_FLICK_MODE_DISABLED_IDX,
+		.qmenu = flick_mode_strings,
+	},
 	{
 		.ops = &tevs_ctrl_ops,
 		.id = V4L2_CID_WHITE_BALANCE_TEMPERATURE,
