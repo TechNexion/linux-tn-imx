@@ -86,6 +86,9 @@
 #define HOST_COMMAND_ISP_CTRL_CT_MIN                            (0x3174)
 #define HOST_COMMAND_ISP_CTRL_SYSTEM_START                      (0x3176)
 #define HOST_COMMAND_ISP_CTRL_ISP_RESET                         (0x3178)
+#define HOST_COMMAND_ISP_CTRL_TRIGGER_MODE                      (0x317A)
+#define HOST_COMMAND_ISP_CTRL_FLICK_CTRL                        (0x317C)
+#define HOST_COMMAND_ISP_CTRL_MIPI_FREQ                         (0x317E)
 
 /* Define host command register of ISP bootdata page */
 #define HOST_COMMAND_ISP_BOOTDATA_1                             (0x4000)
@@ -285,6 +288,7 @@ struct tevs {
 
 	int data_lanes;
 	int continuous_clock;
+	int data_frequency;
 	u8 selected_mode;
 	u8 selected_sensor;
 	bool supports_over_4k_res;
@@ -484,27 +488,39 @@ static int tevs_standby(struct tevs *tevs, int enable)
 	return 0;
 }
 
+static int tevs_check_boot_state(struct tevs *tevs)
+{
+	u16 boot_state;
+	u8 timeout = 0;
+	int ret = 0;
+
+	while (timeout < 20) {
+		tevs_i2c_read_16b(tevs,
+				HOST_COMMAND_TEVS_BOOT_STATE, &boot_state);
+		if (boot_state == 0x08)
+			break;
+		dev_dbg(tevs->dev, "tevs bootup state: %d\n", boot_state);
+		if (++timeout >= 20) {
+			dev_err(tevs->dev, "tevs bootup timeout: state: 0x%02X\n", boot_state);
+			ret = -EINVAL;
+		}
+		msleep(20);
+	}
+
+	return ret;
+}
+
 static int tevs_power_on(struct tevs *tevs)
 {
-	u16 isp_state;
-	u8 timeout = 0;
 	int ret = 0;
 	dev_dbg(tevs->dev, "%s()\n", __func__);
 
 	gpiod_set_value_cansleep(tevs->reset_gpio, 1);
 	msleep(100);
 
-	while (timeout < 20) {
-		tevs_i2c_read_16b(tevs, HOST_COMMAND_TEVS_BOOT_STATE, &isp_state);
-		if (isp_state == 0x08)
-			break;
-		dev_dbg(tevs->dev, "isp bootup state: %d\n", isp_state);
-		if (++timeout >= 20) {
-			dev_err(tevs->dev, "isp bootup timeout: state: 0x%02X\n", isp_state);
-			ret = -EINVAL;
-		}
-		msleep(20);
-	}
+	ret = tevs_check_boot_state(tevs);
+	if(ret != 0)
+		return ret;
 
 	if((tevs->hw_reset_mode | tevs->trigger_mode)) {
 		ret = tevs_init_setting(tevs);
@@ -2190,6 +2206,16 @@ static int tevs_probe(struct i2c_client *client,
 		}
 	}
 
+	tevs->data_frequency = 800;
+	if (of_property_read_u32(tevs->dev->of_node, "data-frequency",
+				 &tevs->data_frequency) == 0) {
+		if ((tevs->data_frequency < 100) || (tevs->data_frequency > 1200)) {
+			dev_err(tevs->dev,
+				"value of 'data-frequency = <%d>' property is invaild\n", tevs->data_frequency);
+			return -EINVAL;
+		}
+	}
+
 	tevs->supports_over_4k_res =
 		of_property_read_bool(dev->of_node, "supports-over-4k-res");
 
@@ -2207,6 +2233,19 @@ static int tevs_probe(struct i2c_client *client,
 
 	if (tevs_try_on(tevs) != 0) {
 		dev_err(dev, "cannot find tevs camera\n");
+		return -EINVAL;
+	}
+
+	ret = tevs_i2c_write_16b(tevs,
+				HOST_COMMAND_ISP_CTRL_MIPI_FREQ,
+				tevs->data_frequency);
+	msleep(100);
+	if (tevs_check_boot_state(tevs) != 0) {
+		dev_err(tevs->dev, "check tevs bootup status failed\n");
+		return -EINVAL;
+	}
+	if (ret < 0) {
+		dev_err(tevs->dev, "set mipi frequency failed\n");
 		return -EINVAL;
 	}
 
