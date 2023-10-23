@@ -1745,20 +1745,6 @@ static int sensor_probe(struct i2c_client *client, const struct i2c_device_id *i
 		}
 	}
 
-	// flash_node = of_parse_phandle(dev->of_node, "nvmem", 0);
-	// if (flash_node == NULL) {
-	// 	dev_err(dev, "missing nvmem handle\n");
-	// 	return -EINVAL;
-	// }
-
-	// ret = of_property_read_u32(flash_node, "reg", &flash_id);
-	// if (ret) {
-	// 	dev_err(dev, "invalid flash id on %pOF\n", flash_node);
-	// 	return ret;
-	// }
-	// dev_info(dev, "Read flash id 0x%02x\n", flash_id);
-	// instance->flash_id = flash_id;
-
 	instance->supports_over_4k_res = of_property_read_bool(dev->of_node, "supports-over-4k-res");
 
 	dev_dbg(dev, "data-lanes [%d] ,continuous-clock [%d], supports-over-4k-res [%d]\n",
