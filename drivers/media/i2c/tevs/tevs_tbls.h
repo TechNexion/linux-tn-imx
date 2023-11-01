@@ -9,59 +9,59 @@ struct resolution {
 };
 
 static struct resolution ar0144_res_list[] = {
-	{.width = 640, .height = 480, .framerates = 60, .mode = 0},
-	{.width = 1280, .height = 720, .framerates = 60, .mode = 0},
+	{.width = 640, .height = 480, .framerates = 60, .mode = 2},
+	{.width = 1280, .height = 720, .framerates = 60, .mode = 1},
 	{.width = 1280, .height = 800, .framerates = 60, .mode = 0},
 };
 
 static struct resolution ar0234_res_list[] = {
 	{.width = 640, .height = 480, .framerates = 120, .mode = 1},
 	{.width = 1280, .height = 720, .framerates = 120, .mode = 0},
-	{.width = 1920, .height = 1080, .framerates = 85, .mode = 0},
+	{.width = 1920, .height = 1080, .framerates = 60, .mode = 0},
 	{.width = 1920, .height = 1200, .framerates = 60, .mode = 0},
 };
 
 static struct resolution ar0521_res_list[] = {
-	{.width = 640, .height = 480, .framerates = 60, .mode = 3},
+	{.width = 640, .height = 480, .framerates = 120, .mode = 3},
 	{.width = 1280, .height = 720, .framerates = 60, .mode = 3},
 	{.width = 1280, .height = 960, .framerates = 60, .mode = 3},
 	{.width = 1920, .height = 1080, .framerates = 60, .mode = 1},
-	{.width = 2560, .height = 1440, .framerates = 30, .mode = 1},
-	{.width = 2592, .height = 1944, .framerates = 30, .mode = 1},
+	{.width = 2560, .height = 1440, .framerates = 32, .mode = 1},
+	{.width = 2592, .height = 1944, .framerates = 24, .mode = 1},
 };
 
 static struct resolution ar0522_res_list[] = {
-	{.width = 640, .height = 480, .framerates = 60, .mode = 3},
+	{.width = 640, .height = 480, .framerates = 120, .mode = 3},
 	{.width = 1280, .height = 720, .framerates = 60, .mode = 3},
 	{.width = 1280, .height = 960, .framerates = 60, .mode = 3},
 	{.width = 1920, .height = 1080, .framerates = 60, .mode = 1},
-	{.width = 2560, .height = 1440, .framerates = 40, .mode = 1},
-	{.width = 2592, .height = 1944, .framerates = 40, .mode = 1},
+	{.width = 2560, .height = 1440, .framerates = 32, .mode = 1},
+	{.width = 2592, .height = 1944, .framerates = 24, .mode = 1},
 };
 
 static struct resolution ar0821_res_list[] = {
-	{.width = 640, .height = 480, .framerates = 30, .mode = 2},
-	{.width = 1280, .height = 720, .framerates = 30, .mode = 2},
-	{.width = 1920, .height = 1080, .framerates = 30, .mode = 2},
+	{.width = 640, .height = 480, .framerates = 60, .mode = 2},
+	{.width = 1280, .height = 720, .framerates = 60, .mode = 2},
+	{.width = 1920, .height = 1080, .framerates = 60, .mode = 2},
 	{.width = 2560, .height = 1440, .framerates = 30, .mode = 0},
-	{.width = 3840, .height = 2160, .framerates = 20, .mode = 0},
+	{.width = 3840, .height = 2160, .framerates = 15, .mode = 0},
 };
 
 static struct resolution ar0822_res_list[] = {
-	{.width = 640, .height = 480, .framerates = 30, .mode = 1},
-	{.width = 1280, .height = 720, .framerates = 30, .mode = 1},
-	{.width = 1920, .height = 1080, .framerates = 30, .mode = 1},
+	{.width = 640, .height = 480, .framerates = 60, .mode = 1},
+	{.width = 1280, .height = 720, .framerates = 60, .mode = 1},
+	{.width = 1920, .height = 1080, .framerates = 60, .mode = 1},
 	{.width = 2560, .height = 1440, .framerates = 30, .mode = 0},
-	{.width = 3840, .height = 2160, .framerates = 20, .mode = 0},
+	{.width = 3840, .height = 2160, .framerates = 15, .mode = 0},
 };
 
 static struct resolution ar1335_res_list[] = {
 	{.width = 640, .height = 480, .framerates = 60, .mode = 4},
-	{.width = 1280, .height = 720, .framerates = 60, .mode = 4},
+	{.width = 1280, .height = 720, .framerates = 120, .mode = 4},
 	{.width = 1920, .height = 1080, .framerates = 60, .mode = 3},
 	{.width = 2560, .height = 1440, .framerates = 30, .mode = 1},
-	{.width = 3840, .height = 2160, .framerates = 20, .mode = 0},
-	{.width = 4208, .height = 3120, .framerates = 15, .mode = 0},
+	{.width = 3840, .height = 2160, .framerates = 15, .mode = 0},
+	{.width = 4208, .height = 3120, .framerates = 10, .mode = 0},
 };
 
 struct sensor_info {
