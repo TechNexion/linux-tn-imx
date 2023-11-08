@@ -232,6 +232,42 @@ static int sensor_i2c_write_bust(struct i2c_client *client, u8 *buf, size_t len)
 	return 0;
 }
 
+static int check_sensor_chip_id(struct i2c_client *client, u16* chip_id)
+{
+	int timeout;
+
+	for (timeout = 0 ; timeout < 100 ; timeout ++) {
+		usleep_range(9000, 10000);
+		sensor_i2c_read_16b(client, 0x60AC, chip_id);
+		if ((*chip_id & 0x7) == 0)
+			break;
+	}
+	if (timeout >= 100) {
+		dev_err(&client->dev, "timeout: line[%d]v=%x\n", __LINE__, *chip_id);
+		return -EINVAL;
+	}
+	sensor_i2c_write_16b(client, 0x60AA, 0x0002); // DMA_SIZE
+	sensor_i2c_write_16b(client, 0x60A0, 0x0320); // DMA_SRC_0
+	sensor_i2c_write_16b(client, 0x60A2, 0x3000); // DMA_SRC_1
+	sensor_i2c_write_16b(client, 0x60A4, 0x0000); // DMA_DST_0
+	sensor_i2c_write_16b(client, 0x60A6, 0x60A4); // DMA_DST_1
+	sensor_i2c_write_16b(client, 0x60AC, 0x0032); // DMA_CTRL
+	for (timeout = 0 ; timeout < 100 ; timeout ++) {
+		usleep_range(9000, 10000);
+		sensor_i2c_read_16b(client, 0x60AC, chip_id);
+		if ((*chip_id & 0x7) == 0)
+			break;
+	}
+	if (timeout >= 100) {
+		dev_err(&client->dev, "timeout: line[%d]v=%x\n", __LINE__, *chip_id);
+		return -EINVAL;
+	}
+	sensor_i2c_read_16b(client, 0x60A4, chip_id);
+
+	return 0;
+}
+
+
 static int ops_power(struct v4l2_subdev *sub_dev, int on)
 {
 	//struct sensor *instance = container_of(sub_dev, struct sensor, v4l2_subdev);
@@ -295,6 +331,7 @@ static int ops_set_frame_interval(struct v4l2_subdev *sub_dev,
 static int ops_set_stream(struct v4l2_subdev *sub_dev, int enable)
 {
 	struct sensor *instance = container_of(sub_dev, struct sensor, v4l2_subdev);
+	u16 v = 0;
 	int ret = 0;
 
 	dev_dbg(sub_dev->dev, "%s() enable [%x]\n", __func__, enable);
@@ -331,6 +368,13 @@ static int ops_set_stream(struct v4l2_subdev *sub_dev, int enable)
 			//PREVIEW_MAX_FPS
 			sensor_i2c_write_16b(instance->i2c_client, 0x2020, fps << 8);
 			sensor_i2c_write_16b(instance->i2c_client, 0x1184, 0xb); //ATOMIC
+
+			check_sensor_chip_id(instance->i2c_client, &v);
+			if (v == 0x356) {
+				dev_dbg(sub_dev->dev, "sensor check: v=0x%x\nneed to set preview hinf spoof w & h.\n", v);
+				sensor_i2c_write_16b(instance->i2c_client, 0x2032, ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].width * 2);
+				sensor_i2c_write_16b(instance->i2c_client, 0x2034, ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].height);
+			}
 		}
 	}
 
@@ -1401,41 +1445,6 @@ static const struct v4l2_subdev_ops sensor_subdev_ops = {
 static const struct media_entity_operations sensor_media_entity_ops = {
 	.link_setup = ops_media_link_setup,
 };
-
-static int check_sensor_chip_id(struct i2c_client *client, u16* chip_id)
-{
-	int timeout;
-
-	for (timeout = 0 ; timeout < 100 ; timeout ++) {
-		usleep_range(9000, 10000);
-		sensor_i2c_read_16b(client, 0x60AC, chip_id);
-		if ((*chip_id & 0x7) == 0)
-			break;
-	}
-	if (timeout >= 100) {
-		dev_err(&client->dev, "timeout: line[%d]v=%x\n", __LINE__, *chip_id);
-		return -EINVAL;
-	}
-	sensor_i2c_write_16b(client, 0x60AA, 0x0002); // DMA_SIZE
-	sensor_i2c_write_16b(client, 0x60A0, 0x0320); // DMA_SRC_0
-	sensor_i2c_write_16b(client, 0x60A2, 0x3000); // DMA_SRC_1
-	sensor_i2c_write_16b(client, 0x60A4, 0x0000); // DMA_DST_0
-	sensor_i2c_write_16b(client, 0x60A6, 0x60A4); // DMA_DST_1
-	sensor_i2c_write_16b(client, 0x60AC, 0x0032); // DMA_CTRL
-	for (timeout = 0 ; timeout < 100 ; timeout ++) {
-		usleep_range(9000, 10000);
-		sensor_i2c_read_16b(client, 0x60AC, chip_id);
-		if ((*chip_id & 0x7) == 0)
-			break;
-	}
-	if (timeout >= 100) {
-		dev_err(&client->dev, "timeout: line[%d]v=%x\n", __LINE__, *chip_id);
-		return -EINVAL;
-	}
-	sensor_i2c_read_16b(client, 0x60A4, chip_id);
-
-	return 0;
-}
 
 static int set_standby_mode_rel419(struct i2c_client *client, int enable)
 {
