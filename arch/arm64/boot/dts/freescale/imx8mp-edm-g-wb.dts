@@ -189,14 +189,14 @@
 	pca9555_a21: pca9555@21 {
 		compatible = "nxp,pca9555";
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_pca9555_a21_irq>;
+		// pinctrl-0 = <&pinctrl_pca9555_a21_irq>;
 		reg = <0x21>;
 		gpio-controller;
 		#gpio-cells = <2>;
-		interrupt-controller;
-		#interrupt-cells = <2>;
-		interrupt-parent = <&gpio1>;
-		interrupts = <10 IRQ_TYPE_LEVEL_LOW>;
+		// interrupt-controller;
+		// #interrupt-cells = <2>;
+		// interrupt-parent = <&gpio1>;
+		// interrupts = <10 IRQ_TYPE_LEVEL_LOW>;
 		status = "okay";
 		gpio-line-names = "EXPOSURE_TRIG_IN1", "FLASH_OUT1", "INFO_TRIG_IN1", "CAM_SHUTTER1", "XVS1", "PWR1_TIME0", "PWR1_TIME1", "PWR1_TIME2",
 							"EXPOSURE_TRIG_IN2", "FLASH_OUT2", "INFO_TRIG_IN2", "CAM_SHUTTER2", "XVS2", "PWR2_TIME0", "PWR2_TIME1", "PWR2_TIME2";
