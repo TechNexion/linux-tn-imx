@@ -9,8 +9,8 @@ struct resolution {
 };
 
 static struct resolution ar0144_res_list[] = {
-	{.width = 640, .height = 480, .framerates = 60, .mode = 2},
-	{.width = 1280, .height = 720, .framerates = 60, .mode = 1},
+	{.width = 640, .height = 480, .framerates = 60, .mode = 0},
+	{.width = 1280, .height = 720, .framerates = 60, .mode = 0},
 	{.width = 1280, .height = 800, .framerates = 60, .mode = 0},
 };
 
