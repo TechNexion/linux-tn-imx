@@ -392,6 +392,26 @@ int tevs_enable_trigger_mode(struct tevs *tevs, int enable)
 	return tevs_i2c_write(tevs, HOST_COMMAND_ISP_CTRL_I2C_ADDR, trigger_data, sizeof(trigger_data));
 }
 
+int tevs_check_version(struct tevs *tevs)
+{
+	struct device *dev = tevs->dev;
+	u8 version[4] = { 0 };
+	int ret = 0;
+
+	ret = tevs_i2c_read(tevs, HOST_COMMAND_TEVS_INFO_VERSION_MSB, &version[0], 4);
+	if(ret < 0) {
+		dev_err(dev, "can't check version\n");
+		return ret;
+	}
+	dev_info(
+		dev,
+		"Version:%d.%d.%d.%d\n",
+		version[0], version[1],
+		version[2], version[3]);
+
+	return 0;
+}
+
 int tevs_load_header_info(struct tevs *tevs)
 {
 	struct device *dev = tevs->dev;
@@ -413,10 +433,8 @@ int tevs_load_header_info(struct tevs *tevs)
 
 		dev_info(
 			dev,
-			"Product:%s, HeaderVer:%d, Version:%d.%d.%d.%d, MIPI_Rate:%d\n",
+			"Product:%s, HeaderVer:%d, MIPI_Rate:%d\n",
 			header->product_name, header->header_version,
-			header->tn_fw_version[0], header->tn_fw_version[1],
-			header->vendor_fw_version, header->custom_number,
 			header->mipi_datarate);
 
 		dev_dbg(dev, "content checksum: %x, content length: %d\n",
@@ -2275,6 +2293,12 @@ static int tevs_probe(struct i2c_client *client,
 	}
 	if (ret < 0) {
 		dev_err(tevs->dev, "set mipi frequency failed\n");
+		return -EINVAL;
+	}
+
+	ret = tevs_check_version(tevs);
+	if (ret < 0) {
+		dev_err(dev, "dev init failed\n");
 		return -EINVAL;
 	}
 
