@@ -243,10 +243,10 @@
 	expander1: gpio@21 {
 		compatible = "nxp,pca9555";
 		reg = <0x21>;
-		#interrupt-cells = <2>;
-		interrupt-controller;
-		interrupt-parent = <&gpio1>;
-		interrupts = <10 IRQ_TYPE_LEVEL_LOW>;
+		// #interrupt-cells = <2>;
+		// interrupt-controller;
+		// interrupt-parent = <&gpio1>;
+		// interrupts = <10 IRQ_TYPE_LEVEL_LOW>;
 		#gpio-cells = <2>;
 		gpio-controller;
 		gpio-line-names = "EXPOSURE_TRIG_IN1", "FLASH_OUT1",
@@ -255,7 +255,7 @@
 				  "EXPOSURE_TRIG_IN2", "FLASH_OUT2",
 				  "INFO_TRIG_IN2", "CAM_SHUTTER2", "XVS2",
 				  "PWR2_TIME0", "PWR2_TIME1", "PWR2_TIME2";
-		pinctrl-0 = <&pinctrl_expander1_irq>;
+		// pinctrl-0 = <&pinctrl_expander1_irq>;
 		pinctrl-names = "default";
 	};
 
