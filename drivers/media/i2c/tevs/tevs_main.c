@@ -159,7 +159,7 @@
 #define HOST_COMMAND_ISP_CTRL_I2C_ADDR                          (0xF000)
 #define HOST_COMMAND_ISP_CTRL_I2C_DATA                          (0xF002)
 
-#define TEVS_TRIGGER_CTRL                   	(0x1186)
+#define TEVS_TRIGGER_CTRL                   	HOST_COMMAND_ISP_CTRL_TRIGGER_MODE
 
 #define TEVS_BRIGHTNESS 						HOST_COMMAND_ISP_CTRL_BRIGHTNESS
 #define TEVS_BRIGHTNESS_MAX 					HOST_COMMAND_ISP_CTRL_BRIGHTNESS_MAX
@@ -381,15 +381,26 @@ int tevs_i2c_write_16b(struct tevs *tevs, u16 reg, u16 val)
 
 int tevs_enable_trigger_mode(struct tevs *tevs, int enable)
 {
-	u8 trigger_data[4];
+	int ret = 0;
+	int count = 0;
+	u16 val, trigger_data;
 	dev_dbg(tevs->dev, "%s(): enable:%d\n", __func__, enable);
+	trigger_data = (0x300 | ( (enable > 0) ? 0x82 : 0x80));
 
-	trigger_data[0] = TEVS_TRIGGER_CTRL >> 8;
-	trigger_data[1] = TEVS_TRIGGER_CTRL & 0xff;
-	trigger_data[2] = 0x3;
-	trigger_data[3] = (enable > 0) ? 0x82 : 0x80;
+	if((ret = tevs_i2c_write_16b(tevs, TEVS_TRIGGER_CTRL, trigger_data)) < 0)
+		return ret;
 
-	return tevs_i2c_write(tevs, HOST_COMMAND_ISP_CTRL_I2C_ADDR, trigger_data, sizeof(trigger_data));
+	do {
+		if((ret = tevs_i2c_read_16b(tevs, TEVS_TRIGGER_CTRL, &val)) < 0)
+				return ret;
+		if((val & 0x300) == 0)
+			break;
+
+	} while(count++ < 10);
+
+	usleep_range(90000, 100000);
+
+	return ret;
 }
 
 int tevs_check_version(struct tevs *tevs)
