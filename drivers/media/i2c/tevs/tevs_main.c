@@ -290,6 +290,7 @@ struct tevs {
 	struct regmap *regmap;
 	struct header_info *header_info;
 	struct gpio_desc *reset_gpio;
+	struct gpio_desc *host_pwdn_gpio;
 	struct gpio_desc *standby_gpio;
 
 	int data_lanes;
@@ -550,20 +551,30 @@ static int tevs_power_on(struct tevs *tevs)
 	int ret = 0;
 	dev_dbg(tevs->dev, "%s()\n", __func__);
 
+	gpiod_set_value_cansleep(tevs->host_pwdn_gpio, 1);
 	gpiod_set_value_cansleep(tevs->reset_gpio, 1);
 	msleep(100);
 
 	ret = tevs_check_boot_state(tevs);
-	if(ret != 0)
-		return ret;
+	if(ret != 0) {
+		goto error;
+	}
 
 	if((tevs->hw_reset_mode | tevs->trigger_mode)) {
 		ret = tevs_init_setting(tevs);
-		if (ret != 0) 
+		if (ret != 0) {
 			dev_err(tevs->dev, "init setting failed\n");
+			goto error;
+		}
 	}
 
 	return ret;
+
+error:
+	gpiod_set_value_cansleep(tevs->reset_gpio, 0);
+	gpiod_set_value_cansleep(tevs->host_pwdn_gpio, 0);
+	return ret;
+
 }
 
 static int tevs_power_off(struct tevs *tevs)
@@ -572,6 +583,7 @@ static int tevs_power_off(struct tevs *tevs)
 
 	if(tevs->hw_reset_mode) {
 		gpiod_set_value_cansleep(tevs->reset_gpio, 0);
+		gpiod_set_value_cansleep(tevs->host_pwdn_gpio, 0);
 	}
 
 	return 0;
@@ -671,26 +683,23 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 					.res_list[tevs->selected_mode]
 					.height);
 			tevs_i2c_write_16b(
-				tevs,
-				HOST_COMMAND_ISP_CTRL_PREVIEW_SENSOR_MODE,
+				tevs, HOST_COMMAND_ISP_CTRL_PREVIEW_SENSOR_MODE,
 				tevs_sensor_table[tevs->selected_sensor]
 					.res_list[tevs->selected_mode]
 					.mode);
 			tevs_i2c_write_16b(
-				tevs,
-				HOST_COMMAND_ISP_CTRL_PREVIEW_WIDTH,
+				tevs, HOST_COMMAND_ISP_CTRL_PREVIEW_WIDTH,
 				tevs_sensor_table[tevs->selected_sensor]
 					.res_list[tevs->selected_mode]
 					.width);
 			tevs_i2c_write_16b(
-				tevs,
-				HOST_COMMAND_ISP_CTRL_PREVIEW_HEIGHT,
+				tevs, HOST_COMMAND_ISP_CTRL_PREVIEW_HEIGHT,
 				tevs_sensor_table[tevs->selected_sensor]
 					.res_list[tevs->selected_mode]
 					.height);
 			tevs_i2c_write_16b(
-				tevs,
-				HOST_COMMAND_ISP_CTRL_PREVIEW_MAX_FPS, fps);
+				tevs, HOST_COMMAND_ISP_CTRL_PREVIEW_MAX_FPS,
+				fps);
 		}
 	}
 
@@ -2235,6 +2244,15 @@ static int tevs_probe(struct i2c_client *client,
 		return ret;
 	}
 
+	tevs->host_pwdn_gpio = 
+		devm_gpiod_get_optional(dev, "host-pwdn", GPIOD_OUT_LOW);
+	if (IS_ERR(tevs->host_pwdn_gpio)) {
+		ret = PTR_ERR(tevs->host_pwdn_gpio);
+		if (ret != -EPROBE_DEFER)
+			dev_err(dev, "Cannot get host-pwdn GPIO (%d)", ret);
+		return ret;
+	}
+
 	tevs->standby_gpio =
 		devm_gpiod_get_optional(dev, "standby", GPIOD_OUT_LOW);
 	if (IS_ERR(tevs->standby_gpio)) {
@@ -2381,14 +2399,14 @@ static int tevs_probe(struct i2c_client *client,
 		return -EINVAL;
 	}
 
-	if(tevs_init_setting(tevs)){
+	if (tevs_init_setting(tevs)) {
 		if (ret != 0) {
 			dev_err(tevs->dev, "init setting failed\n");
 			return ret;
 		}
 	}
 
-	if(!(tevs->hw_reset_mode | tevs->trigger_mode)) {
+	if (!(tevs->hw_reset_mode | tevs->trigger_mode)) {
 		ret = tevs_standby(tevs, 1);
 		if (ret != 0) {
 			dev_err(tevs->dev, "set standby mode failed\n");
