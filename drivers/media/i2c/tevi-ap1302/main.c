@@ -331,7 +331,6 @@ static int ops_set_frame_interval(struct v4l2_subdev *sub_dev,
 static int ops_set_stream(struct v4l2_subdev *sub_dev, int enable)
 {
 	struct sensor *instance = container_of(sub_dev, struct sensor, v4l2_subdev);
-	u16 v = 0;
 	int ret = 0;
 
 	dev_dbg(sub_dev->dev, "%s() enable [%x]\n", __func__, enable);
@@ -340,11 +339,16 @@ static int ops_set_stream(struct v4l2_subdev *sub_dev, int enable)
 		return -EINVAL;
 
 	if (enable == 0) {
+		/* 
+		 * This is a workaround for ISP bug. 
+		 * Before ISP standby, setting a default width and height for next streaming on.
+		 * Otherwise, some resolutions of sensor will not streaming successful.
+		 */ 
 		sensor_i2c_write_16b(instance->i2c_client, 0x1184, 1); //ATOMIC
 		//VIDEO_WIDTH
-		sensor_i2c_write_16b(instance->i2c_client, 0x2000, 1920);
+		sensor_i2c_write_16b(instance->i2c_client, 0x2000, 1280);
 		//VIDEO_HEIGHT
-		sensor_i2c_write_16b(instance->i2c_client, 0x2002, 1080);
+		sensor_i2c_write_16b(instance->i2c_client, 0x2002, 720);
 		sensor_i2c_write_16b(instance->i2c_client, 0x1184, 0xb); //ATOMIC
 		ret = sensor_standby(instance->i2c_client, 1);
 	} else {
@@ -368,13 +372,6 @@ static int ops_set_stream(struct v4l2_subdev *sub_dev, int enable)
 			//PREVIEW_MAX_FPS
 			sensor_i2c_write_16b(instance->i2c_client, 0x2020, fps << 8);
 			sensor_i2c_write_16b(instance->i2c_client, 0x1184, 0xb); //ATOMIC
-
-			check_sensor_chip_id(instance->i2c_client, &v);
-			if (v == 0x356) {
-				dev_dbg(sub_dev->dev, "sensor check: v=0x%x\nneed to set preview hinf spoof w & h.\n", v);
-				sensor_i2c_write_16b(instance->i2c_client, 0x2032, ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].width * 2);
-				sensor_i2c_write_16b(instance->i2c_client, 0x2034, ap1302_sensor_table[instance->selected_sensor].res_list[instance->selected_mode].height);
-			}
 		}
 	}
 
