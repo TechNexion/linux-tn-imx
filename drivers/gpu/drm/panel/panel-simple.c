@@ -4686,6 +4686,35 @@ static const struct panel_desc_dsi vizionpanel_15010276 = {
         .lanes = 4,
 };
 
+/* VXT VL156-13676YL-C03_spec.pdf */
+static const struct drm_display_mode vizionpanel_15613676_mode = {
+	.clock = 76000,
+	.hdisplay = 1366,
+	.hsync_start = 1366 + 90,
+	.hsync_end = 1366 + 90 + 20,
+	.htotal = 1368 + 90 + 20 + 90,
+	.vdisplay = 768,
+	.vsync_start = 768 + 17,
+	.vsync_end = 768 + 17 + 4,
+	.vtotal = 768 + 17 + 4 + 17
+};
+
+static const struct panel_desc_dsi vizionpanel_15613676 = {
+	.desc = {
+		.modes = &vizionpanel_15613676_mode,
+		.num_modes = 1,
+		.bpc = 8,
+		.size = {
+			.width = 344,
+			.height = 193,
+		},
+		.connector_type = DRM_MODE_CONNECTOR_DSI,
+	},
+	.flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_SYNC_PULSE,
+	.format = MIPI_DSI_FMT_RGB888,
+	.lanes = 4,
+};
+
 /* VXT VL215-192108YL-C05_spec.pdf */
 static const struct drm_display_mode vizionpanel_215192108_mode = {
 	.clock = 71200,
@@ -4965,6 +4994,9 @@ static const struct of_device_id dsi_of_match[] = {
 	}, {
 		.compatible = "tn,vizionpanel_15010276",
 		.data = &vizionpanel_15010276
+	}, {
+		.compatible = "tn,vizionpanel_15613676",
+		.data = &vizionpanel_15613676
 	}, {
 		.compatible = "tn,vizionpanel_215192108",
 		.data = &vizionpanel_215192108
