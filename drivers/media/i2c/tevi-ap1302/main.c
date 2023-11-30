@@ -1584,6 +1584,11 @@ static int sensor_standby(struct i2c_client *client, int enable)
 			return -EINVAL;
 		}
 	} else {
+		sensor_i2c_read_16b(client, 0x601a, &v);
+		if ((v & 0x200) == 0) {
+			dev_dbg(&client->dev, "sensor still work\n");
+			return 0;
+		}
 		sensor_i2c_write_16b(client, 0x601a, 0x0380);
 		for (timeout = 0 ; timeout < 100 ; timeout ++) {
 			usleep_range(9000, 10000);
