@@ -505,6 +505,7 @@
 	pm-ignore-notify;
 	keep-power-in-suspend;
 	non-removable;
+	fsl,sdio-interrupt-enabled;
 	status = "okay";
 };
 
