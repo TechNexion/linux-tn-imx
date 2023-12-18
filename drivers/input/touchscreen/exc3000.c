@@ -361,17 +361,9 @@ static int exc3000_probe(struct i2c_client *client)
 		return PTR_ERR(data->reset);
 
 	if (data->reset) {
-		msleep(EXC3000_RESET_MS);
 		gpiod_set_value_cansleep(data->reset, 0);
-		msleep(EXC3000_READY_MS);
-	}
-
-	data->reset = devm_gpiod_get_optional(&client->dev, "reset",
-					      GPIOD_OUT_HIGH);
-	if (IS_ERR(data->reset))
-		return PTR_ERR(data->reset);
-
-	if (data->reset) {
+		msleep(EXC3000_RESET_MS);
+		gpiod_set_value_cansleep(data->reset, 1);
 		msleep(EXC3000_RESET_MS);
 		gpiod_set_value_cansleep(data->reset, 0);
 		msleep(EXC3000_READY_MS);
