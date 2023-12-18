@@ -56,6 +56,18 @@
 		status = "disabled";
 	};
 
+	reg_mipi_en: regulator_mipi_en {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_gpio4_mipi>;
+		compatible = "regulator-fixed";
+		regulator-name = "mipi_en";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&gpio4 16 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		regulator-always-on;
+	};
+
 	reg_mipi_bl_pwr: regulator_mipi_blpwr {
 		pinctrl-names = "default";
 		compatible = "regulator-fixed";
