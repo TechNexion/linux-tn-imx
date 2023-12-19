@@ -51,6 +51,7 @@
 				reg = <0x2a>;
 				interrupt-parent = <&gpio4>;
 				interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
+				reset-gpios = <&gpio4 6 GPIO_ACTIVE_LOW>;
 				status = "okay";
 			};
 #if 0
