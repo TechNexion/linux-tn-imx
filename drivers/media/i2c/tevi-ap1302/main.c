@@ -332,6 +332,7 @@ static int ops_set_stream(struct v4l2_subdev *sub_dev, int enable)
 {
 	struct sensor *instance = container_of(sub_dev, struct sensor, v4l2_subdev);
 	int ret = 0;
+	u16 v = 0;
 
 	dev_dbg(sub_dev->dev, "%s() enable [%x]\n", __func__, enable);
 
@@ -339,6 +340,11 @@ static int ops_set_stream(struct v4l2_subdev *sub_dev, int enable)
 		return -EINVAL;
 
 	if (enable == 0) {
+		sensor_i2c_read_16b(instance->i2c_client, 0x601a, &v);
+		if ((v & 0x200) == 0x200) {
+			dev_dbg(sub_dev->dev, "sensor standby ready\n");
+			return 0;
+		}
 		/* 
 		 * This is a workaround for ISP bug. 
 		 * Before ISP standby, setting a default width and height for next streaming on.
@@ -1570,6 +1576,11 @@ static int sensor_standby(struct i2c_client *client, int enable)
 	}
 
 	if (enable == 1) {
+		sensor_i2c_read_16b(client, 0x601a, &v);
+		if ((v & 0x200) == 0x200) {
+			dev_dbg(&client->dev, "sensor standby ready\n");
+			return 0;
+		}
 		sensor_i2c_write_16b(client, 0x601a, 0x0180);
 		for (timeout = 0 ; timeout < 500 ; timeout ++) {
 			usleep_range(9000, 10000);
