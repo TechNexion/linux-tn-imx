@@ -258,6 +258,7 @@
 #define TEVS_BSL_MODE_FLASH_IDX 			(1U << 0)
 
 #define DEFAULT_HEADER_VERSION 3
+#define TEVS_BOOT_TIME						(100)
 
 struct header_info {
 	u8 header_version;
@@ -553,7 +554,7 @@ static int tevs_power_on(struct tevs *tevs)
 
 	gpiod_set_value_cansleep(tevs->host_pwdn_gpio, 1);
 	gpiod_set_value_cansleep(tevs->reset_gpio, 1);
-	msleep(100);
+	msleep(TEVS_BOOT_TIME);
 
 	ret = tevs_check_boot_state(tevs);
 	if(ret != 0) {
@@ -2282,10 +2283,10 @@ static int tevs_probe(struct i2c_client *client,
 		}
 	}
 
-	tevs->data_frequency = 800;
+	tevs->data_frequency = 0;
 	if (of_property_read_u32(tevs->dev->of_node, "data-frequency",
 				 &tevs->data_frequency) == 0) {
-		if ((tevs->data_frequency < 100) || (tevs->data_frequency > 1200)) {
+		if ((tevs->data_frequency != 0) && ((tevs->data_frequency < 100) || (tevs->data_frequency > 1200))) {
 			dev_err(tevs->dev,
 				"value of 'data-frequency = <%d>' property is invaild\n", tevs->data_frequency);
 			return -EINVAL;
@@ -2312,17 +2313,19 @@ static int tevs_probe(struct i2c_client *client,
 		return -EINVAL;
 	}
 
-	ret = tevs_i2c_write_16b(tevs,
-				HOST_COMMAND_ISP_CTRL_MIPI_FREQ,
-				tevs->data_frequency);
-	msleep(100);
-	if (tevs_check_boot_state(tevs) != 0) {
-		dev_err(tevs->dev, "check tevs bootup status failed\n");
-		return -EINVAL;
-	}
-	if (ret < 0) {
-		dev_err(tevs->dev, "set mipi frequency failed\n");
-		return -EINVAL;
+	if (tevs->data_frequency != 0) {
+		ret = tevs_i2c_write_16b(tevs,
+					HOST_COMMAND_ISP_CTRL_MIPI_FREQ,
+					tevs->data_frequency);
+		msleep(TEVS_BOOT_TIME);
+		if (tevs_check_boot_state(tevs) != 0) {
+			dev_err(tevs->dev, "check tevs bootup status failed\n");
+			return -EINVAL;
+		}
+		if (ret < 0) {
+			dev_err(tevs->dev, "set mipi frequency failed\n");
+			return -EINVAL;
+		}
 	}
 
 	ret = tevs_check_version(tevs);
