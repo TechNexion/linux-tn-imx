@@ -207,7 +207,7 @@ static int ds90ub94x_probe(struct i2c_client *client, const struct i2c_device_id
 
 	i2c_set_clientdata(client, ds90ub941);
 	//add new i2c_device for UB948
-	dummy_client = i2c_new_dummy_device(client->adapter, DS90UB948_I2C_ADDR);
+	dummy_client = devm_i2c_new_dummy_device(&client->dev, client->adapter, DS90UB948_I2C_ADDR);
 
 	ds90ub941->dev = &client->dev;
 	ds90ub941->regmap = devm_regmap_init_i2c(client, &config);
