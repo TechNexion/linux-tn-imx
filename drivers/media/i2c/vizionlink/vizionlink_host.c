@@ -24,8 +24,8 @@ static struct __reg8b_v __9096x_i2c_setting [] = {
 	{.reg = 0x07, .value = 0xFE}, //BCC Watchdog Control
 	{.reg = 0x08, .value = 0x1C}, //I2C Control 1
 	{.reg = 0x09, .value = 0x10}, //I2C Control 2
-	{.reg = 0x0A, .value = 0x7A}, //SCL High Time
-	{.reg = 0x0B, .value = 0x7A}, //SCL Low Time
+	{.reg = 0x0A, .value = 0x13}, //SCL High Time
+	{.reg = 0x0B, .value = 0x25}, //SCL Low Time
 	{.reg = 0x0D, .value = 0xB9}, //IO_CTL
 
 	{.reg = 0x32, .value = 0x01}, //CSI_PORT_SEL
