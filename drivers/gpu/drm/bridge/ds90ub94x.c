@@ -11,8 +11,8 @@
 #define RESET_MDELAY 50
 #define I2C_RW_MDELAY 50
 
-#define RETRY_TIL_ZERO_COUNT 10
-#define REGMAP_RETRY_COUNT 10
+#define RETRY_TIL_ZERO_COUNT 1
+#define REGMAP_RETRY_COUNT 1
 
 #define RETRY_TIL_ZERO( exp )				\
 ({							\
@@ -299,7 +299,7 @@ err_out:
 	regmap_read(ds90ub941->regmap, 0x0A, &crc_error_1);
 	regmap_read(ds90ub941->regmap, 0x0B, &crc_error_2);
 	dev_err(ds90ub941->dev, "ds90ub94x probe failed with CRC_ERROR_COUNT = 0x%02x%02x\n", crc_error_2, crc_error_1);
-	return ret;
+	return -EPROBE_DEFER;
 
 req_failed:
 	dev_err(ds90ub941->dev, "request memery/regmap/reset-gpios failed\n");
