@@ -227,6 +227,11 @@
 		reg = <0x3d>;
 		status = "disabled";
 	};
+
+	tevs_0: tevs@48 {
+		reg = <0x48>;
+		status = "disabled";
+	};
 };
 
 &i2c3 { /* I2C_D on AXON */
@@ -364,6 +369,10 @@
 		status = "disabled";
 	};
 
+	tevs_1: tevs@48 {
+		reg = <0x48>;
+		status = "disabled";
+	};
 };
 
 &flexcan1 {
