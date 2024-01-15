@@ -6,6 +6,13 @@
 
 #define DS90UB941_I2C_ADDR 0x0c
 #define DS90UB948_I2C_ADDR 0x2c
+
+#define DETECT_SER_REGMAP ds90ub941->regmap
+#define DETECT_DES_REGMAP ds90ub941->regmap
+#define GENERAL_STS	0x0c
+#define I2C_DEVICE_ID	0x00
+#define LINK_DETECT	BIT(0)
+
 #define XNOR(x, y)	~(x ^ y)
 
 #define RESET_MDELAY 50
@@ -195,7 +202,7 @@ static int ds90ub94x_probe(struct i2c_client *client, const struct i2c_device_id
 	struct ds90ub94x *ds90ub941, *ds90ub948;
 	struct i2c_client *dummy_client;
 	struct gpio_desc *reset_gpio;
-	int ret_ser, ret_des, i, crc_error_1, crc_error_2;
+	int ret_ser, ret_des, i, crc_error_1, crc_error_2, val_read;
 	int ret = 0;
 
 	ds90ub941 = devm_kzalloc(&client->dev, sizeof(struct ds90ub94x), GFP_KERNEL);
@@ -259,9 +266,26 @@ static int ds90ub94x_probe(struct i2c_client *client, const struct i2c_device_id
 		gpiod_direction_output(reset_gpio, 0);
 		msleep(RESET_MDELAY);
 
-		ret_ser = ds90ub94x_init(ds90ub941);
+
+		ret = regmap_read(DETECT_SER_REGMAP, I2C_DEVICE_ID, &val_read);
+		if (!ret)
+			ret_ser = ds90ub94x_init(ds90ub941);
+		else {
+			dev_err(ds90ub941->dev, "failed to find ds90ub941(serializer) ...");
+			ret= -ENXIO;
+			goto connection_failed;
+		}
+
 		msleep(RESET_MDELAY);
-		ret_des = ds90ub94x_init(ds90ub948);
+
+		ret = regmap_read(DETECT_DES_REGMAP, GENERAL_STS, &val_read);
+		if (( (val_read & LINK_DETECT ) == LINK_DETECT ))
+			ret_des = ds90ub94x_init(ds90ub948);
+		else {
+			dev_err(ds90ub948->dev, "failed to find ds90ub948(deserializer) ...");
+			ret= -ENXIO;
+			goto connection_failed;
+		}
 
 		if ( (! ret_ser) && (! ret_des) )
 			break;
@@ -304,6 +328,9 @@ err_out:
 
 req_failed:
 	dev_err(ds90ub941->dev, "request memery/regmap/reset-gpios failed\n");
+
+connection_failed:
+	dev_err(ds90ub941->dev, "ds90ub94x failed connect to each other\n");
 	return ret;
 }
 
