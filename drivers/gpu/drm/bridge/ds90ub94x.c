@@ -181,6 +181,7 @@ static int ds90ub94x_init(struct ds90ub94x *ds90ub94x)
 			return -EIO;
 	}
 
+	msleep(RESET_MDELAY);
 	if ( RETRY_TIL_ZERO(regmap_i2c_rw_check_retry(ds90ub94x, ds90ub94x->probe_info, ds90ub94x->probe_info_size)) != 0 ) {
 		dev_err(ds90ub94x->dev, "ds90ub94x init fail\n");
 		return -EIO;
