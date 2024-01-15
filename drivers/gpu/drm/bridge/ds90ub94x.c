@@ -248,9 +248,15 @@ static int ds90ub94x_probe(struct i2c_client *client, const struct i2c_device_id
 					     GPIOD_OUT_HIGH);
 
 	if (! reset_gpio) {
-		dev_err(ds90ub941->dev,"reset-gpio get failed\n");
-		ret = PTR_ERR(reset_gpio);
-		goto req_failed;
+		dev_info(ds90ub941->dev,"reset-gpio get failed\n");
+		dev_info(ds90ub941->dev,"not using HW-PDB reset");
+	} else {
+		gpiod_direction_output(reset_gpio, 0);
+		msleep(RESET_MDELAY);
+		gpiod_direction_output(reset_gpio, 1);
+		msleep(RESET_MDELAY);
+		gpiod_direction_output(reset_gpio, 0);
+		msleep(RESET_MDELAY);
 	}
 
 	for ( i = 0; i<=RETRY_TIL_ZERO_COUNT; i++) {
@@ -259,12 +265,6 @@ static int ds90ub94x_probe(struct i2c_client *client, const struct i2c_device_id
 			goto err_out;
 		}
 
-		gpiod_direction_output(reset_gpio, 0);
-		msleep(RESET_MDELAY);
-		gpiod_direction_output(reset_gpio, 1);
-		msleep(RESET_MDELAY);
-		gpiod_direction_output(reset_gpio, 0);
-		msleep(RESET_MDELAY);
 
 
 		ret = regmap_read(DETECT_SER_REGMAP, I2C_DEVICE_ID, &val_read);
@@ -327,7 +327,8 @@ err_out:
 	return -EPROBE_DEFER;
 
 req_failed:
-	dev_err(ds90ub941->dev, "request memery/regmap/reset-gpios failed\n");
+	dev_err(ds90ub941->dev, "request memery/regmap failed\n");
+	return ret;
 
 connection_failed:
 	dev_err(ds90ub941->dev, "ds90ub94x failed connect to each other\n");
