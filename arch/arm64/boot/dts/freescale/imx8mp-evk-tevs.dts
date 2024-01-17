@@ -1,0 +1,133 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2020 TechNexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *         Ray Chang <ray.chang@technexion.com>
+ *
+ */
+
+#include "imx8mp-evk.dts"
+
+/ {
+	model = "NXP i.MX8MPlus EVK board with TechNexion TEVS camera";
+};
+
+&iomuxc {
+	tevs_pinctrl_csi0_pwn: tevs_csi0_pwn_grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SD1_STROBE__GPIO2_IO11	0x9 /* CSI1_PWDN for host-power-gpios */
+			MX8MP_IOMUXC_GPIO1_IO05__GPIO1_IO05	0x9 /* INFO_TRIG_IN1 for standby-gpios */
+		>;
+	};
+
+	tevs_pinctrl_csi1_pwn: tevs_csi1_pwn_grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SD1_STROBE__GPIO2_IO11	0x9 /* CSI1_PWDN for host-power-gpios */
+			MX8MP_IOMUXC_GPIO1_IO07__GPIO1_IO07	0x9 /* INFO_TRIG_IN1 for standby-gpios */
+		>;
+	};
+
+	tevs_pinctrl_csi_mclk: tevs_csi_mclk_grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_GPIO1_IO15__GPIO1_IO15	0x9
+		>;
+	};
+
+	tevs_pinctrl_csi_rst: tevs_csi_rst_grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_GPIO1_IO06__GPIO1_IO06		0x19
+		>;
+	};
+};
+
+&mipi_csi_0 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+
+	port@0 {
+		reg = <0>;
+		mipi_csi0_ep: endpoint {
+			remote-endpoint = <&tevs_0_ep>;
+			data-lanes = <4>;
+			csis-hs-settle = <13>;
+			csis-clk-settle = <2>;
+			csis-wclk;
+		};
+	};
+};
+
+
+&mipi_csi_1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+
+	port@1 {
+		reg = <1>;
+		mipi_csi1_ep: endpoint {
+			remote-endpoint = <&tevs_1_ep>;
+			data-lanes = <4>;
+			csis-hs-settle = <13>;
+			csis-clk-settle = <2>;
+			csis-wclk;
+		};
+	};
+};
+
+
+&i2c2 {
+	clock-frequency = <400000>;
+
+	/delete-node/ ov5640_mipi@3c;
+
+	tevs_0: tevs@48 {
+		compatible = "tn,tevs";
+		reg = <0x48>;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&tevs_pinctrl_csi0_pwn>, <&tevs_pinctrl_csi_rst>, <&tevs_pinctrl_csi_mclk>;
+		host-power-gpios = <&gpio1 5 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
+		standby-gpios = <&gpio2 11 GPIO_ACTIVE_HIGH>;
+		data-lanes = <4>;
+		// data-frequency = <800>;
+		continuous-clock = <0>;
+		status = "okay";
+
+		port {
+			tevs_0_ep: endpoint {
+				remote-endpoint = <&mipi_csi0_ep>;
+			};
+		};
+	};
+};
+
+
+&i2c3 {
+	clock-frequency = <400000>;
+
+	/delete-node/ ov5640_mipi@3c;
+
+	tevs_1: tevs@48 {
+		compatible = "tn,tevs";
+		reg = <0x48>;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&tevs_pinctrl_csi1_pwn>, <&tevs_pinctrl_csi_rst>, <&tevs_pinctrl_csi_mclk>;
+		host-power-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
+		standby-gpios = <&gpio2 11 GPIO_ACTIVE_HIGH>;
+		data-lanes = <4>;
+		// data-frequency = <800>;
+		continuous-clock = <0>;
+		status = "okay";
+
+		port {
+			tevs_1_ep: endpoint {
+				remote-endpoint = <&mipi_csi1_ep>;
+			};
+		};
+	};
+};
