@@ -88,8 +88,8 @@
 					#address-cells = <1>;
 					#size-cells = <0>;
 
-					vizionlink_pca9554_a25_0: vizionlink_pca9554@25 {
-						compatible = "nxp,pca9554";
+					vizionlink_tca9554_a25_0: vizionlink_tca9554@25 {
+						compatible = "ti,tca9554";
 						reg = <0x25>;
 						gpio-controller;
 						#gpio-cells = <2>;
@@ -104,11 +104,11 @@
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_csi0_pwn>;
 
-				// host-power-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
-				reset-gpios = <&vizionlink_pca9554_a25_0 4 GPIO_ACTIVE_HIGH>;
-				standby-gpios = <&vizionlink_pca9554_a25_0 2 GPIO_ACTIVE_HIGH>;
+				host-power-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
+				reset-gpios = <&vizionlink_tca9554_a25_0 4 GPIO_ACTIVE_HIGH>;
+				standby-gpios = <&vizionlink_tca9554_a25_0 2 GPIO_ACTIVE_HIGH>;
 				data-lanes = <4>;
-				// data-frequency = <800>;
+				data-frequency = <800>;
 				continuous-clock = <0>;
 				status = "okay";
 
@@ -155,8 +155,8 @@
 					#address-cells = <1>;
 					#size-cells = <0>;
 
-					vizionlink_pca9554_a25_1: vizionlink_pca9554@25 {
-						compatible = "nxp,pca9554";
+					vizionlink_tca9554_a25_1: vizionlink_tca9554@25 {
+						compatible = "ti,tca9554";
 						reg = <0x25>;
 						gpio-controller;
 						#gpio-cells = <2>;
@@ -171,11 +171,11 @@
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_csi1_pwn>;
 
-				// host-power-gpios = <&gpio4 5 GPIO_ACTIVE_HIGH>;
-				reset-gpios = <&vizionlink_pca9554_a25_1 4 GPIO_ACTIVE_HIGH>;
-				standby-gpios = <&vizionlink_pca9554_a25_1 2 GPIO_ACTIVE_HIGH>;
+				host-power-gpios = <&gpio4 5 GPIO_ACTIVE_HIGH>;
+				reset-gpios = <&vizionlink_tca9554_a25_1 4 GPIO_ACTIVE_HIGH>;
+				standby-gpios = <&vizionlink_tca9554_a25_1 2 GPIO_ACTIVE_HIGH>;
 				data-lanes = <4>;
-				// data-frequency = <800>;
+				data-frequency = <800>;
 				continuous-clock = <0>;
 				status = "okay";
 
