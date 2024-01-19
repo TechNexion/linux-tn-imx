@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 /*
- * Copyright 2022 TechNexion Ltd.
+ * Copyright 2023 TechNexion Ltd.
+ *
+ * Author: Nian Yang <nian.yang@technexion.com>
  *
  */
 
@@ -29,7 +31,7 @@
 			port {
 				mipi_csi0_ep: endpoint@1 {
 					remote-endpoint = <&tevs_0_ep>;
-					data-lanes = <2>;
+					data-lanes = <4>;
 					csis-hs-settle = <19>;
 					csis-clk-settle = <2>;
 					csis-wclk;
@@ -67,7 +69,7 @@
 				device-power-gpios = <&pca9555_a21 0 GPIO_ACTIVE_HIGH>;
 				standby-gpios = <&pca9555_a21 2 GPIO_ACTIVE_HIGH>;
 
-				data-lanes = <2>;
+				data-lanes = <4>;
 				continuous-clock = <0>;
 
 				status = "okay";
