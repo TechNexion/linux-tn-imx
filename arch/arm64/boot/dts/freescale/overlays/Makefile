@@ -20,7 +20,7 @@ dtbo-$(CONFIG_ARCH_MXC) += imx8mp-axon-wizard-lvds-vl10112880.dtbo imx8mp-axon-w
 dtbo-$(CONFIG_ARCH_MXC) += imx8mp-axon-wizard-ili9881c.dtbo imx8mp-axon-wizard-g101uan02.dtbo imx8mp-axon-wizard-g080uan01.dtbo imx8mp-axon-wizard-mipi2hdmi-adv7535.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wb-lvds-vl10112880.dtbo imx8mp-edm-g-wb-lvds-vl15613676.dtbo imx8mp-edm-g-wb-lvds-vl156192108.dtbo \
 				imx8mp-edm-g-wb-lvds-vl215192108.dtbo imx8mp-edm-g-wb-tevi-ov5640.dtbo \
-				imx8mp-edm-g-wb-tevi-ap1302.dtbo
+				imx8mp-edm-g-wb-tevi-ap1302.dtbo imx8mp-edm-g-wb-tevs.dtbo imx8mp-edm-g-wb-tevi-ccs.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wb-hdmi2mipi-tc358743-dual.dtbo imx8mp-edm-g-wb-hdmi2mipi-tc358743-single-cam1.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wb-hdmi2mipi-tc358743-csi0.dtbo imx8mp-edm-g-wb-hdmi2mipi-tc358743-csi1.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wb-vizionlink-tevi-ov5640-dual.dtbo imx8mp-edm-g-wb-vizionlink-tevi-ov5640-csi0.dtbo imx8mp-edm-g-wb-vizionlink-tevi-ov5640-csi1.dtbo  imx8mp-edm-g-wb-vizionlink-tevi-ov5640.dtbo
