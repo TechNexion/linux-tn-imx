@@ -1423,6 +1423,17 @@ config VIDEO_ADV7170
 	  To compile this driver as a module, choose M here: the
 	  module will be called adv7170.
 
+config VIDEO_TEVS
+	tristate "TechNexion TEVS sensor support"
+	depends on OF
+	depends on GPIOLIB && VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+	depends on MEDIA_CAMERA_SUPPORT
+	default y
+	select V4L2_FWNODE
+	help
+	  This is a Video4Linux2 sensor driver for the TechNexion
+	  TEVS camera sensor with a MIPI CSI-2 interface.
+
 config VIDEO_ADV7175
 	tristate "Analog Devices ADV7175 video encoder"
 	depends on VIDEO_DEV && I2C

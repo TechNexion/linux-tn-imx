@@ -145,4 +145,5 @@ obj-$(CONFIG_VIDEO_WM8739) += wm8739.o
 obj-$(CONFIG_VIDEO_WM8775) += wm8775.o
 obj-$(CONFIG_VIDEO_AP1302)     += ap1302.o
 obj-$(CONFIG_VIDEO_TEVI_AP1302) += tevi-ap1302/
+obj-$(CONFIG_VIDEO_TEVS) += tevs/
 obj-$(CONFIG_SERDES_VIZIONLINK) += vizionlink/
