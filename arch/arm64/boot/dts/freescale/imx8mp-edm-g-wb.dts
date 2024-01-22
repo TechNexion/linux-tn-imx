@@ -232,6 +232,11 @@
 		reg = <0x3d>;
 		status = "disabled";
 	};
+
+	tevs_0: tevs@48 {
+		reg = <0x48>;
+		status = "disabled";
+	};
 };
 
 &i2c4 {
@@ -263,6 +268,11 @@
 
 	tevi_ap1302_1: tevi_ap1302@3d {
 		reg = <0x3d>;
+		status = "disabled";
+	};
+
+	tevs_1: tevs@48 {
+		reg = <0x48>;
 		status = "disabled";
 	};
 };
