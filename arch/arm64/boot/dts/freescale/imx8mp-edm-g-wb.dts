@@ -305,6 +305,20 @@
 			};
 		};
 	};
+
+	tevs_0: tevs@48 {
+		reg = <0x48>;
+		status = "disabled";
+	};
+};
+
+&i2c5 {
+	status = "okay";
+
+	tevs_1: tevs@48 {
+		reg = <0x48>;
+		status = "disabled";
+	};
 };
 
 &i2c_0 {
