@@ -504,14 +504,14 @@
 	pca9555_a26: pca9555@26 {
 		compatible = "nxp,pca9555";
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_pca9555_a26_irq>;
+		// pinctrl-0 = <&pinctrl_pca9555_a26_irq>;
 		reg = <0x26>;
 		gpio-controller;
 		#gpio-cells = <2>;
-		interrupt-controller;
-		#interrupt-cells = <2>;
-		interrupt-parent = <&gpio4>;
-		interrupts = <27 IRQ_TYPE_LEVEL_LOW>;
+		// interrupt-controller;
+		// #interrupt-cells = <2>;
+		// interrupt-parent = <&gpio4>;
+		// interrupts = <27 IRQ_TYPE_LEVEL_LOW>;
 		status = "okay";
 		gpio-line-names = "LED1", "LED2", "M2_1_RESET", "M2_2_RESET", "PD_FAULT", "CSI1_INT", "CSI1_PD", "M2_1_DISABLE_N",
 							"M2_2_DISABLE_N", "EXT_GPIO1", "EXT_GPIO2", "EXT_GPIO3", "M2_1_POWEROFF", "M2_2_POWEROFF", "M2_2_WWAN_WAKE", "M2_1_WWAN_WAKE";
