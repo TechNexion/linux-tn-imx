@@ -68,7 +68,7 @@
                         };
 #endif
 
-			fpdlink_dsi2lvds: ds90ub948@0c {
+			fpdlink_dsi2lvds: ds90ub948@c {
 				compatible = "ti,ds90ub94x";
 				reg = <0x0c>;
 				status = "okay";
