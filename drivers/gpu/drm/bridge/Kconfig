@@ -350,7 +350,10 @@ config DRM_TOSHIBA_TC358775
 config DRM_TI_DS90UB94X
 	tristate "TI DS90UB94X DSI/FPD-LINK/LVDS bridge"
 	depends on OF
+	select VIDEOMODE_HELPERS
 	select DRM_KMS_HELPER
+	select DRM_PANEL
+	select DRM_MIPI_DSI
 	help
 	  Texas Instruments DS90UB94X DSI/FPD-LINK/LVDS bridge chip driver.
 
