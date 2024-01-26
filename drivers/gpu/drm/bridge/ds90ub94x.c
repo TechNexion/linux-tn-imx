@@ -11,7 +11,13 @@
 #define DETECT_DES_REGMAP ds90ub941->regmap
 #define GENERAL_STS	0x0c
 #define I2C_DEVICE_ID	0x00
+#define DUAL_STS_DUAL_STS_P1	0x5a
 #define LINK_DETECT	BIT(0)
+#define FPD3_LINK_RDY	BIT(7)
+#define FPD3_TX_STS	BIT(6)
+#define DSI_CLK_DET	BIT(3)
+#define FREQ_STABLE	BIT(0)
+#define DSI_PANEL_RDY	(FPD3_LINK_RDY | FPD3_TX_STS | DSI_CLK_DET | FREQ_STABLE)
 
 #define XNOR(x, y)	~(x ^ y)
 
@@ -265,8 +271,6 @@ static int ds90ub94x_probe(struct i2c_client *client, const struct i2c_device_id
 			goto err_out;
 		}
 
-
-
 		ret = regmap_read(DETECT_SER_REGMAP, I2C_DEVICE_ID, &val_read);
 		if (!ret)
 			ret_ser = ds90ub94x_init(ds90ub941);
@@ -279,9 +283,19 @@ static int ds90ub94x_probe(struct i2c_client *client, const struct i2c_device_id
 		msleep(RESET_MDELAY);
 
 		ret = regmap_read(DETECT_DES_REGMAP, GENERAL_STS, &val_read);
-		if (( (val_read & LINK_DETECT ) == LINK_DETECT ))
-			ret_des = ds90ub94x_init(ds90ub948);
-		else {
+		if (( (val_read & LINK_DETECT ) == LINK_DETECT )) {
+			// before we init the DS90UB948, check the DSI and pixel-clock is ready or not.
+			// If not, defer probe.
+			ret = regmap_read(DETECT_SER_REGMAP, DUAL_STS_DUAL_STS_P1, &val_read);
+			val_read &= DSI_PANEL_RDY;
+
+			if ( val_read == DSI_PANEL_RDY )
+				ret_des = ds90ub94x_init(ds90ub948);
+			else {
+				dev_err(ds90ub941->dev, "wait for DSI and pixel clock ready, deferring...");
+				goto err_out;
+			}
+		} else {
 			dev_err(ds90ub948->dev, "failed to find ds90ub948(deserializer) ...");
 			ret= -ENXIO;
 			goto connection_failed;
@@ -356,7 +370,25 @@ static struct i2c_driver ds90ub94x_driver = {
 	.probe = ds90ub94x_probe,
 	.remove = ds90ub94x_remove,
 };
-module_i2c_driver(ds90ub94x_driver);
+
+static int __init ds90ub94x_link_init(void)
+{
+	int err;
+
+	err = i2c_add_driver(&ds90ub94x_driver);
+	if (err < 0)
+		return err;
+
+	return 0;
+}
+module_init(ds90ub94x_link_init);
+
+static void __exit ds90ub94x_link_remove(void)
+{
+	i2c_del_driver(&ds90ub94x_driver);
+}
+
+module_exit(ds90ub94x_link_remove);
 
 MODULE_DESCRIPTION("TI. DS90UB941/DS90UB948 SerDer bridge");
 MODULE_LICENSE("GPL");
