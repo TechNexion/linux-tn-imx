@@ -1888,10 +1888,10 @@ error_probe:
 	return ret;
 }
 
-static int sensor_remove(struct i2c_client *client)
-{
-	return 0;
-}
+// static int sensor_remove(struct i2c_client *client)
+// {
+// 	return 0;
+// }
 
 static const struct i2c_device_id sensor_id[] = {
 	{ DRIVER_NAME, 0 },
@@ -1911,7 +1911,7 @@ static struct i2c_driver sensor_i2c_driver = {
 		.name  = DRIVER_NAME,
 	},
 	.probe = sensor_probe,
-	.remove = sensor_remove,
+	// .remove = sensor_remove,
 	.id_table = sensor_id,
 };
 
