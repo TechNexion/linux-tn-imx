@@ -1,0 +1,82 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2024 TechNexion Ltd.
+ *
+ * Author: Nian Yang <nian.yang@technexion.com>
+ *
+ */
+
+#include "imx93-11x11-evk.dts"
+
+/ {
+	model = "NXP i.MX93 11x11 EVK board with TechNexion TEVI AR camera";
+	
+	/delete-node/ regulator-dvdd_sel;
+	/delete-node/ regulator-dvdd;
+	/delete-node/ regulator-vdd;
+	/delete-node/ regulator-vddo;
+	/delete-node/ regulator-vaa_sel;
+	/delete-node/ regulator-avdd;
+};
+
+&lpi2c3 {
+	clock-frequency = <400000>;
+
+	/delete-node/ ap1302_mipi@3c;
+	/delete-node/ mfd-isp@34;
+	
+	pca9554_a27_0: pca9554@27 {
+		compatible = "nxp,pca9554";
+		pinctrl-names = "default";
+		reg = <0x27>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		status = "okay";
+		gpio-line-names = "EXPOSURE_TRIG_IN1", "FLASH_OUT1", "CAM_SHUTTER1", "XVS1",
+							"CSI1_PDB", "CSI1_INT", "INFO_TRIG_IN1", "CSI1_RST_N";
+	};
+
+	tevi_ap1302_otp: calib-data@54 {
+		compatible = "atmel,24c1024";
+		reg = <0x54>;
+		pagesize = <256>;
+	};
+
+	tevi_ap1302: tevi_ap1302@3d {
+		compatible = "tn,tevi-ap1302";
+		reg = <0x3d>;
+
+		reset-gpios   = <&adp5585gpio 0 GPIO_ACTIVE_HIGH>;
+		standby-gpios = <&pca9554_a27_0 6 GPIO_ACTIVE_HIGH>;
+
+		nvmem = <&tevi_ap1302_otp>;
+		nvmem-names = "calib-data";
+
+		data-lanes = <2>;
+		continuous-clock = <0>;
+		status = "okay";
+
+		port {
+			tevi_ap1302_ep: endpoint {
+				remote-endpoint = <&mipi_csi_ep>;
+			};
+		};
+	};
+};
+
+&mipi_csi {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+
+	port@0 {
+		reg = <0>;
+		mipi_csi_ep: endpoint {
+			remote-endpoint = <&tevi_ap1302_ep>;
+			data-lanes = <2>;
+			cfg-clk-range = <28>;
+			hs-clk-range = <0x16>;
+			bus-type = <4>;
+		};
+	};
+};
