@@ -258,7 +258,7 @@
 #define TEVS_BSL_MODE_FLASH_IDX 			(1U << 0)
 
 #define DEFAULT_HEADER_VERSION 3
-#define TEVS_BOOT_TIME						(200)
+#define TEVS_BOOT_TIME						(250)
 
 struct header_info {
 	u8 header_version;
