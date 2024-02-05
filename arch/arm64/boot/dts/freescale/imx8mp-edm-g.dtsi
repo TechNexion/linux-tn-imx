@@ -373,7 +373,6 @@
 
 &easrc {
 	fsl,asrc-rate  = <48000>;
-	fsl,asrc-width = <16>;
 	status = "okay";
 };
 
