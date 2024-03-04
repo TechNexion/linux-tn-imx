@@ -28,9 +28,9 @@ dtbo-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wizard-vizionlink-tevi-ov5640-dual.dtbo 
 dtbo-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wizard-vizionlink-tevi-ap1302.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wizard-hdmi2mipi-tc358743-dual.dtbo imx8mp-edm-g-wizard-hdmi2mipi-tc358743-single-cam1.dtbo \
 				imx8mp-edm-g-wizard-ili9881c.dtbo imx8mp-edm-g-wizard-g101uan02.dtbo
-dtbo-$(CONFIG_ARCH_MXC) += imx8mp-tek3-hdmi2mipi-tc358743-dual.dtbo imx8mp-tek3-hdmi2mipi-tc358743_1.dtbo imx8mp-tek3-hdmi2mipi-tc358743_2.dtbo
-dtbo-$(CONFIG_ARCH_MXC) += imx8mp-tek3-vizionlink-tevi-ov5640-dual.dtbo imx8mp-tek3-vizionlink-tevi-ov5640-csi0.dtbo imx8mp-tek3-vizionlink-tevi-ov5640-csi1.dtbo \
-			    imx8mp-tek3-vizionlink-tevi-ap1302-dual.dtbo imx8mp-tek3-vizionlink-tevi-ap1302-csi0.dtbo imx8mp-tek3-vizionlink-tevi-ap1302-csi1.dtbo
+dtbo-$(CONFIG_ARCH_MXC) += imx8mp-tek-hdmi2mipi-tc358743-dual.dtbo imx8mp-tek-hdmi2mipi-tc358743_1.dtbo imx8mp-tek-hdmi2mipi-tc358743_2.dtbo
+dtbo-$(CONFIG_ARCH_MXC) += imx8mp-tek-vizionlink-tevi-ov5640-dual.dtbo imx8mp-tek-vizionlink-tevi-ov5640-csi0.dtbo imx8mp-tek-vizionlink-tevi-ov5640-csi1.dtbo \
+			    imx8mp-tek-vizionlink-tevi-ap1302-dual.dtbo imx8mp-tek-vizionlink-tevi-ap1302-csi0.dtbo imx8mp-tek-vizionlink-tevi-ap1302-csi1.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mq-edm-wizard-mipi2hdmi-adv7535.dtbo imx8mq-edm-wizard-ili9881c.dtbo \
 			    imx8mq-edm-wizard-g080uan01.dtbo imx8mq-edm-wizard-g101uan02.dtbo \
 			    imx8mq-edm-wizard-sn65dsi84-vl10112880.dtbo imx8mq-edm-wizard-sn65dsi84-vl15613676.dtbo imx8mq-edm-wizard-sn65dsi84-vl215192108.dtbo \
