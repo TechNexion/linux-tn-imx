@@ -8,7 +8,7 @@
 
 /dts-v1/;
 
-#include "imx8mp-tek3.dts"
+#include "imx8mp-tek.dts"
 
 / {
 	aliases {
