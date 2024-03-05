@@ -12,8 +12,8 @@
 #include "imx8mp.dtsi"
 
 / {
-	model = "TechNexion HMI-IMX8MP";
-	compatible = "fsl,imx8mp-hmi", "fsl,imx8mp";
+	model = "TechNexion TEP-IMX8MP board";
+	compatible = "fsl,imx8mp-tep", "fsl,imx8mp";
 
 	 memory@40000000 {
 		device_type = "memory";

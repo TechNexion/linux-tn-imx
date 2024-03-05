@@ -8,7 +8,7 @@
 
 /dts-v1/;
 
-#include "imx8mp-hmi.dts"
+#include "imx8mp-tep.dts"
 
 / {
 	aliases {
