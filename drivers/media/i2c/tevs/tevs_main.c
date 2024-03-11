@@ -1315,7 +1315,7 @@ static int tevs_get_flick_mode(struct tevs *tevs, s32 *mode)
 	case TEVS_FLICK_CTRL_MODE_MANUAL:
 		if((val & TEVS_FLICK_CTRL_FREQ_MASK) == TEVS_FLICK_CTRL_FREQ(50))
 			*mode = 1;
-		else if((val & TEVS_FLICK_CTRL_FREQ_MASK)  == TEVS_FLICK_CTRL_FREQ(50))
+		else if((val & TEVS_FLICK_CTRL_FREQ_MASK)  == TEVS_FLICK_CTRL_FREQ(60))
 			*mode = 2;
 		break;
 	case TEVS_FLICK_CTRL_MODE_AUTO:
