@@ -232,12 +232,6 @@
 	cpu-supply = <&buck2>;
 };
 
-&pwm1 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_pwm1>;
-	status = "okay";
-};
-
 &eqos {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_eqos>;
@@ -843,7 +837,7 @@
 
 	pinctrl_pwm1: pwm1grp {
 		fsl,pins = <
-			MX8MP_IOMUXC_GPIO1_IO08__PWM1_OUT		0x116 /* CPU_DET PWM */
+			MX8MP_IOMUXC_SPDIF_EXT_CLK__PWM1_OUT	0x116
 		>;
 	};
 
@@ -851,6 +845,7 @@
 		fsl,pins = <
 			MX8MP_IOMUXC_GPIO1_IO06__GPIO1_IO06		0x16 /* LAN_BYPASS */
 			MX8MP_IOMUXC_GPIO1_IO07__GPIO1_IO07		0x16 /* CPU_INT */
+			MX8MP_IOMUXC_GPIO1_IO08__GPIO1_IO08		0x16 /* CPU_DET */
 		>;
 	};
 
