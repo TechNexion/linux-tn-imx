@@ -1,0 +1,96 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2020 Technexion Ltd.
+ *
+ * Author: Ray Chang <ray.chang@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	fragment@0 {
+		target-path = "/";
+		__overlay__ {
+			reg_lcd_backlight_en: regulator_lcdblen {
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@1 {
+		target-path = "/";
+		__overlay__ {
+			lcd_backlight: lcd_backlight {
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@2 {
+		target-path = "/";
+		__overlay__ {
+			panel {
+				compatible = "vxt,vl080-8060nt-c01";
+				//backlight = <&lcd_backlight>;
+				power-supply = <&reg_3p3v>;
+
+				port {
+					panel_in: endpoint {
+						remote-endpoint = <&display_out>;
+					};
+				};
+			};
+		};
+	};
+
+	fragment@3 {
+		target = <&parallel_disp_fmt>;
+		__overlay__ {
+			pinctrl-names = "default";
+			pinctrl-0 = <&pinctrl_lcdif>;
+			fsl,interface-pix-fmt = "rgb888";
+			status = "okay";
+
+			ports {
+				#address-cells = <1>;
+				#size-cells = <0>;
+				port@1 {
+					reg = <1>;
+
+					display_out: endpoint {
+						remote-endpoint = <&panel_in>;
+					};
+				};
+			};
+		};
+	};
+
+	fragment@4 {
+		target = <&lcdif>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@5 {
+		target = <&lpi2c3>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			exc80w46: touchscreen@2a {
+				compatible = "eeti,exc80h60";
+				reg = <0x2a>;
+				interrupt-parent = <&pcal6524>;
+				interrupts = <8 IRQ_TYPE_EDGE_FALLING>;
+				status = "okay";
+			};
+		};
+	};
+};
