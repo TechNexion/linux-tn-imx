@@ -97,11 +97,11 @@
 	};
 
 	sound-wm8960 {
-		compatible = "fsl,imx7d-evk-wm8960", "fsl,imx-audio-wm8960";
+		compatible = "fsl,imx-audio-wm8960";
 		model = "wm8960-audio";
-		cpu-dai = <&sai3>;
+		audio-cpu = <&sai3>;
 		audio-codec = <&codec>;
-		asrc-controller = <&easrc>;
+		audio-asrc = <&easrc>;
 		codec-master;
 		/* JD2: hp detect high for headphone*/
 		hp-det = <2 0>;
