@@ -7,7 +7,7 @@
  */
 
 /dts-v1/;
-
+#include <dt-bindings/phy/phy-imx8-pcie.h>
 #include "imx8mp-edm-g.dtsi"
 
 / {
@@ -108,6 +108,11 @@
 		};
 	};
 
+	pcie0_refclk: pcie0-refclk {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <100000000>;
+	};
 };
 
 &gpio1 {
@@ -323,7 +328,9 @@
 };
 
 &pcie_phy{
-	ext_osc = <1>;
+	fsl,refclk-pad-mode = <IMX8_PCIE_REFCLK_PAD_INPUT>;
+	clocks = <&pcie0_refclk>;
+	clock-names = "ref";
 	status = "okay";
 };
 
