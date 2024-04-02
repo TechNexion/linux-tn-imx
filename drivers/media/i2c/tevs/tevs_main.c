@@ -494,7 +494,7 @@ static int tevs_standby(struct tevs *tevs, int enable)
 		while (timeout < 100) {
 			tevs_i2c_read_16b(
 				tevs, HOST_COMMAND_ISP_CTRL_SYSTEM_START, &v);
-			if ((v & 0x100) == 0)
+			if ((v & 0xFF00) == 0x0000)
 				break;
 			if (++timeout >= 100) {
 				dev_err(tevs->dev, "timeout: line[%d]v=%x\n",
@@ -510,7 +510,7 @@ static int tevs_standby(struct tevs *tevs, int enable)
 		while (timeout < 100) {
 			tevs_i2c_read_16b(
 				tevs, HOST_COMMAND_ISP_CTRL_SYSTEM_START, &v);
-			if ((v & 0x100) == 0x100)
+			if ((v & 0xFF00) == 0x0100)
 				break;
 			if (++timeout >= 100) {
 				dev_err(tevs->dev, "timeout: line[%d]v=%x\n",
