@@ -84,7 +84,7 @@
 	sound_wm8960: sound-wm8960 {
 		compatible = "fsl,imx-audio-wm8960";
 		model = "wm8960-audio";
-		cpu-dai = <&sai2>;
+		audio-cpu = <&sai2>;
 		codec-master;
 		audio-codec = <&codec_wm8960>;
 		audio-routing =
@@ -93,10 +93,7 @@
 			"Ext Spk", "SPK_LP",
 			"Ext Spk", "SPK_LN",
 			"Ext Spk", "SPK_RP",
-			"Ext Spk", "SPK_RN",
-			"LINPUT1", "Main MIC",
-			"RINPUT1", "Main MIC",
-			"Main MIC", "MICB";
+			"Ext Spk", "SPK_RN";
 		/* JD2: hp detect high for headphone*/
 		hp-det = <2 0>;
 	};
