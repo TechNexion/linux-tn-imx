@@ -666,6 +666,7 @@ static void tc358743_set_csi_color_space(struct v4l2_subdev *sd)
 
 	switch (state->mbus_fmt_code) {
 	case MEDIA_BUS_FMT_UYVY8_2X8:
+	case MEDIA_BUS_FMT_UYVY8_1X16:
 		v4l2_dbg(2, debug, sd, "%s: YCbCr 422 16-bit\n", __func__);
 		i2c_wr8_and_or(sd, VOUT_SET2,
 				~(MASK_SEL422 | MASK_VOUT_422FIL_100) & 0xff,
@@ -1351,6 +1352,8 @@ static int tc358743_log_status(struct v4l2_subdev *sd)
 			(i2c_rd16(sd, CSI_STATUS) & MASK_S_HLT) ?
 			"yes" : "no");
 	v4l2_info(sd, "Color space: %s\n",
+			state->mbus_fmt_code == MEDIA_BUS_FMT_UYVY8_1X16 ?
+			"YCbCr 422 16-bit" :
 			state->mbus_fmt_code == MEDIA_BUS_FMT_UYVY8_2X8 ?
 			"YCbCr 422 16-bit" :
 			state->mbus_fmt_code == MEDIA_BUS_FMT_RGB888_1X24 ?
@@ -1792,12 +1795,13 @@ static int tc358743_set_fmt(struct v4l2_subdev *sd,
 
 	if (ret)
 		return ret;
-	
-	format->format.code = code;	
+
+	format->format.code = code;
 
 	switch (code) {
 	case MEDIA_BUS_FMT_RGB888_1X24:
 	case MEDIA_BUS_FMT_UYVY8_2X8:
+	case MEDIA_BUS_FMT_UYVY8_1X16:
 		break;
 	default:
 		return -EINVAL;
