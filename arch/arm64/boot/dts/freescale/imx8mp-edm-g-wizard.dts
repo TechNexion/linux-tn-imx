@@ -7,12 +7,18 @@
  */
 
 /dts-v1/;
-
+#include <dt-bindings/phy/phy-imx8-pcie.h>
 #include "imx8mp-edm-g.dtsi"
 
 / {
 	model = "TechNexion EDM-G-IMX8MP and WIZARD baseboard";
 	compatible = "fsl,imx8mp-edmg", "fsl,imx8mp";
+
+	pcie0_refclk: pcie0-refclk {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <100000000>;
+	};
 
 	reg_usb_otg_vbus: usb_otg_vbus {
 		pinctrl-names = "default";
@@ -357,7 +363,9 @@
 };
 
 &pcie_phy{
-	ext_osc = <1>;
+	fsl,refclk-pad-mode = <IMX8_PCIE_REFCLK_PAD_INPUT>;
+	clocks = <&pcie0_refclk>;
+	clock-names = "ref";
 	status = "okay";
 };
 
