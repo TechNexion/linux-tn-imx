@@ -10,6 +10,7 @@
 
 #include <dt-bindings/usb/pd.h>
 #include "imx8mp.dtsi"
+#include <dt-bindings/phy/phy-imx8-pcie.h>
 
 / {
 	model = "TechNexion TEK-IMX8MP box PC board";
@@ -537,8 +538,10 @@
 							"IO1_0", "IO1_1", "IO1_2", "IO1_3", "IO1_4", "IO1_5", "IO1_6", "IO1_7";
 	};
 
-	pcie-clock@68 {
-		compatible = "idt,9FGV0241AKILF";
+	pcie0_refclk: pcie-clock@68 {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <100000000>;
 		reg = <0x68>;
 	};
 
@@ -689,7 +692,9 @@
 };
 
 &pcie_phy{
-	ext_osc = <1>;
+	fsl,refclk-pad-mode = <IMX8_PCIE_REFCLK_PAD_INPUT>;
+	clocks = <&pcie0_refclk>;
+	clock-names = "ref";
 	status = "okay";
 };
 
