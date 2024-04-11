@@ -26,7 +26,8 @@ dtbo-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wizard-vls.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wizard-hdmi2mipi-tc358743-dual.dtbo imx8mp-edm-g-wizard-hdmi2mipi-tc358743-single-cam1.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wizard-hdmi2mipi-tc358743-csi0.dtbo imx8mp-edm-g-wizard-hdmi2mipi-tc358743-csi1.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wizard-ili9881c.dtbo imx8mp-edm-g-wizard-g101uan02.dtbo \
-				imx8mp-edm-g-wizard-vizionpanel-vl10112880.dtbo imx8mp-edm-g-wizard-vizionpanel-vl15010276.dtbo imx8mp-edm-g-wizard-vizionpanel-vl15613676.dtbo imx8mp-edm-g-wizard-vizionpanel-vl215192108.dtbo
+				imx8mp-edm-g-wizard-vizionpanel-vl10112880.dtbo imx8mp-edm-g-wizard-vizionpanel-vl15010276.dtbo imx8mp-edm-g-wizard-vizionpanel-vl15613676.dtbo imx8mp-edm-g-wizard-vizionpanel-vl215192108.dtbo \
+				imx8mp-edm-g-wizard-vizionpanel-vl508048.dtbo imx8mp-edm-g-wizard-vizionpanel-vl708048.dtbo imx8mp-edm-g-wizard-vizionpanel-vl808060.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mp-tek-hdmi2mipi-tc358743.dtbo imx8mp-tek-vls.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mp-tep-lvds-vl10112880.dtbo imx8mp-tep-lvds-vl15010276.dtbo imx8mp-tep-lvds-vl156192108.dtbo imx8mp-tep-lvds-vl215192108.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mp-tep-vls.dtbo imx8mp-tep-hdmi2mipi-tc358743.dtbo
