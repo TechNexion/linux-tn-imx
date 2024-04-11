@@ -1,0 +1,125 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2020 TechNexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	fragment@0 {
+		target-path = "/";
+		__overlay__ {
+			backlight_lcd: backlight_lcd {
+				compatible = "pwm-backlight";
+				pwms = <&adp5585pwm 0 50000 0>;
+				brightness-levels = <0 36 72 108 144 180 216 255>;
+				default-brightness-level = <6>;
+				post-pwm-on-delay-ms = <500>;
+				enable-gpios = <&adp5585gpio 5 GPIO_ACTIVE_HIGH>; //EXP_DISP0_VDD_EN
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&mipi_dsi>;
+		__overlay__ {
+			status = "okay";
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			panel@0 {
+				compatible = "tn,vizionpanel_808060";
+				backlight = <&backlight_lcd>;
+				reg = <0>;
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&i2c5>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			fpdlink_dsi2lvds: ds90ub926@c {
+				compatible = "ti,ds90ub94x";
+				reg = <0x0c>;
+				status = "okay";
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_gpio1>;
+				reset-gpios = <&gpio1 6 GPIO_ACTIVE_LOW>;
+				dsi-delay = <2500>;
+				i2c-alias-pool = <0x48 0x49 0x4a 0x4b 0x4c 0x4d 0x4e 0x4f>;
+
+				i2c {
+					#address-cells = <1>;
+					#size-cells = <0>;
+
+					exc80w46: touchscreen@2a {
+						compatible = "eeti,exc80h60";
+						pinctrl-names = "default";
+						pinctrl-0 = <&pinctrl_mipi_touch_irq>, <&pinctrl_mipi_touch_reset>;
+						reg = <0x2a>;
+						interrupt-parent = <&gpio4>;
+						interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
+						reset-gpios = <&adp5585gpio 1 GPIO_ACTIVE_LOW>;
+						status = "okay";
+					};
+
+					adp5585: mfd@34 {
+						compatible = "adi,adp5585";
+						reg = <0x34>;
+
+						adp5585gpio: gpio@34 {
+							compatible = "adp5585-gpio";
+							gpio-controller;
+							#gpio-cells = <2>;
+							gpio-line-names = "TP12", "EXP_DISP0_RESET", "EXP_5VSYS_EN", "EXP_DISP0_BLT_CTRL", "TP11",
+									"EXP_DISP0_VDD_EN", "U_D", "L_R", "TP9", "TP10";
+
+							exp_disp0_5vsys_en {
+								gpio-hog;
+								gpios = <2 GPIO_ACTIVE_HIGH>;
+								output-low;
+							};
+
+							exp_disp0_U_D {
+								gpio-hog;
+								gpios = <6 GPIO_ACTIVE_HIGH>;
+								output-low;
+							};
+
+							exp_disp0_L_R {
+								gpio-hog;
+								gpios = <7 GPIO_ACTIVE_HIGH>;
+								output-high;
+							};
+						};
+
+						adp5585pwm: pwm@34 {
+							compatible = "adp5585-pwm";
+							#pwm-cells = <3>;
+						};
+					};
+
+					eeprom_baseboard: eeprom@56 {
+						compatible = "atmel,24c02";
+						reg = <0x56>;
+						pagesize = <16>;
+						status = "okay";
+					};
+				};
+			};
+		};
+	};
+};
