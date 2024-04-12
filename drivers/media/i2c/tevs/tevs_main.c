@@ -2175,6 +2175,12 @@ static int tevs_ctrls_init(struct tevs *tevs)
 	return 0;
 }
 
+static void tevs_ctrls_free(struct tevs *tevs)
+{
+	v4l2_ctrl_handler_free(&tevs->ctrls);
+	mutex_destroy(&tevs->lock);
+}
+
 static const struct v4l2_subdev_core_ops tevs_v4l2_subdev_core_ops = {
 	.s_power = tevs_power,
 	// .init = tevs_init,
@@ -2431,6 +2437,13 @@ error_probe:
 
 static int tevs_remove(struct i2c_client *client)
 {
+	struct v4l2_subdev *sub_dev = i2c_get_clientdata(client);
+	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
+
+	v4l2_async_unregister_subdev(sub_dev);
+	media_entity_cleanup(&sub_dev->entity);
+	tevs_ctrls_free(tevs);
+
 	return 0;
 }
 

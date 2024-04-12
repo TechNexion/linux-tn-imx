@@ -14,6 +14,12 @@ static struct resolution ar0144_res_list[] = {
 	{ .width = 1280, .height = 800, .framerates = 60, .mode = 0 },
 };
 
+static struct resolution ar0145_res_list[] = {
+	{ .width = 640, .height = 480, .framerates = 120, .mode = 0 },
+	{ .width = 1280, .height = 720, .framerates = 120, .mode = 0 },
+	{ .width = 1280, .height = 800, .framerates = 120, .mode = 0 },
+};
+
 static struct resolution ar0234_res_list[] = {
 	{ .width = 640, .height = 480, .framerates = 120, .mode = 1 },
 	{ .width = 1280, .height = 720, .framerates = 120, .mode = 0 },
@@ -74,6 +80,9 @@ static struct sensor_info tevs_sensor_table[] = {
 	{ .sensor_name = "TEVS-AR0144",
 	  .res_list = ar0144_res_list,
 	  .res_list_size = ARRAY_SIZE(ar0144_res_list) },
+	  { .sensor_name = "TEVS-AR0145",
+	  .res_list = ar0145_res_list,
+	  .res_list_size = ARRAY_SIZE(ar0145_res_list) },
 	{ .sensor_name = "TEVS-AR0234",
 	  .res_list = ar0234_res_list,
 	  .res_list_size = ARRAY_SIZE(ar0234_res_list) },
