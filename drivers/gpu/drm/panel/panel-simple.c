@@ -4862,6 +4862,37 @@ static const struct panel_desc_dsi boe_tv080wum_nl0 = {
 	.lanes = 4,
 };
 
+/* VXT VL050-8048NT-C01_spec.pdf */
+/* VXT VL070-8048NT-C01_spec.pdf */
+static const struct drm_display_mode vizionpanel_508048_mode = {
+	.clock = 33333,
+	.hdisplay = 800,
+	.hsync_start = 800 + 210,
+	.hsync_end = 800 + 210 + 20,
+	.htotal = 800 + 210 + 20 + 46,
+	.vdisplay =  480,
+	.vsync_start = 480 + 22,
+	.vsync_end = 480 + 22 + 10,
+	.vtotal = 480 + 22 + 10 + 23,
+	.flags = DRM_MODE_FLAG_NHSYNC | DRM_MODE_FLAG_NVSYNC,
+};
+
+static const struct panel_desc_dsi vizionpanel_508048 = {
+	.desc = {
+		.modes = &vizionpanel_508048_mode,
+		.num_modes = 1,
+		.bpc = 8,
+		.size = {
+			.width = 161,
+			.height = 243,
+		},
+		.connector_type = DRM_MODE_CONNECTOR_DSI,
+	},
+	.flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_SYNC_PULSE,
+	.format = MIPI_DSI_FMT_RGB888,
+	.lanes = 4,
+};
+
 /* VXT LCD1_VL080-8060NT-C01_spec.pdf */
 static const struct drm_display_mode vizionpanel_808060_mode = {
 	.clock = 40000,
@@ -5251,6 +5282,9 @@ static const struct of_device_id dsi_of_match[] = {
 	}, {
 		.compatible = "boe,tv080wum-nl0",
 		.data = &boe_tv080wum_nl0
+	}, {
+		.compatible = "tn,vizionpanel_508048",
+		.data = &vizionpanel_508048
 	}, {
 		.compatible = "tn,vizionpanel_808060",
 		.data = &vizionpanel_808060
