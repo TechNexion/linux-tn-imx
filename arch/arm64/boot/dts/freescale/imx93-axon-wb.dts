@@ -51,7 +51,7 @@
 	};
 
 
-	lvds_backlight: lvds_backlight {
+	disp_backlight: disp_backlight {
 		compatible = "pwm-backlight";
 		pwms = <&adp5585pwm 0 50000 0>;
 		brightness-levels = <0 36 72 108 144 180 216 255>;
@@ -65,26 +65,6 @@
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
 		gpio = <&adp5585gpio 4 GPIO_ACTIVE_HIGH>;
-		enable-active-high;
-		regulator-always-on;
-		status = "disabled";
-	};
-
-/*	adp5585 have only one pwm output, this is backup for future PCB.
-	lcd_backlight: lcd_backlight {
-		compatible = "pwm-backlight";
-		pwms = <&adp5585pwm 6 50000 0>;
-		brightness-levels = <0 36 72 108 144 180 216 255>;
-		default-brightness-level = <6>;
-		status = "disabled";
-	};
-*/
-	lcd_backlight: lcd_backlight {
-		compatible = "regulator-fixed";
-		regulator-name = "lcd_bl_full_duty_cycle";
-		regulator-min-microvolt = <5000000>;
-		regulator-max-microvolt = <5000000>;
-		gpio = <&adp5585gpio 6 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
 		regulator-always-on;
 		status = "disabled";
