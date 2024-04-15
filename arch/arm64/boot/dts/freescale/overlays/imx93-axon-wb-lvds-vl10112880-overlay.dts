@@ -34,7 +34,7 @@
 	fragment@2 {
 		target-path = "/";
 		__overlay__ {
-			lvds_backlight: lvds_backlight {
+			disp_backlight: disp_backlight {
 				status = "okay";
 			};
 		};
@@ -45,7 +45,7 @@
 		__overlay__ {
 			lvds0_panel {
 				compatible = "vxt,vl10112880", "panel-lvds";
-				backlight = <&lvds_backlight>;
+				backlight = <&disp_backlight>;
 				power-supply = <&reg_lvds_pwr>;
 
 				data-mapping = "vesa-24";
