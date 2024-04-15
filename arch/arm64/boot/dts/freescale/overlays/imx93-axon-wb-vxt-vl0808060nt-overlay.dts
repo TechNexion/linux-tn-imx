@@ -25,7 +25,7 @@
 	fragment@1 {
 		target-path = "/";
 		__overlay__ {
-			lcd_backlight: lcd_backlight {
+			disp_backlight: disp_backlight {
 				status = "okay";
 			};
 		};
@@ -36,7 +36,7 @@
 		__overlay__ {
 			panel {
 				compatible = "vxt,vl080-8060nt-c01";
-				//backlight = <&lcd_backlight>;
+				backlight = <&disp_backlight>;
 				power-supply = <&reg_3p3v>;
 
 				port {
