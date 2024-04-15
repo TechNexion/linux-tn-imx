@@ -40,25 +40,6 @@
 	_resultb_;					\
 })
 
-#define REGMAP_RETRY_READ( ds90ub94x, reg, val, mask)	\
-({							\
-	int _attemptc_ = REGMAP_RETRY_COUNT;		\
-	int val_read, check_val;			\
-	int _resultb_;					\
-	while ( _attemptc_-- ){				\
-		_resultb_ = 0;				\
-		regmap_read(ds90ub94x->regmap, reg, &val_read);	\
-		dev_dbg(ds90ub94x->dev, "REGMAP_RETRY_READ: reg 0x%02x, value 0x%02x\n", reg, val_read); \
-		check_val = XNOR(val, val_read);	\
-		check_val &= mask;			\
-		if ( mask == check_val ) break;		\
-		dev_err(ds90ub94x->dev, "REGMAP_RETRY_READ: failed: reg 0x%02x, value 0x%02x, mask 0x%02x, retry = %d\n", reg, val, mask, (REGMAP_RETRY_COUNT - _attemptc_)); \
-		_resultb_ = -1;				\
-		msleep(I2C_RW_MDELAY);			\
-	}						\
-	_resultb_;					\
-})
-
 #define REGMAP_RETRY_WRITE( ds90ub94x, reg, val)	\
 ({							\
 	int _attemptc_ = REGMAP_RETRY_COUNT;		\
@@ -118,6 +99,10 @@ struct i2c_config ds90ub941_probe_config[] = {
 	{0x04, 0x00, 0x33}, //start CRC_ERROR count
 	{0x03, 0x9A, 0xFA}, //Enable FPD-Link I2C pass through, DSI clock auto switch
 
+	{0x5B, 0x20, 0xFF}, //FPD3_TX_MODE=auto_detect, Reset PLL
+	{0x1E, 0x02, 0x07}, //Select FPD-Link III Port 0
+	{0x0F, 0x09, 0x0F}, //PWR_SW_CTL_EN: local high to enable power of remote side
+
 	{0x1E, 0x01, 0x07}, //Select FPD-Link III Port 0
 	{0x5B, 0x21, 0xFF}, //FPD3_TX_MODE=single, Reset PLL
 	{0x4F, 0x8C, 0xFE}, //DSI Continuous Clock Mode,DSI 4 lanes
@@ -166,16 +151,6 @@ static int regmap_i2c_rw_check_retry(struct ds90ub94x *ds90ub94x, struct i2c_con
 			return -EIO;
 	}
 
-	//continue read check
-	for ( i = 0; i < i2c_config_size ; i++ )
-	{
-		reg = i2c_config[i].i2c_reg;
-		val = i2c_config[i].i2c_val;
-		mask = i2c_config[i].check_mask;
-
-		if (REGMAP_RETRY_READ(ds90ub94x, reg, val, mask) != 0)
-			return -EIO;
-	}
 	return 0;
 }
 
