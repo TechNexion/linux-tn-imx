@@ -54,6 +54,7 @@ dtbo-$(CONFIG_ARCH_MXC) += imx8mn-edm-g-wizard-sn65dsi84-vl10112880.dtbo imx8mn-
 			   imx8mn-edm-g-wizard-tevi-ov5640.dtbo
 
 dtbo-$(CONFIG_ARCH_MXC) += imx93-axon-wb-lvds-vl10112880.dtbo imx93-axon-wb-vxt-vl0508048nt.dtbo imx93-axon-wb-vxt-vl0808060nt.dtbo
+dtbo-$(CONFIG_ARCH_MXC) += imx93-axon-wb-tevi-ap1302.dtbo
 
 targets += dtbs dtbs_install
 targets += $(dtbo-y)
