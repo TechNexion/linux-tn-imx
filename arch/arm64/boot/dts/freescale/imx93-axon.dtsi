@@ -386,36 +386,6 @@
 			#pwm-cells = <3>;
 		};
 	};
-
-	tevi_ap1302_otp_1: tevi_ap1302_otp@54 {
-		compatible = "atmel,24c1024";
-		reg = <0x54>;
-		pagesize = <256>;
-		//read-only;
-	};
-
-	tevi_ap1302_mipi: tevi_ap1302_mipi@3d {
-		compatible = "tn,tevi-ap1302";
-
-		reg = <0x3d>;
-
-		host-power-gpios = <&pca9554bs_a3b 5 GPIO_ACTIVE_LOW>;
-		reset-gpios = <&pcal6524 12 GPIO_ACTIVE_HIGH>;
-//		device-power-gpios = <&tca9555_a21 0 GPIO_ACTIVE_HIGH>;
-//		standby-gpios = <&tca9555_a21 2 GPIO_ACTIVE_HIGH>;
-		nvmem = <&tevi_ap1302_otp_1>;
-		nvmem-names = "calib-data";
-		data-lanes = <2>;
-		continuous-clock = <0>;
-		supports-over-4k-res;
-		status = "okay";
-
-		port {
-			tevi_ap1302_1_ep: endpoint {
-				remote-endpoint = <&mipi_csi_ep>;
-			};
-		};
-	};
 };
 
 &lpi2c3 {
@@ -780,33 +750,4 @@
 
 &epxp {
 	status = "okay";
-};
-
-&cameradev {
-	status = "okay";
-};
-
-&isi_0 {
-	status = "okay";
-
-	cap_device {
-		status = "okay";
-	};
-};
-
-&mipi_csi {
-	#address-cells = <1>;
-	#size-cells = <0>;
-	status = "okay";
-
-	port@0 {
-		reg = <0>;
-		mipi_csi_ep: endpoint {
-			remote-endpoint = <&tevi_ap1302_1_ep>;
-			data-lanes = <4>;
-			cfg-clk-range = <28>;
-			hs-clk-range = <0x2b>;
-			bus-type = <4>;
-		};
-	};
 };
