@@ -479,6 +479,11 @@
 		clock-names = "mclk";
 		wlf,shared-lrclk;
 	};
+
+	tevs_1: tevs@48 {
+		reg = <0x48>;
+		status = "disabled";
+	};
 };
 
 &i2c4 {
@@ -516,6 +521,11 @@
 		#clock-cells = <0>;
 		clock-frequency = <100000000>;
 		reg = <0x68>;
+	};
+
+	tevs_0: tevs@48 {
+		reg = <0x48>;
+		status = "disabled";
 	};
 };
 
