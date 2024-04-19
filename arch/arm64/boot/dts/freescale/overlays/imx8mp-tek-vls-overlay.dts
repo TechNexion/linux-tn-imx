@@ -92,7 +92,7 @@
 					#size-cells = <0>;
 
 					vizionlink_tca9554_a25_1: vizionlink_tca9554@25 {
-						compatible = "ti,tca9554";
+						compatible = "nxp,pca9554";
 						reg = <0x25>;
 						gpio-controller;
 						#gpio-cells = <2>;
@@ -107,7 +107,6 @@
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_csi2_dummy_host_power>;
 
-				host-power-gpios = <&gpio2 2 GPIO_ACTIVE_HIGH>;
 				reset-gpios = <&vizionlink_tca9554_a25_1 4 GPIO_ACTIVE_HIGH>;
 				standby-gpios = <&vizionlink_tca9554_a25_1 2 GPIO_ACTIVE_HIGH>;
 				data-lanes = <4>;
@@ -161,7 +160,7 @@
 					#size-cells = <0>;
 
 					vizionlink_tca9554_a25_0: vizionlink_tca9554@25 {
-						compatible = "ti,tca9554";
+						compatible = "nxp,pca9554";
 						reg = <0x25>;
 						gpio-controller;
 						#gpio-cells = <2>;
@@ -176,7 +175,6 @@
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_csi1_dummy_host_power>;
 
-				host-power-gpios = <&gpio2 20 GPIO_ACTIVE_HIGH>;
 				reset-gpios = <&vizionlink_tca9554_a25_0 4 GPIO_ACTIVE_HIGH>;
 				standby-gpios = <&vizionlink_tca9554_a25_0 2 GPIO_ACTIVE_HIGH>;
 				data-lanes = <4>;
