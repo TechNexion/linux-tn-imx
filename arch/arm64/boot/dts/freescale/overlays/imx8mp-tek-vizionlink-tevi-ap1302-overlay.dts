@@ -112,7 +112,6 @@
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_csi2_dummy_host_power>;
 
-				host-power-gpios = <&gpio2 2 GPIO_ACTIVE_HIGH>;
 				reset-gpios = <&vizionlink_pca9554_a25_1 4 GPIO_ACTIVE_HIGH>;
 				device-power-gpios = <&vizionlink_pca9554_a25_1 0 GPIO_ACTIVE_HIGH>;
 				standby-gpios = <&vizionlink_pca9554_a25_1 2 GPIO_ACTIVE_HIGH>;
@@ -190,7 +189,6 @@
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_csi1_dummy_host_power>;
 
-				host-power-gpios = <&gpio2 20 GPIO_ACTIVE_HIGH>;
 				reset-gpios = <&vizionlink_pca9554_a25_0 4 GPIO_ACTIVE_HIGH>;
 				device-power-gpios = <&vizionlink_pca9554_a25_0 0 GPIO_ACTIVE_HIGH>;
 				standby-gpios = <&vizionlink_pca9554_a25_0 2 GPIO_ACTIVE_HIGH>;
