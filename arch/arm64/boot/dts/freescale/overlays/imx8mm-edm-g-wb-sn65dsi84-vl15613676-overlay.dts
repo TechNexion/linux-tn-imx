@@ -42,7 +42,7 @@
 				reg = <0>;
 				compatible = "vxt,vl15613676-panel";
 				backlight = <&lvds_backlight>;
-				dsi,flags = <0x0007>;
+				dsi,flags = <0x0001>;
 				dsi,format = <0>;
 				dsi,lanes = <4>;
 				panel-width-mm  = <344>;
