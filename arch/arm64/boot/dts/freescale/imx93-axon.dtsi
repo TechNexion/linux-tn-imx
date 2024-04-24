@@ -378,7 +378,7 @@
 			gpio-controller;
 			#gpio-cells = <2>;
 			gpio-line-names = "P18_AUD_RST", "P20_TOUCH_nRST", "P22_USB_HUB_RESET", "PWM_P1_LVDS0_BL_PWM", "LCD_BKLEN",
-					"P8_LVDS0_VDDEN", "PWM_P79_DISP0_BL_PWM", "P7_LVDS0_BLT_EN", "PWM_P39_VH-P11", "P71";
+					"P8_LVDS0_VDDEN", "EEPROM_WP_n", "P7_LVDS0_BLT_EN", "PWM_P39_VH-P11", "P71";
 		};
 
 		adp5585pwm: pwm@34 {
