@@ -102,6 +102,16 @@
 			clocks = <&tlv320_mclk>;
 		};
 	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		led_1 {
+			label = "WB-led";
+			gpios = <&pca9554bs_a3b 1 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+		};
+	};
 };
 
 &sai1 {
