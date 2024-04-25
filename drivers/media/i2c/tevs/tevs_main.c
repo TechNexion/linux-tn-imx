@@ -183,6 +183,10 @@
 #define TEVS_GAMMA_MAX 							HOST_COMMAND_ISP_CTRL_GAMMA_MAX
 #define TEVS_GAMMA_MIN 							HOST_COMMAND_ISP_CTRL_GAMMA_MIN
 #define TEVS_GAMMA_MASK 						(0xFFFF)
+#define TEVS_MAX_FPS							HOST_COMMAND_ISP_CTRL_PREVIEW_MAX_FPS
+#define TEVS_AE_AUTO_EXP_TIME_UPPER				HOST_COMMAND_ISP_CTRL_PREVIEW_EXP_TIME_UPPER_MSB
+#define TEVS_AE_AUTO_EXP_TIME_MAX				HOST_COMMAND_ISP_CTRL_PREVIEW_EXP_TIME_MAX_MSB
+#define TEVS_AE_AUTO_EXP_TIME_MASK				(0xFFFFFFFF)
 #define TEVS_AE_MANUAL_EXP_TIME 				HOST_COMMAND_ISP_CTRL_EXP_TIME_MSB
 #define TEVS_AE_MANUAL_EXP_TIME_MAX 			HOST_COMMAND_ISP_CTRL_EXP_TIME_MAX_MSB
 #define TEVS_AE_MANUAL_EXP_TIME_MIN 			HOST_COMMAND_ISP_CTRL_EXP_TIME_MIN_MSB
@@ -252,7 +256,11 @@
 #define TEVS_DZ_CT_MAX 							HOST_COMMAND_ISP_CTRL_CT_MAX
 #define TEVS_DZ_CT_MIN 							HOST_COMMAND_ISP_CTRL_CT_MIN
 
-#define V4L2_CID_TEVS_BSL_MODE            (V4L2_CID_USER_BASE + 44)
+#define V4L2_CID_USER_TEVS_BASE				(V4L2_CID_USER_BASE + 0x2000)
+#define V4L2_CID_TEVS_BSL_MODE				(V4L2_CID_USER_TEVS_BASE + 0)
+#define V4L2_CID_TEVS_MAX_FPS				(V4L2_CID_USER_TEVS_BASE + 1)
+#define V4L2_CID_TEVS_AE_EXP_TIME_UPPER		(V4L2_CID_USER_TEVS_BASE + 2)
+#define V4L2_CID_TEVS_AE_EXP_TIME_MAX		(V4L2_CID_USER_TEVS_BASE + 3)
 #define TEVS_TRIGGER_CTRL_MODE_MASK 		(0x0001)
 #define TEVS_BSL_MODE_NORMAL_IDX 		    (0U << 0)
 #define TEVS_BSL_MODE_FLASH_IDX 			(1U << 0)
@@ -1130,6 +1138,70 @@ static int tevs_get_gamma_min(struct tevs *tevs, s64 *value)
 	return 0;
 }
 
+static int tevs_set_ae_auto_exp_upper(struct tevs *tevs, s32 value)
+{
+	u8 val[4];
+	__be32 temp;
+	int ret;
+
+	temp = cpu_to_be32(value);
+	memcpy(val, &temp, 4);
+
+	ret = tevs_i2c_write(tevs,
+				   TEVS_AE_AUTO_EXP_TIME_UPPER,
+				   val, 4);
+	if (ret)
+		return ret;
+
+	return 0;
+}
+
+static int tevs_get_ae_auto_exp_upper(struct tevs *tevs, s32 *value)
+{
+	u8 val[4] = { 0 };
+	int ret;
+
+	ret = tevs_i2c_read(tevs,
+				  TEVS_AE_AUTO_EXP_TIME_UPPER, val, 4);
+	if (ret)
+		return ret;
+
+	*value = be32_to_cpup((__be32*)val);
+	return 0;
+}
+
+static int tevs_set_ae_auto_exp_max(struct tevs *tevs, s32 value)
+{
+	u8 val[4];
+	__be32 temp;
+	int ret;
+
+	temp = cpu_to_be32(value);
+	memcpy(val, &temp, 4);
+
+	ret = tevs_i2c_write(tevs,
+				   TEVS_AE_AUTO_EXP_TIME_MAX,
+				   val, 4);
+	if (ret)
+		return ret;
+
+	return 0;
+}
+
+static int tevs_get_ae_auto_exp_max(struct tevs *tevs, s32 *value)
+{
+	u8 val[4] = { 0 };
+	int ret;
+
+	ret = tevs_i2c_read(tevs,
+				  TEVS_AE_AUTO_EXP_TIME_MAX, val, 4);
+	if (ret)
+		return ret;
+
+	*value = be32_to_cpup((__be32*)val);
+	return 0;
+}
+
 static int tevs_set_exposure(struct tevs *tevs, s32 value)
 {
 	u8 val[4];
@@ -1790,6 +1862,12 @@ static int tevs_s_ctrl(struct v4l2_ctrl *ctrl)
 	case V4L2_CID_GAMMA:
 		return tevs_set_gamma(tevs, ctrl->val);
 
+	case V4L2_CID_TEVS_AE_EXP_TIME_UPPER:
+		return tevs_set_ae_auto_exp_upper(tevs, ctrl->val);
+
+	case V4L2_CID_TEVS_AE_EXP_TIME_MAX:
+		return tevs_set_ae_auto_exp_max(tevs, ctrl->val);
+
 	case V4L2_CID_EXPOSURE:
 		return tevs_set_exposure(tevs, ctrl->val);
 
@@ -1858,6 +1936,12 @@ static int tevs_g_ctrl(struct v4l2_ctrl *ctrl)
 
 	case V4L2_CID_GAMMA:
 		return tevs_get_gamma(tevs, &ctrl->val);
+
+	case V4L2_CID_TEVS_AE_EXP_TIME_UPPER:
+		return tevs_get_ae_auto_exp_upper(tevs, &ctrl->val);
+
+	case V4L2_CID_TEVS_AE_EXP_TIME_MAX:
+		return tevs_get_ae_auto_exp_max(tevs, &ctrl->val);
 
 	case V4L2_CID_EXPOSURE:
 		return tevs_get_exposure(tevs, &ctrl->val);
@@ -2107,6 +2191,26 @@ static const struct v4l2_ctrl_config tevs_ctrls[] = {
 		.def = TEVS_BSL_MODE_NORMAL_IDX,
 		.qmenu = bsl_mode_strings,
 	},
+	{
+		.ops = &tevs_ctrl_ops,
+		.id = V4L2_CID_TEVS_AE_EXP_TIME_UPPER,
+		.name = "AE_ExpTime_Upper",
+		.type = V4L2_CTRL_TYPE_INTEGER,
+		.min = 0x0,
+		.max = 0xF4240,
+		.step = 1,
+		.def = 0x8235, // 33333 us
+	},
+	{
+		.ops = &tevs_ctrl_ops,
+		.id = V4L2_CID_TEVS_AE_EXP_TIME_MAX,
+		.name = "AE_ExpTime_Max",
+		.type = V4L2_CTRL_TYPE_INTEGER,
+		.min = 0x0,
+		.max = 0xF4240,
+		.step = 1,
+		.def = 0x8235, // 33333 us
+	},
 };
 
 static int tevs_ctrls_init(struct tevs *tevs)
@@ -2154,6 +2258,8 @@ static int tevs_ctrls_init(struct tevs *tevs)
 			break;
 
 		case V4L2_CID_EXPOSURE:
+		case V4L2_CID_TEVS_AE_EXP_TIME_UPPER:
+		case V4L2_CID_TEVS_AE_EXP_TIME_MAX:
 			tevs_get_exposure_max(tevs, &ctrl->maximum);
 			tevs_get_exposure_min(tevs, &ctrl->minimum);
 			break;
