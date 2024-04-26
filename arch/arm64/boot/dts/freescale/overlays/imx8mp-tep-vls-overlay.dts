@@ -70,7 +70,7 @@
 				ser_alias_id = <0x1b>;
 
 				//i2c addr alias map "gpio extender, eeprom , sensor"
-				i2c_addr_alias_map_local = <0x25 0x48>;
+				i2c_addr_alias_map_local = <0x25 0x3e>;
 				i2c_addr_alias_map_remote = <0x25 0x48>;
 
 				//deserializer output csi lanes 1~4. default 4
@@ -101,9 +101,9 @@
 				};
 			};
 
-			tevs_1: tevs@48 {
+			tevs_1: tevs@3e {
 				compatible = "tn,tevs";
-				reg = <0x48>;
+				reg = <0x3e>;
 
 				reset-gpios = <&vizionlink_tca9554_a25_1 4 GPIO_ACTIVE_HIGH>;
 				standby-gpios = <&vizionlink_tca9554_a25_1 2 GPIO_ACTIVE_HIGH>;
@@ -135,7 +135,7 @@
 				ser_alias_id = <0x1b>;
 
 				//i2c addr alias map "gpio extender, eeprom , sensor"
-				i2c_addr_alias_map_local = <0x25 0x48>;
+				i2c_addr_alias_map_local = <0x25 0x3e>;
 				i2c_addr_alias_map_remote = <0x25 0x48>;
 
 				//deserializer output csi lanes 1~4. default 4
@@ -166,9 +166,9 @@
 				};
 			};
 
-			tevs_0: tevs@48 {
+			tevs_0: tevs@3e {
 				compatible = "tn,tevs";
-				reg = <0x48>;
+				reg = <0x3e>;
 
 				reset-gpios = <&vizionlink_tca9554_a25_0 4 GPIO_ACTIVE_HIGH>;
 				standby-gpios = <&vizionlink_tca9554_a25_0 2 GPIO_ACTIVE_HIGH>;
