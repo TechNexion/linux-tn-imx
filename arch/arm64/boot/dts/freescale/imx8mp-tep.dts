@@ -591,8 +591,8 @@
 		status = "disabled";
 	};
 
-	tevs_1: tevs@48 {
-		reg = <0x48>;
+	tevs_1: tevs@3e {
+		reg = <0x3e>;
 		status = "disabled";
 	};
 };
@@ -669,8 +669,8 @@
 		status = "disabled";
 	};
 
-	tevs_0: tevs@48 {
-		reg = <0x48>;
+	tevs_0: tevs@3e {
+		reg = <0x3e>;
 		status = "disabled";
 	};
 };
