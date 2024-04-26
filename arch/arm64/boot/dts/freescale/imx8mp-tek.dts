@@ -493,17 +493,22 @@
 				reg = <0x25>;
 				status = "disabled";
 			};
-
-			vizionlink_tevi_ov5640_1: vizionlink_ov5640_mipi@3c {
-				reg = <0x3c>;
-				status = "disabled";
-			};
-
-			vizionlink_tevi_ap1302_1: vizionlink_tevi_ap1302@3d {
-				reg = <0x3d>;
-				status = "disabled";
-			};
 		};
+	};
+
+	vizionlink_tevi_ov5640_1: vizionlink_ov5640_mipi@3c {
+		reg = <0x3c>;
+		status = "disabled";
+	};
+
+	vizionlink_tevi_ap1302_1: vizionlink_tevi_ap1302@3d {
+		reg = <0x3d>;
+		status = "disabled";
+	};
+
+	tevs_1: tevs@3e {
+		reg = <0x3e>;
+		status = "disabled";
 	};
 };
 
@@ -554,17 +559,22 @@
 				reg = <0x25>;
 				status = "disabled";
 			};
-
-			vizionlink_tevi_ov5640_0: vizionlink_ov5640_mipi@3c {
-				reg = <0x3c>;
-				status = "disabled";
-			};
-
-			vizionlink_tevi_ap1302_0: vizionlink_tevi_ap1302@3d {
-				reg = <0x3d>;
-				status = "disabled";
-			};
 		};
+	};
+
+	vizionlink_tevi_ov5640_0: vizionlink_ov5640_mipi@3c {
+		reg = <0x3c>;
+		status = "disabled";
+	};
+
+	vizionlink_tevi_ap1302_0: vizionlink_tevi_ap1302@3d {
+		reg = <0x3d>;
+		status = "disabled";
+	};
+
+	tevs_1: tevs@3e {
+		reg = <0x3e>;
+		status = "disabled";
 	};
 };
 
