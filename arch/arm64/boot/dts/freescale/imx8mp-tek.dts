@@ -572,7 +572,7 @@
 		status = "disabled";
 	};
 
-	tevs_1: tevs@3e {
+	tevs_0: tevs@3e {
 		reg = <0x3e>;
 		status = "disabled";
 	};
