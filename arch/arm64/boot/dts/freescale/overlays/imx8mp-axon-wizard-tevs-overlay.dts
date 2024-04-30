@@ -66,7 +66,6 @@
 
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_csi0_pwn>, <&pinctrl_csi0_rst>;
-				host-power-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
 				reset-gpios = <&gpio1 8 GPIO_ACTIVE_HIGH>;
 				standby-gpios = <&pca9555_a21 2 GPIO_ACTIVE_HIGH>;
 				data-lanes = <4>;
@@ -95,7 +94,6 @@
 
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_csi1_pwn>, <&pinctrl_csi1_rst>;
-				host-power-gpios = <&gpio4 5 GPIO_ACTIVE_HIGH>;
 				reset-gpios = <&gpio4 4 GPIO_ACTIVE_HIGH>;
 				standby-gpios = <&pca9555_a21 10 GPIO_ACTIVE_HIGH>;
 				data-lanes = <4>;
