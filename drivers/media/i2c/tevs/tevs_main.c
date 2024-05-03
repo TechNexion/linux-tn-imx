@@ -184,6 +184,7 @@
 #define TEVS_GAMMA_MIN 							HOST_COMMAND_ISP_CTRL_GAMMA_MIN
 #define TEVS_GAMMA_MASK 						(0xFFFF)
 #define TEVS_MAX_FPS							HOST_COMMAND_ISP_CTRL_PREVIEW_MAX_FPS
+#define TEVS_MAX_FPS_MASK 						(0x00FF)
 #define TEVS_AE_AUTO_EXP_TIME_UPPER				HOST_COMMAND_ISP_CTRL_PREVIEW_EXP_TIME_UPPER_MSB
 #define TEVS_AE_AUTO_EXP_TIME_MAX				HOST_COMMAND_ISP_CTRL_PREVIEW_EXP_TIME_MAX_MSB
 #define TEVS_AE_AUTO_EXP_TIME_MASK				(0xFFFFFFFF)
@@ -317,6 +318,7 @@ struct tevs {
 	struct mutex lock; /* Protects formats */
 	/* V4L2 Controls */
 	struct v4l2_ctrl_handler ctrls;
+	struct v4l2_ctrl *max_fps_ctrl;
 };
 
 static const struct regmap_config tevs_regmap_config = {
@@ -694,8 +696,7 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 	} else {
 		if(!(tevs->hw_reset_mode | tevs->trigger_mode))
 			ret = tevs_standby(tevs, 0);
-		// if(tevs->trigger_mode)
-		// 	ret = tevs_enable_trigger_mode(tevs, enable);
+
 		if (ret == 0) {
 			int fps = tevs_sensor_table[tevs->selected_sensor]
 					  .res_list[tevs->selected_mode]
@@ -726,6 +727,9 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 			tevs_i2c_write_16b(
 				tevs, HOST_COMMAND_ISP_CTRL_PREVIEW_MAX_FPS,
 				fps);
+			if(tevs->max_fps_ctrl)
+				tevs->max_fps_ctrl->cur.val = fps;
+
 			if(tevs->fixed_fps) {
 				exp_time = TOTAL_MICROSEC_PERSEC / fps;
 				dev_dbg(sub_dev->dev, "%s():set fixed exp time: %d us(fps:%d)\n", __func__, exp_time, fps);
@@ -1135,6 +1139,24 @@ static int tevs_get_gamma_min(struct tevs *tevs, s64 *value)
 		return ret;
 
 	*value = val & TEVS_GAMMA_MASK;
+	return 0;
+}
+
+static int tevs_set_max_fps(struct tevs *tevs, s32 value)
+{
+	return tevs_i2c_write_16b(tevs, TEVS_MAX_FPS,
+				    value & TEVS_MAX_FPS_MASK);
+}
+
+static int tevs_get_max_fps(struct tevs *tevs, s32 *value)
+{
+	u16 val;
+	int ret;
+	ret = tevs_i2c_read_16b(tevs, TEVS_MAX_FPS, &val);
+	if (ret)
+		return ret;
+
+	*value = val & TEVS_MAX_FPS_MASK;
 	return 0;
 }
 
@@ -1862,6 +1884,9 @@ static int tevs_s_ctrl(struct v4l2_ctrl *ctrl)
 	case V4L2_CID_GAMMA:
 		return tevs_set_gamma(tevs, ctrl->val);
 
+	case V4L2_CID_TEVS_MAX_FPS:
+		return tevs_set_max_fps(tevs, ctrl->val);
+
 	case V4L2_CID_TEVS_AE_EXP_TIME_UPPER:
 		return tevs_set_ae_auto_exp_upper(tevs, ctrl->val);
 
@@ -1936,6 +1961,9 @@ static int tevs_g_ctrl(struct v4l2_ctrl *ctrl)
 
 	case V4L2_CID_GAMMA:
 		return tevs_get_gamma(tevs, &ctrl->val);
+
+	case V4L2_CID_TEVS_MAX_FPS:
+		return tevs_get_max_fps(tevs, &ctrl->val);
 
 	case V4L2_CID_TEVS_AE_EXP_TIME_UPPER:
 		return tevs_get_ae_auto_exp_upper(tevs, &ctrl->val);
@@ -2193,6 +2221,16 @@ static const struct v4l2_ctrl_config tevs_ctrls[] = {
 	},
 	{
 		.ops = &tevs_ctrl_ops,
+		.id = V4L2_CID_TEVS_MAX_FPS,
+		.name = "Max_FPS",
+		.type = V4L2_CTRL_TYPE_INTEGER,
+		.min = 1,
+		.max = 255,
+		.step = 1,
+		.def = 30,
+	},
+	{
+		.ops = &tevs_ctrl_ops,
 		.id = V4L2_CID_TEVS_AE_EXP_TIME_UPPER,
 		.name = "AE_ExpTime_Upper",
 		.type = V4L2_CTRL_TYPE_INTEGER,
@@ -2295,6 +2333,9 @@ static int tevs_ctrls_init(struct tevs *tevs)
 		case V4L2_CID_ZOOM_ABSOLUTE:
 			tevs_get_zoom_target_max(tevs, &ctrl->maximum);
 			tevs_get_zoom_target_min(tevs, &ctrl->minimum);
+			break;
+		case V4L2_CID_TEVS_MAX_FPS:
+			tevs->max_fps_ctrl = ctrl;
 		default:
 			break;
 		}
