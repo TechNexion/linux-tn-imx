@@ -496,7 +496,7 @@ int tevs_init_setting(struct tevs *tevs)
 
 static int tevs_standby(struct tevs *tevs, int enable)
 {
-	u16 v = 0;
+	u16 v = 0xFFFF;
 	int timeout = 0;
 	dev_dbg(tevs->dev, "%s():enable=%d\n", __func__, enable);
 
@@ -2176,6 +2176,10 @@ static int tevs_ctrls_init(struct tevs *tevs)
 	if (ret)
 		return ret;
 
+	/* Use same lock for controls as for everything else. */
+	mutex_init(&tevs->lock);
+	tevs->ctrls.lock = &tevs->lock;
+
 	for (i = 0; i < ARRAY_SIZE(tevs_ctrls); i++) {
 		struct v4l2_ctrl *ctrl = v4l2_ctrl_new_custom(
 			&tevs->ctrls, &tevs_ctrls[i], NULL);
@@ -2263,8 +2267,6 @@ static int tevs_ctrls_init(struct tevs *tevs)
 		return ret;
 	}
 
-	/* Use same lock for controls as for everything else. */
-	tevs->ctrls.lock = &tevs->lock;
 	tevs->v4l2_subdev.ctrl_handler = &tevs->ctrls;
 
 	return 0;
@@ -2326,6 +2328,8 @@ static int tevs_probe(struct i2c_client *client, const struct i2c_device_id *id)
 		dev_err(dev, "allocate memory failed\n");
 		return -EINVAL;
 	}
+
+	v4l2_i2c_subdev_init(&tevs->v4l2_subdev, client, &tevs_subdev_ops);
 
 	i2c_set_clientdata(client, tevs);
 	tevs->dev = &client->dev;
@@ -2465,6 +2469,7 @@ static int tevs_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	dev_dbg(dev, "selected_sensor:%d, sensor_name:%s\n", i,
 		tevs->header_info->product_name);
 
+	/* Initialize default format */
 	fmt = &tevs->fmt;
 	fmt->width = tevs_sensor_table[tevs->selected_sensor].res_list[0].width;
 	fmt->height =
@@ -2477,31 +2482,36 @@ static int tevs_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	fmt->xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(fmt->colorspace);
 	memset(fmt->reserved, 0, sizeof(fmt->reserved));
 
-	v4l2_i2c_subdev_init(&tevs->v4l2_subdev, client, &tevs_subdev_ops);
-
-	tevs->v4l2_subdev.flags |=
-		(V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_HAS_DEVNODE);
-
 	ret = tevs_ctrls_init(tevs);
 	if (ret) {
 		dev_err(&client->dev, "failed to init controls: %d", ret);
-		goto error_probe;
+		goto error_power_off;
 	}
 
-	tevs->pad.flags = MEDIA_PAD_FL_SOURCE;
+    /* Initialize subdev */
+	tevs->v4l2_subdev.flags |=
+		(V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_HAS_DEVNODE);
 	tevs->v4l2_subdev.entity.ops = &tevs_media_entity_ops;
 	tevs->v4l2_subdev.entity.function = MEDIA_ENT_F_CAM_SENSOR;
+
+	/* Initialize source pads */
+	tevs->pad.flags = MEDIA_PAD_FL_SOURCE;
 	ret = media_entity_pads_init(&tevs->v4l2_subdev.entity, 1, &tevs->pad);
+	if (ret) {
+		dev_err(tevs->dev, "failed to init entity pads: %d\n", ret);
+		goto error_handler_free;
+	}
+
 	ret += v4l2_async_register_subdev(&tevs->v4l2_subdev);
 	if (ret != 0) {
 		dev_err(tevs->dev, "v4l2 register failed\n");
-		return -EINVAL;
+		goto error_media_entity;
 	}
 
 	if (tevs_init_setting(tevs)) {
 		if (ret != 0) {
 			dev_err(tevs->dev, "init setting failed\n");
-			return ret;
+			goto error_media_entity;
 		}
 	}
 
@@ -2509,7 +2519,7 @@ static int tevs_probe(struct i2c_client *client, const struct i2c_device_id *id)
 		ret = tevs_standby(tevs, 1);
 		if (ret != 0) {
 			dev_err(tevs->dev, "set standby mode failed\n");
-			return ret;
+			goto error_media_entity;
 		}
 	} else
 		ret = tevs_power_off(tevs);
@@ -2518,8 +2528,16 @@ static int tevs_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	else
 		dev_err(dev, "probe failed\n");
 
-error_probe:
-	mutex_destroy(&tevs->lock);
+	return 0;
+
+error_media_entity:
+	media_entity_cleanup(&tevs->v4l2_subdev.entity);
+
+error_handler_free:
+	tevs_ctrls_free(tevs);
+
+error_power_off:
+	tevs_power_off(tevs);
 
 	return ret;
 }
