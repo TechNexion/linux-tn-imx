@@ -142,10 +142,10 @@
 		vcc-supply = <&reg_1p8v>;
 		gpio-controller;
 		#gpio-cells = <2>;
-		interrupt-controller;
-		#interrupt-cells = <2>;
-		interrupt-parent = <&pcal6524>;
-		interrupts = <19 IRQ_TYPE_EDGE_FALLING>;
+		// interrupt-controller;
+		// #interrupt-cells = <2>;
+		// interrupt-parent = <&pcal6524>;
+		// interrupts = <19 IRQ_TYPE_EDGE_FALLING>;
 		gpio-line-names = "EXPOSURE_TRIG_IN1", "FLASH_OUT1","INFO_TRIG_IN1", "CAM_SHUTTER1",
 			"XVS1", "PWR1_TIME0","PWR1_TIME1", "PWR1_TIME2",
 			"", "","", "","", "","", "";
@@ -191,6 +191,11 @@
 		IOVDD-supply = <&reg_3p3v>;
 		DRVDD-supply = <&reg_3p3v>;
 		DVDD-supply = <&reg_1p8v>;
+	};
+
+	tevs: tevs@48 {
+		reg = <0x48>;
+		status = "disabled";
 	};
 };
 
