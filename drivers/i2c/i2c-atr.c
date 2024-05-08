@@ -158,7 +158,7 @@ static int i2c_atr_map_msgs(struct i2c_atr_chan *chan, struct i2c_msg *msgs,
 		c2a = i2c_atr_find_mapping_by_addr(&chan->alias_list,
 						   msgs[i].addr);
 		if (!c2a) {
-			dev_err(atr->dev, "client 0x%02x not mapped!\n",
+			dev_dbg(atr->dev, "client 0x%02x not mapped!\n",
 				msgs[i].addr);
 
 			while (i--)
