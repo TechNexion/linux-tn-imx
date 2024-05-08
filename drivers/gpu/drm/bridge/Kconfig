@@ -374,6 +374,7 @@ config DRM_TI_DS90UB94X
 	select DRM_KMS_HELPER
 	select DRM_PANEL
 	select DRM_MIPI_DSI
+	select I2C_ATR
 	help
 	  Texas Instruments DS90UB94X DSI/FPD-LINK/LVDS bridge chip driver.
 
