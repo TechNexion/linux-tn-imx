@@ -1,8 +1,10 @@
 #include <linux/i2c.h>
 #include <linux/module.h>
 #include <linux/of.h>
+#include <linux/fwnode.h>
 #include <linux/delay.h>
 #include <linux/regmap.h>
+#include <linux/i2c-atr.h>
 
 #define DS90UB941_I2C_ADDR 0x0c
 #define DS90UB948_I2C_ADDR 0x2c
@@ -61,6 +63,8 @@ static const struct regmap_config config = {
 	.max_register = 0xFF,
 };
 
+#define UB941_MAX_PORT_ALIASES 8
+
 struct ds90ub94x {
 	struct device *dev;
 	struct regmap *regmap;
@@ -70,6 +74,10 @@ struct ds90ub94x {
 	int reset_size;
 	int probe_info_size;
 	int dual_channel_size;
+	struct i2c_client *client;
+	struct i2c_atr *atr;
+
+	const struct i2c_client *aliased_clients[UB941_MAX_PORT_ALIASES];
 };
 
 struct i2c_config{
@@ -111,12 +119,6 @@ struct i2c_config ds90ub941_probe_config[] = {
 	{0x0F, 0x03, 0x0F}, //Reset touch interrupt
 
 	{0x01, 0x00, 0x0F}, //Release DSI/DIGITLE reset
-
-	{0x07, 0x54, 0xFE}, //SlaveID_0: touch panel, 0x2A << 1
-	{0x08, 0x54, 0xFE}, //SlaveAlias_0: touch panel, 0x2A << 1
-	{0x70, 0xAC, 0xFE}, //SlaveID_1: EEPROM, 0x56 << 1
-	{0x77, 0xAC, 0xFE}, //SlaveAlias_1: EEPROM, 0x56 << 1
-
 	{0xC6, 0x21, 0xFF}, //REM_INTB the same as INTB_IN on UB948, Global Interrupt Enable 
 };
 
@@ -129,12 +131,110 @@ struct i2c_config ds90ub948_probe_config[] = {
 	{0x1D, 0x15, 0x0F}, //GPIO0, MIPI_BL_EN
 	{0x1E, 0x55, 0xFF}, //GPIO1, MIPI_VDDEN; GPIO2, MIPI_BL_PWM
 	{0x1F, 0x05, 0x0F}, //Reset touch interrupt
-
-	{0x08, 0x54, 0xFE}, //TargetID_0: touch panel, 0x2A << 1
-	{0x10, 0x54, 0xFE}, //TargetALIAS_0: touch panel, 0x2A << 1
-	{0x09, 0xAC, 0xFE}, //TargetID_1: EEPROM, 0x56 << 1
-	{0x11, 0xAC, 0xFE}, //TargetALIAS_1: EEPROM, 0x56 << 1
 };
+
+#define ADAPTER_NUM 2
+#define UB941_RR_SLAVE_ID(n)			n == 0? 0x07: (0x70 + (n - 1))
+#define UB941_RR_SLAVE_ALIAS(n)			n == 0? 0x08: (0x77 + (n - 1))
+
+static int ds90ub94x_atr_attach_client(struct i2c_atr *atr, u32 chan_id,
+				   const struct i2c_client *client, u16 alias)
+{
+	struct ds90ub94x *priv = i2c_atr_get_driver_data(atr);
+	struct device *dev = &priv->client->dev;
+	struct i2c_client *dummy_client;
+	unsigned int reg_idx;
+
+	for (reg_idx = 0; reg_idx < ARRAY_SIZE(priv->aliased_clients); reg_idx++) {
+		if (!priv->aliased_clients[reg_idx])
+			break;
+	}
+
+	if (reg_idx == ARRAY_SIZE(priv->aliased_clients)) {
+		dev_err(priv->dev, "alias pool exhausted\n");
+		return -EADDRNOTAVAIL;
+	}
+
+	priv->aliased_clients[reg_idx] = client;
+
+	regmap_write(priv->regmap, UB941_RR_SLAVE_ID(reg_idx), client->addr << 1);
+	regmap_write(priv->regmap, UB941_RR_SLAVE_ALIAS(reg_idx), alias << 1);
+
+	//Occupied the alias address
+	dummy_client = devm_i2c_new_dummy_device(dev, priv->client->adapter, alias);
+	dev_info(dev, "client 0x%02x assigned alias 0x%02x\n",
+		client->addr, alias);
+
+	return 0;
+}
+
+static void ds90ub94x_atr_detach_client(struct i2c_atr *atr, u32 chan_id,
+				    const struct i2c_client *client)
+{
+	struct ds90ub94x *priv = i2c_atr_get_driver_data(atr);
+	struct device *dev = &priv->client->dev;
+	unsigned int reg_idx;
+
+	dev_info(dev, "client 0x%02x\n",client->addr);
+
+	for (reg_idx = 0; reg_idx < ARRAY_SIZE(priv->aliased_clients); reg_idx++) {
+		if (priv->aliased_clients[reg_idx] == client)
+			break;
+	}
+
+	if (reg_idx == ARRAY_SIZE(priv->aliased_clients)) {
+		dev_err(priv->dev, "client 0x%02x is not mapped!\n", client->addr);
+		return;
+	}
+
+	priv->aliased_clients[reg_idx] = NULL;
+
+	regmap_write(priv->regmap, UB941_RR_SLAVE_ALIAS(reg_idx), 0);
+
+	dev_dbg(dev, "client 0x%02x released at slot %u\n",
+		client->addr, reg_idx);
+}
+
+static const struct i2c_atr_ops ds90ub94x_atr_ops = {
+	.attach_client = ds90ub94x_atr_attach_client,
+	.detach_client = ds90ub94x_atr_detach_client,
+};
+
+static int ds90ub94x_init_atr(struct ds90ub94x *priv)
+{
+	struct device *dev = &priv->client->dev;
+	struct i2c_adapter *parent_adap = priv->client->adapter;
+
+	priv->atr = i2c_atr_new(parent_adap, dev, &ds90ub94x_atr_ops,
+                                ADAPTER_NUM);
+	if (IS_ERR(priv->atr))
+		return PTR_ERR(priv->atr);
+
+	i2c_atr_set_driver_data(priv->atr, priv);
+
+	return 0;
+}
+
+static int ds90ub94x_add_i2c_adapter(struct ds90ub94x *priv)
+{
+	struct device *dev = &priv->client->dev;
+	struct fwnode_handle *i2c_handle;
+	int ret;
+
+	i2c_handle = device_get_named_child_node(dev, "i2c");
+	if (!i2c_handle)
+		return 0;
+
+	ret = i2c_atr_add_adapter(priv->atr, 0,
+				  dev, i2c_handle);
+
+	fwnode_handle_put(i2c_handle);
+
+	if (ret)
+		return ret;
+
+	return 0;
+}
 
 static int regmap_i2c_rw_check_retry(struct ds90ub94x *ds90ub94x, struct i2c_config *i2c_config, int i2c_config_size)
 {
@@ -195,6 +295,7 @@ static int ds90ub94x_probe(struct i2c_client *client)
 	}
 
 	i2c_set_clientdata(client, ds90ub941);
+	ds90ub941->client = client;
 	//add new i2c_device for UB948
 	dummy_client = devm_i2c_new_dummy_device(&client->dev, client->adapter, DS90UB948_I2C_ADDR);
 
@@ -304,6 +405,9 @@ static int ds90ub94x_probe(struct i2c_client *client)
 			dev_info(ds90ub941->dev, "Using Single channel lvds\n");
         }
 
+	ret = ds90ub94x_init_atr(ds90ub941);
+	ret = ds90ub94x_add_i2c_adapter(ds90ub941);
+
 	regmap_read(ds90ub941->regmap, 0x0A, &crc_error_1);
 	regmap_read(ds90ub941->regmap, 0x0B, &crc_error_2);
 	dev_info(ds90ub941->dev, "ds90ub94x probe success with CRC_ERROR_COUNT = 0x%02x%02x\n", crc_error_2, crc_error_1);
@@ -367,3 +471,4 @@ module_exit(ds90ub94x_link_remove);
 
 MODULE_DESCRIPTION("TI. DS90UB941/DS90UB948 SerDer bridge");
 MODULE_LICENSE("GPL");
+MODULE_IMPORT_NS(I2C_ATR);
