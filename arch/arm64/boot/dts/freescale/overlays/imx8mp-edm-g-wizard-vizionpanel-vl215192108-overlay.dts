@@ -44,29 +44,6 @@
 			#size-cells = <0>;
 			status = "okay";
 
-			exc80w46: touchscreen@2a {
-				compatible = "eeti,exc80h60";
-				pinctrl-names = "default";
-				pinctrl-0 = <&pinctrl_mipi_touch_irq>, <&pinctrl_mipi_touch_reset>;
-				reg = <0x2a>;
-				interrupt-parent = <&gpio4>;
-				interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
-				reset-gpios = <&gpio4 6 GPIO_ACTIVE_LOW>;
-				status = "okay";
-			};
-#if 0
-			polytouch: edt-ft5x06@38 {
-                                compatible = "edt,edt-ft5x06";
-                                pinctrl-names = "default";
-                                pinctrl-0 = <&pinctrl_mipi_touch_irq>, <&pinctrl_mipi_touch_reset>;
-                                reg = <0x38>;
-                                interrupt-parent = <&gpio4>;
-                                interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
-                                reset-gpios = <&gpio4 6 GPIO_ACTIVE_LOW>; /* PICO_P32 */
-                                touchscreen-size-x = <800>;
-                                touchscreen-size-y = <480>;
-                        };
-#endif
 			fpdlink_dsi2lvds: ds90ub948@c {
 				compatible = "ti,ds90ub94x";
 				reg = <0x0c>;
@@ -75,6 +52,30 @@
 				pinctrl-0 = <&pinctrl_gpio1>;
 				reset-gpios = <&gpio1 6 GPIO_ACTIVE_LOW>;
 				vizionpanel-dual-lvds-channel;
+				i2c-alias-pool = <0x48 0x49 0x4a 0x4b 0x4c 0x4d 0x4e 0x4f>;
+
+				i2c {
+					#address-cells = <1>;
+					#size-cells = <0>;
+
+					exc80w46: touchscreen@2a {
+						compatible = "eeti,exc80h60";
+						pinctrl-names = "default";
+						pinctrl-0 = <&pinctrl_mipi_touch_irq>, <&pinctrl_mipi_touch_reset>;
+						reg = <0x2a>;
+						interrupt-parent = <&gpio4>;
+						interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
+						reset-gpios = <&gpio4 6 GPIO_ACTIVE_LOW>;
+						status = "okay";
+					};
+
+					eeprom_baseboard: eeprom@56 {
+						compatible = "atmel,24c02";
+						reg = <0x56>;
+						pagesize = <16>;
+						status = "okay";
+					};
+				};
 			};
 		};
 	};
