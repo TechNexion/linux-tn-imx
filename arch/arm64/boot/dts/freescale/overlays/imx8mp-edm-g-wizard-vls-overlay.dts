@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 /*
- * Copyright 2021 TechNexion Ltd.
+ * Copyright 2023 TechNexion Ltd.
  *
  */
 
@@ -88,8 +88,8 @@
 					#address-cells = <1>;
 					#size-cells = <0>;
 
-					vizionlink_pca9554_a25_0: vizionlink_pca9554@25 {
-						compatible = "nxp,pca9554";
+					vizionlink_tca9554_a25_0: vizionlink_tca9554@25 {
+						compatible = "ti,tca9554";
 						reg = <0x25>;
 						gpio-controller;
 						#gpio-cells = <2>;
@@ -127,7 +127,7 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 
-			vizionlink@30 {
+			vizionlink_1: vizionlink@30 {
 				compatible = "tn,vizionlink";
 				reg = <0x30>;
 				pdb-gpios = <&pca9555_a23 14 GPIO_ACTIVE_HIGH>;
@@ -155,8 +155,8 @@
 					#address-cells = <1>;
 					#size-cells = <0>;
 
-					vizionlink_pca9554_a25_1: vizionlink_pca9554@25 {
-						compatible = "nxp,pca9554";
+					vizionlink_tca9554_a25_1: vizionlink_tca9554@25 {
+						compatible = "ti,tca9554";
 						reg = <0x25>;
 						gpio-controller;
 						#gpio-cells = <2>;
