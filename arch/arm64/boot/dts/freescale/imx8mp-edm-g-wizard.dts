@@ -300,15 +300,15 @@
 &i2c5 {
 	clock-frequency = <400000>;
 
-	vizionlink_1: vizionlink@30 {
-		reg = <0x30>;
-		status = "disabled";
-	};
-
 	sensor_5v0:ina219_5v0@44 {/* Power monitor for 5V SOM input supply */
 		compatible = "ti,ina219";
 		reg = <0x44>;
 		shunt-resistor = <200000>; /* .2 Ohm resistor = 200000 uOhms*/
+	};
+
+	vizionlink_1: vizionlink@30 {
+		reg = <0x30>;
+		status = "disabled";
 	};
 
 	ov5640_1: ov5640_mipi@3c {
