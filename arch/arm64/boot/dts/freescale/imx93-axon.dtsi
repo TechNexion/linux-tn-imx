@@ -362,7 +362,7 @@
 		gpio-line-names = "SPI_REG_ON", "WL_REG_ON", "BT_REG_ON", "WL_WAKE_HOST",
 				"BT_WAKE_HOST", "HOST_WAKE_WL", "HOST_WAKE_BT", "EXP_BTN2",
 
-				"P24_TOUCH_INT", "P67_NFC-INT", "P69", "PMIC_INTn",
+				"P24", "P67_NFC-INT", "P69", "PMIC_INTn",
 				"P65_CSI1_RST", "SE_ENA", "ENET2_RSTn", "ENET1_RSTn",
 
 				"P66_pca9554a3b-INT", "P68_typec-INT", "P70_VH-P32", "P72_tca9555a21-INT",
@@ -744,6 +744,12 @@
 		fsl,pins = <
 			MX93_PAD_PDM_CLK__CAN1_TX			0x139e
 			MX93_PAD_PDM_BIT_STREAM0__CAN1_RX		0x139e
+		>;
+	};
+
+	pinctrl_touch_irq: touchirqgrp {
+		fsl,pins = <
+			MX93_PAD_CCM_CLKO1__GPIO3_IO26			0x31e
 		>;
 	};
 };

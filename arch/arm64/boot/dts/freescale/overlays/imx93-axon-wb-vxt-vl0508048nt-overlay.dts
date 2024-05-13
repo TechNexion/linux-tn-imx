@@ -85,10 +85,12 @@
 			status = "okay";
 
 			polytouch: edt-ft5x06@38 {
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_touch_irq>;
 				compatible = "edt,edt-ft5x06";
 				reg = <0x38>;
-				interrupt-parent = <&pcal6524>;
-				interrupts = <8 IRQ_TYPE_EDGE_FALLING>;
+				interrupt-parent = <&gpio3>;
+				interrupts = <26 IRQ_TYPE_LEVEL_LOW>;
 				reset-gpios = <&adp5585gpio 1 GPIO_ACTIVE_LOW>; /* PICO_P32 */
 				touchscreen-size-x = <800>;
 				touchscreen-size-y = <480>;
