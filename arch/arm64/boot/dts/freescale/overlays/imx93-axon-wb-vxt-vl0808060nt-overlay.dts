@@ -85,10 +85,12 @@
 			status = "okay";
 
 			exc80w46: touchscreen@2a {
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_touch_irq>;
 				compatible = "eeti,exc80h60";
 				reg = <0x2a>;
-				interrupt-parent = <&pcal6524>;
-				interrupts = <8 IRQ_TYPE_EDGE_FALLING>;
+				interrupt-parent = <&gpio3>;
+				interrupts = <26 IRQ_TYPE_LEVEL_LOW>;
 				reset-gpios = <&adp5585gpio 1 GPIO_ACTIVE_LOW>;
 			};
 		};
