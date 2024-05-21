@@ -10,7 +10,7 @@
 
 / {
 	model = "NXP i.MX93 11x11 EVK board with TechNexion TEVS AR camera";
-	
+
 	/delete-node/ regulator-dvdd_sel;
 	/delete-node/ regulator-dvdd;
 	/delete-node/ regulator-vdd;
@@ -24,7 +24,7 @@
 
 	/delete-node/ ap1302_mipi@3c;
 	/delete-node/ mfd-isp@34;
-	
+
 	pca9554_a27_0: pca9554@27 {
 		compatible = "nxp,pca9554";
 		pinctrl-names = "default";
