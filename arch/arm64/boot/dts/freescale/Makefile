@@ -795,6 +795,7 @@ dtb-$(CONFIG_ARCH_MXC) += imx91-11x11-frdm-tianma-wvga-panel.dtb
 
 dtb-$(CONFIG_ARCH_MXC) += imx93-14x14-evk.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx93-axon-wb.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx93-edm-wb.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx93-kontron-bl-osm-s.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx93-phyboard-nash.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx93-phyboard-segin.dtb
@@ -1554,3 +1555,4 @@ DTC_FLAGS_imx8mq-pico-wizard := -@
 DTC_FLAGS_imx8mp-tek := -@
 DTC_FLAGS_imx8mp-tep := -@
 DTC_FLAGS_imx93-axon-wb := -@
+DTC_FLAGS_imx93-edm-wb := -@
