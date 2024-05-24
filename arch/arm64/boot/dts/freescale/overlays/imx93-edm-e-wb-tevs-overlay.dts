@@ -1,0 +1,83 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2024 TechNexion Ltd.
+ *
+ * Author: Alex Fang <alex.fang@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/clock/imx8mm-clock.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	fragment@0 {
+		target = <&cameradev>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@1 {
+		target = <&isi_0>;
+		__overlay__ {
+			status = "okay";
+
+			cap_device {
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&mipi_csi>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			port@0 {
+				reg = <0>;
+				mipi_csi_ep: endpoint {
+					remote-endpoint = <&tevs_ep>;
+					data-lanes = <2>;
+					cfg-clk-range = <28>;
+					hs-clk-range = <0x16>;
+					bus-type = <4>;
+				};
+			};
+		};
+	};
+
+	fragment@3 {
+		target = <&lpi2c2>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			tevs: tevs@48 {
+				compatible = "tn,tevs";
+				reg = <0x48>;
+
+				pinctrl-names = "default";
+				host-pwdn-gpios = <&pcal6524 10 GPIO_ACTIVE_HIGH>;
+				reset-gpios = <&pcal6524 9 GPIO_ACTIVE_HIGH>;
+				standby-gpios = <&tca9555_a21 2 GPIO_ACTIVE_HIGH>;
+				data-lanes = <2>;
+				// data-frequency = <800>;
+				continuous-clock = <0>;
+				status = "okay";
+
+				port {
+					tevs_ep: endpoint {
+						remote-endpoint = <&mipi_csi_ep>;
+					};
+				};
+			};
+		};
+	};
+};
