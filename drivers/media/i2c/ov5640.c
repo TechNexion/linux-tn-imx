@@ -15,6 +15,7 @@
 #include <linux/init.h>
 #include <linux/mod_devicetable.h>
 #include <linux/module.h>
+#include <linux/nvmem-consumer.h>
 #include <linux/of_device.h>
 #include <linux/regulator/consumer.h>
 #include <linux/slab.h>
@@ -697,6 +698,52 @@ static const struct reg_value ov5640_setting_QSXGA_2592_1944[] = {
 	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x20, 0, 0},
 	{0x3824, 0x02, 0, 0}, {0x5001, 0x83, 0, 70},
 	{0x3008, 0x02, 0, 20},
+};
+
+static struct ov5640_mode_info ov5640_mode_init_data = {
+	.id		= OV5640_MODE_VGA_640_480,
+	.dn_mode	= SUBSAMPLING,
+	.pixel_rate	= OV5640_PIXEL_RATE_48M,
+	.width		= 640,
+	.height		= 480,
+	.dvp_timings = {
+		.analog_crop = {
+			.left	= 0,
+			.top	= 4,
+			.width	= 2624,
+			.height	= 1944,
+		},
+		.crop = {
+			.left	= 16,
+			.top	= 6,
+			.width	= 640,
+			.height	= 480,
+		},
+		.htot		= 1896,
+		.vblank_def	= 600,
+	},
+	.csi2_timings = {
+		/* Feed the full valid pixel array to the ISP. */
+		.analog_crop = {
+			.left	= OV5640_PIXEL_ARRAY_LEFT,
+			.top	= OV5640_PIXEL_ARRAY_TOP,
+			.width	= OV5640_PIXEL_ARRAY_WIDTH,
+			.height	= OV5640_PIXEL_ARRAY_HEIGHT,
+		},
+		/* Maintain a minimum processing margin. */
+		.crop = {
+			.left	= 2,
+			.top	= 4,
+			.width	= 640,
+			.height	= 480,
+		},
+		.htot		= 1600,
+		.vblank_def	= 520,
+	},
+	.reg_data	= ov5640_setting_low_res,
+	.reg_data_size	= ARRAY_SIZE(ov5640_setting_low_res),
+	.max_fps	= OV5640_30_FPS,
+	.def_fps	= OV5640_30_FPS
 };
 
 static const struct ov5640_mode_info ov5640_mode_data[OV5640_NUM_MODES] = {
@@ -2421,14 +2468,89 @@ restore_auto_gain:
 static int ov5640_set_framefmt(struct ov5640_dev *sensor,
 			       struct v4l2_mbus_framefmt *format);
 
+/*
+otp_header, ver1
+{
+	1byte: product_name_len;
+	dynamic len: product_name_string;
+	1byte: product_ver;
+	4byte: otp_data_len;
+	1byte: checksum;
+}
+*/
+static void ov5640_read_otp(struct ov5640_dev *sensor)
+{
+	struct i2c_client *client = sensor->i2c_client;
+	struct nvmem_device *otp_flash_nvmem;
+	int __sum;
+	int i;
+	u8 header_version;
+	u8 product_name_len;
+	u8 *product_name;
+	u8 product_version;
+	u32 otp_data_len;
+	u8 otp_data_checksum;
+	u8 *otp_data;
+
+	otp_flash_nvmem = devm_nvmem_device_get(&client->dev, "calib-data");
+	if (IS_ERR(otp_flash_nvmem)) {
+		dev_err(&client->dev, "find not otp flash setting\n");
+		return;
+	}
+
+	nvmem_device_read(otp_flash_nvmem, 0, 1, &header_version);
+	if (header_version == 1) {
+		nvmem_device_read(otp_flash_nvmem, 1, 1, &product_name_len);
+		product_name = kzalloc(product_name_len + 1, GFP_KERNEL);
+		nvmem_device_read(otp_flash_nvmem, 2,
+				  product_name_len, product_name);
+		nvmem_device_read(otp_flash_nvmem, 2 + product_name_len,
+				  1, &product_version);
+		nvmem_device_read(otp_flash_nvmem, 2 + product_name_len + 1,
+				  4, (u8 *)&otp_data_len);
+		nvmem_device_read(otp_flash_nvmem, 2 + product_name_len + 1 + 4,
+				  1, (u8 *)&otp_data_checksum);
+		otp_data = devm_kmalloc(&client->dev, otp_data_len, GFP_KERNEL);
+		nvmem_device_read(otp_flash_nvmem, 2 + product_name_len + 1 + 4 + 1,
+				  otp_data_len, otp_data);
+
+		dev_info(&client->dev, "Product name: %s, Version %d\n",
+			 product_name, product_version);
+
+		for(i = __sum = 0 ; i < otp_data_len ; i++) {
+			__sum += otp_data[i];
+		}
+		__sum %= 0x100;
+
+		dev_dbg(&client->dev, "len %x, checksum %x, sum %x\n",
+			otp_data_len, otp_data_checksum, __sum);
+
+		if (__sum == otp_data_checksum) {
+			dev_info(&client->dev, "overwrite setting\n");
+			ov5640_mode_init_data.reg_data =
+				(struct reg_value *)otp_data;
+			ov5640_mode_init_data.reg_data_size =
+				otp_data_len / sizeof(struct reg_value);
+		} else {
+			dev_err(&client->dev, "checksum is not match\n");
+		}
+
+		kfree(product_name);
+	} else {
+		dev_err(&client->dev, "otp data is invalid\n");
+	}
+
+	devm_nvmem_device_put(&client->dev, otp_flash_nvmem);
+}
+
 /* restore the last set video mode after chip power-on */
 static int ov5640_restore_mode(struct ov5640_dev *sensor)
 {
 	int ret;
 
 	/* first load the initial register values */
-	ov5640_load_regs(sensor, ov5640_init_setting,
-			 ARRAY_SIZE(ov5640_init_setting));
+	ov5640_load_regs(sensor, ov5640_mode_init_data.reg_data,
+			 ov5640_mode_init_data.reg_data_size);
 
 	ret = ov5640_mod_reg(sensor, OV5640_REG_SYS_ROOT_DIVIDER, 0x3f,
 			     (ilog2(OV5640_SCLK2X_ROOT_DIV) << 2) |
@@ -3943,6 +4065,8 @@ static int ov5640_probe(struct i2c_client *client)
 	ret = ov5640_check_chip_id(sensor);
 	if (ret)
 		goto entity_cleanup;
+
+	ov5640_read_otp(sensor);
 
 	ret = ov5640_init_controls(sensor);
 	if (ret)
