@@ -343,6 +343,31 @@ static int panel_simple_unprepare(struct drm_panel *panel)
 	return 0;
 }
 
+static int panel_simple_prepare_once(struct panel_simple *p)
+{
+	struct device *dev = p->base.dev;
+	unsigned int delay;
+	int err;
+
+	panel_simple_wait(p->unprepared_time, p->desc->delay.unprepare);
+
+	err = regulator_enable(p->supply);
+	if (err < 0) {
+		dev_err(dev, "failed to enable supply: %d\n", err);
+		return err;
+	}
+
+	gpiod_set_value_cansleep(p->enable_gpio, 1);
+
+	delay = p->desc->delay.prepare;
+	if (delay)
+		msleep(delay);
+
+	p->prepared_time = ktime_get();
+
+	return 0;
+}
+
 static int panel_simple_resume(struct device *dev)
 {
 	struct panel_simple *p = dev_get_drvdata(dev);
