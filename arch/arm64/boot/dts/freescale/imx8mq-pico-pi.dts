@@ -352,10 +352,30 @@
 			};
 		};
 	};
+
+	pca9555_i2c2_a21: pca9555@21 {
+		reg = <0x21>;
+		status = "disabled";
+	};
+
+	tevs_mipi1: tevs_mipi@48 {
+		reg = <0x48>;
+		status = "disabled";
+	};
 };
 
 &i2c3 {
 	status = "okay";
+
+	pca9554_tev_mipi2: pca9554_tev_mipi@24 {
+		reg = <0x24>;
+		status = "disabled";
+	};
+
+	tevs_mipi2: tevs_mipi2@48 {
+		reg = <0x48>;
+		status = "disabled";
+	};
 };
 
 &csi1_bridge {
@@ -385,7 +405,7 @@
 &mipi_csi_1 {
 	#address-cells = <1>;
 	#size-cells = <0>;
-	status = "okay";
+	status = "disabled";
 	port {
 		csi1_mipi_ep: endpoint@1 {
 			remote-endpoint = <&csi1_ep>;
@@ -396,7 +416,7 @@
 &mipi_csi_2 {
 	#address-cells = <1>;
 	#size-cells = <0>;
-	status = "okay";
+	status = "disabled";
 	port {
 		csi2_mipi_ep: endpoint@1 {
 			remote-endpoint = <&csi2_ep>;
