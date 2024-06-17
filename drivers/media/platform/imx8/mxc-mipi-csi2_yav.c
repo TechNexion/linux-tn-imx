@@ -43,7 +43,8 @@ MODULE_PARM_DESC(debug, "Debug level (0-2)");
 #define	GPR_CSI2_1_S_PRG_RXHS_SETTLE(x)	(((x) & 0x3F) << 2)
 #define	GPR_CSI2_1_RX_RCAL		(3)
 
-static u8 rxhs_settle[2] = { 0x14, 0x9 };
+static u8 rxhs_settle[2] = { 0x6, 0x9 };
+static u8 rxhs_settle_4lane[2] = { 0x3, 0x4 };
 
 static struct mxc_mipi_csi2_dev *sd_to_mxc_mipi_csi2_dev(struct v4l2_subdev
 							 *sdev)
@@ -384,9 +385,9 @@ static int mipi_csi2_set_fmt(struct v4l2_subdev *sd,
 		return -EINVAL;
 
 	if (fmt->format.width * fmt->format.height > 720 * 480) {
-		csi2dev->hs_settle = rxhs_settle[1];
+		csi2dev->hs_settle = csi2dev->num_lanes > 2 ? rxhs_settle_4lane[1] : rxhs_settle[1];
 	} else {
-		csi2dev->hs_settle = rxhs_settle[0];
+		csi2dev->hs_settle = csi2dev->num_lanes > 2 ? rxhs_settle_4lane[0] : rxhs_settle[0];
 	}
 	csi2dev->send_level = 64;
 
