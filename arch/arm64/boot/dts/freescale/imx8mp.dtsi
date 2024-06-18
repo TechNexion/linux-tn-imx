@@ -228,13 +228,13 @@
 			compatible = "shared-dma-pool";
 			reusable;
 			size = <0 0x3c000000>;
-			alloc-ranges = <0 0x40000000 0 0xC0000000>;
+			alloc-ranges = <0 0x40000000 0 0x80000000>;
 			linux,cma-default;
 		};
 
 		gpu_reserved: gpu_reserved@100000000 {
 			no-map;
-			reg = <0x1 0x00000000 0 0x10000000>;
+			reg = <0x0 0x80000000 0 0x10000000>;
 		};
 
 		dsp_reserved: dsp@92400000 {
