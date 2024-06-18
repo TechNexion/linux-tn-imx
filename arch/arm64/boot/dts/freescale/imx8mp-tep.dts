@@ -162,30 +162,31 @@
 	};
 
 	sound {
-		compatible = "fsl,imx-audio-wm8904";
-		model = "wm8904-audio";
-		cpu-dai = <&sai3>;
-		audio-codec = <&wm8904>;
-		asrc-controller;
-		gpr = <&gpr>;
-		audio-routing =
+		compatible = "simple-audio-card";
+		simple-audio-card,bitclock-master = <&codec_dai>;
+		simple-audio-card,format = "i2s";
+		simple-audio-card,frame-master = <&codec_dai>;
+		simple-audio-card,mclk-fs = <256>;
+		simple-audio-card,name = "imx8mp-wm8904";
+		simple-audio-card,routing =
 			"Headphone Jack", "HPOUTL",
 			"Headphone Jack", "HPOUTR",
-			"Mic Jack", "MICBIAS",
-			"IN1R", "Mic Jack";
+			"IN2L", "Line In Jack",
+			"IN2R", "Line In Jack",
+			"Headphone Jack", "MICBIAS",
+			"IN1L", "Headphone Jack";
+		simple-audio-card,widgets =
+			"Microphone", "Headphone Jack",
+			"Headphone", "Headphone Jack",
+			"Line", "Line In Jack";
 
-		mic-det-gpios = <&gpio4 18 0>;
+		codec_dai: simple-audio-card,codec {
+			clocks = <&audio_blk_ctrl IMX8MP_CLK_AUDIOMIX_SAI3_MCLK1>;
+			sound-dai = <&wm8904>;
+		};
 
-		ports {
-			#address-cells = <1>;
-			#size-cells = <0>;
-
-			port@0 {
-				reg = <0>;
-				wm8904_machine_driver_ep: endpoint {
-					remote-endpoint = <&wm8904_codec_ep>;
-				};
-			};
+		simple-audio-card,cpu {
+			sound-dai = <&sai3>;
 		};
 	};
 
@@ -549,21 +550,10 @@
 	wm8904: wm8904@1a {
 		compatible = "wlf,wm8904";
 		reg = <0x1a>;
+		#sound-dai-cells = <0>;
 		clocks = <&audio_blk_ctrl IMX8MP_CLK_AUDIOMIX_SAI3_MCLK1>;
 		clock-names = "mclk";
 		wlf,shared-lrclk;
-
-		ports {
-			#address-cells = <1>;
-			#size-cells = <0>;
-
-			port@0 {
-				reg = <0>;
-				wm8904_codec_ep: endpoint {
-					remote-endpoint = <&wm8904_machine_driver_ep>;
-				};
-			};
-		};
 	};
 
 	vizionlink_1: vizionlink@30 {
@@ -818,6 +808,7 @@
 };
 
 &sai3 {
+	#sound-dai-cells = <0>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_sai3>;
 	assigned-clocks = <&clk IMX8MP_CLK_SAI3>;
