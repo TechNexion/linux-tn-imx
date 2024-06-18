@@ -6,7 +6,7 @@
  *
  */
 
- /dts-v1/;
+/dts-v1/;
 /plugin/;
 
 #include "../imx8mq-pinfunc.h"
@@ -20,6 +20,7 @@
 	fragment@0 {
 		target = <&csi1_bridge>;
 		__overlay__ {
+			fsl,two-8bit-sensor-mode;
 			status = "okay";
 		};
 	};
@@ -27,6 +28,7 @@
 	fragment@1 {
 		target = <&csi2_bridge>;
 		__overlay__ {
+			fsl,two-8bit-sensor-mode;
 			status = "okay";
 		};
 	};
@@ -40,10 +42,9 @@
 
 			port {
 				mipi1_sensor_ep: endpoint@0 {
-					remote-endpoint = <&ov5640_mipi1_ep>;
-					data-lanes = <2>;
-					csis-hs-settle = <13>;
-					csis-clk-settle = <2>;
+					remote-endpoint = <&tevs_mipi1_ep>;
+					data-lanes = <1 2 3 4>;
+					bus-type = <4>;
 					csis-wclk;
 				};
 			};
@@ -59,10 +60,9 @@
 
 			port {
 				mipi2_sensor_ep: endpoint@0 {
-					remote-endpoint = <&ov5640_mipi2_ep>;
-					data-lanes = <2>;
-					csis-hs-settle = <13>;
-					csis-clk-settle = <2>;
+					remote-endpoint = <&tevs_mipi2_ep>;
+					data-lanes = <1 2 3 4>;
+					bus-type = <4>;
 					csis-wclk;
 				};
 			};
@@ -76,13 +76,6 @@
 			#size-cells = <0>;
 			status = "okay";
 
-			ov5640_otp_0: eeprom@54 {
-				compatible = "atmel,24c64";
-				reg = <0x54>;
-				//read-only;
-				status = "okay";
-			};
-
 			pca9555_i2c2_a21: pca9555@21 {
 				compatible = "nxp,pca9555";
 				reg = <0x21>;
@@ -93,24 +86,22 @@
 									"EXPOSURE_TRIG_IN2", "FLASH_OUT2", "INFO_TRIG_IN2", "CAM_SHUTTER2", "XVS2", "PWR2_TIME0", "PWR2_TIME1", "PWR2_TIME2";
 			};
 
-			ov5640_mipi1: ov5640_mipi@3c {
-				compatible = "ovti,ov5640_mipi";
-				reg = <0x3c>;
+			tevs_mipi1: tevs_mipi@48 {
+				compatible = "tn,tevs";
+				reg = <0x48>;
 				status = "okay";
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_csi1>;
-				clocks = <&clk IMX8MQ_CLK_CLKO2>;
-				clock-names = "csi_mclk";
-				assigned-clocks = <&clk IMX8MQ_CLK_CLKO2>;
-				assigned-clock-parents = <&clk IMX8MQ_SYS2_PLL_200M>;
-				assigned-clock-rates = <20000000>;
+
 				csi_id = <0>;
-				pwn-gpios = <&pca9555_i2c2_a21 2 GPIO_ACTIVE_LOW>;
-				rst-gpios = <&gpio1 12 GPIO_ACTIVE_HIGH>;
-				mclk = <20000000>;
-				mclk_source = <0>;
+				reset-gpios = <&gpio1 12 GPIO_ACTIVE_HIGH>;
+				standby-gpios = <&pca9555_i2c2_a21 2 GPIO_ACTIVE_HIGH>;
+
+				data-lanes = <4>;
+				// data-frequency = <800>;
+				continuous-clock = <0>;
 				port {
-					ov5640_mipi1_ep: endpoint {
+					tevs_mipi1_ep: endpoint {
 						remote-endpoint = <&mipi1_sensor_ep>;
 					};
 				};
@@ -125,13 +116,6 @@
 			#size-cells = <0>;
 			status = "okay";
 
-			ov5640_otp_1: eeprom@54 {
-				compatible = "atmel,24c64";
-				reg = <0x54>;
-				//read-only;
-				status = "okay";
-			};
-
 			/* PCA9554 on camera tev_mipi board */
 			pca9554_tev_mipi2: pca9554_tev_mipi@24 {
 				compatible = "nxp,pca9554";
@@ -140,24 +124,22 @@
 				#gpio-cells = <2>;
 			};
 
-			ov5640_mipi2: ov5640_mipi2@3c {
-				compatible = "ovti,ov5640_mipi";
-				reg = <0x3c>;
+			tevs_mipi2: tevs_mipi2@48 {
+				compatible = "tn,tevs";
+				reg = <0x48>;
 				status = "okay";
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_csi2>;
-				clocks = <&clk IMX8MQ_CLK_CLKO2>;
-				clock-names = "csi_mclk";
-				assigned-clocks = <&clk IMX8MQ_CLK_CLKO2>;
-				assigned-clock-parents = <&clk IMX8MQ_SYS2_PLL_200M>;
-				assigned-clock-rates = <20000000>;
+
 				csi_id = <1>;
-				pwn-gpios = <&pca9554_tev_mipi2 2 GPIO_ACTIVE_LOW>;
-				rst-gpios = <&gpio3 16 GPIO_ACTIVE_HIGH>;
-				mclk = <20000000>;
-				mclk_source = <0>;
+				reset-gpios = <&gpio3 16 GPIO_ACTIVE_HIGH>;
+				standby-gpios = <&pca9554_tev_mipi2 2 GPIO_ACTIVE_HIGH>;
+
+				data-lanes = <4>;
+				// data-frequency = <800>;
+				continuous-clock = <0>;
 				port {
-					ov5640_mipi2_ep: endpoint {
+					tevs_mipi2_ep: endpoint {
 						remote-endpoint = <&mipi2_sensor_ep>;
 					};
 				};
