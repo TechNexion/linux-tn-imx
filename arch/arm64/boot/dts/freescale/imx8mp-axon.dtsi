@@ -9,6 +9,7 @@
 /dts-v1/;
 
 #include <dt-bindings/usb/pd.h>
+#include <dt-bindings/phy/phy-imx8-pcie.h>
 #include "imx8mp.dtsi"
 
 / {
@@ -58,6 +59,15 @@
 		enable-active-high;
 	};
 
+	reg_pcie0: regulator-pcie {
+		compatible = "regulator-fixed";
+		regulator-name = "PCIE_CLKREQ_N";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&gpio4 6 GPIO_ACTIVE_LOW>;
+		enable-active-low;
+	};
+
 	bt_reg_on: btreg_on {
 		compatible = "gpio-reset";
 		pinctrl-names = "default";
@@ -81,6 +91,12 @@
 				<96000>,
 				<192000>;
 		status = "okay";
+	};
+
+	pcie0_refclk: pcie0-refclk {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <100000000>;
 	};
 };
 
@@ -364,9 +380,7 @@
 &pcie{
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_pcie>;
-	clkreq-gpio = <&gpio4 6 GPIO_ACTIVE_LOW>;
 	reset-gpio = <&gpio1 1 GPIO_ACTIVE_LOW>;
-	ext_osc = <0>;
 	clocks = <&clk IMX8MP_CLK_HSIO_ROOT>,
 		 <&clk IMX8MP_CLK_PCIE_AUX>,
 		 <&clk IMX8MP_CLK_HSIO_AXI>,
@@ -377,10 +391,14 @@
 	assigned-clock-rates = <500000000>, <10000000>;
 	assigned-clock-parents = <&clk IMX8MP_SYS_PLL2_500M>,
 				 <&clk IMX8MP_SYS_PLL2_50M>;
+	vpcie-supply = <&reg_pcie0>;
 	status = "okay";
 };
 
 &pcie_phy{
+	fsl,refclk-pad-mode = <IMX8_PCIE_REFCLK_PAD_INPUT>;
+	clocks = <&pcie0_refclk>;
+	clock-names = "ref";
 	status = "okay";
 };
 
