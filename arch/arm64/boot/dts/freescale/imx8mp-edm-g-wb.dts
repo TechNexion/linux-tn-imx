@@ -64,6 +64,15 @@
 		reset-delay-us = <10>;
 		#reset-cells = <0>;
 	};
+	
+	reg_pcie0: regulator-pcie {
+		compatible = "regulator-fixed";
+		regulator-name = "PCIE_CLKREQ_N";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&gpio1 13 GPIO_ACTIVE_LOW>;
+		enable-active-low;
+	};
 
 	sound-wm8960 {
 		compatible = "fsl,imx-audio-wm8960";
@@ -323,7 +332,7 @@
 };
 
 &pcie{
-	ext_osc = <1>;
+	vpcie-supply = <&reg_pcie0>;
 	status = "okay";
 };
 
