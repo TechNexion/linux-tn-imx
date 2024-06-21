@@ -61,6 +61,45 @@
 			gpio = <&gpio1 8 GPIO_ACTIVE_HIGH>;
 			enable-active-high;
 		};
+
+		reg_pcie0_clkreq: regulator-pcie0-clkreq {
+			compatible = "regulator-fixed";
+			regulator-name = "PCIE0_CLKRQ";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio3 23 GPIO_ACTIVE_HIGH>;
+			enable-active-low;
+		};
+
+		reg_pcie1_clkreq: regulator-pcie1-clkreq {
+			compatible = "regulator-fixed";
+			regulator-name = "PCIE1_CLKRQ";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&pca9555_1 4 GPIO_ACTIVE_HIGH>;
+			enable-active-low;
+		};
+
+		reg_pcie0: regulator-pcie0 {
+			compatible = "regulator-fixed";
+			regulator-name = "PCIE0_nDISABLE";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&pca9555_1 5 GPIO_ACTIVE_HIGH>;
+			vin-supply = <&reg_pcie0_clkreq>;
+			enable-active-high;
+		};
+
+		reg_pcie1: regulator-pcie1 {
+			compatible = "regulator-fixed";
+			regulator-name = "PCIE1_nDISABLE";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&pca9555_1 1 GPIO_ACTIVE_HIGH>;
+			vin-supply = <&reg_pcie1_clkreq>;
+			enable-active-high;
+			regulator-always-on;
+		};
 	};
 
 	backlight_mipi {
@@ -481,28 +520,24 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_pcie0>;
 	reset-gpio = <&gpio1 6 GPIO_ACTIVE_LOW>;
-	clkreq-gpio = <&gpio3 23 GPIO_ACTIVE_LOW>;
-	disable-gpio = <&pca9555_1 5 GPIO_ACTIVE_LOW>;
 	clocks = <&clk IMX8MQ_CLK_PCIE1_ROOT>,
 		 <&clk IMX8MQ_CLK_PCIE1_AUX>,
 		 <&clk IMX8MQ_CLK_PCIE1_PHY>,
 		 <&pcie0_refclk>;
 	clock-names = "pcie", "pcie_aux", "pcie_phy", "pcie_bus";
-	ext_osc = <1>;
+	vpcie-supply = <&reg_pcie0>;
 	status = "okay";
 };
 
 &pcie1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_pcie1>;
-	disable-gpio = <&pca9555_1 1 GPIO_ACTIVE_LOW>;
 	reset-gpio = <&gpio4 20 GPIO_ACTIVE_LOW>;
-	clkreq-gpio = <&pca9555_1 4 GPIO_ACTIVE_LOW>;
 	clocks = <&clk IMX8MQ_CLK_PCIE2_ROOT>,
 		 <&clk IMX8MQ_CLK_PCIE2_AUX>,
 		 <&clk IMX8MQ_CLK_PCIE2_PHY>,
 		 <&pcie1_refclk>;
 	clock-names = "pcie", "pcie_aux", "pcie_phy", "pcie_bus";
-	ext_osc = <1>;
+	vpcie-supply = <&reg_pcie1>;
 	status = "okay";
 };
