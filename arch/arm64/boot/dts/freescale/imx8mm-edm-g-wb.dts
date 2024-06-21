@@ -8,6 +8,7 @@
 
 /dts-v1/;
 
+#include <dt-bindings/phy/phy-imx8-pcie.h>
 #include "imx8mm-edm-g.dtsi"
 
 / {
@@ -51,6 +52,25 @@
 			gpio = <&gpio1 12 GPIO_ACTIVE_HIGH>;
 			enable-active-high;
 			regulator-always-on;
+		};
+
+		reg_pcie_clkreq: regulator-pcie-clkreq {
+			compatible = "regulator-fixed";
+			regulator-name = "PCIE1_CLKRQ";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio4 1 GPIO_ACTIVE_HIGH>;
+			enable-active-low;
+		};
+
+		reg_pcie0: regulator-pcie {
+			compatible = "regulator-fixed";
+			regulator-name = "PCIE1_nDISABLE";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&pca9555_a23 0 GPIO_ACTIVE_HIGH>;
+			vin-supply = <&reg_pcie_clkreq>;
+			enable-active-high;
 		};
 	};
 
@@ -355,10 +375,18 @@
 &pcie0{
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_pcie>;
-	disable-gpio = <&pca9555_a23 0 GPIO_ACTIVE_LOW>;
-	clkreq-gpio = <&gpio4 1 GPIO_ACTIVE_LOW>;
 	reset-gpio = <&gpio4 20 GPIO_ACTIVE_LOW>;
-	ext_osc = <1>;
+	vpcie-supply = <&reg_pcie0>;
+	status = "okay";
+};
+
+&pcie_phy {
+	fsl,refclk-pad-mode = <IMX8_PCIE_REFCLK_PAD_INPUT>;
+	fsl,tx-deemph-gen1 = <0x2d>;
+	fsl,tx-deemph-gen2 = <0xf>;
+	fsl,clkreq-unsupported;
+	clocks = <&pcie0_refclk>;
+	clock-names = "ref";
 	status = "okay";
 };
 
