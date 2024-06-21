@@ -84,6 +84,25 @@
 			gpio = <&pca9555_23 1 GPIO_ACTIVE_HIGH>;
 			enable-active-high;
 		};
+
+		reg_pcie_clkreq: regulator-pcie-clkreq {
+			compatible = "regulator-fixed";
+			regulator-name = "PCIE1_CLKRQ";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&pca9555_23 7 GPIO_ACTIVE_HIGH>;
+			enable-active-low;
+		};
+
+		reg_pcie1: regulator-pcie {
+			compatible = "regulator-fixed";
+			regulator-name = "PCIE1_nDISABLE";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&pca9555_23 4 GPIO_ACTIVE_HIGH>;
+			vin-supply = <&reg_pcie_clkreq>;
+			enable-active-high;
+		};
 	};
 
 	backlight_mipi {
@@ -590,14 +609,12 @@
 };
 
 &pcie1 {
-	clkreq-gpio = <&pca9555_23 7 GPIO_ACTIVE_LOW>;
-	disable-gpio = <&pca9555_23 4 GPIO_ACTIVE_LOW>;
 	reset-gpio = <&pca9555_23 6 GPIO_ACTIVE_LOW>;
 	clocks = <&clk IMX8MQ_CLK_PCIE2_ROOT>,
 		 <&clk IMX8MQ_CLK_PCIE2_AUX>,
 		 <&clk IMX8MQ_CLK_PCIE2_PHY>,
 		 <&pcie1_refclk>;
 	clock-names = "pcie", "pcie_aux", "pcie_phy", "pcie_bus";
-	ext_osc = <1>;
+	vpcie-supply = <&reg_pcie1>;
 	status = "okay";
 };
