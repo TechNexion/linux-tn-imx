@@ -124,7 +124,7 @@
 	sound-wm8960 {
 		compatible = "fsl,imx-audio-wm8960";
 		model = "wm8960-audio";
-		cpu-dai = <&sai2>;
+		audio-cpu = <&sai2>;
 		codec-master;
 		audio-codec = <&wm8960>;
 		audio-routing =
@@ -134,11 +134,10 @@
 			"Ext Spk", "SPK_LN",
 			"Ext Spk", "SPK_RP",
 			"Ext Spk", "SPK_RN",
-			"LINPUT1", "Main MIC",
-			"RINPUT1", "Main MIC",
-			"Main MIC", "MICB";
-		/* JD2: hp detect high for headphone*/
-		hp-det = <2 0>;
+			"LINPUT1", "Mic Jack",
+			"RINPUT1", "Mic Jack",
+			"Mic Jack", "MICB",
+			"AMIC", "MICB";
 	};
 
 	clocks {
@@ -373,7 +372,9 @@
 		clocks = <&codec_osc>;
 		clock-names = "mclk";
 		wlf,shared-lrclk;
+		wlf,hp-cfg = <2 2 3>;
 		wlf,fixed-mclk;
+		status = "okay";
 	};
 };
 

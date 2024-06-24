@@ -113,9 +113,11 @@
 			"Ext Spk", "SPK_LP",
 			"Ext Spk", "SPK_LN",
 			"Ext Spk", "SPK_RP",
-			"Ext Spk", "SPK_RN";
-		/* JD2: hp detect high for headphone*/
-		hp-det = <2 0>;
+			"Ext Spk", "SPK_RN",
+			"LINPUT1", "Mic Jack",
+			"RINPUT1", "Mic Jack",
+			"Mic Jack", "MICB",
+			"AMIC", "MICB";
 	};
 
 	clocks {
@@ -280,6 +282,7 @@
 		clocks = <&codec_osc>; /* Clock is from  external osc on baseboard*/
 		clock-names = "mclk";
 		wlf,shared-lrclk;
+		wlf,hp-cfg = <2 2 3>;
 		wlf,fixed-mclk;
 		status = "okay";
 	};
