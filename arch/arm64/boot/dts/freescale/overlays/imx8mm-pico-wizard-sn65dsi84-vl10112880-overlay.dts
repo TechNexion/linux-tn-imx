@@ -46,7 +46,7 @@
 				compatible = "tn,dsi2lvds-panel";
 				power-supply = <&reg_backlight_pwr>;
 
-				dsi,flags = <0x0007>;
+				dsi,flags = <0x0001>;
 				dsi,format = <0>;
 				dsi,lanes = <4>;
 				panel-width-mm  = <217>;
@@ -104,23 +104,23 @@
 				sn65dsi84,values = </* reset and clock registers */
 									0x00 0x05 0x10 0x00
 									/* DSI registers */
-									0x26 0x00 0x2d 0x00
+									0x26 0x00 0x2a 0x00
 									/* LVDS registers */
 									0x78 0x00 0x03 0x00
 
 									/* video registers */
 									/* cha-al-len-l, cha-al-len-h, chb-al-len-l, chb-al-len-h */
-									0x56 0x05 0x00 0x00
+									0x00 0x05 0x00 0x00
 									/* cha-v-ds-l, cha-v-ds-h, chb-v-ds-l, chb-v-ds-h */
 									0x00 0x00 0x00 0x00
 									/* cha-sdl, cha-sdh, chb-sdl, chb-sdh */
 									0x21 0x00 0x00 0x00
 									/* cha-hs-pwl, cha-hs-pwh, chb-hs-pwl, chb-hs-pwh */
-									0x64 0x00 0x00 0x00
+									0x50 0x00 0x00 0x00
 									/* cha-vs-pwl, cha-vs-pwh, chb-vs-pwl, chb-vs-pwh */
-									0x14 0x00 0x00 0x00
+									0x0a 0x00 0x00 0x00
 									/*cha-hbp, chb-hbp, cha-vbp, chb-vbp*/
-									0x2f 0x00 0x00 0x00
+									0x28 0x00 0x00 0x00
 									/* cha-hfp, chb-hfp, cha-vfp, chb-vfp*/
 									0x00 0x00 0x00 0x00
 
@@ -140,6 +140,7 @@
 				compatible = "eeti,exc80h60";
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_touch_irq>;
+				reset-gpios = <&pca9555_23 3 GPIO_ACTIVE_LOW>;
 				reg = <0x2a>;
 				interrupt-parent = <&gpio1>;
 				interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
