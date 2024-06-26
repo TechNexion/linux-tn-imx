@@ -70,7 +70,7 @@
 				reset-gpios = <&gpio1 8 GPIO_ACTIVE_HIGH>;
 				standby-gpios = <&pca9555_a21 2 GPIO_ACTIVE_HIGH>;
 				data-lanes = <4>;
-				// data-frequency = <800>;
+				data-frequency = <800>;
 				continuous-clock = <0>;
 				status = "okay";
 
@@ -99,7 +99,7 @@
 				reset-gpios = <&gpio4 4 GPIO_ACTIVE_HIGH>;
 				standby-gpios = <&pca9555_a21 10 GPIO_ACTIVE_HIGH>;
 				data-lanes = <4>;
-				// data-frequency = <800>;
+				data-frequency = <800>;
 				continuous-clock = <0>;
 				status = "okay";
 

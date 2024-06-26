@@ -95,7 +95,7 @@
 				reset-gpios = <&vizionlink_tca9554_a25 4 GPIO_ACTIVE_HIGH>;
 				standby-gpios = <&vizionlink_tca9554_a25 2 GPIO_ACTIVE_HIGH>;
 				data-lanes = <2>;
-				// data-frequency = <800>;
+				data-frequency = <800>;
 				continuous-clock = <0>;
 				supports-over-4k-res;
 				status = "okay";
