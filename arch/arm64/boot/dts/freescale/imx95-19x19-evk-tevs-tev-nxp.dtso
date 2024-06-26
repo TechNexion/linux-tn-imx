@@ -1,0 +1,121 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2024 TechNexion Ltd.
+ *
+ * Author: Nian Yang <nian.yang@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/clock/fsl,imx95-clock.h>
+#include <dt-bindings/gpio/gpio.h>
+
+&lpi2c3 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+
+	tev_nxp_pca9554_a27: tev_nxp_pca9554@27 {
+		compatible = "nxp,pca9554";
+		reg = <0x27>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		gpio-line-names = "EXPOSURE_TRIG_IN1", "FLASH_OUT1", "INFO_TRIG_IN1", "CAM_SHUTTER1",
+						"XVS1", "EXT_GPIO5", "", "";
+		status = "okay";
+	};
+
+	tevs: tevs@48 {
+		compatible = "tn,tevs";
+		reg = <0x48>;
+
+		reset-gpios = <&i2c3_gpio_expander_20 2 GPIO_ACTIVE_HIGH>;
+		standby-gpios = <&i2c3_gpio_expander_20 1 GPIO_ACTIVE_HIGH>;
+
+		data-lanes = <4>;
+		data-frequency = <800>;
+		continuous-clock = <0>;
+		status = "okay";
+
+		port {
+			tevs_ep: endpoint {
+				remote-endpoint = <&mipi_csi0_ep>;
+				data-lanes = <1 2 3 4>;
+				clock-lanes = <0>;
+			};
+		};
+	};
+};
+
+&dphy_rx {
+	status = "okay";
+};
+
+&mipi_csi0 {
+	status = "okay";
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			mipi_csi0_ep: endpoint {
+				remote-endpoint = <&tevs_ep>;
+				data-lanes = <1 2 3 4>;
+				clock-lanes = <0>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+				mipi_csi0_out: endpoint {
+				remote-endpoint = <&formatter_0_in>;
+			};
+		};
+	};
+};
+
+&csi_pixel_formatter_0 {
+	status = "okay";
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+
+			formatter_0_in: endpoint {
+				remote-endpoint = <&mipi_csi0_out>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+
+			formatter_0_out: endpoint {
+				remote-endpoint = <&isi_in_2>;
+			};
+		};
+	};
+};
+
+&isi {
+	status = "okay";
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@2 {
+			reg = <2>;
+
+			isi_in_2: endpoint {
+				remote-endpoint = <&formatter_0_out>;
+			};
+		};
+	};
+};
