@@ -44,6 +44,7 @@
 		standby-gpios = <&pca9554_a27_0 6 GPIO_ACTIVE_HIGH>;
 
 		data-lanes = <2>;
+		data-frequency = <800>;
 		continuous-clock = <0>;
 		status = "okay";
 
