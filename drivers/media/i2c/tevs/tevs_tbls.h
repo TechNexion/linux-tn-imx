@@ -8,18 +8,21 @@ struct resolution {
 	u16 mode;
 };
 
+/* AR0144 default setting for 4 data lanes and data frequency 800 MHz */
 static struct resolution ar0144_res_list[] = {
 	{ .width = 640, .height = 480, .framerates = 60, .mode = 0 },
 	{ .width = 1280, .height = 720, .framerates = 60, .mode = 0 },
 	{ .width = 1280, .height = 800, .framerates = 60, .mode = 0 },
 };
 
+/* AR0145 default setting for 4 data lanes and data frequency 800 MHz */
 static struct resolution ar0145_res_list[] = {
 	{ .width = 640, .height = 480, .framerates = 120, .mode = 0 },
 	{ .width = 1280, .height = 720, .framerates = 120, .mode = 0 },
 	{ .width = 1280, .height = 800, .framerates = 120, .mode = 0 },
 };
 
+/* AR0234 default setting for 4 data lanes and data frequency 800 MHz */
 static struct resolution ar0234_res_list[] = {
 	{ .width = 640, .height = 480, .framerates = 120, .mode = 1 },
 	{ .width = 1280, .height = 720, .framerates = 120, .mode = 0 },
@@ -27,6 +30,7 @@ static struct resolution ar0234_res_list[] = {
 	{ .width = 1920, .height = 1200, .framerates = 60, .mode = 0 },
 };
 
+/* AR0521 default setting for 4 data lanes and data frequency 800 MHz */
 static struct resolution ar0521_res_list[] = {
 	{ .width = 640, .height = 480, .framerates = 120, .mode = 3 },
 	{ .width = 1280, .height = 720, .framerates = 60, .mode = 3 },
@@ -36,6 +40,7 @@ static struct resolution ar0521_res_list[] = {
 	{ .width = 2592, .height = 1944, .framerates = 24, .mode = 1 },
 };
 
+/* AR0522 default setting for 4 data lanes and data frequency 800 MHz */
 static struct resolution ar0522_res_list[] = {
 	{ .width = 640, .height = 480, .framerates = 120, .mode = 3 },
 	{ .width = 1280, .height = 720, .framerates = 60, .mode = 3 },
@@ -45,6 +50,7 @@ static struct resolution ar0522_res_list[] = {
 	{ .width = 2592, .height = 1944, .framerates = 24, .mode = 1 },
 };
 
+/* AR0821 default setting for 4 data lanes and data frequency 800 MHz */
 static struct resolution ar0821_res_list[] = {
 	{ .width = 640, .height = 480, .framerates = 60, .mode = 2 },
 	{ .width = 1280, .height = 720, .framerates = 60, .mode = 2 },
@@ -53,6 +59,7 @@ static struct resolution ar0821_res_list[] = {
 	{ .width = 3840, .height = 2160, .framerates = 15, .mode = 0 },
 };
 
+/* AR0822 default setting for 4 data lanes and data frequency 800 MHz */
 static struct resolution ar0822_res_list[] = {
 	{ .width = 640, .height = 480, .framerates = 60, .mode = 1 },
 	{ .width = 1280, .height = 720, .framerates = 60, .mode = 1 },
@@ -61,6 +68,7 @@ static struct resolution ar0822_res_list[] = {
 	{ .width = 3840, .height = 2160, .framerates = 15, .mode = 0 },
 };
 
+/* AR1335 default setting for 4 data lanes and data frequency 800 MHz */
 static struct resolution ar1335_res_list[] = {
 	{ .width = 640, .height = 480, .framerates = 60, .mode = 4 },
 	{ .width = 1280, .height = 720, .framerates = 120, .mode = 4 },
@@ -72,7 +80,7 @@ static struct resolution ar1335_res_list[] = {
 
 struct sensor_info {
 	const char *sensor_name;
-	const struct resolution *res_list;
+	struct resolution *res_list;
 	u32 res_list_size;
 };
 
