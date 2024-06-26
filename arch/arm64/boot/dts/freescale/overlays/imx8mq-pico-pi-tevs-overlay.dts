@@ -98,8 +98,10 @@
 				standby-gpios = <&pca9555_i2c2_a21 2 GPIO_ACTIVE_HIGH>;
 
 				data-lanes = <4>;
-				// data-frequency = <800>;
+				data-frequency = <800>;
 				continuous-clock = <0>;
+				supports-over-4k-res;
+
 				port {
 					tevs_mipi1_ep: endpoint {
 						remote-endpoint = <&mipi1_sensor_ep>;
@@ -136,8 +138,10 @@
 				standby-gpios = <&pca9554_tev_mipi2 2 GPIO_ACTIVE_HIGH>;
 
 				data-lanes = <4>;
-				// data-frequency = <800>;
+				data-frequency = <800>;
 				continuous-clock = <0>;
+				supports-over-4k-res;
+
 				port {
 					tevs_mipi2_ep: endpoint {
 						remote-endpoint = <&mipi2_sensor_ep>;

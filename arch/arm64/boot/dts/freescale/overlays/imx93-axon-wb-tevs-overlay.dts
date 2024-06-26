@@ -67,8 +67,8 @@
 				standby-gpios = <&tca9555_a21 2 GPIO_ACTIVE_HIGH>;
 
 				data-lanes = <2>;
+				data-frequency = <800>;
 				continuous-clock = <0>;
-				// supports-over-4k-res;
 				status = "okay";
 
 				port {

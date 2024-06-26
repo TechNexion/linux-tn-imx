@@ -68,7 +68,7 @@
 				reset-gpios = <&pcal6524 9 GPIO_ACTIVE_HIGH>;
 				standby-gpios = <&tca9555_a21 2 GPIO_ACTIVE_HIGH>;
 				data-lanes = <2>;
-				// data-frequency = <800>;
+				data-frequency = <800>;
 				continuous-clock = <0>;
 				status = "okay";
 
