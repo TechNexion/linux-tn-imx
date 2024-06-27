@@ -59,17 +59,6 @@
 		status = "disabled";
 	};
 
-	reg_lcd_backlight_en: regulator_lcdblen {
-		compatible = "regulator-fixed";
-		regulator-name = "lcd_bl_en";
-		regulator-min-microvolt = <5000000>;
-		regulator-max-microvolt = <5000000>;
-		gpio = <&adp5585gpio 4 GPIO_ACTIVE_HIGH>;
-		enable-active-high;
-		regulator-always-on;
-		status = "disabled";
-	};
-
 	tlv320_mclk: clk-0 {
 		#clock-cells = <0>;
 		compatible = "fixed-clock";
