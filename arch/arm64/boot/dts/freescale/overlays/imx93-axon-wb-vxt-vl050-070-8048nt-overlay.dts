@@ -16,22 +16,15 @@
 	fragment@0 {
 		target-path = "/";
 		__overlay__ {
-			reg_lcd_backlight_en: regulator_lcdblen {
+			disp_backlight: disp_backlight {
+				post-pwm-on-delay-ms = <500>;
+				enable-gpios = <&adp5585gpio 4 GPIO_ACTIVE_HIGH>; //LCD0_BLT_EN
 				status = "okay";
 			};
 		};
 	};
 
 	fragment@1 {
-		target-path = "/";
-		__overlay__ {
-			disp_backlight: disp_backlight {
-				status = "okay";
-			};
-		};
-	};
-
-	fragment@2 {
 		target-path = "/";
 		__overlay__ {
 			panel {
@@ -48,7 +41,7 @@
 		};
 	};
 
-	fragment@3 {
+	fragment@2 {
 		target = <&parallel_disp_fmt>;
 		__overlay__ {
 			pinctrl-names = "default";
@@ -70,14 +63,14 @@
 		};
 	};
 
-	fragment@4 {
+	fragment@3 {
 		target = <&lcdif>;
 		__overlay__ {
 			status = "okay";
 		};
 	};
 
-	fragment@5 {
+	fragment@4 {
 		target = <&lpi2c3>;
 		__overlay__ {
 			#address-cells = <1>;
