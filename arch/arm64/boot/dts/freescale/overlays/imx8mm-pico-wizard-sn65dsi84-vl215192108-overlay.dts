@@ -44,7 +44,7 @@
 			panel@0 {
 				reg = <0>;
 				compatible = "vxt,vl215192108-panel";
-				dsi,flags = <0x0007>;
+				dsi,flags = <0x0003>;
 				dsi,format = <0>;
 				dsi,lanes = <4>;
 				panel-width-mm  = <476>;

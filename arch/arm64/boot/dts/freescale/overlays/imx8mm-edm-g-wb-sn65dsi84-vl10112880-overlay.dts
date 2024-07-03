@@ -44,7 +44,7 @@
 				backlight = <&lvds_backlight>;
 				power-supply = <&reg_lvds_pwr>;
 
-				dsi,flags = <0x0001>;
+				dsi,flags = <0x0003>;
 				dsi,format = <0>;
 				dsi,lanes = <4>;
 				panel-width-mm  = <217>;
