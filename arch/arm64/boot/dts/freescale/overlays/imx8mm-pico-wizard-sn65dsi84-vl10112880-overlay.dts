@@ -46,7 +46,7 @@
 				compatible = "tn,dsi2lvds-panel";
 				power-supply = <&reg_backlight_pwr>;
 
-				dsi,flags = <0x0001>;
+				dsi,flags = <0x0003>;
 				dsi,format = <0>;
 				dsi,lanes = <4>;
 				panel-width-mm  = <217>;
