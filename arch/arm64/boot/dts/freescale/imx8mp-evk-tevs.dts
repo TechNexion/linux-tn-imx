@@ -91,7 +91,7 @@
 		reset-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
 		standby-gpios = <&gpio2 11 GPIO_ACTIVE_HIGH>;
 		data-lanes = <4>;
-		// data-frequency = <800>;
+		data-frequency = <800>;
 		continuous-clock = <0>;
 		status = "okay";
 
