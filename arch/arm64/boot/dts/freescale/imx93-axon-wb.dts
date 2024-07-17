@@ -181,11 +181,6 @@
 		DRVDD-supply = <&reg_3p3v>;
 		DVDD-supply = <&reg_1p8v>;
 	};
-
-	tevs: tevs@48 {
-		reg = <0x48>;
-		status = "disabled";
-	};
 };
 
 &usbotg1 {
