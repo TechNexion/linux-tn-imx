@@ -1,0 +1,119 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2024 TechNexion Ltd.
+ *
+ * Author: Nian Yang <nian.yang@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/clock/imx8mm-clock.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	fragment@0 {
+		target = <&cameradev>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@1 {
+		target = <&isi_0>;
+		__overlay__ {
+			status = "okay";
+
+			cap_device {
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&mipi_csi>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			port@0 {
+				reg = <0>;
+				mipi_csi_ep: endpoint {
+					remote-endpoint = <&tevs_ep>;
+					data-lanes = <2>;
+					cfg-clk-range = <28>;
+					hs-clk-range = <0x1a>;
+					bus-type = <4>;
+				};
+			};
+		};
+	};
+
+	fragment@3 {
+		target = <&lpi2c2>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			vizionlink: vizionlink@30 {
+				compatible = "tn,vizionlink";
+				reg = <0x30>;
+				pdb-gpios = <&pca9555_bs23 5 GPIO_ACTIVE_HIGH>;
+				ser_alias_id = <0x1b>;
+
+				//i2c addr alias map "gpio extender, eeprom , sensor"
+				i2c_addr_alias_map_local = <0x26 0x48>;
+				i2c_addr_alias_map_remote = <0x25 0x48>;
+
+				//deserializer output csi lanes 1~4. default 4
+				des_csi_lanes = <2>;
+
+				//1: Enable 0: Disable continuous clock. default 0
+				des_csi_continuous_clock = <0>;
+
+				//serializer input csi lanes 1~4. default 4
+				ser_csi_lanes = <2>;
+
+				//1: Enable 0: Disable continuous clock. default 0
+				ser_csi_continuous_clock = <0>;
+
+				status = "okay";
+
+				i2c_dev_list {
+					#address-cells = <1>;
+					#size-cells = <0>;
+
+					vizionlink_tca9554_a26_0: vizionlink_tca9554@26 {
+						compatible = "ti,tca9554";
+						reg = <0x26>;
+						gpio-controller;
+						#gpio-cells = <2>;
+						status = "okay";
+					};
+				};
+			};
+
+			tevs: tevs@48 {
+				compatible = "tn,tevs";
+				reg = <0x48>;
+
+				reset-gpios = <&vizionlink_tca9554_a26_0 4 GPIO_ACTIVE_HIGH>;
+				standby-gpios = <&vizionlink_tca9554_a26_0 2 GPIO_ACTIVE_HIGH>;
+				data-lanes = <2>;
+				data-frequency = <800>;
+				continuous-clock = <0>;
+				status = "okay";
+
+				port {
+					tevs_ep: endpoint {
+						remote-endpoint = <&mipi_csi_ep>;
+					};
+				};
+			};
+		};
+	};
+};
