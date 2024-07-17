@@ -9,11 +9,11 @@
 /dts-v1/;
 
 #include <dt-bindings/usb/pd.h>
-#include "imx93-edm-e.dtsi"
+#include "imx93-edm.dtsi"
 
 / {
-	model = "TechNexion AXON-IMX93 and WB baseboard";
-	compatible = "fsl,imx93-axon", "fsl,imx93";
+	model = "TechNexion EDM-IMX93 and WB baseboard";
+	compatible = "fsl,imx93-axon", "fsl,imx93", "fsl,imx93-edm";
 
 	reg_usb_otg_vbus: usb_otg_vbus {
 		compatible = "regulator-fixed";
