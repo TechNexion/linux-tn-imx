@@ -15,6 +15,7 @@
 #include <linux/pwm.h>
 #include <linux/slab.h>
 #include <linux/time.h>
+#include <linux/delay.h>
 
 #define ADP5585_PWM_CHAN_NUM		1
 #define ADP5585_PWM_FASTEST_PERIOD_NS	2000
@@ -94,6 +95,7 @@ static int pwm_adp5585_apply(struct pwm_chip *chip,
 	    state->period < ADP5585_PWM_FASTEST_PERIOD_NS)
 		return -EINVAL;
 
+	msleep(100);
 	mutex_lock(&adp5585_pwm->lock);
 	/* set on/off cycle*/
 	on = DIV_ROUND_CLOSEST_ULL(state->duty_cycle, NSEC_PER_USEC);
