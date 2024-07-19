@@ -24,6 +24,7 @@
 #include <linux/pwm.h>
 #include <linux/regmap.h>
 #include <linux/time.h>
+#include <linux/delay.h>
 #include <linux/types.h>
 
 #define ADP5585_PWM_CHAN_NUM		1
@@ -75,6 +76,7 @@ static int pwm_adp5585_apply(struct pwm_chip *chip,
 
 	period = min(state->period, ADP5585_PWM_MAX_PERIOD_NS);
 	duty_cycle = min(state->duty_cycle, period);
+	msleep(100);
 
 	/*
 	 * Compute the on and off time. As the internal oscillator frequency is
