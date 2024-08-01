@@ -355,11 +355,6 @@
 		reg = <0x21>;
 		status = "disabled";
 	};
-
-	tevs_mipi1: tevs_mipi@48 {
-		reg = <0x48>;
-		status = "disabled";
-	};
 };
 
 &i2c3 {
@@ -367,11 +362,6 @@
 
 	pca9554_tev_mipi2: pca9554_tev_mipi@24 {
 		reg = <0x24>;
-		status = "disabled";
-	};
-
-	tevs_mipi2: tevs_mipi2@48 {
-		reg = <0x48>;
 		status = "disabled";
 	};
 };
