@@ -212,26 +212,6 @@
 		gpio-line-names = "EXPOSURE_TRIG_IN1", "FLASH_OUT1", "INFO_TRIG_IN1", "CAM_SHUTTER1", "XVS1", "PWR1_TIME0", "PWR1_TIME1", "PWR1_TIME2",
 							"EXPOSURE_TRIG_IN2", "FLASH_OUT2", "INFO_TRIG_IN2", "CAM_SHUTTER2", "XVS2", "PWR2_TIME0", "PWR2_TIME1", "PWR2_TIME2";
 	};
-
-	vizionlink_0: vizionlink@30 {
-		reg = <0x30>;
-		status = "disabled";
-	};
-
-	ov5640_0: ov5640_mipi@3c {
-		reg = <0x3c>;
-		status = "disabled";
-	};
-
-	tevi_ap1302_0: tevi_ap1302@3d {
-		reg = <0x3d>;
-		status = "disabled";
-	};
-
-	tevs_0: tevs@48 {
-		reg = <0x48>;
-		status = "disabled";
-	};
 };
 
 &i2c3 { /* I2C_D on AXON */
@@ -352,26 +332,6 @@
 		compatible = "ti,ina219";
 		reg = <0x44>;
 		shunt-resistor = <200000>; /* .2 Ohm resistor = 200000 uOhms*/
-	};
-
-	vizionlink_1: vizionlink@30 {
-		reg = <0x30>;
-		status = "disabled";
-	};
-
-	ov5640_1: ov5640_mipi@3c {
-		reg = <0x3c>;
-		status = "disabled";
-	};
-
-	tevi_ap1302_1: tevi_ap1302@3d {
-		reg = <0x3d>;
-		status = "disabled";
-	};
-
-	tevs_1: tevs@48 {
-		reg = <0x48>;
-		status = "disabled";
 	};
 };
 
