@@ -851,7 +851,7 @@ static s64 tevs_link_freqs[] = {
 	400000000,
 };
 
-static const s64 tevs_pixel_rates[] = {
+static const u32 tevs_pixel_rates[] = {
 	200000000,
 };
 
