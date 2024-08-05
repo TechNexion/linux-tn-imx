@@ -252,8 +252,8 @@
 #define TEVS_AE_CTRL_AUTO_GAIN 					(9U << 0)
 #define TEVS_AE_CTRL_FULL_AUTO 					(12U << 0)
 #define TEVS_AE_CTRL_MANUAL_EXP_TIME_GAIN_IDX 	(0U << 0)
-#define TEVS_AE_CTRL_AUTO_GAIN_IDX				(1U << 0)
-#define TEVS_AE_CTRL_FULL_AUTO_IDX 				(2U << 0)
+#define TEVS_AE_CTRL_FULL_AUTO_IDX 				(1U << 0)
+#define TEVS_AE_CTRL_AUTO_GAIN_IDX				(2U << 0)
 #define TEVS_DZ_CT_X 							HOST_COMMAND_ISP_CTRL_CT_X
 #define TEVS_DZ_CT_Y 							HOST_COMMAND_ISP_CTRL_CT_Y
 #define TEVS_DZ_CT_MASK 						(0xFFFF)
@@ -876,8 +876,8 @@ static const char *const sfx_mode_strings[] = {
 
 static const char *const ae_mode_strings[] = {
 	"Manual Mode", // TEVS_AE_CTRL_MANUAL_EXP_TIME_GAIN
-	"AGC", // TEVS_AE_CTRL_AUTO_GAIN
 	"Auto Mode", // TEVS_AE_CTRL_FULL_AUTO
+	"AGC Mode", // TEVS_AE_CTRL_AUTO_GAIN
 	NULL,
 };
 
@@ -1069,11 +1069,11 @@ static int tevs_set_ae_mode(struct tevs *tevs, s32 mode)
 	case TEVS_AE_CTRL_MANUAL_EXP_TIME_GAIN_IDX:
 		val = TEVS_AE_CTRL_MANUAL_EXP_TIME_GAIN;
 		break;
-	case TEVS_AE_CTRL_AUTO_GAIN_IDX:
-		val = TEVS_AE_CTRL_AUTO_GAIN;
-		break;
 	case TEVS_AE_CTRL_FULL_AUTO_IDX:
 		val = TEVS_AE_CTRL_FULL_AUTO;
+		break;
+	case TEVS_AE_CTRL_AUTO_GAIN_IDX:
+		val = TEVS_AE_CTRL_AUTO_GAIN;
 		break;
 	default:
 		val = TEVS_AE_CTRL_FULL_AUTO;
@@ -1378,7 +1378,7 @@ static const struct v4l2_ctrl_config tevs_ctrls[] = {
 		.id = V4L2_CID_EXPOSURE_AUTO,
 		.name = "Exposure_Mode",
 		.type = V4L2_CTRL_TYPE_MENU,
-		.max = TEVS_AE_CTRL_FULL_AUTO_IDX,
+		.max = TEVS_AE_CTRL_AUTO_GAIN_IDX,
 		.def = TEVS_AE_CTRL_FULL_AUTO_IDX,
 		.qmenu = ae_mode_strings,
 	},
@@ -1692,6 +1692,10 @@ static int tevs_ctrls_init(struct tevs *tevs)
 				ctrl->default_value = ctrl->cur.val =
 					TEVS_AE_CTRL_MANUAL_EXP_TIME_GAIN_IDX;
 				break;
+			case TEVS_AE_CTRL_FULL_AUTO:
+				ctrl->default_value = ctrl->cur.val =
+					TEVS_AE_CTRL_FULL_AUTO_IDX;
+				break;
 			case TEVS_AE_CTRL_AUTO_GAIN: {
 				u8 exp[4] = { 0 };
 				ret += tevs_i2c_read(
@@ -1702,10 +1706,6 @@ static int tevs_ctrls_init(struct tevs *tevs)
 				ctrl->default_value = ctrl->cur.val =
 					TEVS_AE_CTRL_AUTO_GAIN_IDX;
 			} break;
-			case TEVS_AE_CTRL_FULL_AUTO:
-				ctrl->default_value = ctrl->cur.val =
-					TEVS_AE_CTRL_FULL_AUTO_IDX;
-				break;
 			default:
 				ctrl->default_value = ctrl->cur.val =
 					TEVS_AE_CTRL_FULL_AUTO_IDX;
