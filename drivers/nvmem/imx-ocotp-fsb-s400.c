@@ -324,27 +324,6 @@ static int fsb_s400_fuse_post_process(void *priv, const char *id, int index,
 	return 0;
 }
 
-static int fsb_s400_fuse_write(void *priv, unsigned int offset, void *val, size_t bytes)
-{
-	struct imx_fsb_s400_fuse *fuse = priv;
-	u32 *buf = val;
-	u32 index;
-	int ret;
-
-	/* allow only writing one complete OTP word at a time */
-	if (bytes != 4)
-		return -EINVAL;
-
-	/* divide the offset by the word size to get the word count */
-	index = offset / 4;
-
-	mutex_lock(&fuse->lock);
-	ret = imx_se_write_fuse(fuse->se_data, index, *buf, false);
-	mutex_unlock(&fuse->lock);
-
-	return ret;
-}
-
 struct imx_fsb_s400_fuse *gfuse;
 static void imx_fsb_s400_fuse_fixup_cell_info(struct nvmem_device *nvmem,
 					      struct nvmem_cell_info *cell)
@@ -380,9 +359,6 @@ static int imx_fsb_s400_fuse_probe(struct platform_device *pdev)
 		fuse->config.size = 3296; /* 103 Banks */
 	fuse->config.add_legacy_fixed_of_cells = true;
 	fuse->config.reg_read = fsb_s400_fuse_read;
-	if ((of_device_is_compatible(pdev->dev.of_node, "fsl,imx93-ocotp")) ||
-	    (of_device_is_compatible(pdev->dev.of_node, "fsl,imx95-ocotp")))
-		fuse->config.reg_write = fsb_s400_fuse_write;
 	fuse->config.priv = fuse;
 	mutex_init(&fuse->lock);
 	fuse->hw = of_device_get_match_data(&pdev->dev);
