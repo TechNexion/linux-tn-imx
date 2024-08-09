@@ -1061,7 +1061,7 @@ static int tevs_set_special_effect(struct tevs *tevs, s32 mode)
 
 static int tevs_set_ae_mode(struct tevs *tevs, s32 mode)
 {
-	u16 val = mode & TEVS_SFX_MODE_SFX_MASK;
+	u16 val = mode & TEVS_AE_CTRL_MODE_MASK;
 	u8 exp[4] = { 0 };
 	int ret = 0;
 
@@ -1685,6 +1685,7 @@ static int tevs_ctrls_init(struct tevs *tevs)
 			}
 			break;
 		case V4L2_CID_EXPOSURE_AUTO:
+			ret = tevs_i2c_read_16b(tevs, TEVS_AE_CTRL_MODE, &val);
 			if (ret)
 				goto error;
 			switch (val & TEVS_AE_CTRL_MODE_MASK) {
