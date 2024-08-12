@@ -92,8 +92,7 @@ static int sn65dsi84_write_reg(struct i2c_client *client, u8 addr, const u8 val)
 	return sn65dsi84_i2c_write(client, buf, sizeof(buf));
 }
 
-static int sn65dsi84_probe(struct i2c_client *client,
-			   const struct i2c_device_id *id)
+static int sn65dsi84_probe(struct i2c_client *client)
 {
 	struct property *prop;
 	int err;
