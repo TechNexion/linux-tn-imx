@@ -5053,8 +5053,7 @@ static int panel_simple_dsi_probe(struct mipi_dsi_device *dsi)
 	u32 dsi_lanes;
 	int err;
 
-	np = dsi->dev.of_node;
-	desc = of_device_get_match_data(&np);
+	desc = of_device_get_match_data(&dsi->dev);
 	if (!desc)
 		return -ENODEV;
 
