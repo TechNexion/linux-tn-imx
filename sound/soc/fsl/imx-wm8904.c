@@ -40,8 +40,8 @@ struct imx_wm8904_data {
 };
 
 struct imx_priv {
-	enum of_gpio_flags hp_active_low;
-	enum of_gpio_flags mic_active_low;
+	enum gpiod_flags hp_active_low;
+	enum gpiod_flags mic_active_low;
 	bool is_headset_jack;
 	struct snd_kcontrol *headphone_kctl;
 	struct platform_device *pdev;
