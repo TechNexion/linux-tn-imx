@@ -79,7 +79,7 @@ static int ds90ub94x_init(struct ds90ub94x *ds90ub94x)
 	return 0;
 }
 
-static int ds90ub94x_probe(struct i2c_client *client, const struct i2c_device_id *id)
+static int ds90ub94x_probe(struct i2c_client *client)
 {
 	struct ds90ub94x *ds90ub941, *ds90ub948;
 	struct i2c_client *dummy_client;
