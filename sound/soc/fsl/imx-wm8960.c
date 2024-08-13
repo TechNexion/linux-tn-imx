@@ -28,8 +28,8 @@
 #include "fsl_sai.h"
 
 struct imx_wm8960_data {
-	enum of_gpio_flags hp_active_low;
-	enum of_gpio_flags mic_active_low;
+	enum gpiod_flags hp_active_low;
+	enum gpiod_flags mic_active_low;
 	bool is_headset_jack;
 	struct platform_device *pdev;
 	struct platform_device *asrc_pdev;
@@ -905,13 +905,11 @@ static int imx_wm8960_probe(struct platform_device *pdev)
 
 	data->card.late_probe = imx_wm8960_late_probe;
 
-	data->imx_hp_jack_gpio.gpio = of_get_named_gpio_flags(np,
-							      "hp-det-gpios", 0,
-							      &data->hp_active_low);
+	data->imx_hp_jack_gpio.gpio = of_get_named_gpio(np,
+							      "hp-det-gpios", 0);
 
-	data->imx_mic_jack_gpio.gpio = of_get_named_gpio_flags(np,
-							       "mic-det-gpios", 0,
-							       &data->mic_active_low);
+	data->imx_mic_jack_gpio.gpio = of_get_named_gpio(np,
+							       "mic-det-gpios", 0);
 
 	if (gpio_is_valid(data->imx_hp_jack_gpio.gpio) &&
 	    gpio_is_valid(data->imx_mic_jack_gpio.gpio) &&
