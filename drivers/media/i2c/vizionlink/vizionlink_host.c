@@ -367,7 +367,7 @@ static int vh_configure_des_csi(struct vh_st *this)
 	return 0;
 }
 
-static int vh_probe(struct i2c_client *client, const struct i2c_device_id *id)
+static int vh_probe(struct i2c_client *client)
 {
 	struct vh_st *obj = NULL;
 	u32 temp;
