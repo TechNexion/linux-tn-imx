@@ -60,6 +60,8 @@
 	#size-cells = <0>;
 	status = "okay";
 
+	/delete-node/ port;
+
 	port@0 {
 		reg = <0>;
 		mipi_csi_ep: endpoint {
