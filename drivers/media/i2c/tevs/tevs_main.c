@@ -690,6 +690,12 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 				tevs_sensor_table[tevs->selected_sensor]
 					.res_list[tevs->selected_mode]
 					.height);
+			tevs_i2c_write_16b(tevs,
+					   HOST_COMMAND_ISP_CTRL_EXP_TIME_MSB,
+					   tevs->exp_time_ctrl->cur.val >> 16);
+			tevs_i2c_write_16b(
+				tevs, HOST_COMMAND_ISP_CTRL_EXP_TIME_LSB,
+				tevs->exp_time_ctrl->cur.val & 0xFFFF);
 			tevs_i2c_write_16b(
 				tevs, HOST_COMMAND_ISP_CTRL_PREVIEW_MAX_FPS,
 				fps);
