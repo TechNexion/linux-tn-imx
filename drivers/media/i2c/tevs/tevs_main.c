@@ -318,7 +318,6 @@ struct tevs {
 	struct mutex lock; /* Protects formats */
 	/* V4L2 Controls */
 	struct v4l2_ctrl_handler ctrls;
-	struct v4l2_ctrl *link_freq_ctrl;
 	struct v4l2_ctrl *max_fps_ctrl;
 	struct v4l2_ctrl *exp_time_ctrl;
 };
@@ -905,8 +904,12 @@ static int tevs_enum_frame_interval(struct v4l2_subdev *sub_dev,
  * V4L2 Controls
  */
 
-static const s64 tevs_link_freqs[] = {
-	600000000,
+static s64 tevs_link_freqs[] = {
+	400000000,
+};
+
+static const u32 tevs_pixel_rates[] = {
+	200000000,
 };
 
 static const char *const awb_mode_strings[] = {
@@ -1475,6 +1478,14 @@ static const struct v4l2_ctrl_config tevs_ctrls[] = {
 		.def = 0,
 		.qmenu_int = tevs_link_freqs,
 	},
+	{
+		.ops = &tevs_ctrl_ops,
+		.id = V4L2_CID_PIXEL_RATE,
+		.min = tevs_pixel_rates[0],
+		.max = tevs_pixel_rates[0],
+		.step = 0x1,
+		.def = tevs_pixel_rates[0],
+	},
 	/* The base for TEVS driver controls. */
 	{
 		.ops = &tevs_ctrl_ops,
@@ -1797,6 +1808,9 @@ static int tevs_ctrls_init(struct tevs *tevs)
 		case V4L2_CID_LINK_FREQ:
 			ctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
 			break;
+		case V4L2_CID_PIXEL_RATE:
+			ctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+			break;
 		case V4L2_CID_TEVS_BSL_MODE:
 			break;
 		case V4L2_CID_TEVS_MAX_FPS:
@@ -2069,6 +2083,10 @@ static int tevs_probe(struct i2c_client *client)
 	fmt->quantization = V4L2_QUANTIZATION_FULL_RANGE;
 	fmt->xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(fmt->colorspace);
 	memset(fmt->reserved, 0, sizeof(fmt->reserved));
+
+	/* link_freq = (pixel_rate * bpp) / (2 * data_lanes) */
+	tevs_link_freqs[0] =
+		(tevs_pixel_rates[0] * 16) / (2 * tevs->data_lanes);
 
 	ret = tevs_ctrls_init(tevs);
 	if (ret) {
