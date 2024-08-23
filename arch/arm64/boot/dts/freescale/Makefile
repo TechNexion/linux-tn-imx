@@ -395,8 +395,6 @@ dtb-$(CONFIG_ARCH_MXC) += imx93-14x14-evk.dtb \
 			  imx93-14x14-evk-flexspi-m2.dtb imx93-14x14-evk-dsi-serdes.dtb \
 			  imx93-14x14-evk-i3c.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx93-11x11-evk.dtb \
-			  imx93-11x11-evk-tevi-ov5640-rpi22.dtb \
-			  imx93-11x11-evk-tevi-ap1302-rpi22.dtb \
 			  imx93-11x11-evk-tevs-rpi22.dtb \
 			  imx93-11x11-evk-inmate.dtb imx93-11x11-evk-root.dtb imx93-11x11-evk-flexio-i2c.dtb \
 			  imx93-11x11-evk-i2c-spi-slave.dtb \
