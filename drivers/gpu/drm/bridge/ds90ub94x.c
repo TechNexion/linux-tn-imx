@@ -21,8 +21,8 @@
 
 #define XNOR(x, y)	~(x ^ y)
 
-#define RESET_MDELAY 50
-#define I2C_RW_MDELAY 50
+#define RESET_MDELAY 100
+#define I2C_RW_MDELAY 100
 
 #define RETRY_TIL_ZERO_COUNT 1
 #define REGMAP_RETRY_COUNT 1
