@@ -26,37 +26,6 @@
 #define RESET_MDELAY 50
 #define I2C_RW_MDELAY 50
 
-#define RETRY_TIL_ZERO_COUNT 1
-#define REGMAP_RETRY_COUNT 1
-
-#define RETRY_TIL_ZERO( exp )				\
-({							\
-	int _attemptc_ = RETRY_TIL_ZERO_COUNT;		\
-	int _resultb_;					\
-	while ( _attemptc_-- ){				\
-		_resultb_ = (exp);			\
-		if (( _resultb_ == 0 )) break;		\
-		printk("%s: RETRY_TIL_ZERO = %d times.\n", __FILE__, (RETRY_TIL_ZERO_COUNT - _attemptc_));	\
-		msleep(I2C_RW_MDELAY);			\
-	}						\
-	_resultb_;					\
-})
-
-#define REGMAP_RETRY_WRITE( ds90ub94x, reg, val)	\
-({							\
-	int _attemptc_ = REGMAP_RETRY_COUNT;		\
-	int _resultb_;					\
-	while ( _attemptc_-- ){				\
-		_resultb_ = 0;				\
-		_resultb_ = regmap_write(ds90ub94x->regmap, reg, val);	\
-		dev_dbg(ds90ub94x->dev, "REGMAP_RETRY_WRITE: reg 0x%02x, value 0x%02x\n", reg, val);	\
-		if (( _resultb_ >= 0 )) break;		\
-		dev_err(ds90ub94x->dev, "REGMAP_RETRY_WRITE: failed: reg 0x%02x, value 0x%02x, retry =%d \n", reg, val, (REGMAP_RETRY_COUNT - _attemptc_));	\
-		msleep(I2C_RW_MDELAY);			\
-	}						\
-	_resultb_;					\
-})
-
 static const struct regmap_config config = {
 	.reg_bits = 8,
 	.val_bits = 8,
@@ -239,7 +208,7 @@ static int ds90ub94x_add_i2c_adapter(struct ds90ub94x *priv)
 static int regmap_i2c_rw_check_retry(struct ds90ub94x *ds90ub94x, struct i2c_config *i2c_config, int i2c_config_size)
 {
 	int i;
-	unsigned int reg, val, mask;
+	unsigned int reg, val;
 
 	//continue write
 	for ( i = 0; i < i2c_config_size ; i++ )
@@ -247,7 +216,7 @@ static int regmap_i2c_rw_check_retry(struct ds90ub94x *ds90ub94x, struct i2c_con
 		reg = i2c_config[i].i2c_reg;
 		val = i2c_config[i].i2c_val;
 
-		if (REGMAP_RETRY_WRITE(ds90ub94x, reg, val) < 0)
+		if (regmap_write(ds90ub94x->regmap, reg, val) < 0)
 			return -EIO;
 	}
 
@@ -265,12 +234,12 @@ static int ds90ub94x_init(struct ds90ub94x *ds90ub94x)
 		reg = ds90ub94x->reset[i].i2c_reg;
 		val = ds90ub94x->reset[i].i2c_val;
 
-		if (REGMAP_RETRY_WRITE(ds90ub94x, reg, val) < 0)
+		if (regmap_write(ds90ub94x->regmap, reg, val) < 0)
 			return -EIO;
 	}
 
 	msleep(RESET_MDELAY);
-	if ( RETRY_TIL_ZERO(regmap_i2c_rw_check_retry(ds90ub94x, ds90ub94x->probe_info, ds90ub94x->probe_info_size)) != 0 ) {
+	if ( regmap_i2c_rw_check_retry(ds90ub94x, ds90ub94x->probe_info, ds90ub94x->probe_info_size) != 0 ) {
 		dev_err(ds90ub94x->dev, "ds90ub94x init fail\n");
 		return -EIO;
 	}
@@ -341,49 +310,43 @@ static int ds90ub94x_probe(struct i2c_client *client)
 		msleep(RESET_MDELAY);
 	}
 
-	for ( i = 0; i<=RETRY_TIL_ZERO_COUNT; i++) {
-		if ( i == RETRY_TIL_ZERO_COUNT ) {
-			ret = -EIO;
+	//Start to probe
+	ret = regmap_read(DETECT_SER_REGMAP, I2C_DEVICE_ID, &val_read);
+	if (!ret)
+		ret_ser = ds90ub94x_init(ds90ub941);
+	else {
+		dev_err(ds90ub941->dev, "failed to find ds90ub941(serializer) ...");
+		ret= -ENXIO;
+		goto connection_failed;
+	}
+
+	msleep(RESET_MDELAY);
+
+	ret = regmap_read(DETECT_DES_REGMAP, GENERAL_STS, &val_read);
+	if (( (val_read & LINK_DETECT ) == LINK_DETECT )) {
+		// before we init the DS90UB948, check the DSI and pixel-clock is ready or not.
+		// If not, defer probe.
+		ret = regmap_read(DETECT_SER_REGMAP, DUAL_STS_DUAL_STS_P1, &val_read);
+		val_read &= DSI_PANEL_RDY;
+
+		if ( val_read == DSI_PANEL_RDY )
+			ret_des = ds90ub94x_init(ds90ub948);
+		else {
+			dev_err(ds90ub941->dev, "wait for DSI and pixel clock ready, deferring...");
 			goto err_out;
 		}
+	} else {
+		dev_err(ds90ub948->dev, "failed to find ds90ub948(deserializer) ...");
+		ret= -ENXIO;
+		goto connection_failed;
+	}
 
-		ret = regmap_read(DETECT_SER_REGMAP, I2C_DEVICE_ID, &val_read);
-		if (!ret)
-			ret_ser = ds90ub94x_init(ds90ub941);
-		else {
-			dev_err(ds90ub941->dev, "failed to find ds90ub941(serializer) ...");
-			ret= -ENXIO;
-			goto connection_failed;
-		}
-
-		msleep(RESET_MDELAY);
-
-		ret = regmap_read(DETECT_DES_REGMAP, GENERAL_STS, &val_read);
-		if (( (val_read & LINK_DETECT ) == LINK_DETECT )) {
-			// before we init the DS90UB948, check the DSI and pixel-clock is ready or not.
-			// If not, defer probe.
-			ret = regmap_read(DETECT_SER_REGMAP, DUAL_STS_DUAL_STS_P1, &val_read);
-			val_read &= DSI_PANEL_RDY;
-
-			if ( val_read == DSI_PANEL_RDY )
-				ret_des = ds90ub94x_init(ds90ub948);
-			else {
-				dev_err(ds90ub941->dev, "wait for DSI and pixel clock ready, deferring...");
-				goto err_out;
-			}
-		} else {
-			dev_err(ds90ub948->dev, "failed to find ds90ub948(deserializer) ...");
-			ret= -ENXIO;
-			goto connection_failed;
-		}
-
-		if ( (! ret_ser) && (! ret_des) )
-			break;
-
+	if ( ret_ser || ret_des ){
 		if ( ret_ser )
 			dev_err(ds90ub941->dev,"=====> init failed, full_retry = %d times\n", i);
 		if ( ret_des )
 			dev_err(ds90ub948->dev,"=====> init failed, full_retry = %d times\n", i);
+		goto err_out;
 	}
 
 	//read attribute to set dual lvds channel
@@ -392,12 +355,12 @@ static int ds90ub94x_probe(struct i2c_client *client)
                 if (of_property_read_bool(dev_node, "vizionpanel-dual-lvds-channel")) {
 			dev_info(ds90ub941->dev, "Using Dual channel lvds\n");
 
-			if ( RETRY_TIL_ZERO(regmap_i2c_rw_check_retry(ds90ub941, ds90ub941->dual_channel, ds90ub941->dual_channel_size)) < 0 ) {
+			if ( regmap_i2c_rw_check_retry(ds90ub941, ds90ub941->dual_channel, ds90ub941->dual_channel_size) < 0 ) {
 				ret = -EIO;
 				goto err_out;
 			}
 			msleep(I2C_RW_MDELAY);
-			if ( RETRY_TIL_ZERO(regmap_i2c_rw_check_retry(ds90ub948, ds90ub948->dual_channel, ds90ub948->dual_channel_size)) < 0 ) {
+			if ( regmap_i2c_rw_check_retry(ds90ub948, ds90ub948->dual_channel, ds90ub948->dual_channel_size) < 0 ) {
 				ret = -EIO;
 				goto err_out;
 			}
