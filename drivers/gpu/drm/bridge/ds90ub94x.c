@@ -39,6 +39,7 @@ struct ds90ub94x {
 	struct regmap *regmap;
 	struct i2c_config *reset;
 	struct i2c_config *probe_info;
+	struct i2c_config *remote_gpio;
 	struct i2c_config *dual_channel;
 	int reset_size;
 	int probe_info_size;
@@ -72,6 +73,18 @@ struct i2c_config ds90ub948_dual_channel[] = {
 	{0x49, 0x60, 0x02},
 };
 
+struct i2c_config ds90ub941_remote_gpio[] = {
+	{0x0D, 0x03, 0x0F}, //GPIO0, MIPI_BL_EN
+	{0x0E, 0x33, 0xFF}, //GPIO1, MIPI_VDDEN; GPIO2, MIPI_BL_PWM
+	{0x0F, 0x03, 0x0F}, //Reset touch interrupt
+};
+
+struct i2c_config ds90ub948_remote_gpio[] = {
+	{0x1D, 0x15, 0x0F}, //GPIO0, MIPI_BL_EN
+	{0x1E, 0x55, 0xFF}, //GPIO1, MIPI_VDDEN; GPIO2, MIPI_BL_PWM
+	{0x1F, 0x05, 0x0F}, //Reset touch interrupt
+};
+
 struct i2c_config ds90ub941_probe_config[] = {
 	{0x04, 0x00, 0x33}, //start CRC_ERROR count
 	{0x03, 0x9A, 0xFA}, //Enable FPD-Link I2C pass through, DSI clock auto switch
@@ -83,11 +96,7 @@ struct i2c_config ds90ub941_probe_config[] = {
 	{0x1E, 0x01, 0x07}, //Select FPD-Link III Port 0
 	{0x5B, 0x21, 0xFF}, //FPD3_TX_MODE=single, Reset PLL
 	{0x4F, 0x8C, 0xFE}, //DSI Continuous Clock Mode,DSI 4 lanes
-	{0x0D, 0x03, 0x0F}, //GPIO0, MIPI_BL_EN
-	{0x0E, 0x33, 0xFF}, //GPIO1, MIPI_VDDEN; GPIO2, MIPI_BL_PWM
-	{0x0F, 0x03, 0x0F}, //Reset touch interrupt
 
-	{0x01, 0x00, 0x0F}, //Release DSI/DIGITLE reset
 	{0xC6, 0x21, 0xFF}, //REM_INTB the same as INTB_IN on UB948, Global Interrupt Enable 
 };
 
@@ -97,9 +106,14 @@ struct i2c_config ds90ub948_probe_config[] = {
 	{0x34, 0x01, 0xFB}, //Select FPD-Link III Port 0
 	{0x26, 0x19, 0xFF}, //SCL_HIGH_TIME: 1.5 us (50 ns * 0x19)
 	{0x27, 0x19, 0xFF}, //SCL_LOW_TIME: 1.5 us (50 ns * 0x19)
-	{0x1D, 0x15, 0x0F}, //GPIO0, MIPI_BL_EN
-	{0x1E, 0x55, 0xFF}, //GPIO1, MIPI_VDDEN; GPIO2, MIPI_BL_PWM
-	{0x1F, 0x05, 0x0F}, //Reset touch interrupt
+};
+
+struct i2c_config ds90ub941_lock_dsi[] = {
+	{0x01, 0x08, 0x0F}, //Disable DSI
+};
+
+struct i2c_config ds90ub941_unlock_dsi[] = {
+	{0x01, 0x00, 0x0F}, //Enable DSI
 };
 
 #define ADAPTER_NUM 2
@@ -273,6 +287,7 @@ static int ds90ub94x_probe(struct i2c_client *client)
 	ds90ub941->reset = ds90ub941_reset;
 	ds90ub941->probe_info = ds90ub941_probe_config;
 	ds90ub941->dual_channel = ds90ub941_dual_channel;
+	ds90ub941->remote_gpio = ds90ub941_remote_gpio;
 	ds90ub941->reset_size = ARRAY_SIZE(ds90ub941_reset);
 	ds90ub941->probe_info_size = ARRAY_SIZE(ds90ub941_probe_config);
 	ds90ub941->dual_channel_size = ARRAY_SIZE(ds90ub941_dual_channel);
@@ -282,6 +297,7 @@ static int ds90ub94x_probe(struct i2c_client *client)
 	ds90ub948->reset = ds90ub948_reset;
 	ds90ub948->probe_info = ds90ub948_probe_config;
 	ds90ub948->dual_channel = ds90ub948_dual_channel;
+	ds90ub948->remote_gpio = ds90ub948_remote_gpio;
 	ds90ub948->reset_size = ARRAY_SIZE(ds90ub948_reset);
 	ds90ub948->probe_info_size = ARRAY_SIZE(ds90ub948_probe_config);
 	ds90ub948->dual_channel_size = ARRAY_SIZE(ds90ub948_dual_channel);
@@ -349,6 +365,12 @@ static int ds90ub94x_probe(struct i2c_client *client)
 		goto err_out;
 	}
 
+	//Disable DSI
+	if ( regmap_i2c_rw_check_retry(ds90ub941, ds90ub941_lock_dsi, ARRAY_SIZE(ds90ub941_lock_dsi)) < 0 ) {
+		ret = -EIO;
+		goto err_out;
+	}
+
 	//read attribute to set dual lvds channel
         if (ds90ub941->dev->of_node) {
                 struct device_node *dev_node = ds90ub941->dev->of_node;
@@ -366,10 +388,31 @@ static int ds90ub94x_probe(struct i2c_client *client)
 			}
                 } else
 			dev_info(ds90ub941->dev, "Using Single channel lvds\n");
+
+                if (of_property_read_bool(dev_node, "vizionpanel-remote-gpio")) {
+			dev_info(ds90ub941->dev, "Using remote gpio for DSI control\n");
+
+			if ( regmap_i2c_rw_check_retry(ds90ub941, ds90ub941->remote_gpio, ARRAY_SIZE(ds90ub941_remote_gpio)) < 0 ) {
+				ret = -EIO;
+				goto err_out;
+			}
+			msleep(I2C_RW_MDELAY);
+			if ( regmap_i2c_rw_check_retry(ds90ub948, ds90ub948->remote_gpio, ARRAY_SIZE(ds90ub948_remote_gpio)) < 0 ) {
+				ret = -EIO;
+				goto err_out;
+			}
+                } else
+			dev_info(ds90ub941->dev, "Using other gpio for DSI control(ex: io-expander)\n");
         }
 
 	ret = ds90ub94x_init_atr(ds90ub941);
 	ret = ds90ub94x_add_i2c_adapter(ds90ub941);
+
+	//Enable DSI
+	if ( regmap_i2c_rw_check_retry(ds90ub941, ds90ub941_unlock_dsi, ARRAY_SIZE(ds90ub941_unlock_dsi)) < 0 ) {
+		ret = -EIO;
+		goto err_out;
+	}
 
 	regmap_read(ds90ub941->regmap, 0x0A, &crc_error_1);
 	regmap_read(ds90ub941->regmap, 0x0B, &crc_error_2);
