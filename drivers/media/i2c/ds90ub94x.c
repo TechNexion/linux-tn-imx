@@ -41,9 +41,6 @@ struct ds90ub94x {
 	struct i2c_config *probe_info;
 	struct i2c_config *remote_gpio;
 	struct i2c_config *dual_channel;
-	int reset_size;
-	int probe_info_size;
-	int dual_channel_size;
 	struct i2c_client *client;
 	struct i2c_atr *atr;
 
@@ -189,7 +186,7 @@ static int ds90ub94x_init_atr(struct ds90ub94x *priv)
 	struct i2c_adapter *parent_adap = priv->client->adapter;
 
 	priv->atr = i2c_atr_new(parent_adap, dev, &ds90ub94x_atr_ops,
-                                ADAPTER_NUM);
+				ADAPTER_NUM);
 	if (IS_ERR(priv->atr))
 		return PTR_ERR(priv->atr);
 
@@ -219,43 +216,28 @@ static int ds90ub94x_add_i2c_adapter(struct ds90ub94x *priv)
 	return 0;
 }
 
-static int regmap_i2c_rw_check_retry(struct ds90ub94x *ds90ub94x, struct i2c_config *i2c_config, int i2c_config_size)
+static int regmap_i2c_rw_check(struct ds90ub94x *ds90ub94x, struct i2c_config *i2c_config, int i2c_config_size)
 {
 	int i;
-	unsigned int reg, val;
+	unsigned int reg, val, mask, val_read;
 
 	//continue write
 	for ( i = 0; i < i2c_config_size ; i++ )
 	{
 		reg = i2c_config[i].i2c_reg;
 		val = i2c_config[i].i2c_val;
+		mask = i2c_config[i].check_mask;
 
 		if (regmap_write(ds90ub94x->regmap, reg, val) < 0)
 			return -EIO;
-	}
-
-	return 0;
-}
-
-static int ds90ub94x_init(struct ds90ub94x *ds90ub94x)
-{
-	int i;
-	unsigned char reg, val;
-
-	// reset reg can't read back the same val
-	for ( i = 0 ; i < ds90ub94x->reset_size ; i++ )
-	{
-		reg = ds90ub94x->reset[i].i2c_reg;
-		val = ds90ub94x->reset[i].i2c_val;
-
-		if (regmap_write(ds90ub94x->regmap, reg, val) < 0)
+		if (regmap_read(ds90ub94x->regmap, reg, &val_read) < 0)
 			return -EIO;
-	}
-
-	msleep(RESET_MDELAY);
-	if ( regmap_i2c_rw_check_retry(ds90ub94x, ds90ub94x->probe_info, ds90ub94x->probe_info_size) != 0 ) {
-		dev_err(ds90ub94x->dev, "ds90ub94x init fail\n");
-		return -EIO;
+		if (mask != ((XNOR(val, val_read)) & mask)){
+			dev_err(ds90ub94x->dev, "read check failed reg=0x%02x, val=0x%02x, val_read=0x%02x, mask=0x%02x\n",
+									reg, val, val_read, mask);
+			return -EIO;
+		}
+		msleep(I2C_RW_MDELAY);
 	}
 
 	return 0;
@@ -266,7 +248,7 @@ static int ds90ub94x_probe(struct i2c_client *client)
 	struct ds90ub94x *ds90ub941, *ds90ub948;
 	struct i2c_client *dummy_client;
 	struct gpio_desc *reset_gpio;
-	int ret_ser, ret_des, i, crc_error_1, crc_error_2, val_read;
+	int ret_ser, ret_des, crc_error_1, crc_error_2, val_read;
 	int ret = 0;
 
 	ds90ub941 = devm_kzalloc(&client->dev, sizeof(struct ds90ub94x), GFP_KERNEL);
@@ -288,9 +270,6 @@ static int ds90ub94x_probe(struct i2c_client *client)
 	ds90ub941->probe_info = ds90ub941_probe_config;
 	ds90ub941->dual_channel = ds90ub941_dual_channel;
 	ds90ub941->remote_gpio = ds90ub941_remote_gpio;
-	ds90ub941->reset_size = ARRAY_SIZE(ds90ub941_reset);
-	ds90ub941->probe_info_size = ARRAY_SIZE(ds90ub941_probe_config);
-	ds90ub941->dual_channel_size = ARRAY_SIZE(ds90ub941_dual_channel);
 
 	ds90ub948->dev = &dummy_client->dev;
 	ds90ub948->regmap = devm_regmap_init_i2c(dummy_client, &config);
@@ -298,9 +277,6 @@ static int ds90ub94x_probe(struct i2c_client *client)
 	ds90ub948->probe_info = ds90ub948_probe_config;
 	ds90ub948->dual_channel = ds90ub948_dual_channel;
 	ds90ub948->remote_gpio = ds90ub948_remote_gpio;
-	ds90ub948->reset_size = ARRAY_SIZE(ds90ub948_reset);
-	ds90ub948->probe_info_size = ARRAY_SIZE(ds90ub948_probe_config);
-	ds90ub948->dual_channel_size = ARRAY_SIZE(ds90ub948_dual_channel);
 
 	if (IS_ERR(ds90ub941->regmap)) {
 		ret = PTR_ERR(ds90ub941->regmap);
@@ -312,7 +288,7 @@ static int ds90ub94x_probe(struct i2c_client *client)
 	}
 
 	reset_gpio = devm_gpiod_get_optional(&client->dev, "reset",
-					     GPIOD_OUT_HIGH);
+						GPIOD_OUT_HIGH);
 
 	if (! reset_gpio) {
 		dev_info(ds90ub941->dev,"reset-gpio get failed\n");
@@ -326,90 +302,98 @@ static int ds90ub94x_probe(struct i2c_client *client)
 		msleep(RESET_MDELAY);
 	}
 
-	//Start to probe
+	/* check connection of DS90UB941 */
 	ret = regmap_read(DETECT_SER_REGMAP, I2C_DEVICE_ID, &val_read);
-	if (!ret)
-		ret_ser = ds90ub94x_init(ds90ub941);
-	else {
+	if (ret) {
 		dev_err(ds90ub941->dev, "failed to find ds90ub941(serializer) ...");
 		ret= -ENXIO;
 		goto connection_failed;
 	}
 
+	/* Start to probe DS90UB941 */
+	regmap_i2c_rw_check(ds90ub941, ds90ub941->reset, ARRAY_SIZE(ds90ub941_reset));
+	msleep(RESET_MDELAY);
+	ret_ser = regmap_i2c_rw_check(ds90ub941, ds90ub941->probe_info, ARRAY_SIZE(ds90ub941_probe_config));
 	msleep(RESET_MDELAY);
 
+	/* check connection of DS90UB948 */
 	ret = regmap_read(DETECT_DES_REGMAP, GENERAL_STS, &val_read);
-	if (( (val_read & LINK_DETECT ) == LINK_DETECT )) {
-		// before we init the DS90UB948, check the DSI and pixel-clock is ready or not.
-		// If not, defer probe.
-		ret = regmap_read(DETECT_SER_REGMAP, DUAL_STS_DUAL_STS_P1, &val_read);
-		val_read &= DSI_PANEL_RDY;
-
-		if ( val_read == DSI_PANEL_RDY )
-			ret_des = ds90ub94x_init(ds90ub948);
-		else {
-			dev_err(ds90ub941->dev, "wait for DSI and pixel clock ready, deferring...");
-			goto err_out;
-		}
-	} else {
+	if (( (val_read & LINK_DETECT ) != LINK_DETECT )) {
 		dev_err(ds90ub948->dev, "failed to find ds90ub948(deserializer) ...");
 		ret= -ENXIO;
 		goto connection_failed;
 	}
 
+	/* before init, check the DSI and pixel-clock is ready or not.
+	 * If not, defer probe. */
+	ret = regmap_read(DETECT_SER_REGMAP, DUAL_STS_DUAL_STS_P1, &val_read);
+	val_read &= DSI_PANEL_RDY;
+	if ( val_read != DSI_PANEL_RDY ) {
+		dev_err(ds90ub941->dev, "wait for DSI and pixel clock ready, deferring...");
+		goto err_out;
+	}
+
+	/* Start to probe DS90UB948 */
+	regmap_i2c_rw_check(ds90ub948, ds90ub948->reset, ARRAY_SIZE(ds90ub948_reset));
+	msleep(RESET_MDELAY);
+	ret_des = regmap_i2c_rw_check(ds90ub948, ds90ub948->probe_info, ARRAY_SIZE(ds90ub948_probe_config));
+
 	if ( ret_ser || ret_des ){
 		if ( ret_ser )
-			dev_err(ds90ub941->dev,"=====> init failed, full_retry = %d times\n", i);
+			dev_err(ds90ub941->dev,"=====> init failed\n");
 		if ( ret_des )
-			dev_err(ds90ub948->dev,"=====> init failed, full_retry = %d times\n", i);
+			dev_err(ds90ub948->dev,"=====> init failed\n");
 		goto err_out;
 	}
 
 	//Disable DSI
-	if ( regmap_i2c_rw_check_retry(ds90ub941, ds90ub941_lock_dsi, ARRAY_SIZE(ds90ub941_lock_dsi)) < 0 ) {
+	if ( regmap_i2c_rw_check(ds90ub941, ds90ub941_lock_dsi, ARRAY_SIZE(ds90ub941_lock_dsi)) < 0 ) {
 		ret = -EIO;
 		goto err_out;
 	}
 
-	//read attribute to set dual lvds channel
-        if (ds90ub941->dev->of_node) {
-                struct device_node *dev_node = ds90ub941->dev->of_node;
-                if (of_property_read_bool(dev_node, "vizionpanel-dual-lvds-channel")) {
-			dev_info(ds90ub941->dev, "Using Dual channel lvds\n");
+	//read attribute to set dual lvds channel and/or remote gpio
+	if (! ds90ub941->dev->of_node) {
+		ret = PTR_ERR(ds90ub941->dev->of_node);
+		goto req_failed;
+	}
 
-			if ( regmap_i2c_rw_check_retry(ds90ub941, ds90ub941->dual_channel, ds90ub941->dual_channel_size) < 0 ) {
-				ret = -EIO;
-				goto err_out;
-			}
-			msleep(I2C_RW_MDELAY);
-			if ( regmap_i2c_rw_check_retry(ds90ub948, ds90ub948->dual_channel, ds90ub948->dual_channel_size) < 0 ) {
-				ret = -EIO;
-				goto err_out;
-			}
-                } else
-			dev_info(ds90ub941->dev, "Using Single channel lvds\n");
+	struct device_node *dev_node = ds90ub941->dev->of_node;
+	if (of_property_read_bool(dev_node, "vizionpanel-dual-lvds-channel")) {
+		dev_info(ds90ub941->dev, "Using Dual channel lvds\n");
 
-                if (of_property_read_bool(dev_node, "vizionpanel-remote-gpio")) {
-			dev_info(ds90ub941->dev, "Using remote gpio for DSI control\n");
+		if ( regmap_i2c_rw_check(ds90ub941, ds90ub941->dual_channel, ARRAY_SIZE(ds90ub941_dual_channel)) < 0 ) {
+			ret = -EIO;
+			goto err_out;
+		}
+		msleep(I2C_RW_MDELAY);
+		if ( regmap_i2c_rw_check(ds90ub948, ds90ub948->dual_channel, ARRAY_SIZE(ds90ub948_dual_channel)) < 0 ) {
+			ret = -EIO;
+			goto err_out;
+		}
+	} else
+		dev_info(ds90ub941->dev, "Using Single channel lvds\n");
 
-			if ( regmap_i2c_rw_check_retry(ds90ub941, ds90ub941->remote_gpio, ARRAY_SIZE(ds90ub941_remote_gpio)) < 0 ) {
-				ret = -EIO;
-				goto err_out;
-			}
-			msleep(I2C_RW_MDELAY);
-			if ( regmap_i2c_rw_check_retry(ds90ub948, ds90ub948->remote_gpio, ARRAY_SIZE(ds90ub948_remote_gpio)) < 0 ) {
-				ret = -EIO;
-				goto err_out;
-			}
-                } else
-			dev_info(ds90ub941->dev, "Using other gpio for DSI control(ex: io-expander)\n");
-        }
+	if (of_property_read_bool(dev_node, "vizionpanel-remote-gpio")) {
+		dev_info(ds90ub941->dev, "Using remote gpio for DSI control\n");
+
+		if ( regmap_i2c_rw_check(ds90ub941, ds90ub941->remote_gpio, ARRAY_SIZE(ds90ub941_remote_gpio)) < 0 ) {
+			ret = -EIO;
+			goto err_out;
+		}
+		msleep(I2C_RW_MDELAY);
+		if ( regmap_i2c_rw_check(ds90ub948, ds90ub948->remote_gpio, ARRAY_SIZE(ds90ub948_remote_gpio)) < 0 ) {
+			ret = -EIO;
+			goto err_out;
+		}
+	} else
+		dev_info(ds90ub941->dev, "Using other gpio for DSI control(ex: io-expander)\n");
 
 	ret = ds90ub94x_init_atr(ds90ub941);
 	ret = ds90ub94x_add_i2c_adapter(ds90ub941);
 
 	//Enable DSI
-	if ( regmap_i2c_rw_check_retry(ds90ub941, ds90ub941_unlock_dsi, ARRAY_SIZE(ds90ub941_unlock_dsi)) < 0 ) {
+	if ( regmap_i2c_rw_check(ds90ub941, ds90ub941_unlock_dsi, ARRAY_SIZE(ds90ub941_unlock_dsi)) < 0 ) {
 		ret = -EIO;
 		goto err_out;
 	}
