@@ -25,6 +25,8 @@
 
 #define RESET_MDELAY 50
 #define I2C_RW_MDELAY 50
+#define WAIT_DSI_MDELAY 1000
+#define MAX_WAIT_DSI_MDELAY 10000
 
 static const struct regmap_config config = {
 	.reg_bits = 8,
@@ -43,8 +45,12 @@ struct ds90ub94x {
 	struct i2c_config *dual_channel;
 	struct i2c_client *client;
 	struct i2c_atr *atr;
+	int dsi_delay;
 
 	const struct i2c_client *aliased_clients[UB941_MAX_PORT_ALIASES];
+
+	struct workqueue_struct *check_and_enable_dsi_wq;
+	struct delayed_work check_and_enable_dsi;
 };
 
 struct i2c_config{
@@ -83,6 +89,9 @@ struct i2c_config ds90ub948_remote_gpio[] = {
 };
 
 struct i2c_config ds90ub941_probe_config[] = {
+	{0x01, 0x08, 0x0F}, //Disable DSI
+	{0x4F, 0x0C, 0xFE}, //DSI Discontinuous Clock Mode
+
 	{0x04, 0x00, 0x33}, //start CRC_ERROR count
 	{0x03, 0x9A, 0xFA}, //Enable FPD-Link I2C pass through, DSI clock auto switch
 
@@ -92,7 +101,6 @@ struct i2c_config ds90ub941_probe_config[] = {
 
 	{0x1E, 0x01, 0x07}, //Select FPD-Link III Port 0
 	{0x5B, 0x21, 0xFF}, //FPD3_TX_MODE=single, Reset PLL
-	{0x4F, 0x8C, 0xFE}, //DSI Continuous Clock Mode,DSI 4 lanes
 
 	{0xC6, 0x21, 0xFF}, //REM_INTB the same as INTB_IN on UB948, Global Interrupt Enable 
 };
@@ -105,11 +113,19 @@ struct i2c_config ds90ub948_probe_config[] = {
 	{0x27, 0x19, 0xFF}, //SCL_LOW_TIME: 1.5 us (50 ns * 0x19)
 };
 
+struct i2c_config ds90ub926_probe_config[] = {
+	{0x03, 0xF8, 0xFE}, //enable CRC, i2c pass through
+	{0x26, 0x19, 0xFF}, //SCL_HIGH_TIME: 1.5 us (50 ns * 0x19)
+	{0x27, 0x19, 0xFF}, //SCL_LOW_TIME: 1.5 us (50 ns * 0x19)
+};
+
 struct i2c_config ds90ub941_lock_dsi[] = {
 	{0x01, 0x08, 0x0F}, //Disable DSI
+	{0x4F, 0x0C, 0xFE}, //DSI Discontinuous Clock Mode
 };
 
 struct i2c_config ds90ub941_unlock_dsi[] = {
+	{0x4F, 0x8C, 0xFE}, //DSI Continuous Clock Mode,DSI 4 lanes
 	{0x01, 0x00, 0x0F}, //Enable DSI
 };
 
@@ -243,12 +259,50 @@ static int regmap_i2c_rw_check(struct ds90ub94x *ds90ub94x, struct i2c_config *i
 	return 0;
 }
 
+static void check_and_enable_dsi_workfn(struct work_struct *work)
+{
+	struct ds90ub94x *ds90ub941 = container_of(work, struct ds90ub94x, check_and_enable_dsi.work);
+	unsigned int reg_val;
+	int ret;
+
+	dev_info(ds90ub941->dev, "check_and_enable_dsi_workfn start!!\n");
+	/* Enable DSI, check if the signal is stable.
+	 * If not, disable it and defer the check.	*/
+	if ( regmap_i2c_rw_check(ds90ub941, ds90ub941_unlock_dsi, ARRAY_SIZE(ds90ub941_unlock_dsi)) < 0 ) {
+		dev_err(ds90ub941->dev, "Failed to unlock DSI signal: %d\n", ret);
+		goto lock_dsi_func;
+	}
+
+	ret = regmap_read(ds90ub941->regmap, DUAL_STS_DUAL_STS_P1, &reg_val);
+	if (ret) {
+		dev_err(ds90ub941->dev, "Failed to read DUAL_STS_DUAL_STS_P1 register\n");
+		goto lock_dsi_func;
+	}
+
+	// Check if the register matches the expected condition
+	if ((reg_val & DSI_PANEL_RDY) == DSI_PANEL_RDY) {
+		dev_info(ds90ub941->dev, "Stable DSI signal, start display!!\n");
+		return;
+	} else {
+		// Reschedule the work to run again
+		queue_delayed_work(ds90ub941->check_and_enable_dsi_wq, &ds90ub941->check_and_enable_dsi, msecs_to_jiffies(ds90ub941->dsi_delay));
+	}
+
+lock_dsi_func:
+	//Disable DSI
+	if ( regmap_i2c_rw_check(ds90ub941, ds90ub941_lock_dsi, ARRAY_SIZE(ds90ub941_lock_dsi)) < 0 ) {
+		dev_err(ds90ub941->dev, "Failed to lock DSI signal: %d\n", ret);
+		return;
+	}
+}
+
 static int ds90ub94x_probe(struct i2c_client *client)
 {
 	struct ds90ub94x *ds90ub941, *ds90ub948;
 	struct i2c_client *dummy_client;
 	struct gpio_desc *reset_gpio;
-	int ret_ser, ret_des, crc_error_1, crc_error_2, val_read;
+	struct device_node *dev_node;
+	int ret_ser, ret_des, crc_error_1, crc_error_2, val_read, des_probe_config_size, dsi_delay_val;
 	int ret = 0;
 
 	ds90ub941 = devm_kzalloc(&client->dev, sizeof(struct ds90ub94x), GFP_KERNEL);
@@ -277,6 +331,7 @@ static int ds90ub94x_probe(struct i2c_client *client)
 	ds90ub948->probe_info = ds90ub948_probe_config;
 	ds90ub948->dual_channel = ds90ub948_dual_channel;
 	ds90ub948->remote_gpio = ds90ub948_remote_gpio;
+	des_probe_config_size = ARRAY_SIZE(ds90ub948_probe_config);
 
 	if (IS_ERR(ds90ub941->regmap)) {
 		ret = PTR_ERR(ds90ub941->regmap);
@@ -285,6 +340,31 @@ static int ds90ub94x_probe(struct i2c_client *client)
 	else if (IS_ERR(ds90ub948->regmap)) {
 		ret = PTR_ERR(ds90ub948->regmap);
 		goto req_failed;
+	}
+
+	//read attribute to set dual lvds channel and/or remote gpio
+	if (! ds90ub941->dev->of_node) {
+		ret = PTR_ERR(ds90ub941->dev->of_node);
+		goto req_failed;
+	}
+	dev_node = ds90ub941->dev->of_node;
+
+	/* If not using remote-gpio, it means it's the vizionpanel-ttl.
+	 * We need to change the probe_config to avoid non-exist register on DS90U926 */ 
+	if (! of_property_read_bool(dev_node, "vizionpanel-remote-gpio")) {
+		des_probe_config_size = ARRAY_SIZE(ds90ub926_probe_config);
+		ds90ub948->probe_info = ds90ub926_probe_config;
+	}
+
+	// Read the 'dsi-delay' property
+	ret = of_property_read_u32(dev_node, "dsi-delay", &dsi_delay_val);
+	if (ret || dsi_delay_val > MAX_WAIT_DSI_MDELAY) {
+		dev_err(ds90ub941->dev, "Failed to read dsi-delay property or it's larger than 10000 ms!!\n");
+		dev_info(ds90ub941->dev, "Using default DSI delay time = %u ms\n", WAIT_DSI_MDELAY);
+		ds90ub941->dsi_delay = WAIT_DSI_MDELAY;
+	} else {
+		dev_info(ds90ub941->dev, "DSI delay value: %u ms\n", dsi_delay_val);
+		ds90ub941->dsi_delay = dsi_delay_val;
 	}
 
 	reset_gpio = devm_gpiod_get_optional(&client->dev, "reset",
@@ -324,19 +404,10 @@ static int ds90ub94x_probe(struct i2c_client *client)
 		goto connection_failed;
 	}
 
-	/* before init, check the DSI and pixel-clock is ready or not.
-	 * If not, defer probe. */
-	ret = regmap_read(DETECT_SER_REGMAP, DUAL_STS_DUAL_STS_P1, &val_read);
-	val_read &= DSI_PANEL_RDY;
-	if ( val_read != DSI_PANEL_RDY ) {
-		dev_err(ds90ub941->dev, "wait for DSI and pixel clock ready, deferring...");
-		goto err_out;
-	}
-
 	/* Start to probe DS90UB948 */
 	regmap_i2c_rw_check(ds90ub948, ds90ub948->reset, ARRAY_SIZE(ds90ub948_reset));
 	msleep(RESET_MDELAY);
-	ret_des = regmap_i2c_rw_check(ds90ub948, ds90ub948->probe_info, ARRAY_SIZE(ds90ub948_probe_config));
+	ret_des = regmap_i2c_rw_check(ds90ub948, ds90ub948->probe_info, des_probe_config_size); //there are 2 sku of probe_info
 
 	if ( ret_ser || ret_des ){
 		if ( ret_ser )
@@ -346,19 +417,6 @@ static int ds90ub94x_probe(struct i2c_client *client)
 		goto err_out;
 	}
 
-	//Disable DSI
-	if ( regmap_i2c_rw_check(ds90ub941, ds90ub941_lock_dsi, ARRAY_SIZE(ds90ub941_lock_dsi)) < 0 ) {
-		ret = -EIO;
-		goto err_out;
-	}
-
-	//read attribute to set dual lvds channel and/or remote gpio
-	if (! ds90ub941->dev->of_node) {
-		ret = PTR_ERR(ds90ub941->dev->of_node);
-		goto req_failed;
-	}
-
-	struct device_node *dev_node = ds90ub941->dev->of_node;
 	if (of_property_read_bool(dev_node, "vizionpanel-dual-lvds-channel")) {
 		dev_info(ds90ub941->dev, "Using Dual channel lvds\n");
 
@@ -392,11 +450,19 @@ static int ds90ub94x_probe(struct i2c_client *client)
 	ret = ds90ub94x_init_atr(ds90ub941);
 	ret = ds90ub94x_add_i2c_adapter(ds90ub941);
 
-	//Enable DSI
-	if ( regmap_i2c_rw_check(ds90ub941, ds90ub941_unlock_dsi, ARRAY_SIZE(ds90ub941_unlock_dsi)) < 0 ) {
-		ret = -EIO;
-		goto err_out;
+	// Create workqueue
+	ds90ub941->check_and_enable_dsi_wq = create_singlethread_workqueue("check_and_enable_dsi_wq");
+	if (!ds90ub941->check_and_enable_dsi_wq) {
+		dev_err(ds90ub941->dev, "Failed to create workqueue\n");
+		return -ENOMEM;
 	}
+
+	// Initialize delayed work
+	INIT_DELAYED_WORK(&ds90ub941->check_and_enable_dsi, check_and_enable_dsi_workfn);
+
+	// Schedule the work to run immediately
+	queue_delayed_work(ds90ub941->check_and_enable_dsi_wq, &ds90ub941->check_and_enable_dsi, msecs_to_jiffies(ds90ub941->dsi_delay));
+	dev_info(ds90ub941->dev, "Probe complete, register check work scheduled\n");
 
 	regmap_read(ds90ub941->regmap, 0x0A, &crc_error_1);
 	regmap_read(ds90ub941->regmap, 0x0B, &crc_error_2);
@@ -420,7 +486,11 @@ connection_failed:
 
 void ds90ub94x_remove(struct i2c_client *client)
 {
+    struct ds90ub94x *ds90ub94x = i2c_get_clientdata(client);
 
+    // Cancel the delayed work and destroy the workqueue
+    cancel_delayed_work_sync(&ds90ub94x->check_and_enable_dsi);
+    destroy_workqueue(ds90ub94x->check_and_enable_dsi_wq);
 }
 
 static const struct of_device_id ds90ub94x_of_match[] = {
