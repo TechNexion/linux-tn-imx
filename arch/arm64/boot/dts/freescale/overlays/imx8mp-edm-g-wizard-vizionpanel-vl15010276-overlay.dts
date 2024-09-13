@@ -52,6 +52,7 @@
 				pinctrl-0 = <&pinctrl_gpio1>;
 				reset-gpios = <&gpio1 6 GPIO_ACTIVE_LOW>;
 				vizionpanel-remote-gpio;
+				dsi-delay = <2500>;
 				i2c-alias-pool = <0x48 0x49 0x4a 0x4b 0x4c 0x4d 0x4e 0x4f>;
 
 				i2c {
