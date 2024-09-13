@@ -473,7 +473,7 @@ err_out:
 	regmap_read(ds90ub941->regmap, 0x0A, &crc_error_1);
 	regmap_read(ds90ub941->regmap, 0x0B, &crc_error_2);
 	dev_err(ds90ub941->dev, "ds90ub94x probe failed with CRC_ERROR_COUNT = 0x%02x%02x\n", crc_error_2, crc_error_1);
-	return -EPROBE_DEFER;
+	return ret;
 
 req_failed:
 	dev_err(ds90ub941->dev, "request memery/regmap failed\n");
