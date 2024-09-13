@@ -1174,6 +1174,7 @@ static int tevs_set_bsl_mode(struct tevs *tevs, s32 mode)
 	u8 val;
 	u8 bootcmd[6] = { 0x00, 0x12, 0x3A, 0x61, 0x44, 0xDE };
 	u8 startup[6] = { 0x00, 0x40, 0xE2, 0x51, 0x21, 0x5B };
+	u16 data_freq_tmp;
 	dev_dbg(tevs->dev, "%s(): set bls mode: %d", __func__, mode);
 
 	switch (mode) {
@@ -1186,6 +1187,20 @@ static int tevs_set_bsl_mode(struct tevs *tevs, s32 mode)
 		if (tevs_check_boot_state(tevs) != 0) {
 			dev_err(tevs->dev, "check tevs bootup status failed\n");
 			return -EINVAL;
+		}
+
+		if (tevs->data_frequency != 0) {
+			tevs_i2c_read_16b(tevs, HOST_COMMAND_ISP_CTRL_MIPI_FREQ,
+						&data_freq_tmp);
+			if (tevs->data_frequency != data_freq_tmp) {
+				tevs_i2c_write_16b(tevs, HOST_COMMAND_ISP_CTRL_MIPI_FREQ,
+							tevs->data_frequency);
+				msleep(TEVS_BOOT_TIME);
+				if (tevs_check_boot_state(tevs) != 0) {
+					dev_err(tevs->dev, "check tevs bootup status failed\n");
+					return -EINVAL;
+				}
+			}
 		}
 		break;
 	case TEVS_BSL_MODE_FLASH_IDX:
