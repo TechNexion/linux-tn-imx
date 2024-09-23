@@ -366,13 +366,8 @@ int tevs_i2c_read_16b(struct tevs *tevs, u16 reg, u16 *value)
 	u8 v[2] = { 0 };
 	int ret;
 
-	ret = tevs_i2c_read(tevs, reg, v, 2);
-	if (ret < 0) {
-		dev_err(tevs->dev,
-			"Failed to read from register: ret=%d, reg=0x%x\n", ret,
-			reg);
+	if ((ret = tevs_i2c_read(tevs, reg, v, 2)) != 0)
 		return ret;
-	}
 
 	*value = (v[0] << 8) | v[1];
 	dev_dbg(tevs->dev, "%s() read reg 0x%x, value 0x%x\n", __func__, reg,
@@ -403,13 +398,9 @@ int tevs_i2c_write_16b(struct tevs *tevs, u16 reg, u16 val)
 	data[0] = val >> 8;
 	data[1] = val & 0xFF;
 
-	ret = regmap_bulk_write(tevs->regmap, reg, data, 2);
-	if (ret < 0) {
-		dev_err(tevs->dev,
-			"Failed to write to register: ret=%d reg=0x%x\n", ret,
-			reg);
+	if ((ret = regmap_bulk_write(tevs->regmap, reg, data, 2)) != 0)
 		return ret;
-	}
+
 	dev_dbg(tevs->dev, "%s() write reg 0x%x, value 0x%x\n", __func__, reg,
 		val);
 
@@ -662,6 +653,7 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 {
 	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
 	int ret = 0;
+	u8 exp[4] = { 0 };
 
 	if (tevs->selected_mode >=
 	    tevs_sensor_table[tevs->selected_sensor].res_list_size)
@@ -710,17 +702,14 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 				tevs_sensor_table[tevs->selected_sensor]
 					.res_list[tevs->selected_mode]
 					.height);
-			tevs_i2c_write_16b(tevs,
-					   HOST_COMMAND_ISP_CTRL_EXP_TIME_MSB,
-					   tevs->exp_time->cur.val >> 16);
-			tevs_i2c_write_16b(tevs,
-					   HOST_COMMAND_ISP_CTRL_EXP_TIME_LSB,
-					   tevs->exp_time->cur.val & 0xFFFF);
 			tevs_i2c_write_16b(
 				tevs, HOST_COMMAND_ISP_CTRL_PREVIEW_MAX_FPS,
 				fps);
 			if (tevs->max_fps)
 				tevs->max_fps->cur.val = fps;
+			tevs_i2c_read(tevs, TEVS_AE_MANUAL_EXP_TIME, exp, 4);
+			tevs->exp_time->cur.val = be32_to_cpup((__be32 *)exp) &
+				  TEVS_AE_MANUAL_EXP_TIME_MASK;
 		}
 	}
 
