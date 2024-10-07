@@ -1718,6 +1718,13 @@ static void tevs_ctrls_free(struct tevs *tevs)
 	mutex_destroy(&tevs->lock);
 }
 
+static int tevs_media_link_setup(struct media_entity *entity,
+				 const struct media_pad *local,
+				 const struct media_pad *remote, u32 flags)
+{
+	return 0;
+}
+
 static const struct v4l2_subdev_core_ops tevs_v4l2_subdev_core_ops = {
 	.s_power = tevs_power,
 	.subscribe_event = v4l2_ctrl_subdev_subscribe_event,
@@ -1746,6 +1753,7 @@ static const struct v4l2_subdev_ops tevs_subdev_ops = {
 };
 
 static const struct media_entity_operations tevs_media_entity_ops = {
+	.link_setup = tevs_media_link_setup,
 	.link_validate = v4l2_subdev_link_validate
 };
 
