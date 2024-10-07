@@ -368,13 +368,8 @@ int tevs_i2c_read_16b(struct tevs *tevs, u16 reg, u16 *value)
 	u8 v[2] = { 0 };
 	int ret;
 
-	ret = tevs_i2c_read(tevs, reg, v, 2);
-	if (ret < 0) {
-		dev_err(tevs->dev,
-			"Failed to read from register: ret=%d, reg=0x%x\n", ret,
-			reg);
+	if ((ret = tevs_i2c_read(tevs, reg, v, 2)) != 0)
 		return ret;
-	}
 
 	*value = (v[0] << 8) | v[1];
 	dev_dbg(tevs->dev, "%s() read reg 0x%x, value 0x%x\n", __func__, reg,
@@ -405,13 +400,9 @@ int tevs_i2c_write_16b(struct tevs *tevs, u16 reg, u16 val)
 	data[0] = val >> 8;
 	data[1] = val & 0xFF;
 
-	ret = regmap_bulk_write(tevs->regmap, reg, data, 2);
-	if (ret < 0) {
-		dev_err(tevs->dev,
-			"Failed to write to register: ret=%d reg=0x%x\n", ret,
-			reg);
+	if ((ret = regmap_bulk_write(tevs->regmap, reg, data, 2)) != 0)
 		return ret;
-	}
+
 	dev_dbg(tevs->dev, "%s() write reg 0x%x, value 0x%x\n", __func__, reg,
 		val);
 
@@ -549,10 +540,10 @@ static int tevs_check_boot_state(struct tevs *tevs)
 				  &boot_state);
 		if (boot_state == 0x08)
 			break;
-		dev_dbg(tevs->dev, "tevs bootup state: %d\n", boot_state);
+		dev_dbg(tevs->dev, "bootup state: 0x%04X\n", boot_state);
 		if (++timeout >= 20) {
 			dev_err(tevs->dev,
-				"tevs bootup timeout: state: 0x%02X\n",
+				"bootup timeout: state: 0x%04X\n",
 				boot_state);
 			ret = -EINVAL;
 		}
@@ -660,6 +651,7 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 {
 	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
 	int ret = 0;
+	u8 exp[4] = { 0 };
 
 	if (tevs->selected_mode >=
 	    tevs_sensor_table[tevs->selected_sensor].res_list_size)
@@ -710,17 +702,14 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 				tevs_sensor_table[tevs->selected_sensor]
 					.res_list[tevs->selected_mode]
 					.height);
-			tevs_i2c_write_16b(tevs,
-					   HOST_COMMAND_ISP_CTRL_EXP_TIME_MSB,
-					   tevs->exp_time->cur.val >> 16);
-			tevs_i2c_write_16b(
-				tevs, HOST_COMMAND_ISP_CTRL_EXP_TIME_LSB,
-				tevs->exp_time->cur.val & 0xFFFF);
 			tevs_i2c_write_16b(
 				tevs, HOST_COMMAND_ISP_CTRL_PREVIEW_MAX_FPS,
 				fps);
 			if (tevs->max_fps)
 				tevs->max_fps->cur.val = fps;
+			tevs_i2c_read(tevs, TEVS_AE_MANUAL_EXP_TIME, exp, 4);
+			tevs->exp_time->cur.val = be32_to_cpup((__be32 *)exp) &
+				  TEVS_AE_MANUAL_EXP_TIME_MASK;
 		}
 	}
 
@@ -1746,7 +1735,6 @@ static const struct v4l2_subdev_pad_ops tevs_v4l2_subdev_pad_ops = {
 	.get_fmt = tevs_get_fmt,
 	.set_fmt = tevs_set_fmt,
 	.get_selection = tevs_get_selection,
-	// .set_selection = tevs_get_selection,
 	.enum_frame_size = tevs_enum_frame_size,
 	.enum_frame_interval = tevs_enum_frame_interval,
 };
@@ -1967,7 +1955,8 @@ static int tevs_probe(struct i2c_client *client)
 	}
 
 	/* Initialize subdev */
-	tevs->v4l2_subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+	tevs->v4l2_subdev.flags |=
+		(V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_HAS_DEVNODE);
 	tevs->v4l2_subdev.entity.ops = &tevs_media_entity_ops;
 	tevs->v4l2_subdev.entity.function = MEDIA_ENT_F_CAM_SENSOR;
 
@@ -1979,7 +1968,7 @@ static int tevs_probe(struct i2c_client *client)
 		goto error_handler_free;
 	}
 
-	ret = v4l2_async_register_subdev(&tevs->v4l2_subdev);
+	ret = v4l2_async_register_subdev_sensor(&tevs->v4l2_subdev);
 	if (ret != 0) {
 		dev_err(tevs->dev, "v4l2 register failed\n");
 		goto error_media_entity;
