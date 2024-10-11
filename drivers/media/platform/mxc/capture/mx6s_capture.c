@@ -1227,6 +1227,10 @@ static int mx6s_csi_close(struct file *file)
 
 	mutex_lock(&csi_dev->lock);
 
+	if (sd->enabled_streams) {
+		v4l2_subdev_call(sd, video, s_stream, 0);
+	}
+
 	if (--csi_dev->open_count == 0) {
 		vb2_queue_release(&csi_dev->vb2_vidq);
 
