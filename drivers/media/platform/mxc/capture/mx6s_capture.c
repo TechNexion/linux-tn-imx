@@ -249,6 +249,12 @@ static struct mx6s_fmt formats[] = {
 		.mbus_code	= MEDIA_BUS_FMT_UYVY8_2X8,
 		.bpp		= 2,
 	}, {
+		.name		= "UYVY-16",
+		.fourcc		= V4L2_PIX_FMT_UYVY,
+		.pixelformat	= V4L2_PIX_FMT_UYVY,
+		.mbus_code	= MEDIA_BUS_FMT_UYVY8_1X16,
+		.bpp		= 2,
+	}, {
 		.name		= "YUYV-16",
 		.fourcc		= V4L2_PIX_FMT_YUYV,
 		.pixelformat	= V4L2_PIX_FMT_YUYV,
@@ -1408,6 +1414,7 @@ static int mx6s_vidioc_try_fmt_vid_cap(struct file *file, void *priv,
 	struct v4l2_pix_format *pix = &f->fmt.pix;
 	struct v4l2_subdev_format format = {
 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+		.stream = 0,
 	};
 	struct mx6s_fmt *fmt;
 	int ret;
