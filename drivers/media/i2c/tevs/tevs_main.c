@@ -191,8 +191,10 @@
 #define TEVS_AE_MANUAL_GAIN_MIN 				HOST_COMMAND_ISP_CTRL_EXP_GAIN_MIN
 #define TEVS_AE_MANUAL_GAIN_MASK 				(0x00FF)
 #define TEVS_ORIENTATION 						HOST_COMMAND_ISP_CTRL_FLIP
-#define TEVS_ORIENTATION_HFLIP 					(1U << 0)
-#define TEVS_ORIENTATION_VFLIP 					(1U << 1)
+#define TEVS_ORIENTATION_HFLIP_BIT 				(0U)
+#define TEVS_ORIENTATION_HFLIP 					BIT(TEVS_ORIENTATION_HFLIP_BIT)
+#define TEVS_ORIENTATION_VFLIP_BIT 				(1U)
+#define TEVS_ORIENTATION_VFLIP 					BIT(TEVS_ORIENTATION_VFLIP_BIT)
 #define TEVS_FLICK_CTRL    						HOST_COMMAND_ISP_CTRL_FLICK_CTRL
 #define TEVS_FLICK_CTRL_MASK					(0xFFFF) // TEVS_REG_16BIT(0x5440)
 #define TEVS_FLICK_CTRL_FREQ(n)					((n) << 8)
@@ -1507,7 +1509,7 @@ static int tevs_ctrls_init(struct tevs *tevs)
 	tevs->hflip = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
 					V4L2_CID_HFLIP, 0x0, 0x1, 1, ctrl_def);
 
-	ctrl_def = val & TEVS_ORIENTATION_VFLIP;
+	ctrl_def = (val & TEVS_ORIENTATION_VFLIP) >> TEVS_ORIENTATION_VFLIP_BIT;
 	tevs->vflip = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
 					V4L2_CID_VFLIP, 0x0, 0x1, 1, ctrl_def);
 
