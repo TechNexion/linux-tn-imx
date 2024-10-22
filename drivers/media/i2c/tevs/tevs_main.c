@@ -208,10 +208,6 @@
 #define TEVS_FLICK_CTRL_FREQ_MASK			    (0xFF00)
 #define TEVS_FLICK_CTRL_MODE_50HZ             	(TEVS_FLICK_CTRL_FREQ(50) | TEVS_FLICK_CTRL_MODE_MANUAL)
 #define TEVS_FLICK_CTRL_MODE_60HZ             	(TEVS_FLICK_CTRL_FREQ(60) | TEVS_FLICK_CTRL_MODE_MANUAL)
-#define TEVS_FLICK_CTRL_MODE_DISABLED_IDX		(0U << 0)
-#define TEVS_FLICK_CTRL_MODE_50HZ_IDX			(1U << 0)
-#define TEVS_FLICK_CTRL_MODE_60HZ_IDX			(2U << 0)
-#define TEVS_FLICK_CTRL_MODE_AUTO_IDX			(3U << 0)
 #define TEVS_AWB_MANUAL_TEMP 					HOST_COMMAND_ISP_CTRL_AWB_TEMP
 #define TEVS_AWB_MANUAL_TEMP_MAX 				HOST_COMMAND_ISP_CTRL_AWB_TEMP_MAX
 #define TEVS_AWB_MANUAL_TEMP_MIN 				HOST_COMMAND_ISP_CTRL_AWB_TEMP_MIN
@@ -331,7 +327,7 @@ struct tevs {
 	struct v4l2_ctrl *exp_gain;
 	struct v4l2_ctrl *hflip;
 	struct v4l2_ctrl *vflip;
-	struct v4l2_ctrl *power_line_freq;
+	struct v4l2_ctrl *flick;
 	struct v4l2_ctrl *wb_temp;
 	struct v4l2_ctrl *sharpness;
 	struct v4l2_ctrl *backlight_comp;
@@ -925,21 +921,21 @@ static int tevs_enum_frame_interval(struct v4l2_subdev *sub_dev,
  */
 
 static s64 tevs_link_freqs[] = {
-	400000000,
+	400000000
 };
 
 static const u32 tevs_pixel_rates[] = {
-	200000000,
+	200000000
 };
 
 static const char *const awb_mode_strings[] = {
 	"Manual Temp Mode", // TEVS_AWB_CTRL_MODE_MANUAL_TEMP
 	"Auto Mode", // TEVS_AWB_CTRL_MODE_AUTO
-	NULL,
+	NULL
 };
 
 static const char *const flick_mode_strings[] = {
-	"Disabled", "50 Hz", "60 Hz", "Auto", NULL,
+	"Disabled", "50 Hz", "60 Hz", "Auto", NULL
 };
 
 static const char *const sfx_mode_strings[] = {
@@ -948,20 +944,20 @@ static const char *const sfx_mode_strings[] = {
 	"Grayscale Mode", // TEVS_SFX_MODE_SFX_GRAYSCALE
 	"Negative Mode", // TEVS_SFX_MODE_SFX_NEGATIVE
 	"Sketch Mode", // TEVS_SFX_MODE_SFX_SKETCH
-	NULL,
+	NULL
 };
 
 static const char *const ae_mode_strings[] = {
 	"Manual Mode", // TEVS_AE_CTRL_MANUAL_EXP_TIME_GAIN
 	"Auto Mode", // TEVS_AE_CTRL_FULL_AUTO
 	"AGC Mode", // TEVS_AE_CTRL_AUTO_GAIN
-	NULL,
+	NULL
 };
 
 static const char *const bsl_mode_strings[] = {
 	"Normal Mode",
 	"Bootstrap Mode",
-	NULL,
+	NULL
 };
 
 static int tevs_set_brightness(struct tevs *tevs, s32 value)
@@ -1066,16 +1062,16 @@ static int tevs_set_flick_mode(struct tevs *tevs, s32 mode)
 {
 	u16 val = 0;
 	switch (mode) {
-	case TEVS_FLICK_CTRL_MODE_DISABLED_IDX:
+	case V4L2_CID_POWER_LINE_FREQUENCY_DISABLED:
 		val = TEVS_FLICK_CTRL_MODE_DISABLED;
 		break;
-	case TEVS_FLICK_CTRL_MODE_50HZ_IDX:
+	case V4L2_CID_POWER_LINE_FREQUENCY_50HZ:
 		val = TEVS_FLICK_CTRL_MODE_50HZ;
 		break;
-	case TEVS_FLICK_CTRL_MODE_60HZ_IDX:
+	case V4L2_CID_POWER_LINE_FREQUENCY_60HZ:
 		val = TEVS_FLICK_CTRL_MODE_60HZ;
 		break;
-	case TEVS_FLICK_CTRL_MODE_AUTO_IDX:
+	case V4L2_CID_POWER_LINE_FREQUENCY_AUTO:
 		val = TEVS_FLICK_CTRL_MODE_AUTO |
 		      TEVS_FLICK_CTRL_FRC_OVERRIDE_UPPER_ET |
 		      TEVS_FLICK_CTRL_FRC_EN;
@@ -1344,16 +1340,6 @@ static const struct v4l2_ctrl_config tevs_awb_mode = {
 	.qmenu = awb_mode_strings,
 };
 
-static const struct v4l2_ctrl_config tevs_filck_mode = {
-	.ops = &tevs_ctrl_ops,
-	.id = V4L2_CID_POWER_LINE_FREQUENCY,
-	.name = "Power_Line_Frequency",
-	.type = V4L2_CTRL_TYPE_MENU,
-	.max = TEVS_FLICK_CTRL_MODE_AUTO_IDX,
-	.def = TEVS_FLICK_CTRL_MODE_DISABLED_IDX,
-	.qmenu = flick_mode_strings,
-};
-
 static const struct v4l2_ctrl_config tevs_sfx_mode = {
 	.ops = &tevs_ctrl_ops,
 	.id = V4L2_CID_COLORFX,
@@ -1525,40 +1511,31 @@ static int tevs_ctrls_init(struct tevs *tevs)
 	tevs->vflip = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
 					V4L2_CID_VFLIP, 0x0, 0x1, 1, ctrl_def);
 
-	tevs->power_line_freq =
-		v4l2_ctrl_new_custom(ctrl_hdlr, &tevs_filck_mode, NULL);
 	ret = tevs_i2c_read_16b(tevs, TEVS_FLICK_CTRL, &val);
 	if (ret)
 		goto error;
 	switch (val & TEVS_FLICK_CTRL_MODE_MASK) {
 	case TEVS_FLICK_CTRL_MODE_DISABLED:
-		tevs->power_line_freq->default_value =
-			tevs->power_line_freq->cur.val =
-				TEVS_FLICK_CTRL_MODE_DISABLED_IDX;
+		ctrl_def =
+				V4L2_CID_POWER_LINE_FREQUENCY_DISABLED;
 		break;
 	case TEVS_FLICK_CTRL_MODE_MANUAL:
-		if ((val & TEVS_FLICK_CTRL_FREQ_MASK) ==
-		    TEVS_FLICK_CTRL_FREQ(50))
-			tevs->power_line_freq->default_value =
-				tevs->power_line_freq->cur.val =
-					TEVS_FLICK_CTRL_MODE_50HZ_IDX;
-		else if ((val & TEVS_FLICK_CTRL_FREQ_MASK) ==
-			 TEVS_FLICK_CTRL_FREQ(60))
-			tevs->power_line_freq->default_value =
-				tevs->power_line_freq->cur.val =
-					TEVS_FLICK_CTRL_MODE_60HZ_IDX;
+		if ((val & TEVS_FLICK_CTRL_FREQ_MASK) == TEVS_FLICK_CTRL_FREQ(50))
+			ctrl_def = V4L2_CID_POWER_LINE_FREQUENCY_50HZ;
+		else if ((val & TEVS_FLICK_CTRL_FREQ_MASK) == TEVS_FLICK_CTRL_FREQ(60))
+			ctrl_def = V4L2_CID_POWER_LINE_FREQUENCY_60HZ;
 		break;
 	case TEVS_FLICK_CTRL_MODE_AUTO:
-		tevs->power_line_freq->default_value =
-			tevs->power_line_freq->cur.val =
-				TEVS_FLICK_CTRL_MODE_AUTO_IDX;
+		ctrl_def = V4L2_CID_POWER_LINE_FREQUENCY_AUTO;
 		break;
 	default:
-		tevs->power_line_freq->default_value =
-			tevs->power_line_freq->cur.val =
-				TEVS_FLICK_CTRL_MODE_DISABLED_IDX;
+		ctrl_def = V4L2_CID_POWER_LINE_FREQUENCY_DISABLED;
 		break;
 	}
+	tevs->flick = v4l2_ctrl_new_std_menu(ctrl_hdlr, &tevs_ctrl_ops,
+					V4L2_CID_POWER_LINE_FREQUENCY,
+					V4L2_CID_POWER_LINE_FREQUENCY_AUTO,
+					0, ctrl_def);
 
 	ret = tevs_i2c_read_16b(tevs, TEVS_AWB_MANUAL_TEMP, &val);
 	ctrl_def = val & TEVS_AWB_MANUAL_TEMP_MASK;
@@ -1704,13 +1681,14 @@ static int tevs_ctrls_init(struct tevs *tevs)
 
 	tevs->bsl = v4l2_ctrl_new_custom(ctrl_hdlr, &tevs_bsl_mode, NULL);
 
+	tevs->max_fps = v4l2_ctrl_new_custom(ctrl_hdlr, &tevs_max_fps, NULL);
 	ret = tevs_i2c_read_16b(tevs, TEVS_MAX_FPS, &val);
 	if (ret)
 		goto error;
-	tevs->max_fps = v4l2_ctrl_new_custom(ctrl_hdlr, &tevs_max_fps, NULL);
 	tevs->max_fps->default_value = tevs->max_fps->cur.val =
 		val & TEVS_MAX_FPS_MASK;
 
+	tevs->denoise = v4l2_ctrl_new_custom(ctrl_hdlr, &tevs_denoise, NULL);
 	ret = tevs_i2c_read_16b(tevs, TEVS_DENOISE, &val);
 	ctrl_def = val & TEVS_DENOISE_MASK;
 	ret += tevs_i2c_read_16b(tevs, TEVS_DENOISE_MAX, &val);
@@ -1719,7 +1697,6 @@ static int tevs_ctrls_init(struct tevs *tevs)
 	ctrl_min = val & TEVS_DENOISE_MASK;
 	if (ret)
 		goto error;
-	tevs->denoise = v4l2_ctrl_new_custom(ctrl_hdlr, &tevs_denoise, NULL);
 	tevs->denoise->default_value = tevs->denoise->cur.val = ctrl_def;
 	tevs->denoise->maximum = ctrl_max;
 	tevs->denoise->minimum = ctrl_min;
