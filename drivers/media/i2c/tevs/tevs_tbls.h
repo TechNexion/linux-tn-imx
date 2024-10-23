@@ -17,9 +17,9 @@ static struct resolution ar0144_res_list[] = {
 
 /* AR0145 default setting for 4 data lanes and data frequency 800 MHz */
 static struct resolution ar0145_res_list[] = {
-	{ .width = 640, .height = 480, .framerates = 120, .mode = 0 },
-	{ .width = 1280, .height = 720, .framerates = 120, .mode = 0 },
-	{ .width = 1280, .height = 800, .framerates = 120, .mode = 0 },
+	{ .width = 640, .height = 480, .framerates = 115, .mode = 0 },
+	{ .width = 1280, .height = 720, .framerates = 115, .mode = 0 },
+	{ .width = 1280, .height = 800, .framerates = 115, .mode = 0 },
 };
 
 /* AR0234 default setting for 4 data lanes and data frequency 800 MHz */
