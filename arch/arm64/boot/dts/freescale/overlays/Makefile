@@ -47,8 +47,8 @@ dtbo-$(CONFIG_ARCH_MXC) += imx8mn-edm-g-wizard-sn65dsi84-vl10112880.dtbo imx8mn-
 
 dtbo-$(CONFIG_ARCH_MXC) += imx93-axon-wb-lvds-vl10112880.dtbo imx93-axon-wb-lvds-vl15613676.dtbo imx93-axon-wb-vxt-vl050-070-8048nt.dtbo imx93-axon-wb-vxt-vl0808060nt.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx93-axon-wb-tevs.dtbo imx93-axon-wb-vls.dtbo
-dtbo-$(CONFIG_ARCH_MXC) += imx93-edm-wb-lvds-vl10112880.dtbo imx93-edm-wb-lvds-vl15613676.dtbo imx93-edm-wb-vxt-vl0508048nt.dtbo imx93-edm-wb-vxt-vl0808060nt.dtbo \
-			  imx93-edm-wb-vxt-vl0708048nt.dtbo imx93-edm-wb-tevs.dtbo imx93-edm-wb-vls.dtbo
+dtbo-$(CONFIG_ARCH_MXC) += imx93-edm-wb-lvds-vl10112880.dtbo imx93-edm-wb-lvds-vl15613676.dtbo imx93-edm-wb-vxt-vl050-070-8048nt.dtbo imx93-edm-wb-vxt-vl0808060nt.dtbo \
+			  imx93-edm-wb-tevs.dtbo imx93-edm-wb-vls.dtbo
 
 targets += dtbs dtbs_install
 targets += $(dtbo-y)
