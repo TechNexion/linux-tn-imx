@@ -462,6 +462,7 @@ dtb-$(CONFIG_ARCH_MXC) += imx93-9x9-qsb.dtb \
 			  imx93-9x9-qsb-ld.dtb \
 			  imx93-9x9-qsb-rpmsg.dtb imx93-9x9-qsb-rpmsg-lpv.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx93-axon-wb.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx93-pico-wb.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx93-edm-wb.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx93-tqma9352-mba93xxla.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx91-9x9-qsb.dtb \
@@ -763,4 +764,5 @@ DTC_FLAGS_imx8mq-pico-wizard := -@
 DTC_FLAGS_imx8mp-tep := -@
 DTC_FLAGS_imx8mp-tek := -@
 DTC_FLAGS_imx93-axon-wb := -@
+DTC_FLAGS_imx93-pico-wb := -@
 DTC_FLAGS_imx93-edm-wb := -@
