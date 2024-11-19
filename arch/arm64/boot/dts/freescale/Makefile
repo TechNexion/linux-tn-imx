@@ -809,6 +809,7 @@ dtb-$(CONFIG_ARCH_MXC) += imx93-phyboard-nash-peb-wlbt-07.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx93-phyboard-segin-peb-eval-01.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx93-phyboard-segin-peb-wlbt-05.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx93-phycore-rpmsg.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx93-pico-sk.dtb
 
 dtb-$(CONFIG_ARCH_MXC) += imx93-tqma9352-mba91xxca.dtb
 dtb-${CONFIG_ARCH_MXC} += imx8qm-mek-revd-max9286-csi0.dtb
@@ -1557,3 +1558,4 @@ DTC_FLAGS_imx8mp-tek := -@
 DTC_FLAGS_imx8mp-tep := -@
 DTC_FLAGS_imx93-axon-wb := -@
 DTC_FLAGS_imx93-edm-wb := -@
+DTC_FLAGS_imx93-pico-sk := -@
