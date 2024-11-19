@@ -1,0 +1,276 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2022 NXP
+ */
+
+/dts-v1/;
+
+#include <dt-bindings/usb/pd.h>
+#include "imx93-pico.dtsi"
+
+/ {
+	model = "TechNexion PICO-IMX93 and WB baseboard";
+	compatible = "fsl,imx93-pico", "fsl,imx93";
+
+	reg_usb_otg_vbus: usb_otg_vbus {
+		compatible = "regulator-fixed";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_usb_otg_vbus>;
+		regulator-name = "usb_otg_vbus";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&gpio3 26 GPIO_ACTIVE_LOW>;
+		enable-active-low;
+	};
+
+	usb_hub_rst: usb_hub_rst {
+		compatible = "gpio-reset";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_usb_hub_rst>;
+		reset-gpios = <&gpio4 17 GPIO_ACTIVE_LOW>;
+		reset-delay-us = <10>;
+		#reset-cells = <0>;
+	};
+
+	reg_lvds_pwr: regulator_lvdspwr {
+		compatible = "regulator-fixed";
+		regulator-name = "lvds0_vdden";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&adp5585gpio 5 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		status = "disabled";
+	};
+
+
+	reg_lvds_backlight_pwr: regulator_lvdsblpwr {
+		compatible = "regulator-fixed";
+		regulator-name = "lvds0_bl_en";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&adp5585gpio 6 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		regulator-always-on;
+		status = "disabled";
+	};
+
+	reg_mipi_backlight_pwr: regulator_mipiblpwr {
+		compatible = "regulator-fixed";
+		regulator-name = "mipi_bl_en";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&pca9555bs_a23 0 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		regulator-always-on;
+		status = "disabled";
+	};
+
+
+	disp_backlight: disp_backlight {
+		compatible = "pwm-backlight";
+		pwms = <&adp5585pwm 0 50000 0>;
+		brightness-levels = <0 36 72 108 144 180 216 255>;
+		default-brightness-level = <6>;
+		status = "disabled";
+	};
+
+	tlv320_mclk: clk-0 {
+		#clock-cells = <0>;
+		compatible = "fixed-clock";
+		clock-frequency = <12000000>;
+	};
+
+	sound {
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "tlv320aic3x-audio";
+		simple-audio-card,widgets =
+			"Headphone", "Headphone Jack",
+			"Microphone", "Mic Jack";
+		simple-audio-card,routing =
+			"Headphone Jack", "HPLOUT",
+			"Headphone Jack", "HPROUT",
+			"MIC2R", "Mic Jack",
+			"Mic Jack", "Mic Bias";
+		simple-audio-card,format = "dsp_b";
+		simple-audio-card,bitclock-master = <&sound_master>;
+		simple-audio-card,frame-master = <&sound_master>;
+		simple-audio-card,bitclock-inversion;
+		status = "okay";
+
+		simple-audio-card,cpu {
+			sound-dai = <&sai2>;
+		};
+
+		sound_master: simple-audio-card,codec {
+			sound-dai = <&tlv320aic3104>;
+			clocks = <&tlv320_mclk>;
+		};
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		led_1 {
+			label = "WB-led";
+			gpios = <&pca9555bs_a23 9 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+		};
+	};
+};
+
+&eqos {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_eqos>;
+	phy-mode = "rgmii-id";
+	phy-handle = <&ethphy2>;
+	status = "okay";
+
+	mdio {
+		compatible = "snps,dwmac-mdio";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		clock-frequency = <5000000>;
+
+		ethphy2: ethernet-phy@2 {
+			/* Atheros AR8035 PHY */
+			compatible = "ethernet-phy-ieee802.3-c22";
+			reg = <2>;
+			reset-gpios = <&adp5585gpio 2 GPIO_ACTIVE_LOW>;
+			reset-assert-us = <35000>;
+			reset-deassert-us = <75000>;
+			eee-broken-1000t;
+			at803x,eee-disabled;
+			at803x,vddio-1p8v;
+			realtek,aldps-disable;
+			realtek,clkout-disable;
+		};
+	};
+};
+
+&sai2 {
+	status = "okay";
+};
+
+&lpi2c2 {
+	status = "okay";
+
+	pca9555bs_a23: pca9555bs@23 {
+		compatible = "nxp,pca9555";
+		reg = <0x23>;
+		vcc-supply = <&reg_3p3v>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pca9555bs_a23_irq>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+		interrupt-parent = <&gpio4>;
+		interrupts = <24 IRQ_TYPE_LEVEL_LOW>;
+		status = "okay";
+		gpio-line-names = "MIPI_BL_EN", "MIPI_TE", "MIPI_RST", "FAULT",
+					"EXT_GPIO8_M2_WAN_WAKE", "EXT_GPIO9_M2_RST_N", "CSI1_PDB", "AUD_A_RST",
+					"M2_DISABLE_N", "LED_EN", "CAM_EXT_INT", "EXT_IO1_3_VH22",
+					"EXT_IO1_4_VH32", "EXT_IO1_5_VH36", "EXT_IO1_6_VH38", "EXT_IO1_7_VH40";
+	};
+
+	tca9555_a21: tca9555@21 {
+		compatible = "nxp,pca9555";
+		reg = <0x21>;
+		vcc-supply = <&reg_1p8v>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		// interrupt-controller;
+		// #interrupt-cells = <2>;
+		// interrupt-parent = <&pca9555bs_a23>;
+		// interrupts = <10 IRQ_TYPE_EDGE_FALLING>;
+		gpio-line-names = "EXPOSURE_TRIG_IN1", "FLASH_OUT1","INFO_TRIG_IN1", "CAM_SHUTTER1",
+			"XVS1", "PWR1_TIME0","PWR1_TIME1", "PWR1_TIME2",
+			"", "","", "","", "","", "";
+	};
+
+	typec_hd3ss3220: hd3ss3220@67 {
+		compatible = "ti,hd3ss3220";
+		interrupts-extended = <&gpio4 14 IRQ_TYPE_LEVEL_LOW>;
+		vbus-supply = <&reg_usb_otg_vbus>;
+		reg = <0x67>;
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				hd3ss3220_in_ep: endpoint {
+					remote-endpoint = <&otg1_out_ep>;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+				hd3ss3220_out_ep: endpoint {
+					remote-endpoint = <&otg1_in_ep>;
+				};
+			};
+		};
+	};
+
+	tlv320aic3104: audio-codec@18 {
+		#sound-dai-cells = <0>;
+		compatible = "ti,tlv320aic3104";
+		reg = <0x18>;
+		status = "okay";
+		reset-gpios = <&pca9555bs_a23 7 GPIO_ACTIVE_LOW>;
+		ai3x-ocmv = <0>;
+		ai3x-micbias-vg = <1>;		/* 2.0V */
+
+		/* Regulators */
+		AVDD-supply = <&reg_3p3v>;
+		IOVDD-supply = <&reg_3p3v>;
+		DRVDD-supply = <&reg_3p3v>;
+		DVDD-supply = <&reg_1p8v>;
+	};
+};
+
+&usbotg1 {
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			otg1_out_ep: endpoint {
+				remote-endpoint = <&hd3ss3220_in_ep>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			otg1_in_ep: endpoint {
+				remote-endpoint = <&hd3ss3220_out_ep>;
+			};
+		};
+	};
+};
+
+&usbotg2 {
+	dr_mode = "host";
+	status = "okay";
+};
+
+&flexcan1 {
+	status = "okay";
+};
+
+&gpio4 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_vh_gpio4>;
+
+	gpio-line-names = "", "", "", "",
+			"", "", "", "",
+			"", "", "", "",
+			"", "", "PD_INTn", "TOUCH_INTn",
+			"", "USB_HUB_RESET", "VH_P29_GPIO", "VH_P31_GPIO",
+			"", "", "PCA9555BS_INT", "MIPI_TOUCH_INTn",
+			"", "TOUCH_RSTn", "", "",
+			"", "", "", "";
+};
