@@ -1,0 +1,161 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2020 TechNexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	fragment@0 {
+		target-path = "/";
+		__overlay__ {
+			reg_lvds_pwr: regulator_lvdspwr {
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@1 {
+		target-path = "/";
+		__overlay__ {
+			reg_mipi_backlight_pwr: regulator_mipiblpwr {
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@2 {
+		target-path = "/";
+		__overlay__ {
+			disp_backlight: disp_backlight {
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@3 {
+		target = <&dphy>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@4 {
+		target = <&dsi>;
+		__overlay__ {
+			status = "okay";
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			panel@0 {
+				compatible = "tn,dsi2lvds-panel";
+				reg = <0>;
+				backlight = <&disp_backlight>;
+				power-supply = <&reg_lvds_pwr>;
+
+				dsi,flags = <0x0003>;
+				dsi,format = <0>;
+				dsi,lanes = <4>;
+				panel-width-mm  = <217>;
+				panel-height-mm = <135>;
+				bus-format = <0x100a>;	/* MEDIA_BUS_FMT_RGB888_1X24 */
+				bus-flags = <1>;
+				refresh-rate = <60>;
+				rotate = <0>;
+				/* horz-flip; */
+				/* vert-flip; */
+
+				panel-timing {
+					clock-frequency = <69500000>;
+					hactive = <1280>;
+					vactive = <800>;
+					hfront-porch = <40>;
+					hsync-len = <80>;
+					hback-porch = <40>;
+					vfront-porch = <3>;
+					vsync-len = <10>;
+					vback-porch = <10>;
+					/* flags = DISPLAY_FLAGS_HSYNC_HIGH | DISPLAY_FLAGS_VSYNC_HIGH */
+					vsync-active = <1>;
+					hsync-active = <1>;
+				};
+
+				port {
+					panel_from_dsi: endpoint {
+						remote-endpoint = <&dsi_to_panel>;
+					};
+				};
+			};
+
+			ports {
+				#address-cells = <1>;
+				#size-cells = <0>;
+				port@1 {
+					reg = <1>;
+
+					dsi_to_panel: endpoint {
+						remote-endpoint = <&panel_from_dsi>;
+					};
+				};
+			};
+		};
+	};
+
+	fragment@5 {
+		target = <&lcdif>;
+		__overlay__ {
+			status = "okay";
+			assigned-clock-rates = <445333333>, <148444444>, <400000000>, <133333333>;
+		};
+	};
+
+	fragment@6 {
+		target = <&lpi2c1>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			fpdlink_dsi2lvds: ds90ub948@c {
+				compatible = "ti,ds90ub94x";
+				reg = <0x0c>;
+				status = "okay";
+				reset-gpios = <&pca9555bs_a23 2 GPIO_ACTIVE_LOW>;
+				vizionpanel-remote-gpio;
+				dsi-delay = <2500>;
+				i2c-alias-pool = <0x48 0x49 0x4a 0x4b 0x4c 0x4d 0x4e 0x4f>;
+
+				i2c {
+					#address-cells = <1>;
+					#size-cells = <0>;
+
+					exc80w46: touchscreen@2a {
+						compatible = "eeti,exc80h60";
+						pinctrl-names = "touch_reset", "mipi_touch";
+						pinctrl-0 = <&pinctrl_touch>;
+						pinctrl-1 = <&pinctrl_mipi_touch_irq>;
+						reg = <0x2a>;
+						interrupt-parent = <&gpio4>;
+						interrupts = <23 IRQ_TYPE_LEVEL_LOW>;
+						reset-gpios = <&gpio4 25 GPIO_ACTIVE_LOW>;
+						status = "okay";
+					};
+
+					eeprom_baseboard: eeprom@56 {
+						compatible = "atmel,24c02";
+						reg = <0x56>;
+						pagesize = <16>;
+						status = "okay";
+					};
+				};
+			};
+		};
+	};
+};
