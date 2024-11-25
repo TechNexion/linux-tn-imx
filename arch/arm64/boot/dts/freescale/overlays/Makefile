@@ -47,6 +47,7 @@ dtbo-$(CONFIG_ARCH_MXC) += imx93-axon-wb-lvds-vl10112880.dtbo imx93-axon-wb-lvds
 dtbo-$(CONFIG_ARCH_MXC) += imx93-edm-wb-lvds-vl10112880.dtbo imx93-edm-wb-lvds-vl15613676.dtbo imx93-edm-wb-vxt-vl050-070-8048nt.dtbo imx93-edm-wb-vxt-vl0808060nt.dtbo \
 			   imx93-edm-wb-tevs.dtbo imx93-edm-wb-vls.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx93-pico-sk-lvds-vl10112880.dtbo imx93-pico-sk-lvds-vl15613676.dtbo imx93-pico-sk-vxt-vl050-070-8048nt.dtbo imx93-pico-sk-vxt-vl0808060nt.dtbo \
+			   imx93-pico-sk-mipi2hdmi-adv7535.dtbo imx93-pico-sk-vizionpanel-vl10112880.dtbo imx93-pico-sk-vizionpanel-vl808060.dtbo \
 			   imx93-pico-sk-tevs.dtbo imx93-pico-sk-vls.dtbo
 
 targets += dtbs dtbs_install
