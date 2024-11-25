@@ -1,0 +1,100 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2020 TechNexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	fragment@0 {
+		target-path = "/";
+		__overlay__ {
+			sound-adv7535 {
+				compatible = "simple-audio-card";
+				simple-audio-card,name = "adv7535-hdmi";
+				simple-audio-card,mclk-fs = <256>;
+				simple-audio-card,mclk-clk-id = <1>;
+				simple-audio-card,format = "i2s";
+				simple-audio-card,bitclock-master = <&sound_master>;
+				simple-audio-card,frame-master = <&sound_master>;
+
+				sound_master: simple-audio-card,cpu {
+					sound-dai = <&sai1>;
+				};
+
+				simple-audio-card,codec {
+					sound-dai = <&adv7535>;
+				};
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&sai1>;
+		__overlay__ {
+			#sound-dai-cells = <0>;
+			fsl,sai-mclk-direction-output;
+			status = "okay";
+		};
+	};
+
+	fragment@2 {
+		target = <&dphy>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@3 {
+		target = <&dsi>;
+		__overlay__ {
+			status = "okay";
+
+			ports {
+				port@1 {
+					dsi_to_adv7535: endpoint {
+						remote-endpoint = <&adv7535_to_dsi>;
+					};
+				};
+			};
+		};
+	};
+
+	fragment@4 {
+		target = <&lcdif>;
+		__overlay__ {
+			status = "okay";
+			assigned-clock-rates = <445333333>, <148444444>, <400000000>, <133333333>;
+		};
+	};
+
+	fragment@5 {
+		target = <&lpi2c3>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			adv7535: hdmi@3d {
+				compatible = "adi,adv7535";
+				reg = <0x3d>;
+				adi,addr-cec = <0x3b>;
+				adi,dsi-lanes = <4>;
+				status = "okay";
+				#sound-dai-cells = <0>;
+
+				port {
+					adv7535_to_dsi: endpoint {
+						remote-endpoint = <&dsi_to_adv7535>;
+					};
+				};
+			};
+		};
+	};
+};
