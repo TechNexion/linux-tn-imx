@@ -1,0 +1,110 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2020 TechNexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *         Ray Chang <ray.chang@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/clock/imx93-clock.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	fragment@0 {
+		target-path = "/";
+		__overlay__ {
+			sound-tc358743 {
+				compatible = "nxp,imx-audio-tc358743", "nxp,imx-tc358743";
+				cpu-dai = <&sai2>;
+				nxp,audio-codec = <&hdmi_in>;
+				clocks = <&clk IMX93_CLK_SAI2>;
+				status = "okay";
+			};
+
+			sound {
+				status = "disabled";
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&sai2>;
+		__overlay__ {
+			fsl,sai-mclk-direction-output;
+			status = "okay";
+		};
+	};
+
+	fragment@2 {
+		target = <&cameradev>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@3 {
+		target = <&isi_0>;
+		__overlay__ {
+			status = "okay";
+
+			cap_device {
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@4 {
+		target = <&mipi_csi>;
+		__overlay__ {
+			status = "okay";
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				mipi_csi_ep: endpoint {
+					remote-endpoint = <&tc358743_out>;
+					data-lanes = <2>;
+					cfg-clk-range = <28>;
+					hs-clk-range = <0x18>;
+					bus-type = <4>;
+				};
+			};
+		};
+	};
+
+	fragment@5 {
+		target = <&lpi2c2>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			hdmi_in: tc358743@f {
+				compatible = "toshiba,tc358743";
+				reg = <0x0f>;
+				reset-gpios = <&adp5585gpio 1 GPIO_ACTIVE_HIGH>;
+				status = "okay";
+
+				port {
+					tc358743_out: endpoint {
+						remote-endpoint = <&mipi_csi_ep>;
+						data-lanes = <1 2 3 4>;
+						clock-lanes = <0>;
+						clock-noncontinuous;
+						link-frequencies = /bits/ 64 <297000000>;
+					};
+				};
+			};
+
+			tlv320aic3104: audio-codec@18 {
+				status = "disabled";
+			};
+		};
+	};
+};
