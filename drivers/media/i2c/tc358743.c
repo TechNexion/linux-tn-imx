@@ -2261,9 +2261,9 @@ static const struct media_entity_operations tc358743_sd_media_ops = {
 static void tc358743_gpio_reset(struct tc358743_state *state)
 {
 	usleep_range(5000, 10000);
-	gpiod_set_value(state->reset_gpio, 0);
+	gpiod_set_value_cansleep(state->reset_gpio, 0);
 	usleep_range(1000, 2000);
-	gpiod_set_value(state->reset_gpio, 1);
+	gpiod_set_value_cansleep(state->reset_gpio, 1);
 	msleep(20);
 }
 
