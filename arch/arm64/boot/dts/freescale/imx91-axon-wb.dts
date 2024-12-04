@@ -1,0 +1,286 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2024 NXP
+ */
+
+/dts-v1/;
+
+#include <dt-bindings/usb/pd.h>
+#include <dt-bindings/pwm/pwm.h>
+#include "imx91-axon.dtsi"
+
+&ele_fw2 {
+	memory-region = <&ele_reserved>;
+};
+
+/ {
+	model = "TechNexion i.MX91 AXON board";
+	compatible = "fsl,imx91-axon", "fsl,imx91";
+
+	chosen {
+		stdout-path = &lpuart1;
+	};
+
+	reg_usb_otg_vbus: usb_otg_vbus {
+		compatible = "regulator-fixed";
+		regulator-name = "usb_otg_vbus";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&pcal6524 22 GPIO_ACTIVE_LOW>;
+		enable-active-low;
+	};
+
+	usb_hub_rst: usb_hub_rst {
+		compatible = "gpio-reset";
+		reset-gpios = <&pcal6524 10 GPIO_ACTIVE_LOW>;
+		reset-delay-us = <10>;
+		#reset-cells = <0>;
+	};
+
+	disp_backlight: disp_backlight {
+		compatible = "pwm-backlight";
+		pwms = <&tpm2 0 40000 PWM_POLARITY_INVERTED>;	/* 25KHz PWM */
+		/* TPM driver seems revert the value */
+		/* brightness-levels = <0 36 72 108 144 180 216 255>; */
+		brightness-levels = <255 216 180 144 108 72 36 0>;
+		default-brightness-level = <6>;
+		power-supply = <&reg_5v>;
+		status = "disabled";
+	};
+
+	tlv320_mclk: clk-0 {
+		#clock-cells = <0>;
+		compatible = "fixed-clock";
+		clock-frequency = <12000000>;
+	};
+
+	sound {
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "tlv320aic3x-audio";
+		simple-audio-card,widgets =
+			"Headphone", "Headphone Jack",
+			"Microphone", "Mic Jack";
+		simple-audio-card,routing =
+			"Headphone Jack", "HPLOUT",
+			"Headphone Jack", "HPROUT",
+			"MIC2R", "Mic Jack",
+			"Mic Jack", "Mic Bias";
+		simple-audio-card,format = "dsp_b";
+		simple-audio-card,bitclock-master = <&sound_master>;
+		simple-audio-card,frame-master = <&sound_master>;
+		simple-audio-card,bitclock-inversion;
+		status = "okay";
+
+		simple-audio-card,cpu {
+			sound-dai = <&sai1>;
+		};
+
+		sound_master: simple-audio-card,codec {
+			sound-dai = <&tlv320aic3104>;
+			clocks = <&tlv320_mclk>;
+		};
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		led_1 {
+			label = "WB-led";
+			gpios = <&pca9554bs_a3b 1 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+		};
+	};
+};
+
+&sai1 {
+	status = "okay";
+};
+
+&sai3 {
+	status = "okay";
+};
+
+&flexcan1 {
+	status = "okay";
+};
+
+&lpi2c2 {
+	status = "okay";
+
+	pcal6524: gpio@22 {
+
+		gpio-line-names = "VH_P11", "WL_REG_ON", "BT_REG_ON", "WL_WAKE_HOST",
+				"BT_WAKE_HOST", "LCD_BKLEN", "LVDS0_BL_EN", "ENET1_INTn",
+
+				"TOUCH_nRST", "CSI1_INT", "USB_HUB_RST", "PMIC_INTn",
+				"CSI_nRST", "AUD_RST", "ENET2_RSTn", "ENET1_RSTn",
+
+				"pca9554_a3b_IRQn", "PD_INT_N", "VH_P32", "tca9555_a21_IRQn",
+				"VH_P15", "VH_P22", "USB_OTG_PWR_EN", "VH_P36";
+	};
+
+	pca9554bs_a3b: pca9554bs@3b {
+		compatible = "nxp,pca9554";
+		reg = <0x3b>;
+		vcc-supply = <&reg_3p3v>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+		interrupt-parent = <&pcal6524>;
+		interrupts = <16 IRQ_TYPE_EDGE_FALLING>;
+		status = "okay";
+		gpio-line-names = "M2_DISABLE_N", "LED_EN", "USB_OTG_OC", "EXT_GPIO8_M2_WAN_WAKE",
+					"EXT_GPIO9_M2_RST_N", "CSI1_PDB", "AUD_A_SW", "PD_FAULT";
+	};
+
+	tca9555_a21: tca9555@21 {
+		compatible = "nxp,pca9555";
+		reg = <0x21>;
+		vcc-supply = <&reg_1p8v>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		// interrupt-controller;
+		// #interrupt-cells = <2>;
+		// interrupt-parent = <&pcal6524>;
+		// interrupts = <19 IRQ_TYPE_EDGE_FALLING>;
+		gpio-line-names = "EXPOSURE_TRIG_IN1", "FLASH_OUT1","INFO_TRIG_IN1", "CAM_SHUTTER1",
+			"XVS1", "PWR1_TIME0","PWR1_TIME1", "PWR1_TIME2",
+			"", "","", "","", "","", "";
+	};
+
+	typec_hd3ss3220: hd3ss3220@67 {
+		compatible = "ti,hd3ss3220";
+		interrupts-extended = <&pcal6524 17 IRQ_TYPE_EDGE_FALLING>;
+		vbus-supply = <&reg_usb_otg_vbus>;
+		reg = <0x67>;
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				hd3ss3220_in_ep: endpoint {
+					remote-endpoint = <&otg1_out_ep>;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+				hd3ss3220_out_ep: endpoint {
+					remote-endpoint = <&otg1_in_ep>;
+				};
+			};
+		};
+	};
+
+	tlv320aic3104: audio-codec@18 {
+		#sound-dai-cells = <0>;
+		compatible = "ti,tlv320aic3104";
+		reg = <0x18>;
+		status = "okay";
+		reset-gpios = <&pcal6524 13 GPIO_ACTIVE_LOW>;
+		ai3x-ocmv = <0>;
+		ai3x-micbias-vg = <1>;		/* 2.0V */
+
+		/* Regulators */
+		AVDD-supply = <&reg_3p3v>;
+		IOVDD-supply = <&reg_3p3v>;
+		DRVDD-supply = <&reg_3p3v>;
+		DVDD-supply = <&reg_1p8v>;
+	};
+};
+
+&lpi2c3 {
+	status = "okay";
+};
+
+&media_blk_ctrl {
+	status = "okay";
+};
+
+&usbotg1 {
+	status = "okay";
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			otg1_out_ep: endpoint {
+				remote-endpoint = <&hd3ss3220_in_ep>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			otg1_in_ep: endpoint {
+				remote-endpoint = <&hd3ss3220_out_ep>;
+			};
+		};
+	};
+};
+
+&usbotg2 {
+	status = "okay";
+};
+
+&gpio1 {
+	status = "okay";
+
+	gpio-line-names = "", "", "", "",
+			"", "", "", "",
+
+			"", "", "", "",
+			"", "", "", "",
+
+			"", "", "", "",
+			"", "", "", "";
+};
+
+&gpio2 {
+	status = "okay";
+
+	gpio-line-names = "", "", "", "",
+			"", "", "", "",
+
+			"", "", "", "",
+			"", "", "", "",
+
+			"", "", "", "",
+			"", "", "", "";
+};
+
+&gpio3 {
+	status = "okay";
+
+	gpio-line-names = "SD_CD", "", "", "",
+			"", "", "", "",
+
+			"", "", "", "",
+			"", "", "", "",
+
+			"", "", "", "",
+			"", "", "", "",
+
+			"", "", "TOUCH_INTn", "",
+			"", "", "", "";
+};
+
+&gpio4 {
+	status = "okay";
+
+	gpio-line-names = "", "", "", "",
+			"", "", "", "",
+
+			"", "", "", "",
+			"", "", "", "",
+
+			"", "", "", "",
+			"", "", "", "",
+
+			"", "", "", "",
+			"pcal6524_IRQn", "", "", "";
+};
