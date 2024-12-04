@@ -864,6 +864,7 @@ dtb-$(CONFIG_ARCH_MXC) += imx91-9x9-qsb-aud-hat.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx91-9x9-qsb-ld.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx91-9x9-qsb-i2c-spi-slave.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx91-9x9-qsb-i3c.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx91-axon-wb.dtb
 
 dtb-$(CONFIG_ARCH_MXC) += imx943-evk.dtb
 imx943-evk-mqs-dtbs := imx943-evk.dtb imx943-evk-mqs.dtbo
@@ -1320,3 +1321,4 @@ DTC_FLAGS_imx8mp-tep := -@
 DTC_FLAGS_imx93-axon-wb := -@
 DTC_FLAGS_imx93-edm-wb := -@
 DTC_FLAGS_imx93-pico-sk := -@
+DTC_FLAGS_imx91-axon-wb := -@
