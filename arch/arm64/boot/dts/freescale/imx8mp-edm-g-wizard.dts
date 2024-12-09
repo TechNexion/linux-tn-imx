@@ -118,8 +118,6 @@
 		audio-codec = <&codec>;
 		audio-asrc = <&easrc>;
 		codec-master;
-		/* JD2: hp detect high for headphone*/
-		hp-det = <2 0>;
 		audio-routing =
 			"Headphone Jack", "HP_L",
 			"Headphone Jack", "HP_R",
@@ -128,11 +126,9 @@
 			"Ext Spk", "SPK_RP",
 			"Ext Spk", "SPK_RN",
 			"LINPUT1", "Mic Jack",
+			"RINPUT1", "Mic Jack",
 			"Mic Jack", "MICB",
-			"CPU-Playback", "ASRC-Playback",
-			"Playback", "CPU-Playback",
-			"ASRC-Capture", "CPU-Capture",
-			"CPU-Capture", "Capture";
+			"AMIC", "MICB";
 	};
 
 	clocks {
@@ -201,6 +197,7 @@
 		clocks = <&codec_osc>;  /* Clock is from external osc on baseboard */
 		clock-names = "mclk";
 		wlf,shared-lrclk;
+		wlf,hp-cfg = <2 2 3>;
 		wlf,fixed-mclk;
 	};
 
