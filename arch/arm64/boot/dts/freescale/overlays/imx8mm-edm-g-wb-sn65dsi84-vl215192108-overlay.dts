@@ -55,7 +55,7 @@
 				/* vert-flip; */
 
 				panel-timing {
-					clock-frequency = <71200000>;
+					clock-frequency = <135000000>;
 					hactive = <1920>;
 					vactive = <1080>;
 					hfront-porch = <45>;
@@ -91,7 +91,7 @@
 				sn65dsi84,values = </* reset and clock registers */
 									0x00 0x05 0x1b 0x00
 									/* DSI registers */
-									0x26 0x00 0x35 0x00
+									0x26 0x00 0x55 0x00
 									/* LVDS registers */
 									0x6c 0x00 0x03 0x00
 
