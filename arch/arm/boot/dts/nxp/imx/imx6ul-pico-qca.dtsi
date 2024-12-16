@@ -187,9 +187,13 @@
 
 	backlight {
 		compatible = "pwm-backlight";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_bl_en>;
 		pwms = <&pwm3 0 50000 0>;
 		brightness-levels = <0 36 72 108 144 180 216 255>;
 		default-brightness-level = <6>;
+		enable-gpio = <&gpio1 11 GPIO_ACTIVE_HIGH>;
+		post-pwm-on-delay-ms = <100>;
 		status = "okay";
 	};
 
@@ -758,6 +762,12 @@
 			MX6UL_PAD_SNVS_TAMPER8__GPIO5_IO08	0x79 /* sdio-reg-on */
 			MX6UL_PAD_SNVS_TAMPER9__GPIO5_IO09	0x79 /* bluetooth-wake */
 			MX6UL_PAD_NAND_DATA05__GPIO4_IO07	0x79 /* bluetooth-host-wake */
+		>;
+	};
+
+	pinctrl_bl_en: blengrp {
+		fsl,pins = <
+			MX6UL_PAD_JTAG_TMS__GPIO1_IO11		0x79
 		>;
 	};
 };
