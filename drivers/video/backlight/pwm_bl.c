@@ -57,6 +57,9 @@ static void pwm_backlight_power_on(struct pwm_bl_data *pb)
 
 	gpiod_set_value_cansleep(pb->enable_gpio, 1);
 
+	if (pb->post_pwm_on_delay)
+		msleep(pb->post_pwm_on_delay);
+
 	pb->enabled = true;
 }
 
@@ -104,9 +107,8 @@ static int pwm_backlight_update_status(struct backlight_device *bl)
 		pwm_get_state(pb->pwm, &state);
 		state.duty_cycle = compute_duty_cycle(pb, brightness, &state);
 		state.enabled = true;
-		pwm_apply_might_sleep(pb->pwm, &state);
-
 		pwm_backlight_power_on(pb);
+		pwm_apply_might_sleep(pb->pwm, &state);
 	} else {
 		pwm_backlight_power_off(pb);
 
