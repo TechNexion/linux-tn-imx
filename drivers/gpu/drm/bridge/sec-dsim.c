@@ -1367,6 +1367,8 @@ static void sec_mipi_dsim_bridge_atomic_enable(struct drm_bridge *bridge,
 	/* initialize FIFO pointers */
 	sec_mipi_dsim_init_fifo_pointers(dsim);
 
+	if (!pm_runtime_enabled(dsim->panel->dev))
+		pm_runtime_enable(dsim->panel->dev);
 	drm_panel_prepare(dsim->panel);
 
 	/* config esc clock, byte clock and etc */
@@ -1440,6 +1442,8 @@ disable:
 	/* disable dsim pll */
 	sec_mipi_dsim_disable_pll(dsim);
 
+	if (pm_runtime_enabled(dsim->panel->dev))
+		pm_runtime_disable(dsim->panel->dev);
 	drm_panel_unprepare(dsim->panel);
 
 	dsim->enabled = false;
