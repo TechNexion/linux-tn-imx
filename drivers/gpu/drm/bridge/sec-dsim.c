@@ -1372,6 +1372,8 @@ sec_mipi_dsim_bridge_atomic_enable(struct drm_bridge *bridge,
 
 	/* prepare panel if exists */
 	if (dsim->panel) {
+		if (!pm_runtime_enabled(dsim->panel->dev))
+			pm_runtime_enable(dsim->panel->dev);
 		ret = drm_panel_prepare(dsim->panel);
 		if (unlikely(ret)) {
 			dev_err(dsim->dev, "panel prepare failed: %d\n", ret);
@@ -1472,6 +1474,8 @@ disable:
 
 	/* unprepare panel if exists */
 	if (dsim->panel) {
+		if (pm_runtime_enabled(dsim->panel->dev))
+			pm_runtime_disable(dsim->panel->dev);
 		ret = drm_panel_unprepare(dsim->panel);
 		if (unlikely(ret))
 			dev_err(dsim->dev, "panel unprepare failed: %d\n", ret);
