@@ -170,6 +170,10 @@
 		"", "", "", "", "", "", "", "";
 };
 
+&hdmi_blk_ctrl {
+	status = "okay";
+};
+
 &snvs_pwrkey {
 	linux,keycode = <KEY_SUSPEND>;
 	status = "okay";
@@ -323,6 +327,10 @@
 	dr_mode = "host";
 	status = "okay";
 	resets = <&usb_hub_rst>;
+};
+
+&vpu_v4l2 {
+	status = "okay";
 };
 
 &pcie{

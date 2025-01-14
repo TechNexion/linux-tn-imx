@@ -209,6 +209,10 @@
 	pinctrl-0 = <&pinctrl_gpio4>;
 };
 
+&hdmi_blk_ctrl {
+	status = "okay";
+};
+
 &hdmi_pavi {
 	status = "okay";
 };
@@ -394,6 +398,10 @@
 &usb_dwc3_1 {
 	dr_mode = "host";
 	resets = <&usb_hub_rst>;
+};
+
+&vpu_v4l2 {
+	status = "okay";
 };
 
 &iomuxc {
