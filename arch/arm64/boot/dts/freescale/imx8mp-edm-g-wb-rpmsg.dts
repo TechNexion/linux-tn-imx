@@ -21,9 +21,9 @@
 		#size-cells = <2>;
 		ranges;
 
-		m7_reserved: m7@6F000000 {
+		m7_reserved: m7@80000000 {
 			no-map;
-			reg = <0 0x6F000000 0 0x1000000>;
+			reg = <0 0x80000000 0 0x1000000>;
 		};
 
 		vdev0vring0: vdev0vring0@55000000 {
@@ -44,10 +44,15 @@
 			no-map;
 		};
 
-		audio_reserved: audio@70000000 {
+		rsc_table: rsc-table@550ff000 {
+			reg = <0 0x550ff000 0 0x1000>;
+			no-map;
+		};
+
+		audio_reserved: audio@81000000 {
 			compatible = "shared-dma-pool";
 			no-map;
-			reg = <0 0x70000000 0 0x10000000>;
+			reg = <0 0x81000000 0 0x10000000>;
 		};
 	};
 
@@ -73,8 +78,9 @@
 		mboxes = <&mu 0 1
 			  &mu 1 1
 			  &mu 3 1>;
-		memory-region = <&vdev0vring0>, <&vdev0vring1>, <&vdevbuffer>;
+		memory-region = <&vdevbuffer>, <&vdev0vring0>, <&vdev0vring1>, <&rsc_table>;
 		status = "okay";
+		fsl,startup-delay-ms = <500>;
 	};
 
 	/delete-node/ leds;
