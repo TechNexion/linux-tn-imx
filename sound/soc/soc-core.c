@@ -3072,6 +3072,7 @@ void snd_soc_of_parse_node_prefix(struct device_node *np,
 EXPORT_SYMBOL_GPL(snd_soc_of_parse_node_prefix);
 
 int sgtl5000_lineout = -1;
+EXPORT_SYMBOL_GPL(sgtl5000_lineout);
 int snd_soc_of_parse_audio_routing(struct snd_soc_card *card,
 				   const char *propname)
 {
