@@ -80,7 +80,7 @@
 		simple-audio-card,bitclock-master = <&btcpu>;
 
 		btcpu: simple-audio-card,cpu {
-			sound-dai = <&sai2>;
+			sound-dai = <&sai1>;
 			dai-tdm-slot-num = <2>;
 			dai-tdm-slot-width = <16>;
 		};
