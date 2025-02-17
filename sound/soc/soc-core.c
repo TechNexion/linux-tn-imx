@@ -3116,7 +3116,7 @@ int snd_soc_of_parse_audio_routing(struct snd_soc_card *card,
 			return -EINVAL;
 		}
 
-		if (sgtl5000_lineout < 0) {
+		if (sgtl5000_lineout < 0 && card->name ) {
 			if (!strcmp(card->name, "audio-sgtl5000") && !strcmp(routes[i].sink, "Line Out Jack"))
 				sgtl5000_lineout = 1;
 		}
