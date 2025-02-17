@@ -291,10 +291,10 @@
 		#gpio-cells = <2>;
 		interrupt-controller;
 		#interrupt-cells = <2>;
-		interrupt-parent = <&gpio4>;
-		interrupts = <28 IRQ_TYPE_LEVEL_LOW>;
+		interrupt-parent = <&gpio1>;
+		interrupts = <10 IRQ_TYPE_LEVEL_LOW>;
 		gpio-line-names = "X1_P39", "WL_REG_ON", "BT_REG_ON", "WL_WAKE_HOST",
-				"BT_WAKE_HOST", "LCD_BKLEN", "X4_P7", "ENET1_INTn",
+				"BT_WAKE_HOST", "LCD_BKLEN", "X4_P7", "SDIOREON",
 
 				"X2_P20", "X3_P67", "X2_P22", "PMIC_INTn",
 				"X3_P65", "X2_P18", "ENET2_RSTn", "ENET1_RSTn",
@@ -551,7 +551,7 @@
 
 	pinctrl_pcal6524: pcal6524grp {
 		fsl,pins = <
-			MX91_PAD_CCM_CLKO3__GPIO4_IO28			0x31e
+			MX91_PAD_PDM_BIT_STREAM1__GPIO1_IO10			0x31e
 		>;
 	};
 
