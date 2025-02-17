@@ -109,14 +109,14 @@
 
 	pcal6524: gpio@22 {
 
-		gpio-line-names = "VH_P11", "WL_REG_ON", "BT_REG_ON", "WL_WAKE_HOST",
-				"BT_WAKE_HOST", "LCD_BKLEN", "LVDS0_BL_EN", "ENET1_INTn",
+		gpio-line-names = "VH_P11_X1_P39", "WL_REG_ON", "BT_REG_ON", "WL_WAKE_HOST",
+				"BT_WAKE_HOST", "LCD_BKLEN", "LVDS0_BL_EN_X4_P7", "SDIOREON",
 
-				"TOUCH_nRST", "CSI1_INT", "USB_HUB_RST", "PMIC_INTn",
-				"CSI_nRST", "AUD_RST", "ENET2_RSTn", "ENET1_RSTn",
+				"TOUCH_nRST_X2_P20", "CSI1_INT_X3_P67", "USB_HUB_RST_X2_P22", "PMIC_INTn",
+				"CSI_nRST_X3_P65", "AUD_RST_X2_P18", "ENET2_RSTn", "ENET1_RSTn",
 
-				"pca9554_a3b_IRQn", "PD_INT_N", "VH_P32", "tca9555_a21_IRQn",
-				"VH_P15", "VH_P22", "USB_OTG_PWR_EN", "VH_P36";
+				"pca9554_a3b_IRQn_X1_P66", "PD_INT_N_X1_P68", "VH_P32_X1_P70", "tca9555_a21_IRQn_X1_P72",
+				"VH_P15_X1_P74", "VH_P22_X1_P76", "USB_OTG_PWR_EN_X1_P78", "VH_P36_X1_P80";
 	};
 
 	pca9554bs_a3b: pca9554bs@3b {
@@ -230,10 +230,10 @@
 &gpio1 {
 	status = "okay";
 
-	gpio-line-names = "", "", "", "",
+	gpio-line-names = "tpm_PWM", "", "", "",
 			"", "", "", "",
 
-			"", "", "", "",
+			"", "", "pcal6524_IRQn", "",
 			"", "", "", "",
 
 			"", "", "", "",
@@ -257,7 +257,7 @@
 	status = "okay";
 
 	gpio-line-names = "SD_CD", "", "", "",
-			"", "", "", "",
+			"", "", "", "usdhc2_vmmc",
 
 			"", "", "", "",
 			"", "", "", "",
@@ -267,20 +267,4 @@
 
 			"", "", "TOUCH_INTn", "",
 			"", "", "", "";
-};
-
-&gpio4 {
-	status = "okay";
-
-	gpio-line-names = "", "", "", "",
-			"", "", "", "",
-
-			"", "", "", "",
-			"", "", "", "",
-
-			"", "", "", "",
-			"", "", "", "",
-
-			"", "", "", "",
-			"pcal6524_IRQn", "", "", "";
 };
