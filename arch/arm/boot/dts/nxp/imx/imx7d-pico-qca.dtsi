@@ -123,11 +123,11 @@
 	};
 
 	bt_rfkill {
-		compatible = "net,rfkill-gpio";
+		compatible = "rfkill-gpio";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_bt_ctrl>;
-		name = "bt_rfkill";
-		type = "bluetooth";
+		label = "bt_rfkill";
+		radio-type = "bluetooth";
 		shutdown-gpios = <&gpio4 17 GPIO_ACTIVE_HIGH>; /* BT_REG_ON: BT enable */
 	};
 
