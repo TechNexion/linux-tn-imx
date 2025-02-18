@@ -87,6 +87,8 @@
 #define HOST_COMMAND_ISP_CTRL_TRIGGER_MODE 						(0x317A)
 #define HOST_COMMAND_ISP_CTRL_FLICK_CTRL					 	(0x317C)
 #define HOST_COMMAND_ISP_CTRL_MIPI_FREQ 						(0x317E)
+#define HOST_COMMAND_ISP_CTRL_JPEG_QUAL							(0x3180)
+#define HOST_COMMAND_ISP_CTRL_PREVIEW_MIPI_CTRL 				(0x3182)
 
 /* Define host command register of ISP bootdata page */
 #define HOST_COMMAND_ISP_BOOTDATA_1								(0x4000)
@@ -327,6 +329,7 @@ struct tevs {
 	bool hw_reset_mode;
 	int trigger_mode;
 	char *sensor_name;
+	int vc_id;
 
 	struct mutex lock; /* Protects formats */
 	/* V4L2 Controls */
@@ -637,6 +640,9 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 				tevs, HOST_COMMAND_ISP_CTRL_PREVIEW_HINF_CTRL,
 				0x10 | (tevs->continuous_clock << 5) |
 					(tevs->data_lanes));
+			tevs_i2c_write_16b(
+				tevs, HOST_COMMAND_ISP_CTRL_PREVIEW_MIPI_CTRL,
+				tevs->vc_id);
 			tevs_i2c_write_16b(
 				tevs, HOST_COMMAND_ISP_CTRL_PREVIEW_SENSOR_MODE,
 				tevs_sensor_table[tevs->selected_sensor]
@@ -1782,7 +1788,8 @@ static int tevs_ctrls_init(struct tevs *tevs)
 
 	tevs->trigger =
 		v4l2_ctrl_new_custom(ctrl_hdlr, &tevs_trigger_mode, NULL);
-	tevs->trigger->default_value = tevs->trigger->cur.val = tevs->trigger_mode;
+	tevs->trigger->default_value = tevs->trigger->cur.val =
+		tevs->trigger_mode;
 
 	if (ctrl_hdlr->error) {
 		ret = ctrl_hdlr->error;
@@ -2003,6 +2010,17 @@ static int tevs_probe(struct i2c_client *client)
 	tevs->supports_over_4k_res =
 		of_property_read_bool(dev->of_node, "supports-over-4k-res");
 
+	tevs->vc_id = 0;
+	if (of_property_read_u32(tevs->dev->of_node, "vc-id", &tevs->vc_id) ==
+	    0) {
+		if (tevs->vc_id > 3) {
+			dev_err(tevs->dev,
+				"value of 'vc-id = <%d>' property is invaild\n",
+				tevs->vc_id);
+			return -EINVAL;
+		}
+	}
+
 	tevs->hw_reset_mode = of_property_read_bool(dev->of_node, "hw-reset");
 
 	tevs->trigger_mode = 0;
@@ -2018,9 +2036,9 @@ static int tevs_probe(struct i2c_client *client)
 
 	dev_dbg(dev,
 		"data-lanes [%d], continuous-clock [%d], supports-over-4k-res [%d],"
-		" hw-reset [%d], trigger-mode [%d]\n",
+		" vc-id [%d], hw-reset [%d], trigger-mode [%d]\n",
 		tevs->data_lanes, tevs->continuous_clock,
-		tevs->supports_over_4k_res, tevs->hw_reset_mode,
+		tevs->supports_over_4k_res, tevs->vc_id, tevs->hw_reset_mode,
 		tevs->trigger_mode);
 
 	ep = fwnode_graph_get_endpoint_by_id(dev_fwnode(dev), 0, 0,
