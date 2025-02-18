@@ -259,8 +259,16 @@
 #define TEVS_DENOISE_MAX 						HOST_COMMAND_ISP_CTRL_DENOISE_MAX
 #define TEVS_DENOISE_MIN 						HOST_COMMAND_ISP_CTRL_DENOISE_MIN
 #define TEVS_DENOISE_MASK 						(0xFFFF)
-#define TEVS_TRIGGER_CTRL						HOST_COMMAND_ISP_CTRL_TRIGGER_MODE
-#define TEVS_TRIGGER_CTRL_MODE_MASK 			(0x0001)
+#define TEVS_TRIGGER_MODE						HOST_COMMAND_ISP_CTRL_TRIGGER_MODE
+#define TEVS_TRIGGER_MODE_MASK		 			(0x0003)
+#define TEVS_TRIGGER_MODE_DISABLE				(0U << 0)
+#define TEVS_TRIGGER_MODE_SYNC					(1U << 0)
+#define TEVS_TRIGGER_MODE_PERIODIC				(2U << 0)
+#define TEVS_TRIGGER_MODE_NON_PERIODIC			(3U << 0)
+#define TEVS_TRIGGER_MODE_DISABLE_IDX			(0U << 0)
+#define TEVS_TRIGGER_MODE_SYNC_IDX				(1U << 0)
+#define TEVS_TRIGGER_MODE_PERIODIC_IDX			(2U << 0)
+#define TEVS_TRIGGER_MODE_NON_PERIODIC_IDX		(3U << 0)
 
 #define V4L2_CID_USER_TEVS_BASE				(V4L2_CID_USER_BASE + 0x2000)
 #define V4L2_CID_TEVS_BSL_MODE				(V4L2_CID_USER_TEVS_BASE + 0)
@@ -268,10 +276,11 @@
 #define V4L2_CID_TEVS_DENOISE				(V4L2_CID_USER_TEVS_BASE + 2)
 #define V4L2_CID_TEVS_AE_EXP_TIME_UPPER		(V4L2_CID_USER_TEVS_BASE + 3)
 #define V4L2_CID_TEVS_AE_EXP_TIME_MAX		(V4L2_CID_USER_TEVS_BASE + 4)
+#define V4L2_CID_TEVS_TRIGGER_MODE			(V4L2_CID_USER_TEVS_BASE + 5)
 
 #define DEFAULT_HEADER_VERSION 3
 #define TEVS_BOOT_TIME						(250)
-#define TOTAL_MICROSEC_PERSEC               (1000000)
+#define TOTAL_MICROSEC_PERSEC				(1000000)
 
 struct header_info {
 	u8 header_version;
@@ -316,7 +325,7 @@ struct tevs {
 	u8 selected_sensor;
 	bool supports_over_4k_res;
 	bool hw_reset_mode;
-	bool trigger_mode;
+	int trigger_mode;
 	char *sensor_name;
 
 	struct mutex lock; /* Protects formats */
@@ -347,6 +356,7 @@ struct tevs {
 	struct v4l2_ctrl *denoise;
 	struct v4l2_ctrl *ae_exp_upper;
 	struct v4l2_ctrl *ae_exp_max;
+	struct v4l2_ctrl *trigger;
 };
 
 static const struct regmap_config tevs_regmap_config = {
@@ -416,30 +426,16 @@ int tevs_i2c_write_16b(struct tevs *tevs, u16 reg, u16 val)
 	return 0;
 }
 
-int tevs_enable_trigger_mode(struct tevs *tevs, int enable)
+int tevs_check_trigger_mode(struct tevs *tevs)
 {
-	int ret = 0;
-	int count = 0;
-	u16 val, trigger_data;
-	dev_dbg(tevs->dev, "%s(): enable:%d\n", __func__, enable);
-	trigger_data = (0x300 | ((enable > 0) ? 0x82 : 0x80));
+	u16 val;
+	dev_dbg(tevs->dev, "%s()\n", __func__);
 
-	if ((ret = tevs_i2c_write_16b(tevs, TEVS_TRIGGER_CTRL, trigger_data)) <
-	    0)
-		return ret;
-
-	do {
-		if ((ret = tevs_i2c_read_16b(tevs, TEVS_TRIGGER_CTRL, &val)) <
-		    0)
-			return ret;
-		if ((val & 0x300) == 0)
-			break;
-
-	} while (count++ < 10);
-
-	usleep_range(90000, 100000);
-
-	return ret;
+	tevs_i2c_read_16b(tevs, TEVS_TRIGGER_MODE, &val);
+	if ((val & TEVS_TRIGGER_MODE_MASK) == TEVS_TRIGGER_MODE_DISABLE)
+		return 0;
+	else
+		return 1;
 }
 
 int tevs_check_version(struct tevs *tevs)
@@ -559,58 +555,6 @@ static int tevs_check_boot_state(struct tevs *tevs)
 	return ret;
 }
 
-static int tevs_power_on(struct tevs *tevs)
-{
-	int ret = 0;
-	dev_dbg(tevs->dev, "%s()\n", __func__);
-
-	gpiod_set_value_cansleep(tevs->host_pwdn_gpio, 1);
-	gpiod_set_value_cansleep(tevs->reset_gpio, 1);
-	msleep(TEVS_BOOT_TIME);
-
-	ret = tevs_check_boot_state(tevs);
-	if (ret != 0) {
-		goto error;
-	}
-
-	if (tevs->trigger_mode) {
-		ret = tevs_enable_trigger_mode(tevs, 1);
-		if (ret != 0) {
-			dev_err(tevs->dev, "set trigger mode failed\n");
-			return ret;
-		}
-	}
-
-	return ret;
-
-error:
-	gpiod_set_value_cansleep(tevs->reset_gpio, 0);
-	gpiod_set_value_cansleep(tevs->host_pwdn_gpio, 0);
-	return ret;
-}
-
-static int tevs_power_off(struct tevs *tevs)
-{
-	dev_dbg(tevs->dev, "%s()\n", __func__);
-
-	if (tevs->hw_reset_mode) {
-		gpiod_set_value_cansleep(tevs->reset_gpio, 0);
-		gpiod_set_value_cansleep(tevs->host_pwdn_gpio, 0);
-	}
-
-	return 0;
-}
-
-static int tevs_power(struct v4l2_subdev *sub_dev, int on)
-{
-	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
-	dev_dbg(sub_dev->dev, "%s() [%d]\n", __func__, on);
-	if (on)
-		return tevs_power_on(tevs);
-	else
-		return tevs_power_off(tevs);
-}
-
 static int tevs_get_frame_interval(struct v4l2_subdev *sub_dev,
 				   struct v4l2_subdev_frame_interval *fi)
 {
@@ -668,10 +612,10 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 	dev_dbg(sub_dev->dev, "%s() enable [%x]\n", __func__, enable);
 
 	if (enable == 0) {
-		if (!(tevs->hw_reset_mode | tevs->trigger_mode))
+		if (!(tevs->hw_reset_mode | tevs_check_trigger_mode(tevs)))
 			ret = tevs_standby(tevs, 1);
 	} else {
-		if (!(tevs->hw_reset_mode | tevs->trigger_mode))
+		if (!(tevs->hw_reset_mode | tevs_check_trigger_mode(tevs)))
 			ret = tevs_standby(tevs, 0);
 
 		if (ret == 0) {
@@ -966,6 +910,14 @@ static const char *const ae_mode_strings[] = {
 static const char *const bsl_mode_strings[] = {
 	"Normal Mode",
 	"Bootstrap Mode",
+	NULL
+};
+
+static const char *const trigger_mode_strings[] = {
+	"Disabled",
+	"Sync to Trigger Mode",
+	"Periodic Trigger Mode",
+	"Non Periodic Trigger Mode",
 	NULL
 };
 
@@ -1286,6 +1238,32 @@ static int tevs_set_ae_auto_exp_max(struct tevs *tevs, s32 value)
 	return tevs_i2c_write(tevs, TEVS_AE_AUTO_EXP_TIME_MAX, val, 4);
 }
 
+static int tevs_set_trigger_mode(struct tevs *tevs, s32 value)
+{
+	u16 val = value & TEVS_TRIGGER_MODE_MASK;
+
+	switch (val) {
+	case TEVS_TRIGGER_MODE_DISABLE_IDX:
+		val = TEVS_TRIGGER_MODE_DISABLE;
+		break;
+	case TEVS_TRIGGER_MODE_SYNC_IDX:
+		val = TEVS_TRIGGER_MODE_SYNC;
+		break;
+	case TEVS_TRIGGER_MODE_PERIODIC_IDX:
+		val = TEVS_TRIGGER_MODE_PERIODIC;
+		break;
+	case TEVS_TRIGGER_MODE_NON_PERIODIC_IDX:
+		val = TEVS_TRIGGER_MODE_NON_PERIODIC;
+		break;
+	default:
+		val = TEVS_TRIGGER_MODE_DISABLE;
+		break;
+	}
+
+	val |= 0x380;
+	return tevs_i2c_write_16b(tevs, TEVS_TRIGGER_MODE, val);
+}
+
 static int tevs_s_ctrl(struct v4l2_ctrl *ctrl)
 {
 	struct tevs *tevs = container_of(ctrl->handler, struct tevs, ctrls);
@@ -1359,6 +1337,9 @@ static int tevs_s_ctrl(struct v4l2_ctrl *ctrl)
 
 	case V4L2_CID_TEVS_AE_EXP_TIME_MAX:
 		return tevs_set_ae_auto_exp_max(tevs, ctrl->val);
+
+	case V4L2_CID_TEVS_TRIGGER_MODE:
+		return tevs_set_trigger_mode(tevs, ctrl->val);
 
 	default:
 		dev_dbg(tevs->dev, "Unknown control 0x%x\n", ctrl->id);
@@ -1454,6 +1435,16 @@ static const struct v4l2_ctrl_config tevs_ae_exp_max = {
 	.def = 0x1046A,
 };
 
+static const struct v4l2_ctrl_config tevs_trigger_mode = {
+	.ops = &tevs_ctrl_ops,
+	.id = V4L2_CID_TEVS_TRIGGER_MODE,
+	.name = "Trigger_Mode",
+	.type = V4L2_CTRL_TYPE_MENU,
+	.max = TEVS_TRIGGER_MODE_NON_PERIODIC_IDX,
+	.def = TEVS_TRIGGER_MODE_DISABLE_IDX,
+	.qmenu = trigger_mode_strings,
+};
+
 static int tevs_ctrls_init(struct tevs *tevs)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(&tevs->v4l2_subdev);
@@ -1465,7 +1456,7 @@ static int tevs_ctrls_init(struct tevs *tevs)
 	u8 exp[4] = { 0 };
 
 	ctrl_hdlr = &tevs->ctrls;
-	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 23);
+	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 26);
 	if (ret)
 		return ret;
 
@@ -1783,15 +1774,15 @@ static int tevs_ctrls_init(struct tevs *tevs)
 		v4l2_ctrl_new_custom(ctrl_hdlr, &tevs_ae_exp_max, NULL);
 	ret = tevs_i2c_read(tevs, TEVS_AE_AUTO_EXP_TIME_MAX, exp, 4);
 	ctrl_def = be32_to_cpup((__be32 *)exp) & TEVS_AE_AUTO_EXP_TIME_MASK;
-	// ret += tevs_i2c_read(tevs, TEVS_AE_MANUAL_EXP_TIME_MAX, exp, 4);
-	// ctrl_max = be32_to_cpup((__be32 *)exp) & TEVS_AE_MANUAL_EXP_TIME_MASK;
-	// ret += tevs_i2c_read(tevs, TEVS_AE_MANUAL_EXP_TIME_MIN, exp, 4);
-	// ctrl_min = be32_to_cpup((__be32 *)exp) & TEVS_AE_MANUAL_EXP_TIME_MASK;
 	if (ret)
 		goto error;
 	tevs->ae_exp_max->default_value = tevs->ae_exp_max->cur.val = ctrl_def;
 	tevs->ae_exp_max->maximum = ctrl_max;
 	tevs->ae_exp_max->minimum = ctrl_min;
+
+	tevs->trigger =
+		v4l2_ctrl_new_custom(ctrl_hdlr, &tevs_trigger_mode, NULL);
+	tevs->trigger->default_value = tevs->trigger->cur.val = tevs->trigger_mode;
 
 	if (ctrl_hdlr->error) {
 		ret = ctrl_hdlr->error;
@@ -1830,6 +1821,58 @@ static int tevs_media_link_setup(struct media_entity *entity,
 				 const struct media_pad *remote, u32 flags)
 {
 	return 0;
+}
+
+static int tevs_power_on(struct tevs *tevs)
+{
+	int ret = 0;
+	dev_dbg(tevs->dev, "%s()\n", __func__);
+
+	gpiod_set_value_cansleep(tevs->host_pwdn_gpio, 1);
+	gpiod_set_value_cansleep(tevs->reset_gpio, 1);
+	msleep(TEVS_BOOT_TIME);
+
+	ret = tevs_check_boot_state(tevs);
+	if (ret != 0) {
+		goto error;
+	}
+
+	if (tevs->trigger_mode) {
+		ret = tevs_set_trigger_mode(tevs, tevs->trigger_mode);
+		if (ret != 0) {
+			dev_err(tevs->dev, "set trigger mode failed\n");
+			return ret;
+		}
+	}
+
+	return ret;
+
+error:
+	gpiod_set_value_cansleep(tevs->reset_gpio, 0);
+	gpiod_set_value_cansleep(tevs->host_pwdn_gpio, 0);
+	return ret;
+}
+
+static int tevs_power_off(struct tevs *tevs)
+{
+	dev_dbg(tevs->dev, "%s()\n", __func__);
+
+	if (tevs->hw_reset_mode) {
+		gpiod_set_value_cansleep(tevs->reset_gpio, 0);
+		gpiod_set_value_cansleep(tevs->host_pwdn_gpio, 0);
+	}
+
+	return 0;
+}
+
+static int tevs_power(struct v4l2_subdev *sub_dev, int on)
+{
+	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
+	dev_dbg(sub_dev->dev, "%s() [%d]\n", __func__, on);
+	if (on)
+		return tevs_power_on(tevs);
+	else
+		return tevs_power_off(tevs);
 }
 
 static const struct v4l2_subdev_core_ops tevs_v4l2_subdev_core_ops = {
@@ -1962,8 +2005,16 @@ static int tevs_probe(struct i2c_client *client)
 
 	tevs->hw_reset_mode = of_property_read_bool(dev->of_node, "hw-reset");
 
-	tevs->trigger_mode =
-		of_property_read_bool(dev->of_node, "trigger-mode");
+	tevs->trigger_mode = 0;
+	if (of_property_read_u32(dev->of_node, "trigger-mode",
+				 &tevs->trigger_mode) == 0) {
+		if (tevs->trigger_mode > 3) {
+			dev_err(tevs->dev,
+				"value of 'trigger-mode = <%d>' property is invaild\n",
+				tevs->trigger_mode);
+			return -EINVAL;
+		}
+	}
 
 	dev_dbg(dev,
 		"data-lanes [%d], continuous-clock [%d], supports-over-4k-res [%d],"
@@ -2090,14 +2141,14 @@ static int tevs_probe(struct i2c_client *client)
 	}
 
 	if (tevs->trigger_mode) {
-		ret = tevs_enable_trigger_mode(tevs, 1);
+		ret = tevs_set_trigger_mode(tevs, tevs->trigger_mode);
 		if (ret != 0) {
 			dev_err(tevs->dev, "set trigger mode failed\n");
 			goto error_media_entity;
 		}
 	}
 
-	if (!(tevs->hw_reset_mode | tevs->trigger_mode)) {
+	if (!(tevs->hw_reset_mode | tevs_check_trigger_mode(tevs))) {
 		ret = tevs_standby(tevs, 1);
 		if (ret != 0) {
 			dev_err(tevs->dev, "set standby mode failed\n");
