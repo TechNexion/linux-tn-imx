@@ -1047,6 +1047,8 @@ static int aic3x_hw_params(struct snd_pcm_substream *substream,
 	int clk;
 	int width = aic3x->slot_width;
 
+	snd_soc_component_write(component, HPOUT_POP_REDUCTION, 0x68);
+
 	if (!width)
 		width = params_width(params);
 
