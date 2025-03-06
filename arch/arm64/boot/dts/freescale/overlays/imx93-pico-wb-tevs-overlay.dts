@@ -53,7 +53,7 @@
 	};
 
 	fragment@3 {
-		target = <&lpi2c2>;
+		target = <&lpi2c1>;
 		__overlay__ {
 			#address-cells = <1>;
 			#size-cells = <0>;
