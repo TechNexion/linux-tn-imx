@@ -98,7 +98,7 @@
 		status = "okay";
 
 		simple-audio-card,cpu {
-			sound-dai = <&sai2>;
+			sound-dai = <&sai1>;
 		};
 
 		sound_master: simple-audio-card,codec {
@@ -134,7 +134,7 @@
 		ethphy2: ethernet-phy@2 {
 			/* Atheros AR8035 PHY */
 			compatible = "ethernet-phy-ieee802.3-c22";
-			reg = <2>;
+			reg = <1>;
 			reset-gpios = <&adp5585gpio 2 GPIO_ACTIVE_LOW>;
 			reset-assert-us = <35000>;
 			reset-deassert-us = <75000>;
@@ -147,7 +147,7 @@
 	};
 };
 
-&sai2 {
+&sai1 {
 	status = "okay";
 };
 

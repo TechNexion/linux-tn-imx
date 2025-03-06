@@ -25,10 +25,6 @@
 				clocks = <&clk IMX93_CLK_SAI2>;
 				status = "okay";
 			};
-
-			sound {
-				status = "disabled";
-			};
 		};
 	};
 
@@ -79,7 +75,7 @@
 	};
 
 	fragment@5 {
-		target = <&lpi2c2>;
+		target = <&lpi2c1>;
 		__overlay__ {
 			#address-cells = <1>;
 			#size-cells = <0>;
@@ -100,10 +96,6 @@
 						link-frequencies = /bits/ 64 <297000000>;
 					};
 				};
-			};
-
-			tlv320aic3104: audio-codec@18 {
-				status = "disabled";
 			};
 		};
 	};
