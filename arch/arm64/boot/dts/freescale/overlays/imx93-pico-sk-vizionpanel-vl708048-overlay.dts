@@ -52,7 +52,7 @@
 			#size-cells = <0>;
 
 			panel@0 {
-				compatible = "tn,vizionpanel_808060";
+				compatible = "tn,vizionpanel_508048";
 				backlight = <&backlight_lcd>;
 				reg = <0>;
 				status = "okay";
@@ -105,16 +105,17 @@
 					#address-cells = <1>;
 					#size-cells = <0>;
 
-					exc80w46: touchscreen@2a {
-						compatible = "eeti,exc80h60";
+					polytouch: edt-ft5x06@38 {
+						compatible = "edt,edt-ft5x06";
 						pinctrl-names = "touch_reset", "mipi_touch";
 						pinctrl-0 = <&pinctrl_touch>;
 						pinctrl-1 = <&pinctrl_mipi_touch_irq>;
-						reg = <0x2a>;
+						reg = <0x38>;
 						interrupt-parent = <&gpio4>;
 						interrupts = <23 IRQ_TYPE_LEVEL_LOW>;
 						reset-gpios = <&adp5585gpio_vp 1 GPIO_ACTIVE_LOW>;
-						status = "okay";
+						touchscreen-size-x = <800>;
+						touchscreen-size-y = <480>;
 					};
 
 					/*	vp: vizionpanel.
