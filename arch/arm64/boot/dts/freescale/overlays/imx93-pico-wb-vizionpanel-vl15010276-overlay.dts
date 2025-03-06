@@ -16,13 +16,7 @@
 	fragment@0 {
 		target-path = "/";
 		__overlay__ {
-			backlight_lcd: backlight_lcd {
-				compatible = "pwm-backlight";
-				pwms = <&adp5585pwm_vp 0 50000 0>;
-				brightness-levels = <0 36 72 108 144 180 216 255>;
-				default-brightness-level = <6>;
-				post-pwm-on-delay-ms = <500>;
-				enable-gpios = <&adp5585gpio_vp 5 GPIO_ACTIVE_HIGH>; //EXP_DISP0_VDD_EN
+			reg_lvds_pwr: regulator_lvdspwr {
 				status = "okay";
 			};
 		};
@@ -31,20 +25,29 @@
 	fragment@1 {
 		target-path = "/";
 		__overlay__ {
-			disp_backlight: disp_backlight {
+			reg_mipi_backlight_pwr: regulator_mipiblpwr {
 				status = "okay";
 			};
 		};
 	};
 
 	fragment@2 {
+		target-path = "/";
+		__overlay__ {
+			disp_backlight: disp_backlight {
+				status = "okay";
+			};
+		};
+	};
+
+	fragment@3 {
 		target = <&dphy>;
 		__overlay__ {
 			status = "okay";
 		};
 	};
 
-	fragment@3 {
+	fragment@4 {
 		target = <&dsi>;
 		__overlay__ {
 			status = "okay";
@@ -52,10 +55,13 @@
 			#size-cells = <0>;
 
 			panel@0 {
-				compatible = "tn,vizionpanel_808060";
-				backlight = <&backlight_lcd>;
+				compatible = "tn,vizionpanel_15010276";
 				reg = <0>;
-				status = "okay";
+				backlight = <&disp_backlight>;
+				power-supply = <&reg_lvds_pwr>;
+
+				dsi,flags = <0x0003>;
+				bus-flags = <1>;
 
 				port {
 					panel_from_dsi: endpoint {
@@ -78,7 +84,7 @@
 		};
 	};
 
-	fragment@4 {
+	fragment@5 {
 		target = <&lcdif>;
 		__overlay__ {
 			status = "okay";
@@ -86,18 +92,19 @@
 		};
 	};
 
-	fragment@5 {
+	fragment@6 {
 		target = <&lpi2c1>;
 		__overlay__ {
 			#address-cells = <1>;
 			#size-cells = <0>;
 			status = "okay";
 
-			fpdlink_dsi2lvds: ds90ub926@c {
+			fpdlink_dsi2lvds: ds90ub948@c {
 				compatible = "ti,ds90ub94x";
 				reg = <0x0c>;
 				status = "okay";
 				reset-gpios = <&pca9555bs_a23 2 GPIO_ACTIVE_LOW>;
+				vizionpanel-remote-gpio;
 				dsi-delay = <2500>;
 				i2c-alias-pool = <0x48 0x49 0x4a 0x4b 0x4c 0x4d 0x4e 0x4f>;
 
@@ -113,46 +120,8 @@
 						reg = <0x2a>;
 						interrupt-parent = <&gpio4>;
 						interrupts = <23 IRQ_TYPE_LEVEL_LOW>;
-						reset-gpios = <&adp5585gpio_vp 1 GPIO_ACTIVE_LOW>;
+						reset-gpios = <&gpio4 25 GPIO_ACTIVE_LOW>;
 						status = "okay";
-					};
-
-					/*	vp: vizionpanel.
-						imx9 series has origin adp5585 chip, prevert conflict. */
-					adp5585_vp: mfd@34 {
-						compatible = "adi,adp5585";
-						reg = <0x34>;
-
-						adp5585gpio_vp: gpio@34 {
-							compatible = "adp5585-gpio";
-							gpio-controller;
-							#gpio-cells = <2>;
-							gpio-line-names = "TP12", "EXP_DISP0_RESET", "EXP_5VSYS_EN", "EXP_DISP0_BLT_CTRL", "TP11",
-									"EXP_DISP0_VDD_EN", "U_D", "L_R", "TP9", "TP10";
-
-							exp_disp0_5vsys_en {
-								gpio-hog;
-								gpios = <2 GPIO_ACTIVE_HIGH>;
-								output-low;
-							};
-
-							exp_disp0_U_D {
-								gpio-hog;
-								gpios = <6 GPIO_ACTIVE_HIGH>;
-								output-low;
-							};
-
-							exp_disp0_L_R {
-								gpio-hog;
-								gpios = <7 GPIO_ACTIVE_HIGH>;
-								output-high;
-							};
-						};
-
-						adp5585pwm_vp: pwm@34 {
-							compatible = "adp5585-pwm";
-							#pwm-cells = <3>;
-						};
 					};
 
 					eeprom_baseboard: eeprom@56 {

@@ -51,7 +51,8 @@ dtbo-$(CONFIG_ARCH_MXC) += imx91-edm-wb-vxt-vl050-070-8048nt.dtbo imx91-edm-wb-v
 dtbo-$(CONFIG_ARCH_MXC) += imx93-axon-wb-lvds-vl10112880.dtbo imx93-axon-wb-lvds-vl15613676.dtbo imx93-axon-wb-vxt-vl050-070-8048nt.dtbo imx93-axon-wb-vxt-vl0808060nt.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx93-axon-wb-tevs.dtbo imx93-axon-wb-vls.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx93-pico-wb-lvds-vl10112880.dtbo imx93-pico-wb-lvds-vl15613676.dtbo imx93-pico-wb-vxt-vl050-070-8048nt.dtbo imx93-pico-wb-vxt-vl0808060nt.dtbo
-dtbo-$(CONFIG_ARCH_MXC) += imx93-pico-wb-mipi2hdmi-adv7535.dtbo imx93-pico-wb-vizionpanel-vl10112880.dtbo imx93-pico-wb-vizionpanel-vl808060.dtbo
+dtbo-$(CONFIG_ARCH_MXC) += imx93-pico-wb-mipi2hdmi-adv7535.dtbo imx93-pico-wb-vizionpanel-vl10112880.dtbo imx93-pico-wb-vizionpanel-vl15010276.dtbo imx93-pico-wb-vizionpanel-vl15613676.dtbo \
+				imx93-pico-wb-vizionpanel-vl508048.dtbo imx93-pico-wb-vizionpanel-vl708048.dtbo imx93-pico-wb-vizionpanel-vl808060.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx93-pico-wb-tevs.dtbo imx93-pico-wb-vls.dtbo imx93-pico-wb-hdmi2mipi-tc358743.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx93-edm-wb-lvds-vl10112880.dtbo imx93-edm-wb-lvds-vl15613676.dtbo imx93-edm-wb-vxt-vl050-070-8048nt.dtbo imx93-edm-wb-vxt-vl0808060nt.dtbo \
 			  imx93-edm-wb-tevs.dtbo imx93-edm-wb-vls.dtbo
