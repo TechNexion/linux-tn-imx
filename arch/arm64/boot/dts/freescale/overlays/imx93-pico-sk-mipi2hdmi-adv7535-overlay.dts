@@ -33,6 +33,10 @@
 					sound-dai = <&adv7535>;
 				};
 			};
+
+			sound {
+				status = "disabled";
+			};
 		};
 	};
 
@@ -41,7 +45,6 @@
 		__overlay__ {
 			#sound-dai-cells = <0>;
 			fsl,sai-mclk-direction-output;
-			status = "okay";
 		};
 	};
 
@@ -76,6 +79,15 @@
 	};
 
 	fragment@5 {
+		target = <&lpi2c2>;
+		__overlay__ {
+			tlv320aic3104: audio-codec@18 {
+				status = "disabled";
+			};
+		};
+	};
+
+	fragment@6 {
 		target = <&lpi2c3>;
 		__overlay__ {
 			#address-cells = <1>;
