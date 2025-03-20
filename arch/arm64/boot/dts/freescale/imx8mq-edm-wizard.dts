@@ -24,6 +24,11 @@
 	model = "TechNexion EDM-IMX8MQ and WIZARD baseboard";
 	compatible = "edm,imx8mq-edm", "fsl,imx8mq";
 
+	aliases {
+		rtc0 = &rtc_ds1337;
+		rtc1 = &snvs_rtc;
+	};
+
 	pcie0_refclk: pcie0-refclk {
 		compatible = "fixed-clock";
 		#clock-cells = <0>;
