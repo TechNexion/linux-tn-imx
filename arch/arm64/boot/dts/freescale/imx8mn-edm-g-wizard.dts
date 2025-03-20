@@ -14,6 +14,11 @@
 	model = "TechNexion EDM-G-IMX8MN and WIZARD baseboard";
 	compatible = "fsl,imx8mn-edm-g", "fsl,imx8mn";
 
+	aliases {
+		rtc0 = &rtc_ds1337;
+		rtc1 = &snvs_rtc;
+	};
+
 	leds {
 		compatible = "gpio-leds";
 		pinctrl-names = "default";
