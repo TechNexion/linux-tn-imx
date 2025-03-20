@@ -14,6 +14,11 @@
 	model = "TechNexion EDM-G-IMX8MP and WIZARD baseboard";
 	compatible = "fsl,imx8mp-edmg", "fsl,imx8mp";
 
+	aliases {
+		rtc0 = &rtc_ds1337;
+		rtc1 = &snvs_rtc;
+	};
+
 	pcie0_refclk: pcie0-refclk {
 		compatible = "fixed-clock";
 		#clock-cells = <0>;
