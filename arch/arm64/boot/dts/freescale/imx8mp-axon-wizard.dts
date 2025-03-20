@@ -14,6 +14,11 @@
 	model = "TechNexion AXON-IMX8MP and WIZARD baseboard";
 	compatible = "fsl,imx8mp-axon", "fsl,imx8mp";
 
+	aliases {
+		rtc0 = &rtc_ds1337;
+		rtc1 = &snvs_rtc;
+	};
+
 	reg_usb_otg_vbus: usb_otg_vbus {
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_otg_vbus>;

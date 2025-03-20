@@ -34,6 +34,11 @@
 	model = "TechNexion PICO-IMX8MM and WIZARD baseboard";
 	compatible = "fsl,imx8mm-pico", "fsl,imx8mm";
 
+	aliases {
+		rtc0 = &rtc_ds1337;
+		rtc1 = &snvs_rtc;
+	};
+
 	regulators {
 		compatible = "simple-bus";
 		#address-cells = <1>;

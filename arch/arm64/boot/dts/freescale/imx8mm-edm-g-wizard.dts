@@ -15,6 +15,11 @@
 	model = "TechNexion EDM-G-IMX8MM and WIZARD baseboard";
 	compatible = "fsl,imx8mm-edm-g", "fsl,imx8mm";
 
+	aliases {
+		rtc0 = &rtc_ds1337;
+		rtc1 = &snvs_rtc;
+	};
+
 	regulators {
 		compatible = "simple-bus";
 		#address-cells = <1>;

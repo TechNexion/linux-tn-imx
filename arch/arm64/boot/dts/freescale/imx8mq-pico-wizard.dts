@@ -33,6 +33,11 @@
 	model = "TechNexion PICO-IMX8MQ and WIZARD baseboard";
 	compatible = "pico,imx8mq-pico", "fsl,imx8mq";
 
+	aliases {
+		rtc0 = &rtc_ds1337;
+		rtc1 = &snvs_rtc;
+	};
+
 	chosen {
 		stdout-path = &uart1;
 	};
