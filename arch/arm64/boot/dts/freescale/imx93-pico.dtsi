@@ -314,7 +314,7 @@
 			gpio-controller;
 			#gpio-cells = <2>;
 			gpio-line-names = "CSI1_PWDN", "CSI1_RST_N", "ENET1_RSTn", "PWM_LCD_LVDS_BL", "ENET1_INTn",
-					"LVDS_VDDEN", "LVDS_BL_EN", "LCD_BL_EN", "PMIC_INTn", "SDIOREON";
+					"LVDS_VDDEN", "LVDS_BL_EN", "LCD_BL_EN", "TOUCH_RSTn", "SDIOREON";
 		};
 
 		adp5585pwm: pwm@34 {

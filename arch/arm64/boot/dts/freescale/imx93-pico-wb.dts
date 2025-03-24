@@ -167,7 +167,7 @@
 		interrupt-parent = <&gpio4>;
 		interrupts = <24 IRQ_TYPE_LEVEL_LOW>;
 		status = "okay";
-		gpio-line-names = "MIPI_BL_EN", "MIPI_TE", "MIPI_RST", "FAULT",
+		gpio-line-names = "MIPI_BL_EN", "MIPI_TE", "MIPI_RST", "VH1_P37",
 					"EXT_GPIO8_M2_WAN_WAKE", "EXT_GPIO9_M2_RST_N", "CSI1_PDB", "AUD_A_RST",
 					"M2_DISABLE_N", "LED_EN", "CAM_EXT_INT", "EXT_IO1_3_VH22",
 					"EXT_IO1_4_VH32", "EXT_IO1_5_VH36", "EXT_IO1_6_VH38", "EXT_IO1_7_VH40";
@@ -269,8 +269,8 @@
 			"", "", "", "",
 			"", "", "", "",
 			"", "", "PD_INTn", "TOUCH_INTn",
-			"", "USB_HUB_RESET", "VH_P29_GPIO", "VH_P31_GPIO",
-			"", "", "PCA9555BS_INT", "MIPI_TOUCH_INTn",
-			"", "TOUCH_RSTn", "", "",
+			"", "USB_HUB_RESET", "GPIO_P28", "GPIO_P30",
+			"", "", "", "MIPI_TOUCH_INTn",
+			"PCA9555BS_INT", "ENET1_INTn", "", "",
 			"", "", "", "";
 };
