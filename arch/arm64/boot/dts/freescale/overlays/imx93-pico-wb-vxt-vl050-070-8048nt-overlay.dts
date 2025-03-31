@@ -84,7 +84,7 @@
 				reg = <0x38>;
 				interrupt-parent = <&gpio4>;
 				interrupts = <15 IRQ_TYPE_LEVEL_LOW>;
-				reset-gpios = <&gpio4 25 GPIO_ACTIVE_LOW>;
+				reset-gpios = <&adp5585gpio 8 GPIO_ACTIVE_LOW>;
 				touchscreen-size-x = <800>;
 				touchscreen-size-y = <480>;
 			};
