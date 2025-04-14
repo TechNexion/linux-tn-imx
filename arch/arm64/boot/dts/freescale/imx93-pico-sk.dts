@@ -9,7 +9,7 @@
 #include "imx93-pico.dtsi"
 
 / {
-	model = "TechNexion PICO-IMX93 and WB baseboard";
+	model = "TechNexion PICO-IMX93 and SK baseboard";
 	compatible = "fsl,imx93-pico", "fsl,imx93";
 
 	reg_usb_otg_vbus: usb_otg_vbus {
@@ -111,7 +111,7 @@
 		compatible = "gpio-leds";
 
 		led_1 {
-			label = "WB-led";
+			label = "SK-led";
 			gpios = <&pca9555bs_a23 9 GPIO_ACTIVE_HIGH>;
 			default-state = "on";
 		};
