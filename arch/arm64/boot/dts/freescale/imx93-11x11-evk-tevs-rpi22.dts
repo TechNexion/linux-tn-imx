@@ -40,7 +40,7 @@
 		compatible = "tn,tevs";
 		reg = <0x48>;
 
-		reset-gpios   = <&adp5585gpio 0 GPIO_ACTIVE_HIGH>;
+		reset-gpios   = <&adp5585 0 GPIO_ACTIVE_HIGH>;
 		standby-gpios = <&pca9554_a27_0 6 GPIO_ACTIVE_HIGH>;
 
 		data-lanes = <2>;
@@ -61,16 +61,18 @@
 	#size-cells = <0>;
 	status = "okay";
 
-	/delete-node/ port;
+	/delete-node/ port@0;
 
-	port@0 {
-		reg = <0>;
-		mipi_csi_ep: endpoint {
-			remote-endpoint = <&tevs_ep>;
-			data-lanes = <2>;
-			cfg-clk-range = <28>;
-			hs-clk-range = <0x16>;
-			bus-type = <4>;
-		};
+	ports {
+        port@0 {
+            reg = <0>;
+            mipi_csi_ep: endpoint {
+                remote-endpoint = <&tevs_ep>;
+                data-lanes = <2>;
+                cfg-clk-range = <28>;
+                hs-clk-range = <0x16>;
+                bus-type = <4>;
+            };
+        };
 	};
 };
