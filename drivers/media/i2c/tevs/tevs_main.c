@@ -666,6 +666,12 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 			tevs_i2c_read(tevs, TEVS_AE_MANUAL_EXP_TIME, exp, 4);
 			tevs->exp_time->cur.val = be32_to_cpup((__be32 *)exp) &
 						  TEVS_AE_MANUAL_EXP_TIME_MASK;
+			tevs_i2c_read(tevs, TEVS_AE_AUTO_EXP_TIME_UPPER, exp, 4);
+			tevs->ae_exp_upper->cur.val = be32_to_cpup((__be32 *)exp) &
+						  TEVS_AE_MANUAL_EXP_TIME_MASK;
+			tevs_i2c_read(tevs, TEVS_AE_AUTO_EXP_TIME_MAX, exp, 4);
+			tevs->ae_exp_max->cur.val = be32_to_cpup((__be32 *)exp) &
+						  TEVS_AE_MANUAL_EXP_TIME_MASK;
 		}
 	}
 
