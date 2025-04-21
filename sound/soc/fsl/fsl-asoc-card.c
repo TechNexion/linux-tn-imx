@@ -950,7 +950,7 @@ static int fsl_asoc_card_probe(struct platform_device *pdev)
 		priv->dai_fmt |= SND_SOC_DAIFMT_CBP_CFP;
 		priv->card_type = CARD_SGTL5000;
 	} else if (of_device_is_compatible(np, "fsl,imx-audio-tlv320aic31xx")) {
-		codec_dai_name = "tlv320aic31xx-hifi";
+		codec_dai_name[0] = "tlv320aic31xx-hifi";
 		priv->dai_fmt |= SND_SOC_DAIFMT_CBM_CFM;
 		priv->card_type = CARD_TLV320AIC31XX;
 	} else if (of_device_is_compatible(np, "fsl,imx-audio-tlv320aic32x4")) {
@@ -958,7 +958,7 @@ static int fsl_asoc_card_probe(struct platform_device *pdev)
 		priv->dai_fmt |= SND_SOC_DAIFMT_CBP_CFP;
 		priv->card_type = CARD_TLV320AIC32X4;
 	} else if (of_device_is_compatible(np, "fsl,imx-audio-tlv320aic3x")) {
-		codec_dai_name = "tlv320aic3x-hifi";
+		codec_dai_name[0] = "tlv320aic3x-hifi";
 		priv->dai_fmt |= SND_SOC_DAIFMT_CBM_CFM;
 		priv->card_type = CARD_TLV320AIC3X;
 	} else if (of_device_is_compatible(np, "fsl,imx-audio-tlv320aic31xx")) {
@@ -1296,7 +1296,7 @@ static int fsl_asoc_card_probe(struct platform_device *pdev)
 	if (of_property_read_bool(np, "headset-det")) {
 		struct snd_soc_pcm_runtime *rtd = list_first_entry(
 				&priv->card.rtd_list, struct snd_soc_pcm_runtime, list);
-		struct snd_soc_component *component = asoc_rtd_to_codec(rtd, 0)->component;
+		struct snd_soc_component *component = snd_soc_rtd_to_codec(rtd, 0)->component;
 
 		priv->headset_jack.pin.pin = "Headphone Jack";
 		priv->headset_jack.pin.mask = SND_JACK_HEADSET;
