@@ -394,7 +394,6 @@ static long  pn54x_dev_ioctl(struct file *filp, unsigned int cmd,
 
 static const struct file_operations pn54x_dev_fops = {
 	.owner	= THIS_MODULE,
-	.llseek	= no_llseek,
 	.read	= pn54x_dev_read,
 	.write	= pn54x_dev_write,
 	.open	= pn54x_dev_open,
@@ -706,7 +705,7 @@ err_ven:
 #ifdef KERNEL_3_4_AND_OLDER
 static int __devexit pn54x_remove(struct i2c_client *client)
 #else
-void pn54x_remove(struct i2c_client *client)
+static void pn54x_remove(struct i2c_client *client)
 #endif
 {
 	struct pn54x_dev *pn54x_dev;
