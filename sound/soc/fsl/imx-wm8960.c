@@ -267,8 +267,8 @@ static int imx_hifi_hw_params(struct snd_pcm_substream *substream,
 				     struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-	struct snd_soc_dai *codec_dai = asoc_rtd_to_codec(rtd, 0);
-	struct snd_soc_dai *cpu_dai = asoc_rtd_to_cpu(rtd, 0);
+	struct snd_soc_dai *codec_dai = snd_soc_rtd_to_codec(rtd, 0);
+	struct snd_soc_dai *cpu_dai = snd_soc_rtd_to_cpu(rtd, 0);
 	struct snd_soc_card *card = rtd->card;
 	struct imx_wm8960_data *data = snd_soc_card_get_drvdata(card);
 	bool tx = substream->stream == SNDRV_PCM_STREAM_PLAYBACK;
@@ -343,7 +343,7 @@ static int imx_hifi_hw_params(struct snd_pcm_substream *substream,
 static int imx_hifi_hw_free(struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-	struct snd_soc_dai *codec_dai = asoc_rtd_to_codec(rtd, 0);
+	struct snd_soc_dai *codec_dai = snd_soc_rtd_to_codec(rtd, 0);
 	struct snd_soc_card *card = rtd->card;
 	struct imx_wm8960_data *data = snd_soc_card_get_drvdata(card);
 	bool tx = substream->stream == SNDRV_PCM_STREAM_PLAYBACK;
@@ -462,7 +462,7 @@ static int imx_wm8960_late_probe(struct snd_soc_card *card)
 {
 	struct snd_soc_pcm_runtime *rtd = list_first_entry(
 		&card->rtd_list, struct snd_soc_pcm_runtime, list);
-	struct snd_soc_dai *codec_dai = asoc_rtd_to_codec(rtd, 0);
+	struct snd_soc_dai *codec_dai = snd_soc_rtd_to_codec(rtd, 0);
 	struct imx_wm8960_data *data = snd_soc_card_get_drvdata(card);
 
 	/*
@@ -930,7 +930,7 @@ fail:
 	return ret;
 }
 
-static int imx_wm8960_remove(struct platform_device *pdev)
+static void imx_wm8960_remove(struct platform_device *pdev)
 {
 	struct snd_soc_card *card = platform_get_drvdata(pdev);
 	struct imx_wm8960_data *data = snd_soc_card_get_drvdata(card);
@@ -941,8 +941,6 @@ static int imx_wm8960_remove(struct platform_device *pdev)
 		gpiod_set_value(data->amp_standby, 1);
 	device_remove_file(&pdev->dev, &dev_attr_micphone);
 	device_remove_file(&pdev->dev, &dev_attr_headphone);
-
-	return 0;
 }
 
 static const struct of_device_id imx_wm8960_dt_ids[] = {
