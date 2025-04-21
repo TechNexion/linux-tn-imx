@@ -1227,7 +1227,7 @@ static int mx6s_csi_close(struct file *file)
 
 	mutex_lock(&csi_dev->lock);
 
-	if (sd->enabled_streams) {
+	if (sd->s_stream_enabled) {
 		v4l2_subdev_call(sd, video, s_stream, 0);
 	}
 
