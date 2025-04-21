@@ -606,6 +606,7 @@ static int tevs_power(struct v4l2_subdev *sub_dev, int on)
 }
 
 static int tevs_get_frame_interval(struct v4l2_subdev *sub_dev,
+				   struct v4l2_subdev_state *sd_state,
 				   struct v4l2_subdev_frame_interval *fi)
 {
 	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
@@ -627,6 +628,7 @@ static int tevs_get_frame_interval(struct v4l2_subdev *sub_dev,
 }
 
 static int tevs_set_frame_interval(struct v4l2_subdev *sub_dev,
+				   struct v4l2_subdev_state *sd_state,
 				   struct v4l2_subdev_frame_interval *fi)
 {
 	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
@@ -751,7 +753,7 @@ static int tevs_get_fmt(struct v4l2_subdev *sub_dev,
 	dev_dbg(sub_dev->dev, "%s() which [%d]\n", __func__, format->which);
 
 	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
-		fmt = v4l2_subdev_get_try_format(sub_dev, sd_state,
+		fmt = v4l2_subdev_state_get_format(sd_state,
 						 format->pad);
 	else
 		fmt = &tevs->fmt;
@@ -812,7 +814,7 @@ static int tevs_set_fmt(struct v4l2_subdev *sub_dev,
 	memset(mbus_fmt->reserved, 0, sizeof(mbus_fmt->reserved));
 
 	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
-		fmt = v4l2_subdev_get_try_format(sub_dev, sd_state, 0);
+		fmt = v4l2_subdev_state_get_format(sd_state, 0);
 	else
 		fmt = &tevs->fmt;
 
@@ -1725,8 +1727,6 @@ static const struct v4l2_subdev_core_ops tevs_v4l2_subdev_core_ops = {
 };
 
 static const struct v4l2_subdev_video_ops tevs_v4l2_subdev_video_ops = {
-	.g_frame_interval = tevs_get_frame_interval,
-	.s_frame_interval = tevs_set_frame_interval,
 	.s_stream = tevs_set_stream,
 };
 
@@ -1735,6 +1735,8 @@ static const struct v4l2_subdev_pad_ops tevs_v4l2_subdev_pad_ops = {
 	.get_fmt = tevs_get_fmt,
 	.set_fmt = tevs_set_fmt,
 	.get_selection = tevs_get_selection,
+	.get_frame_interval = tevs_get_frame_interval,
+	.set_frame_interval = tevs_set_frame_interval,
 	.enum_frame_size = tevs_enum_frame_size,
 	.enum_frame_interval = tevs_enum_frame_interval,
 };
