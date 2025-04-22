@@ -366,50 +366,28 @@
 	};
 };
 
-&csi1_bridge {
+&csi1 {
 	fsl,mipi-mode;
 	fsl,two-8bit-sensor-mode;
 	status = "okay";
-
-	port {
-		csi1_ep: endpoint {
-			remote-endpoint = <&csi1_mipi_ep>;
-		};
-	};
 };
 
-&csi2_bridge {
+&csi2 {
 	fsl,mipi-mode;
 	fsl,two-8bit-sensor-mode;
 	status = "okay";
-
-	port {
-		csi2_ep: endpoint {
-			remote-endpoint = <&csi2_mipi_ep>;
-		};
-	};
 };
 
-&mipi_csi_1 {
+&mipi_csi1 {
 	#address-cells = <1>;
 	#size-cells = <0>;
 	status = "okay";
-	port {
-		csi1_mipi_ep: endpoint@1 {
-			remote-endpoint = <&csi1_ep>;
-		};
-	};
 };
 
-&mipi_csi_2 {
+&mipi_csi2 {
 	#address-cells = <1>;
 	#size-cells = <0>;
 	status = "okay";
-	port {
-		csi2_mipi_ep: endpoint@1 {
-			remote-endpoint = <&csi2_ep>;
-		};
-	};
 };
 
 &pwm1 {
