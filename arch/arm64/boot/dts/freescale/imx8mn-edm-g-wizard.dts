@@ -350,21 +350,13 @@
 	status = "okay";
 };
 
-&mipi_csi_1 {
+&mipi_csi {
 	#address-cells = <1>;
 	#size-cells = <0>;
 	status = "disabled";
 };
 
-&cameradev {
+&isi {
 	status = "okay";
-};
-
-&isi_0 {
-	status = "okay";
-
-	cap_device {
-		status = "okay";
-	};
 };
 
