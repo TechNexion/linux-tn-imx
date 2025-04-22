@@ -387,17 +387,12 @@
 	status = "okay";
 };
 
-&csi1_bridge {
+&csi {
 	fsl,mipi-mode;
 	status = "okay";
-	port {
-		csi1_ep: endpoint {
-			remote-endpoint = <&csi1_mipi_ep>;
-		};
-	};
 };
 
-&mipi_csi_1 {
+&mipi_csi {
 	#address-cells = <1>;
 	#size-cells = <0>;
 	status = "okay";
@@ -408,10 +403,6 @@
 			csis-hs-settle = <13>;
 			csis-clk-settle = <2>;
 			csis-wclk;
-		};
-
-		csi1_mipi_ep: endpoint@2 {
-			remote-endpoint = <&csi1_ep>;
 		};
 	};
 };
