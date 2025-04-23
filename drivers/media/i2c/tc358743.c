@@ -1692,21 +1692,6 @@ static int tc358743_enum_frame_interval(struct v4l2_subdev *sd,
 	return 0;
 }
 
-static int tc358743_get_mbus_config(struct v4l2_subdev *sd,
-				    unsigned int pad,
-				    struct v4l2_mbus_config *cfg)
-{
-	struct tc358743_state *state = to_state(sd);
-
-	cfg->type = V4L2_MBUS_CSI2_DPHY;
-
-	/* Support for non-continuous CSI-2 clock is missing in the driver */
-	cfg->bus.mipi_csi2.flags = 0;
-	cfg->bus.mipi_csi2.num_data_lanes = state->csi_lanes_in_use;
-
-	return 0;
-}
-
 static int tc358743_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *a)
 {
 	struct v4l2_captureparm *cparm = &a->parm.capture;
