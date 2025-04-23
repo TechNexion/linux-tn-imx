@@ -138,7 +138,6 @@ static int ds90ub94x_atr_attach_client(struct i2c_atr *atr, u32 chan_id,
 {
 	struct ds90ub94x *priv = i2c_atr_get_driver_data(atr);
 	struct device *dev = &priv->client->dev;
-	struct i2c_client *dummy_client;
 	unsigned int reg_idx;
 
 	for (reg_idx = 0; reg_idx < ARRAY_SIZE(priv->aliased_clients); reg_idx++) {
@@ -157,7 +156,7 @@ static int ds90ub94x_atr_attach_client(struct i2c_atr *atr, u32 chan_id,
 	regmap_write(priv->regmap, UB941_RR_SLAVE_ALIAS(reg_idx), alias << 1);
 
 	//Occupied the alias address
-	dummy_client = devm_i2c_new_dummy_device(dev, priv->client->adapter, alias);
+	(void)devm_i2c_new_dummy_device(dev, priv->client->adapter, alias);
 	dev_info(dev, "client 0x%02x assigned alias 0x%02x\n",
 		client->addr, alias);
 
@@ -484,7 +483,7 @@ connection_failed:
 	return ret;
 }
 
-void ds90ub94x_remove(struct i2c_client *client)
+static void ds90ub94x_remove(struct i2c_client *client)
 {
     struct ds90ub94x *ds90ub94x = i2c_get_clientdata(client);
 
