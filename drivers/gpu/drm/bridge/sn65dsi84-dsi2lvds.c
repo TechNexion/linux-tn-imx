@@ -192,7 +192,7 @@ static int sn65dsi84_probe(struct i2c_client *client)
 	return 0;
 }
 
-void sn65dsi84_remove(struct i2c_client *client)
+static void sn65dsi84_remove(struct i2c_client *client)
 {
 	struct gpio_desc *enable_gpio;
 
