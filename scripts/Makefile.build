@@ -449,7 +449,7 @@ ifneq ($(userprogs),)
 include $(srctree)/scripts/Makefile.userprogs
 endif
 
-ifneq ($(need-dtbslist)$(dtb-y)$(dtb-)$(filter %.dtb %.dtb.o %.dtbo.o,$(targets)),)
+ifneq ($(need-dtbslist)$(dtb-y)$(dtb-)$(dtbo-y)$(filter %.dtb %.dtb.o %.dtbo.o,$(targets)),)
 include $(srctree)/scripts/Makefile.dtbs
 endif
 
