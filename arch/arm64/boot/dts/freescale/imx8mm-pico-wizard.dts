@@ -105,6 +105,31 @@
 			vin-supply = <&reg_pcie_clkreq>;
 			enable-active-high;
 		};
+
+		reg_1p8v: regulator-1p8v {
+			compatible = "regulator-fixed";
+			regulator-name = "1P8V";
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <1800000>;
+			regulator-always-on;
+		};
+
+		reg_3p3v: regulator-3p3v {
+			compatible = "regulator-fixed";
+			regulator-name = "3P3V";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			regulator-always-on;
+		};
+
+		reg_5v: regulator-5v {
+			compatible = "regulator-fixed";
+			regulator-name = "5V";
+			regulator-min-microvolt = <5000000>;
+			regulator-max-microvolt = <5000000>;
+			regulator-always-on;
+		};
+
 	};
 
 	backlight_mipi {
@@ -126,31 +151,29 @@
 		};
 	};
 
-	sound-wm8960 {
-		compatible = "fsl,imx-audio-wm8960";
-		model = "wm8960-audio";
+	sound {
+		compatible = "fsl,imx-audio-tlv320aic31xx";
+		model = "tlv320aic3x-audio";
 		audio-cpu = <&sai2>;
-		codec-master;
-		audio-codec = <&wm8960>;
+		audio-codec = <&codec>;
 		audio-routing =
-			"Headphone Jack", "HP_L",
-			"Headphone Jack", "HP_R",
-			"Ext Spk", "SPK_LP",
-			"Ext Spk", "SPK_LN",
-			"Ext Spk", "SPK_RP",
-			"Ext Spk", "SPK_RN",
-			"LINPUT1", "Mic Jack",
-			"RINPUT1", "Mic Jack",
-			"Mic Jack", "MICB",
-			"AMIC", "MICB";
+			"Headphone Jack", "HPL",
+			"Headphone Jack", "HPR",
+			"Ext Spk", "SPK",
+			"MIC1LP", "Mic Jack",
+			"MIC1RP", "Mic Jack",
+			"MIC1LP", "MICBIAS",
+			"MIC1RP", "MICBIAS",
+			"Mic Jack", "MICBIAS";
+		headset-det;
 	};
 
 	clocks {
 		codec_osc: aud_mclk {
 			compatible = "fixed-clock";
 			#clock-cells = <0>;
-			clock-frequency = <24000000>;
-			clock-output-names = "wm8960-mclk";
+			clock-frequency = <12000000>;
+			clock-output-names = "tlv320aic3x-mclk";
 		};
 	};
 };
@@ -181,12 +204,6 @@
 	pinctrl_hd3ss3220_irq: hd3ss3220_irqgrp {
 		fsl,pins = <
 			MX8MM_IOMUXC_I2C4_SDA_GPIO5_IO21		0x41	/* GPIO_P48	*/
-		>;
-	};
-	pinctrl_csi_rst: csi_rst_grp {
-		fsl,pins = <
-			MX8MM_IOMUXC_GPIO1_IO05_GPIO1_IO5		0x19
-			MX8MM_IOMUXC_GPIO1_IO14_CCMSRCGPCMIX_CLKO1	0x59
 		>;
 	};
 	pinctrl_touch_irq: touch_irqgrp {
@@ -224,6 +241,11 @@
 	pinctrl_pca9555_23: pca9555_23grp {
 		fsl,pins = <
 			MX8MM_IOMUXC_SAI3_RXFS_GPIO4_IO28	0x19 /* GPIO_P42, irq */
+		>;
+	};
+	pinctrl_pca9555_24: pca9555_24grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_GPIO1_IO05_GPIO1_IO5	0x19 /* CSI_nRST, irq */
 		>;
 	};
 	pinctrl_pca9555_26: pca9555_26grp {
@@ -296,36 +318,6 @@
 		interrupts = <1 0>;
 	};
 
-	/* PCA9554 on camera tev_mipi board */
-	pca9554_tev_mipi: pca9554_tev_mipi@24 {
-		compatible = "nxp,pca9554";
-		reg =<0x24>;
-		gpio-controller;
-		#gpio-cells = <2>;
-	};
-
-	ov5640_mipi: ov5640_mipi@3c {
-		compatible = "ovti,ov5640_mipi";
-		reg = <0x3c>;
-		status = "okay";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_csi_rst>;
-		clocks = <&clk IMX8MM_CLK_CLKO1>;
-		clock-names = "csi_mclk";
-		assigned-clocks = <&clk IMX8MM_CLK_CLKO1>;
-		assigned-clock-parents = <&clk IMX8MM_CLK_24M>;
-		assigned-clock-rates = <24000000>;
-		csi_id = <0>;
-		pwn-gpios = <&pca9554_tev_mipi 2 GPIO_ACTIVE_LOW>;
-		rst-gpios = <&gpio1 5 GPIO_ACTIVE_HIGH>;
-		mclk = <24000000>;
-		mclk_source = <0>;
-		port {
-			ov5640_mipi1_ep: endpoint {
-				remote-endpoint = <&mipi1_sensor_ep>;
-			};
-		};
-	};
 };
 
 &i2c3 {
@@ -357,6 +349,19 @@
 		#interrupt-cells = <2>;
 	};
 
+	pca9555_24: pca9555_24@24 {
+		compatible = "nxp,pca9555";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_pca9555_24>;
+		interrupt-parent = <&gpio1>;
+		interrupts = <5 IRQ_TYPE_LEVEL_LOW>;
+		reg =<0x24>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+	};
+
 	pca9555_26: pca9555_26@26 {
 		compatible = "nxp,pca9555";
 		pinctrl-names = "default";
@@ -370,16 +375,23 @@
 		#interrupt-cells = <2>;
 	};
 
-	wm8960: codec@1a {
-		compatible = "wlf,wm8960";
+	codec: tlv320aic3100@18 {
+		compatible = "ti,tlv320aic3100";
+		reg = <0x18>;
 		#sound-dai-cells = <0>;
-		reg = <0x1a>;
+		/* Regulators */
+		AVDD-supply = <&reg_3p3v>;
+		HPVDD-supply = <&reg_3p3v>;
+		SPRVDD-supply = <&reg_5v>;
+		SPLVDD-supply = <&reg_5v>;
+		DVDD-supply = <&reg_1p8v>;
+		IOVDD-supply = <&reg_1p8v>;
+		ai31xx-ocmv = <0>;
+		ai31xx-micbias-vg = <1>;
+		reset-gpios = <&gpio5 3 GPIO_ACTIVE_LOW>;
 		clocks = <&codec_osc>;
 		clock-names = "mclk";
-		wlf,shared-lrclk;
-		wlf,hp-cfg = <2 2 3>;
-		wlf,fixed-mclk;
-		status = "okay";
+		hs-det;
 	};
 };
 
@@ -402,14 +414,6 @@
 	#size-cells = <0>;
 	status = "okay";
 	port {
-		mipi1_sensor_ep: endpoint@1 {
-			remote-endpoint = <&ov5640_mipi1_ep>;
-			data-lanes = <2>;
-			csis-hs-settle = <13>;
-			csis-clk-settle = <2>;
-			csis-wclk;
-		};
-
 		csi1_mipi_ep: endpoint@2 {
 			remote-endpoint = <&csi1_ep>;
 		};
