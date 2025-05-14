@@ -9,13 +9,13 @@
 #include <linux/regmap.h>
 #include <linux/regulator/consumer.h>
 #include <media/media-entity.h>
+#include <media/mipi-csi2.h>
 #include <media/v4l2-async.h>
 #include <media/v4l2-ctrls.h>
 #include <media/v4l2-device.h>
 #include <media/v4l2-event.h>
 #include <media/v4l2-fwnode.h>
 #include <media/v4l2-subdev.h>
-#include <media/mipi-csi2.h>
 
 #include "tevs_tbls.h"
 
@@ -286,6 +286,17 @@
 #define TEVS_BOOT_TIME						(250)
 #define TOTAL_MICROSEC_PERSEC				(1000000)
 
+#define TEVS_IMG_FORMAT_UYVY				(0x50)
+/* ISP processed */
+// #define TEVS_IMG_FORMAT_RAW8				(0x8A)
+// #define TEVS_IMG_FORMAT_RAW10				(0x9A)
+// #define TEVS_IMG_FORMAT_RAW12				(0xAA)
+/* ISP bypass */
+#define TEVS_IMG_FORMAT_RAW8				(0x80)
+#define TEVS_IMG_FORMAT_RAW10				(0x90)
+#define TEVS_IMG_FORMAT_RAW12				(0xA0)
+#define TEVS_IMG_FORMAT_RAW16				(0xB0)
+
 struct header_info {
 	u8 header_version;
 	u16 content_offset;
@@ -333,7 +344,6 @@ struct tevs {
 	char *sensor_name;
 	int vc_id;
 
-	struct mutex lock; /* Protects formats */
 	/* V4L2 Controls */
 	struct v4l2_ctrl_handler ctrls;
 	struct v4l2_ctrl *brightness;
@@ -343,6 +353,7 @@ struct tevs {
 	struct v4l2_ctrl *gamma;
 	struct v4l2_ctrl *exp_time;
 	struct v4l2_ctrl *exp_gain;
+	struct v4l2_ctrl *alg_gain;
 	struct v4l2_ctrl *hflip;
 	struct v4l2_ctrl *vflip;
 	struct v4l2_ctrl *flick;
@@ -354,6 +365,8 @@ struct tevs {
 	struct v4l2_ctrl *pan;
 	struct v4l2_ctrl *tilt;
 	struct v4l2_ctrl *zoom;
+	struct v4l2_ctrl *hblank;
+	struct v4l2_ctrl *vblank;
 	struct v4l2_ctrl *link_freq;
 	struct v4l2_ctrl *pixel_rate;
 	struct v4l2_ctrl *bsl;
@@ -616,8 +629,6 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 	    tevs_sensor_table[tevs->selected_sensor].res_list_size)
 		return -EINVAL;
 
-	mutex_lock(&tevs->lock);
-
 	dev_dbg(sub_dev->dev, "%s() enable [%x]\n", __func__, enable);
 
 	if (enable == 0) {
@@ -640,8 +651,12 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 					.res_list[tevs->selected_mode]
 					.height);
 			tevs_i2c_write_16b(tevs,
-					   HOST_COMMAND_ISP_CTRL_PREVIEW_FORMAT,
-					   0x50);
+					HOST_COMMAND_ISP_CTRL_PREVIEW_FORMAT,
+					tevs->fmt.code == MEDIA_BUS_FMT_SGRBG8_1X8 ? TEVS_IMG_FORMAT_RAW8 :
+					tevs->fmt.code == MEDIA_BUS_FMT_SGRBG10_1X10 ? TEVS_IMG_FORMAT_RAW10 :
+					tevs->fmt.code == MEDIA_BUS_FMT_SGRBG12_1X12 ? TEVS_IMG_FORMAT_RAW12 :
+					tevs->fmt.code == MEDIA_BUS_FMT_SGRBG16_1X16 ? TEVS_IMG_FORMAT_RAW16 :
+					TEVS_IMG_FORMAT_UYVY);
 			tevs_i2c_write_16b(
 				tevs, HOST_COMMAND_ISP_CTRL_PREVIEW_HINF_CTRL,
 				0x10 | (tevs->continuous_clock << 5) |
@@ -681,14 +696,13 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 		}
 	}
 
-	mutex_unlock(&tevs->lock);
-
 	return ret;
 }
 
 static int tevs_get_frame_desc(struct v4l2_subdev *sub_dev, unsigned int pad,
                                 struct v4l2_mbus_frame_desc *fd)
 {
+	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
 	if (pad != 0 || !fd)
 		return -EINVAL;
 
@@ -696,9 +710,14 @@ static int tevs_get_frame_desc(struct v4l2_subdev *sub_dev, unsigned int pad,
 
 	fd->type = V4L2_MBUS_FRAME_DESC_TYPE_CSI2;
 	fd->entry[0].flags = 0;
-	fd->entry[0].pixelcode = MEDIA_BUS_FMT_UYVY8_1X16;
+	fd->entry[0].pixelcode = tevs->fmt.code;
 	fd->entry[0].bus.csi2.vc = 0;
-	fd->entry[0].bus.csi2.dt = MIPI_CSI2_DT_YUV422_8B;
+	fd->entry[0].bus.csi2.dt =
+		tevs->fmt.code == MEDIA_BUS_FMT_SGRBG8_1X8 ? MIPI_CSI2_DT_RAW8 :
+		tevs->fmt.code == MEDIA_BUS_FMT_SGRBG10_1X10 ? MIPI_CSI2_DT_RAW10 :
+		tevs->fmt.code == MEDIA_BUS_FMT_SGRBG12_1X12 ? MIPI_CSI2_DT_RAW12 :
+		tevs->fmt.code == MEDIA_BUS_FMT_SGRBG16_1X16 ? MIPI_CSI2_DT_RAW16 :
+		MIPI_CSI2_DT_YUV422_8B;
 	fd->num_entries = 1;
 
 	return 0;
@@ -709,14 +728,12 @@ static int tevs_enum_mbus_code(struct v4l2_subdev *sub_dev,
 			       struct v4l2_subdev_mbus_code_enum *code)
 {
 	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
-	if (code->pad || code->index > 0)
+	if (code->pad || code->index >= tevs_sensor_table[tevs->selected_sensor].code_list_size)
 		return -EINVAL;
 
-	mutex_lock(&tevs->lock);
 	dev_dbg(sub_dev->dev, "%s()\n", __func__);
 
-	code->code = MEDIA_BUS_FMT_UYVY8_1X16;
-	mutex_unlock(&tevs->lock);
+	code->code = tevs_sensor_table[tevs->selected_sensor].code_list[code->index];
 
 	return 0;
 }
@@ -732,12 +749,10 @@ static int tevs_get_fmt(struct v4l2_subdev *sub_dev,
 	if (format->pad != 0)
 		return -EINVAL;
 
-	mutex_lock(&tevs->lock);
-
 	dev_dbg(sub_dev->dev, "%s() which [%d]\n", __func__, format->which);
 
 	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
-	fmt = v4l2_subdev_state_get_format(sd_state, format->pad);
+		fmt = v4l2_subdev_state_get_format(sd_state, format->pad);
 	else
 		fmt = &tevs->fmt;
 
@@ -746,7 +761,6 @@ static int tevs_get_fmt(struct v4l2_subdev *sub_dev,
 		fmt->width, fmt->height, fmt->code, fmt->colorspace);
 
 	memmove(mbus_fmt, fmt, sizeof(struct v4l2_mbus_framefmt));
-	mutex_unlock(&tevs->lock);
 
 	return 0;
 }
@@ -762,8 +776,6 @@ static int tevs_set_fmt(struct v4l2_subdev *sub_dev,
 
 	if (format->pad != 0)
 		return -EINVAL;
-
-	mutex_lock(&tevs->lock);
 
 	dev_dbg(sub_dev->dev, "%s()\n", __func__);
 
@@ -789,8 +801,12 @@ static int tevs_set_fmt(struct v4l2_subdev *sub_dev,
 		tevs_sensor_table[tevs->selected_sensor].res_list[i].width;
 	mbus_fmt->height =
 		tevs_sensor_table[tevs->selected_sensor].res_list[i].height;
-	mbus_fmt->code = MEDIA_BUS_FMT_UYVY8_1X16;
-	mbus_fmt->colorspace = V4L2_COLORSPACE_SRGB;
+	// mbus_fmt->code = MEDIA_BUS_FMT_UYVY8_1X16;
+	mbus_fmt->colorspace = mbus_fmt->code == MEDIA_BUS_FMT_SGRBG8_1X8 ? V4L2_COLORSPACE_RAW :
+						mbus_fmt->code == MEDIA_BUS_FMT_SGRBG10_1X10 ? V4L2_COLORSPACE_RAW :
+						mbus_fmt->code == MEDIA_BUS_FMT_SGRBG12_1X12 ? V4L2_COLORSPACE_RAW :
+						mbus_fmt->code == MEDIA_BUS_FMT_SGRBG16_1X16 ? V4L2_COLORSPACE_RAW :
+						V4L2_COLORSPACE_SRGB;
 	mbus_fmt->ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(mbus_fmt->colorspace);
 	mbus_fmt->quantization = V4L2_QUANTIZATION_FULL_RANGE;
 	mbus_fmt->xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(mbus_fmt->colorspace);
@@ -802,7 +818,6 @@ static int tevs_set_fmt(struct v4l2_subdev *sub_dev,
 		fmt = &tevs->fmt;
 
 	memmove(fmt, mbus_fmt, sizeof(struct v4l2_mbus_framefmt));
-	mutex_unlock(&tevs->lock);
 
 	return 0;
 }
@@ -1238,7 +1253,11 @@ static int tevs_set_bsl_mode(struct tevs *tevs, s32 mode)
 		}
 
 		tevs_i2c_write_16b(tevs, HOST_COMMAND_ISP_CTRL_PREVIEW_FORMAT,
-				   0x50);
+				tevs->fmt.code == MEDIA_BUS_FMT_SGRBG8_1X8 ? TEVS_IMG_FORMAT_RAW8 :
+				tevs->fmt.code == MEDIA_BUS_FMT_SGRBG10_1X10 ? TEVS_IMG_FORMAT_RAW10 :
+				tevs->fmt.code == MEDIA_BUS_FMT_SGRBG12_1X12 ? TEVS_IMG_FORMAT_RAW12 :
+				tevs->fmt.code == MEDIA_BUS_FMT_SGRBG16_1X16 ? TEVS_IMG_FORMAT_RAW16 :
+				TEVS_IMG_FORMAT_UYVY);
 		tevs_i2c_write_16b(tevs,
 				   HOST_COMMAND_ISP_CTRL_PREVIEW_HINF_CTRL,
 				   0x10 | (tevs->continuous_clock << 5) |
@@ -1360,6 +1379,7 @@ static int tevs_s_ctrl(struct v4l2_ctrl *ctrl)
 		return tevs_set_exposure(tevs, ctrl->val);
 
 	case V4L2_CID_GAIN:
+	case V4L2_CID_ANALOGUE_GAIN:
 		return tevs_set_gain(tevs, ctrl->val);
 
 	case V4L2_CID_HFLIP:
@@ -1394,6 +1414,12 @@ static int tevs_s_ctrl(struct v4l2_ctrl *ctrl)
 
 	case V4L2_CID_ZOOM_ABSOLUTE:
 		return tevs_set_zoom_target(tevs, ctrl->val);
+
+	case V4L2_CID_VBLANK:
+	case V4L2_CID_HBLANK:
+	case V4L2_CID_PIXEL_RATE:
+		dev_dbg(tevs->dev, "libcamera control 0x%x\n", ctrl->id);
+		return 0;
 
 	case V4L2_CID_TEVS_BSL_MODE:
 		return tevs_set_bsl_mode(tevs, ctrl->val);
@@ -1528,11 +1554,9 @@ static int tevs_ctrls_init(struct tevs *tevs)
 	u8 exp[4] = { 0 };
 
 	ctrl_hdlr = &tevs->ctrls;
-	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 26);
+	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 29);
 	if (ret)
 		return ret;
-
-	ctrl_hdlr->lock = &tevs->lock;
 
 	ret = tevs_i2c_read_16b(tevs, TEVS_BRIGHTNESS, &val);
 	ctrl_def = val & TEVS_BRIGHTNESS_MASK;
@@ -1623,6 +1647,9 @@ static int tevs_ctrls_init(struct tevs *tevs)
 		goto error;
 	tevs->exp_gain = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
 					   V4L2_CID_GAIN, ctrl_min, ctrl_max, 1,
+					   ctrl_def);
+	tevs->alg_gain = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
+					   V4L2_CID_ANALOGUE_GAIN, ctrl_min, ctrl_max, 1,
 					   ctrl_def);
 
 	ret = tevs_i2c_read_16b(tevs, TEVS_ORIENTATION, &val);
@@ -1793,6 +1820,11 @@ static int tevs_ctrls_init(struct tevs *tevs)
 				       V4L2_CID_ZOOM_ABSOLUTE, ctrl_min,
 				       ctrl_max, 1, ctrl_def);
 
+	tevs->hblank = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
+			V4L2_CID_HBLANK, 0, 0, 1, 0);
+	tevs->vblank = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
+			V4L2_CID_VBLANK, 0, 0, 1, 0);
+
 	/* By default, link_freq and pixel_rate is read only */
 	tevs->link_freq = v4l2_ctrl_new_int_menu(
 		ctrl_hdlr, &tevs_ctrl_ops, V4L2_CID_LINK_FREQ,
@@ -1878,7 +1910,6 @@ static int tevs_ctrls_init(struct tevs *tevs)
 
 error:
 	v4l2_ctrl_handler_free(ctrl_hdlr);
-	mutex_destroy(&tevs->lock);
 
 	return ret;
 }
@@ -1886,7 +1917,6 @@ error:
 static void tevs_ctrls_free(struct tevs *tevs)
 {
 	v4l2_ctrl_handler_free(&tevs->ctrls);
-	mutex_destroy(&tevs->lock);
 }
 
 static int tevs_media_link_setup(struct media_entity *entity,
@@ -1918,7 +1948,12 @@ static int tevs_power_on(struct tevs *tevs)
 		}
 
 		ret += tevs_i2c_write_16b(
-			tevs, HOST_COMMAND_ISP_CTRL_PREVIEW_FORMAT, 0x50);
+			tevs, HOST_COMMAND_ISP_CTRL_PREVIEW_FORMAT,
+			tevs->fmt.code == MEDIA_BUS_FMT_SGRBG8_1X8 ? TEVS_IMG_FORMAT_RAW8 :
+			tevs->fmt.code == MEDIA_BUS_FMT_SGRBG10_1X10 ? TEVS_IMG_FORMAT_RAW10 :
+			tevs->fmt.code == MEDIA_BUS_FMT_SGRBG12_1X12 ? TEVS_IMG_FORMAT_RAW12 :
+			tevs->fmt.code == MEDIA_BUS_FMT_SGRBG16_1X16 ? TEVS_IMG_FORMAT_RAW16 :
+			TEVS_IMG_FORMAT_UYVY);
 		ret += tevs_i2c_write_16b(
 			tevs, HOST_COMMAND_ISP_CTRL_PREVIEW_HINF_CTRL,
 			0x10 | (tevs->continuous_clock << 5) |
@@ -1959,6 +1994,7 @@ static int tevs_power(struct v4l2_subdev *sub_dev, int on)
 }
 
 static const struct v4l2_subdev_core_ops tevs_v4l2_subdev_core_ops = {
+	// s_power only for staging isi driver
 	.s_power = tevs_power,
 	.subscribe_event = v4l2_ctrl_subdev_subscribe_event,
 	.unsubscribe_event = v4l2_event_subdev_unsubscribe,
@@ -1970,14 +2006,14 @@ static const struct v4l2_subdev_video_ops tevs_v4l2_subdev_video_ops = {
 
 static const struct v4l2_subdev_pad_ops tevs_v4l2_subdev_pad_ops = {
 	.enum_mbus_code = tevs_enum_mbus_code,
+	.enum_frame_size = tevs_enum_frame_size,
+	.enum_frame_interval = tevs_enum_frame_interval,
 	.get_fmt = tevs_get_fmt,
 	.set_fmt = tevs_set_fmt,
 	.get_selection = tevs_get_selection,
-	.enum_frame_size = tevs_enum_frame_size,
-	.enum_frame_interval = tevs_enum_frame_interval,
-	.get_frame_desc	= tevs_get_frame_desc,
 	.get_frame_interval = tevs_get_frame_interval,
 	.set_frame_interval = tevs_set_frame_interval,
+	.get_frame_desc	= tevs_get_frame_desc,
 };
 
 static const struct v4l2_subdev_ops tevs_subdev_ops = {
@@ -2138,8 +2174,6 @@ static int tevs_probe(struct i2c_client *client)
 		return -EINVAL;
 	}
 
-	mutex_init(&tevs->lock);
-
 	if (tevs->data_frequency != 0) {
 		ret = tevs_i2c_write_16b(tevs, HOST_COMMAND_ISP_CTRL_MIPI_FREQ,
 					 tevs->data_frequency);
@@ -2198,7 +2232,7 @@ static int tevs_probe(struct i2c_client *client)
 	fmt->height =
 		tevs_sensor_table[tevs->selected_sensor].res_list[0].height;
 	fmt->field = V4L2_FIELD_NONE;
-	fmt->code = MEDIA_BUS_FMT_UYVY8_1X16;
+	fmt->code = tevs_sensor_table[tevs->selected_sensor].code_list[0];
 	fmt->colorspace = V4L2_COLORSPACE_SRGB;
 	fmt->ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(fmt->colorspace);
 	fmt->quantization = V4L2_QUANTIZATION_FULL_RANGE;
