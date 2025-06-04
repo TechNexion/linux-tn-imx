@@ -1,0 +1,144 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2024 TechNexion Ltd.
+ *
+ * Author: Nian Yang <nian.yang@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/clock/imx8mp-clock.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	fragment@0 {
+		target = <&mipi_csi_0>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			port@0 {
+				reg = <0>;
+				mipi_csi0_ep: endpoint {
+					remote-endpoint = <&tevs_0_ep>;
+					data-lanes = <4>;
+					csis-hs-settle = <19>;
+					csis-clk-settle = <2>;
+					csis-wclk;
+				};
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&mipi_csi_1>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			port@1 {
+				reg = <1>;
+				mipi_csi1_ep: endpoint {
+					remote-endpoint = <&tevs_1_ep>;
+					data-lanes = <4>;
+					csis-hs-settle = <19>;
+					csis-clk-settle = <2>;
+					csis-wclk;
+				};
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&i2c2>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			rpi22_io_expander_0: pca9554@27 {
+				compatible = "nxp,pca9554";
+				reg = <0x27>;
+				gpio-controller;
+				#gpio-cells = <2>;
+				gpio-line-names = "EXPOSURE_TRIG_IN1",
+								  "FLASH_OUT1",
+								  "CAM_SHUTTER1",
+								  "XVS1",
+								  "EXT_GPIO4",
+								  "EXT_GPIO5",
+								  "INFO_TRIG_IN1",
+								  "EXT_GPIO6";
+				status = "okay";
+			};
+
+			tevs_0: tevs@48 {
+				compatible = "tn,tevs";
+				reg = <0x48>;
+
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_csi0_pwn>, <&pinctrl_csi0_rst>;
+				reset-gpios = <&gpio1 8 GPIO_ACTIVE_HIGH>;
+				standby-gpios = <&rpi22_io_expander_0 6 GPIO_ACTIVE_HIGH>;
+				data-lanes = <4>;
+				data-frequency = <800>;
+				continuous-clock = <0>;
+				status = "okay";
+
+				port {
+					tevs_0_ep: endpoint {
+						remote-endpoint = <&mipi_csi0_ep>;
+					};
+				};
+			};
+		};
+	};
+
+	fragment@3 {
+		target = <&i2c5>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			rpi22_io_expander_1: pca9554@27 {
+				compatible = "nxp,pca9554";
+				reg = <0x27>;
+				gpio-controller;
+				#gpio-cells = <2>;
+				gpio-line-names = "EXPOSURE_TRIG_IN1",
+								  "FLASH_OUT1",
+								  "CAM_SHUTTER1",
+								  "XVS1",
+								  "EXT_GPIO4",
+								  "EXT_GPIO5",
+								  "INFO_TRIG_IN1",
+								  "EXT_GPIO6";
+				status = "okay";
+			};
+
+			tevs_1: tevs@48 {
+				compatible = "tn,tevs";
+				reg = <0x48>;
+
+				pinctrl-names = "default";
+				pinctrl-0 = <&pinctrl_csi1_pwn>, <&pinctrl_csi1_rst>;
+				reset-gpios = <&gpio4 4 GPIO_ACTIVE_HIGH>;
+				standby-gpios = <&rpi22_io_expander_1 6 GPIO_ACTIVE_HIGH>;
+				data-lanes = <4>;
+				data-frequency = <800>;
+				continuous-clock = <0>;
+				status = "okay";
+
+				port {
+					tevs_1_ep: endpoint {
+						remote-endpoint = <&mipi_csi1_ep>;
+					};
+				};
+			};
+		};
+	};
+};
