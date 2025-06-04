@@ -60,6 +60,8 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 
+			/delete-node/pca9555_a21;
+
 			rpi22_io_expander_0: pca9554@27 {
 				compatible = "nxp,pca9554";
 				reg = <0x27>;
