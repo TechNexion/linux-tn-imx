@@ -127,9 +127,9 @@ EDM_FAIRY_GPIO_DEFS();
 		reg = <0>;  /* CS0 */
 		compatible = "ti,ads7846";
 		interrupt-parent = <&GPIO_BANK(EDM_EXT_GPIO_P263)>;
-		interrupts = <GPIO_NO(EDM_EXT_GPIO_P263) 0>;
+		interrupts = <GPIO_NO(EDM_EXT_GPIO_P263) IRQ_TYPE_EDGE_FALLING>;
 		spi-max-frequency = <1000000>;
-		pendown-gpio = <&EDM_EXT_GPIO_P263 0>;
+		pendown-gpio = <&EDM_EXT_GPIO_P263 GPIO_ACTIVE_LOW>;
 		vcc-supply = <&reg_3p3v>;
 
 		ti,x-min = /bits/ 16 <0>;

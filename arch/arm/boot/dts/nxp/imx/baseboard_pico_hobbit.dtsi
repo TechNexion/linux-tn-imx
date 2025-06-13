@@ -104,9 +104,9 @@ PICO_HOBBIT_GPIO_DEFS();
 		reg = <0>;  /* CS0 */
 		compatible = "ti,ads7846";
 		interrupt-parent = <&GPIO_BANK(PICO_EXT_GPIO_P48)>; /* PICO_P48 */
-		interrupts = <GPIO_NO(PICO_EXT_GPIO_P48) 0>;
+		interrupts = <GPIO_NO(PICO_EXT_GPIO_P48) IRQ_TYPE_EDGE_FALLING>;
 		spi-max-frequency = <1000000>;
-		pendown-gpio = <&PICO_EXT_GPIO_P48 0>; /* PICO_P48 */
+		pendown-gpio = <&PICO_EXT_GPIO_P48 GPIO_ACTIVE_LOW>; /* PICO_P48 */
 		vcc-supply = <&reg_3p3v>;
 
 		ti,x-min = /bits/ 16 <0>;

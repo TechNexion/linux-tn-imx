@@ -120,9 +120,9 @@ PICO_DWARF_GPIO_DEFS();
 		reg = <0>;  /* CS0 */
 		compatible = "ti,ads7846";
 		interrupt-parent = <&GPIO_BANK(PICO_EXT_GPIO_P32)>; /* PICO_P32(EXP_IO7) */
-		interrupts = <GPIO_NO(PICO_EXT_GPIO_P32) 0>;
+		interrupts = <GPIO_NO(PICO_EXT_GPIO_P32) IRQ_TYPE_EDGE_FALLING>;
 		spi-max-frequency = <1000000>;
-		pendown-gpio = <&PICO_EXT_GPIO_P32 0>; /* PICO_P32(EXP_IO7) */
+		pendown-gpio = <&PICO_EXT_GPIO_P32 GPIO_ACTIVE_LOW>; /* PICO_P32(EXP_IO7) */
 		vcc-supply = <&reg_3p3v>;
 
 		ti,x-min = /bits/ 16 <0>;
