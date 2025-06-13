@@ -41,9 +41,8 @@
 		compatible = "pwm-backlight";
 		pwms = <&tpm2 0 40000 PWM_POLARITY_INVERTED>;	/* 25KHz PWM */
 		/* TPM driver seems revert the value */
-		/* brightness-levels = <0 36 72 108 144 180 216 255>; */
-		brightness-levels = <255 216 180 144 108 72 36 0>;
-		default-brightness-level = <6>;
+		brightness-levels = <0 36 72 108 144 180 216 255>;
+		default-brightness-level = <1>;
 		power-supply = <&reg_5v>;
 		status = "disabled";
 	};
