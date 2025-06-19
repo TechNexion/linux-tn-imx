@@ -368,7 +368,7 @@ static const struct regmap_config tevs_regmap_config = {
 	.cache_type = REGCACHE_NONE,
 };
 
-int tevs_i2c_read(struct tevs *tevs, u16 reg, u8 *val, u16 size)
+static int tevs_i2c_read(struct tevs *tevs, u16 reg, u8 *val, u16 size)
 {
 	int ret;
 
@@ -383,7 +383,7 @@ int tevs_i2c_read(struct tevs *tevs, u16 reg, u8 *val, u16 size)
 	return 0;
 }
 
-int tevs_i2c_read_16b(struct tevs *tevs, u16 reg, u16 *value)
+static int tevs_i2c_read_16b(struct tevs *tevs, u16 reg, u16 *value)
 {
 	u8 v[2] = { 0 };
 	int ret;
@@ -398,7 +398,7 @@ int tevs_i2c_read_16b(struct tevs *tevs, u16 reg, u16 *value)
 	return 0;
 }
 
-int tevs_i2c_write(struct tevs *tevs, u16 reg, u8 *val, u16 size)
+static int tevs_i2c_write(struct tevs *tevs, u16 reg, u8 *val, u16 size)
 {
 	int ret;
 
@@ -413,7 +413,7 @@ int tevs_i2c_write(struct tevs *tevs, u16 reg, u8 *val, u16 size)
 	return 0;
 }
 
-int tevs_i2c_write_16b(struct tevs *tevs, u16 reg, u16 val)
+static int tevs_i2c_write_16b(struct tevs *tevs, u16 reg, u16 val)
 {
 	int ret;
 	u8 data[2];
@@ -429,7 +429,7 @@ int tevs_i2c_write_16b(struct tevs *tevs, u16 reg, u16 val)
 	return 0;
 }
 
-int tevs_check_trigger_mode(struct tevs *tevs)
+static int tevs_check_trigger_mode(struct tevs *tevs)
 {
 	u16 val;
 	dev_dbg(tevs->dev, "%s()\n", __func__);
@@ -441,7 +441,7 @@ int tevs_check_trigger_mode(struct tevs *tevs)
 		return 1;
 }
 
-int tevs_check_version(struct tevs *tevs)
+static int tevs_check_version(struct tevs *tevs)
 {
 	struct device *dev = tevs->dev;
 	u8 version[4] = { 0 };
@@ -459,7 +459,7 @@ int tevs_check_version(struct tevs *tevs)
 	return 0;
 }
 
-int tevs_load_header_info(struct tevs *tevs)
+static int tevs_load_header_info(struct tevs *tevs)
 {
 	struct device *dev = tevs->dev;
 	struct header_info *header = tevs->header_info;
