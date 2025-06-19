@@ -465,7 +465,7 @@ static int vh_probe(struct i2c_client *client)
 	return 0;
 }
 
-void vh_remove(struct i2c_client *client)
+static void vh_remove(struct i2c_client *client)
 {
 
 }
