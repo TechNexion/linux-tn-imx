@@ -18,11 +18,11 @@
 		__overlay__ {
 			backlight_lcd: backlight_lcd {
 				compatible = "pwm-backlight";
-				pwms = <&adp5585pwm 0 50000 0>;
+				pwms = <&adp5585 0 50000 0>;
 				brightness-levels = <0 36 72 108 144 180 216 255>;
 				default-brightness-level = <6>;
 				post-pwm-on-delay-ms = <500>;
-				enable-gpios = <&adp5585gpio 5 GPIO_ACTIVE_HIGH>; //EXP_DISP0_VDD_EN
+				enable-gpios = <&adp5585 6 GPIO_ACTIVE_HIGH>; //EXP_DISP0_VDD_EN
 				status = "okay";
 			};
 		};
@@ -72,44 +72,37 @@
 						reg = <0x38>;
 						interrupt-parent = <&gpio4>;
 						interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
-						reset-gpios = <&adp5585gpio 1 GPIO_ACTIVE_LOW>;
+						reset-gpios = <&adp5585 1 GPIO_ACTIVE_LOW>;
 						touchscreen-size-x = <800>;
 						touchscreen-size-y = <480>;
 					};
 
 					adp5585: mfd@34 {
-						compatible = "adi,adp5585";
+						compatible = "adi,adp5585-00", "adi,adp5585";
 						reg = <0x34>;
+						gpio-controller;
+						#gpio-cells = <2>;
+						gpio-reserved-ranges = <5 1>;
+						#pwm-cells = <3>;
+						gpio-line-names = "TP12", "EXP_DISP0_RESET", "EXP_5VSYS_EN", "EXP_DISP0_BLT_CTRL", "TP11",
+								"", "EXP_DISP0_VDD_EN", "U_D", "L_R", "TP9", "TP10";
 
-						adp5585gpio: gpio@34 {
-							compatible = "adp5585-gpio";
-							gpio-controller;
-							#gpio-cells = <2>;
-							gpio-line-names = "TP12", "EXP_DISP0_RESET", "EXP_5VSYS_EN", "EXP_DISP0_BLT_CTRL", "TP11",
-									"EXP_DISP0_VDD_EN", "U_D", "L_R", "TP9", "TP10";
-
-							exp_disp0_5vsys_en {
-								gpio-hog;
-								gpios = <2 GPIO_ACTIVE_HIGH>;
-								output-low;
-							};
-
-							exp_disp0_U_D {
-								gpio-hog;
-								gpios = <6 GPIO_ACTIVE_HIGH>;
-								output-low;
-							};
-
-							exp_disp0_L_R {
-								gpio-hog;
-								gpios = <7 GPIO_ACTIVE_HIGH>;
-								output-high;
-							};
+						exp_disp0_5vsys_en {
+							gpio-hog;
+							gpios = <2 GPIO_ACTIVE_HIGH>;
+							output-low;
 						};
 
-						adp5585pwm: pwm@34 {
-							compatible = "adp5585-pwm";
-							#pwm-cells = <3>;
+						exp_disp0_U_D {
+							gpio-hog;
+							gpios = <6 GPIO_ACTIVE_HIGH>;
+							output-high;
+						};
+
+						exp_disp0_L_R {
+							gpio-hog;
+							gpios = <7 GPIO_ACTIVE_HIGH>;
+							output-high;
 						};
 					};
 
