@@ -125,7 +125,7 @@
 				reg = <0x2a>;
 				interrupt-parent = <&gpio3>;
 				interrupts = <26 IRQ_TYPE_LEVEL_LOW>;
-				reset-gpios = <&adp5585gpio 1 GPIO_ACTIVE_LOW>;
+				reset-gpios = <&adp5585 1 GPIO_ACTIVE_LOW>;
 			};
 		};
 	};

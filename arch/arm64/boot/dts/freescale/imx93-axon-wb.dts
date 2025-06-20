@@ -23,7 +23,7 @@
 
 	usb_hub_rst: usb_hub_rst {
 		compatible = "gpio-reset";
-		reset-gpios = <&adp5585gpio 2 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&adp5585 2 GPIO_ACTIVE_LOW>;
 		reset-delay-us = <10>;
 		#reset-cells = <0>;
 	};
@@ -33,7 +33,7 @@
 		regulator-name = "lvds0_vdden";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
-		gpio = <&adp5585gpio 5 GPIO_ACTIVE_HIGH>;
+		gpio = <&adp5585 6 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
 		status = "disabled";
 	};
@@ -44,7 +44,7 @@
 		regulator-name = "lvds0_bl_en";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
-		gpio = <&adp5585gpio 7 GPIO_ACTIVE_HIGH>;
+		gpio = <&adp5585 8 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
 		regulator-always-on;
 		status = "disabled";
@@ -53,7 +53,7 @@
 
 	disp_backlight: disp_backlight {
 		compatible = "pwm-backlight";
-		pwms = <&adp5585pwm 0 50000 0>;
+		pwms = <&adp5585 0 50000 0>;
 		brightness-levels = <0 36 72 108 144 180 216 255>;
 		default-brightness-level = <6>;
 		status = "disabled";
@@ -171,7 +171,7 @@
 		compatible = "ti,tlv320aic3104";
 		reg = <0x18>;
 		status = "okay";
-		reset-gpios = <&adp5585gpio 0 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&adp5585 0 GPIO_ACTIVE_LOW>;
 		ai3x-ocmv = <0>;
 		ai3x-micbias-vg = <1>;		/* 2.0V */
 
