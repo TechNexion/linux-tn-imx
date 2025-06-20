@@ -369,22 +369,15 @@
 				"P74_VH-P15", "P76_VH-P22", "P78_USB_OTG_PWR_EN", "P80_VH-P36";
 	};
 
-	adp5585: mfd@34 {
-		compatible = "adi,adp5585";
+	adp5585: io-expander@34 {
+		compatible = "adi,adp5585-00", "adi,adp5585";
 		reg = <0x34>;
-
-		adp5585gpio: gpio@34 {
-			compatible = "adp5585-gpio";
-			gpio-controller;
-			#gpio-cells = <2>;
-			gpio-line-names = "P18_AUD_RST", "P20_TOUCH_nRST", "P22_USB_HUB_RESET", "PWM_P1_LVDS0_BL_PWM", "LCD_BKLEN",
-					"P8_LVDS0_VDDEN", "EEPROM_WP_n", "P7_LVDS0_BLT_EN", "PWM_P39_VH-P11", "P71";
-		};
-
-		adp5585pwm: pwm@34 {
-			compatible = "adp5585-pwm";
-			#pwm-cells = <3>;
-		};
+		gpio-controller;
+		#gpio-cells = <2>;
+		gpio-reserved-ranges = <5 1>;
+		#pwm-cells = <3>;
+		gpio-line-names = "P18_AUD_RST", "P20_TOUCH_nRST", "P22_USB_HUB_RESET", "PWM_P1_LVDS0_BL_PWM", "LCD_BKLEN",
+					"", "P8_LVDS0_VDDEN", "EEPROM_WP_n", "P7_LVDS0_BLT_EN", "PWM_P39_VH-P11", "P71";
 	};
 };
 
