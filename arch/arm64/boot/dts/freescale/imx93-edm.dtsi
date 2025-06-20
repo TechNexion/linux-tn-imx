@@ -372,22 +372,15 @@
 				"", "", "", "GPIO_P255";
 	};
 
-	adp5585: mfd@34 {
-		compatible = "adi,adp5585";
+	adp5585: io-expander@34 {
+		compatible = "adi,adp5585-00", "adi,adp5585";
 		reg = <0x34>;
-
-		adp5585gpio: gpio@34 {
-			compatible = "adp5585-gpio";
-			gpio-controller;
-			#gpio-cells = <2>;
-			gpio-line-names = "LVDS1_VDDEN", "LVDS1_BL_EN", "LVDS1_BL_PWM_GPIO", "LVDS0_BL_PWM", "LCD_BKLEN",
-					"LVDS0_VDDEN", "C1_GPIO", "LVDS0_BL_EN", "DSI_BL_PWM_GPIO", "EEPROM_WP_n";
-		};
-
-		adp5585pwm: pwm@34 {
-			compatible = "adp5585-pwm";
-			#pwm-cells = <3>;
-		};
+		gpio-controller;
+		#gpio-cells = <2>;
+		gpio-reserved-ranges = <5 1>;
+		#pwm-cells = <3>;
+		gpio-line-names = "LVDS1_VDDEN", "", "LVDS1_BL_PWM_GPIO", "LVDS0_BL_PWM", "LCD_BKLEN",
+				"", "LVDS0_VDDEN", "C1_GPIO", "LVDS0_BL_EN", "DSI_BL_PWM_GPIO", "EEPROM_WP_n";
 	};
 };
 
