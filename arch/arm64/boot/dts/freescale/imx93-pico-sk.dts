@@ -37,7 +37,7 @@
 		regulator-name = "lvds0_vdden";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
-		gpio = <&adp5585gpio 5 GPIO_ACTIVE_HIGH>;
+		gpio = <&adp5585 6 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
 		status = "disabled";
 	};
@@ -48,7 +48,7 @@
 		regulator-name = "lvds0_bl_en";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
-		gpio = <&adp5585gpio 6 GPIO_ACTIVE_HIGH>;
+		gpio = <&adp5585 7 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
 		regulator-always-on;
 		status = "disabled";
@@ -68,7 +68,7 @@
 
 	disp_backlight: disp_backlight {
 		compatible = "pwm-backlight";
-		pwms = <&adp5585pwm 0 50000 0>;
+		pwms = <&adp5585 0 50000 0>;
 		brightness-levels = <0 36 72 108 144 180 216 255>;
 		default-brightness-level = <6>;
 		status = "disabled";
@@ -135,7 +135,7 @@
 			/* Atheros AR8035 PHY */
 			compatible = "ethernet-phy-ieee802.3-c22";
 			reg = <1>;
-			reset-gpios = <&adp5585gpio 2 GPIO_ACTIVE_LOW>;
+			reset-gpios = <&adp5585 2 GPIO_ACTIVE_LOW>;
 			reset-assert-us = <35000>;
 			reset-deassert-us = <75000>;
 			eee-broken-1000t;
