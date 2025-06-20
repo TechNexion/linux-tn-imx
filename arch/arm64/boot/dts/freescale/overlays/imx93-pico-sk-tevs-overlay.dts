@@ -63,7 +63,7 @@
 				compatible = "tn,tevs";
 				reg = <0x48>;
 
-				reset-gpios = <&adp5585gpio 1 GPIO_ACTIVE_HIGH>;
+				reset-gpios = <&adp5585 1 GPIO_ACTIVE_HIGH>;
 				standby-gpios = <&tca9555_a21 2 GPIO_ACTIVE_HIGH>;
 
 				data-lanes = <2>;

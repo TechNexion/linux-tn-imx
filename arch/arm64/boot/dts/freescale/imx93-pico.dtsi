@@ -305,22 +305,15 @@
 		};
 	};
 
-	adp5585: mfd@34 {
-		compatible = "adi,adp5585";
+	adp5585: io-expander@34 {
+		compatible = "adi,adp5585-00", "adi,adp5585";
 		reg = <0x34>;
-
-		adp5585gpio: gpio@34 {
-			compatible = "adp5585-gpio";
-			gpio-controller;
-			#gpio-cells = <2>;
-			gpio-line-names = "CSI1_PWDN", "CSI1_RST_N", "ENET1_RSTn", "PWM_LCD_LVDS_BL", "ENET1_INTn",
-					"LVDS_VDDEN", "LVDS_BL_EN", "LCD_BL_EN", "TOUCH_RSTn", "SDIOREON";
-		};
-
-		adp5585pwm: pwm@34 {
-			compatible = "adp5585-pwm";
-			#pwm-cells = <3>;
-		};
+		gpio-controller;
+		#gpio-cells = <2>;
+		gpio-reserved-ranges = <5 1>;
+		#pwm-cells = <3>;
+		gpio-line-names = "CSI1_PWDN", "CSI1_RST_N", "ENET1_RSTn", "PWM_LCD_LVDS_BL", "ENET1_INTn",
+				"", "LVDS_VDDEN", "LVDS_BL_EN", "LCD_BL_EN", "TOUCH_RSTn", "SDIOREON";
 	};
 };
 
