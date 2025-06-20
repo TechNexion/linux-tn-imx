@@ -18,7 +18,7 @@
 		__overlay__ {
 			disp_backlight: disp_backlight {
 				post-pwm-on-delay-ms = <500>;
-				enable-gpios = <&adp5585gpio 7 GPIO_ACTIVE_HIGH>; //LCD0_BLT_EN
+				enable-gpios = <&adp5585 8 GPIO_ACTIVE_HIGH>; //LCD0_BLT_EN
 				status = "okay";
 			};
 		};

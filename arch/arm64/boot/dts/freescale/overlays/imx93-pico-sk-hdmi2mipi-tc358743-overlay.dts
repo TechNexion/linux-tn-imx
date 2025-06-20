@@ -84,7 +84,7 @@
 			hdmi_in: tc358743@f {
 				compatible = "toshiba,tc358743";
 				reg = <0x0f>;
-				reset-gpios = <&adp5585gpio 1 GPIO_ACTIVE_HIGH>;
+				reset-gpios = <&adp5585 1 GPIO_ACTIVE_HIGH>;
 				status = "okay";
 
 				port {
