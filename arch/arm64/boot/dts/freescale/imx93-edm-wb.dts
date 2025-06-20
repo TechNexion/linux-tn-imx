@@ -23,14 +23,14 @@
 		gpio = <&pcal6524 8 GPIO_ACTIVE_LOW>;
 		enable-active-low;
 	};
-/*
+
 	usb_hub_rst: usb_hub_rst {
 		compatible = "gpio-reset";
-		reset-gpios = <&adp5585 2 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&pcal6524 16 GPIO_ACTIVE_LOW>;
 		reset-delay-us = <10>;
 		#reset-cells = <0>;
 	};
-*/
+
 	reg_lvds_pwr: regulator_lvdspwr {
 		compatible = "regulator-fixed";
 		regulator-name = "lvds0_vdden";
