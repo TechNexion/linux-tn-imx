@@ -57,6 +57,7 @@
 		__overlay__ {
 			#address-cells = <1>;
 			#size-cells = <0>;
+			clock-frequency = <350000>;
 			status = "okay";
 
 			tevs: tevs@48 {
