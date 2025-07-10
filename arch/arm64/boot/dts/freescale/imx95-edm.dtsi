@@ -8,8 +8,8 @@
 
 /dts-v1/;
 
-#include <dt-bindings/phy/phy-imx8-pcie.h>
 #include <dt-bindings/pwm/pwm.h>
+#include <dt-bindings/phy/phy-imx8-pcie.h>
 #include <dt-bindings/usb/pd.h>
 #include "imx95.dtsi"
 
@@ -38,10 +38,10 @@
 
 		linux_cma: linux,cma {
 			compatible = "shared-dma-pool";
-			reusable;
+			alloc-ranges = <0 0x80000000 0 0x7f000000>;
 			size = <0 0x3c000000>;
-			alloc-ranges = <0 0x80000000 0 0x7F000000>;
 			linux,cma-default;
+			reusable;
 		};
 
 		vpu_boot: vpu_boot@a0000000 {
@@ -192,6 +192,9 @@
 			  &mu7 3 1>;
 		memory-region = <&vdevbuffer>, <&vdev0vring0>, <&vdev0vring1>,
 				<&vdev1vring0>, <&vdev1vring1>, <&rsc_table>;
+				/* cpuid and lmmid must align with SM firmware */
+		fsl,cpu-id = <1>;
+		fsl,lmm-id = <1>;
 		fsl,startup-delay-ms = <50>;
 		status = "okay";
 	};
@@ -266,45 +269,33 @@
 };
 
 &lpi2c2 {
-	#address-cells = <1>;
-	#size-cells = <0>;
 	clock-frequency = <400000>;
-	pinctrl-names = "default", "sleep";
+	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_lpi2c2>;
-	pinctrl-1 = <&pinctrl_lpi2c2>;
 	status = "okay";
 };
 
 /* I2C_C on EDM */
 &lpi2c3 {
-	#address-cells = <1>;
-	#size-cells = <0>;
 	clock-frequency = <400000>;
-	pinctrl-names = "default", "sleep";
+	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_lpi2c3>;
-	pinctrl-1 = <&pinctrl_lpi2c3>;
 	status = "okay";
 };
 
 /* I2C_D on EDM */
 &lpi2c4 {
-	#address-cells = <1>;
-	#size-cells = <0>;
 	clock-frequency = <400000>;
-	pinctrl-names = "default", "sleep";
+	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_lpi2c4>;
-	pinctrl-1 = <&pinctrl_lpi2c4>;
 	status = "okay";
 };
 
 /* I2C_B on EDM */
 &lpi2c5 {
-	#address-cells = <1>;
-	#size-cells = <0>;
 	clock-frequency = <100000>;
-	pinctrl-names = "default", "sleep";
+	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_lpi2c5>;
-	pinctrl-1 = <&pinctrl_lpi2c5>;
 	status = "okay";
 };
 
@@ -313,9 +304,8 @@
 	#address-cells = <1>;
 	#size-cells = <0>;
 	clock-frequency = <100000>;
-	pinctrl-names = "default", "sleep";
+	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_lpi2c6>;
-	pinctrl-1 = <&pinctrl_lpi2c6>;
 	status = "okay";
 
 	tca9555_a21: tca9555a21@21 {
@@ -388,6 +378,7 @@
 
 	bluetooth {
 		compatible = "nxp,88w8997-bt";
+		fw-init-baudrate = <3000000>;
 	};
 };
 
@@ -445,12 +436,6 @@
 
 &netc_timer {
 	status = "okay";
-};
-
-&netc_prb_ierb {
-	netc-interfaces = <NXP_NETC_RGMII
-			   NXP_NETC_RGMII
-			   NXP_NETC_SERIAL>;
 };
 
 &netc_emdio {
@@ -580,11 +565,20 @@
 };
 
 &usb3_phy {
+	fsl,phy-pcs-tx-deemph-3p5db-attenuation-db = <17>;
+	fsl,phy-pcs-tx-swing-full-percent = <100>;
+	fsl,phy-tx-preemp-amp-tune-microamp = <600>;
+	fsl,phy-tx-vboost-level-microvolt = <1156>;
 	status = "okay";
 };
 
 &usb3_dwc3 {
 	dr_mode = "host";
+	status = "okay";
+};
+
+&wdog3 {
+	fsl,ext-reset-output;
 	status = "okay";
 };
 
@@ -920,19 +914,16 @@
 };
 
 &pcie0 {
-	fsl,refclk-pad-mode = <IMX8_PCIE_REFCLK_PAD_OUTPUT>;
 	reset-gpio = <&tca9555_a21 10 GPIO_ACTIVE_LOW>;
 	status = "disabled";
 };
 
 &pcie1 {
-	fsl,refclk-pad-mode = <IMX8_PCIE_REFCLK_PAD_OUTPUT>;
 	reset-gpio = <&tca9555_a21 13 GPIO_ACTIVE_LOW>;
 	status = "disabled";
 };
 
 &pcie1_ep {
-	fsl,refclk-pad-mode = <IMX8_PCIE_REFCLK_PAD_OUTPUT>;
 	status = "disabled";
 };
 
