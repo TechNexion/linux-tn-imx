@@ -16,6 +16,9 @@
 	compatible = "fsl,imx95-edm", "fsl,imx95";
 
 	aliases {
+		mmc0 = &usdhc1;
+		mmc1 = &usdhc2;
+		serial0 = &lpuart1;
 		ethernet0 = &enetc_port1;
 		ethernet1 = &enetc_port2;
 		rtc0 = &rtc_ds1337;
@@ -162,8 +165,6 @@
 
 	fan0: pwm-fan {
 		compatible = "pwm-fan";
-		cooling-min-state = <0>;
-		cooling-max-state = <3>;
 		#cooling-cells = <2>;
 		pwms = <&pca9685_pwm 0 4000000>;
 		cooling-levels = <255 192 128 64>;
