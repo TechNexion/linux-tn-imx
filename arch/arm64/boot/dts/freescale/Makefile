@@ -914,6 +914,8 @@ imx95-19x19-verdin-root-dtbs := imx95-19x19-verdin.dtb imx95-19x19-verdin-root.d
 dtb-$(CONFIG_ARCH_MXC) += imx95-19x19-verdin-root.dtb imx95-19x19-verdin-inmate.dtb
 
 dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-lvds-vl10112880.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-lvds-vl156192108.dtb
 
 dtb-$(CONFIG_ARCH_S32) += s32g274a-evb.dtb
 dtb-$(CONFIG_ARCH_S32) += s32g274a-rdb2.dtb
