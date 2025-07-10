@@ -1,0 +1,148 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2024 Technexion Ltd.
+ *
+ * Author: Richard Hu <richard.hu@technexion.com>
+ *
+ */
+
+/dts-v1/;
+
+#include "imx95-edm-evm.dts"
+
+/ {
+	model = "TechNexion EDM-IMX95 and EVM baseboard with MIPI-to-HDMI";
+	compatible = "fsl,imx95-edm", "fsl,imx95";
+
+	hdmi-connector {
+		compatible = "hdmi-connector";
+		label = "hdmi";
+		type = "a";
+
+		port {
+			hdmi_connector_in: endpoint {
+				remote-endpoint = <&adv7535_out>;
+			};
+		};
+	};
+
+	/delete-node/ sound;
+
+	sound-adv7535 {
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "adv7535-hdmi";
+		simple-audio-card,mclk-fs = <256>;
+		simple-audio-card,mclk-clk-id = <1>;
+		simple-audio-card,format = "i2s";
+		simple-audio-card,bitclock-master = <&sound_master>;
+		simple-audio-card,frame-master = <&sound_master>;
+
+		sound_master: simple-audio-card,cpu {
+			sound-dai = <&sai5>;
+		};
+
+		simple-audio-card,codec {
+			sound-dai = <&adv_bridge>;
+		};
+	};
+
+	reg_mipi_dsi1_pwr: regulator-mipi-dsi1-pwr {	/* control DSI 3.3V, 5V, 12V regulators*/
+		compatible = "regulator-fixed";
+		regulator-name = "MIPI DSI1 PWR";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&tca9555_a21 7 GPIO_ACTIVE_HIGH>;	/*	DSI_PWR_EN */
+		enable-active-high;
+		regulator-always-on;
+	};
+};
+
+&display_pixel_link {
+	status = "okay";
+};
+
+&dpu {
+	assigned-clocks = <&scmi_clk IMX95_CLK_DISP1PIX>,
+			  <&scmi_clk IMX95_CLK_VIDEOPLL1_VCO>,
+			  <&scmi_clk IMX95_CLK_VIDEOPLL1>;
+	assigned-clock-parents = <&scmi_clk IMX95_CLK_VIDEOPLL1>;
+	assigned-clock-rates = <0>, <4008000000>, <445333334>;
+};
+
+/* I2C_C on EDM */
+&lpi2c3 {
+	adv_bridge: adv7535@3d {
+		compatible = "adi,adv7535";
+		reg = <0x3d>;
+		avdd-supply = <&reg_mipi_dsi1_pwr>;
+		dvdd-supply = <&reg_mipi_dsi1_pwr>;
+		pvdd-supply = <&reg_mipi_dsi1_pwr>;
+		a2vdd-supply = <&reg_mipi_dsi1_pwr>;
+		v3p3-supply = <&reg_mipi_dsi1_pwr>;
+		v1p2-supply = <&reg_mipi_dsi1_pwr>;
+		adi,addr-cec = <0x3b>;
+		adi,dsi-lanes = <4>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_mipi_dsi_irq>;
+		interrupt-parent = <&gpio2>;
+		interrupts = <19 IRQ_TYPE_LEVEL_LOW>;
+		status = "okay";
+		#sound-dai-cells = <0>;
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+
+				adv7535_to_dsi: endpoint {
+					remote-endpoint = <&dsi_to_adv7535>;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+
+				adv7535_out: endpoint {
+					remote-endpoint = <&hdmi_connector_in>;
+				};
+			};
+		};
+	};	
+};
+
+&mipi_dsi {
+	status = "okay";
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@1 {
+			reg = <1>;
+
+			dsi_to_adv7535: endpoint {
+				remote-endpoint = <&adv7535_to_dsi>;
+			};
+		};
+	};
+};
+
+&pixel_interleaver {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+
+	channel@0 {
+		reg = <0>;
+		status = "okay";
+	};
+};
+
+/* I2C_B on EDM */
+&lpi2c5 {
+	tlv320aic3104: tlv320aic3104@18 {
+		status = "disabled";
+	};
+};
