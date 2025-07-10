@@ -983,6 +983,8 @@ dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-lvds-vl10112880.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-lvds-vl156192108.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-mipi2hdmi-adv7535.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-tevs.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-tevs-csi1.dtb
 
 dtb-$(CONFIG_ARCH_S32) += s32g274a-evb.dtb
 dtb-$(CONFIG_ARCH_S32) += s32g274a-rdb2.dtb
