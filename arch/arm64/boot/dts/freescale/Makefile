@@ -980,6 +980,8 @@ dtb-$(CONFIG_ARCH_MXC) += imx95-15x15-frdm-dual-os08a20-isp.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx95-15x15-frdm-aud-hat.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx95-15x15-frdm-8mic-reve.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-lvds-vl10112880.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-lvds-vl156192108.dtb
 
 dtb-$(CONFIG_ARCH_S32) += s32g274a-evb.dtb
 dtb-$(CONFIG_ARCH_S32) += s32g274a-rdb2.dtb
