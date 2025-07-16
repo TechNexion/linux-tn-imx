@@ -15,6 +15,8 @@
 #include <media/v4l2-event.h>
 #include <media/v4l2-fwnode.h>
 #include <media/v4l2-subdev.h>
+#include <media/mipi-csi2.h>
+
 #include "tevs_tbls.h"
 
 /* Define host command register of TEVS information page */
@@ -501,6 +503,7 @@ static int tevs_standby(struct tevs *tevs, int enable)
 	if (enable == 1) {
 		tevs_i2c_write_16b(tevs, HOST_COMMAND_ISP_CTRL_SYSTEM_START,
 				   0x0000);
+		usleep_range(9000, 10000);
 		while (timeout < 100) {
 			tevs_i2c_read_16b(
 				tevs, HOST_COMMAND_ISP_CTRL_SYSTEM_START, &v);
@@ -517,6 +520,7 @@ static int tevs_standby(struct tevs *tevs, int enable)
 	} else {
 		tevs_i2c_write_16b(tevs, HOST_COMMAND_ISP_CTRL_SYSTEM_START,
 				   0x0001);
+		usleep_range(9000, 10000);
 		while (timeout < 100) {
 			tevs_i2c_read_16b(
 				tevs, HOST_COMMAND_ISP_CTRL_SYSTEM_START, &v);
@@ -559,7 +563,7 @@ static int tevs_check_boot_state(struct tevs *tevs)
 }
 
 static int tevs_get_frame_interval(struct v4l2_subdev *sub_dev,
-				   struct v4l2_subdev_state *sd_state,
+				   struct v4l2_subdev_state *state,
 				   struct v4l2_subdev_frame_interval *fi)
 {
 	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
@@ -581,7 +585,7 @@ static int tevs_get_frame_interval(struct v4l2_subdev *sub_dev,
 }
 
 static int tevs_set_frame_interval(struct v4l2_subdev *sub_dev,
-				   struct v4l2_subdev_state *sd_state,
+				   struct v4l2_subdev_state *state,
 				   struct v4l2_subdev_frame_interval *fi)
 {
 	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
@@ -682,6 +686,24 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 	return ret;
 }
 
+static int tevs_get_frame_desc(struct v4l2_subdev *sub_dev, unsigned int pad,
+                                struct v4l2_mbus_frame_desc *fd)
+{
+	if (pad != 0 || !fd)
+		return -EINVAL;
+
+	memset(fd, 0x0, sizeof(*fd));
+
+	fd->type = V4L2_MBUS_FRAME_DESC_TYPE_CSI2;
+	fd->entry[0].flags = 0;
+	fd->entry[0].pixelcode = MEDIA_BUS_FMT_UYVY8_1X16;
+	fd->entry[0].bus.csi2.vc = 0;
+	fd->entry[0].bus.csi2.dt = MIPI_CSI2_DT_YUV422_8B;
+	fd->num_entries = 1;
+
+	return 0;
+}
+
 static int tevs_enum_mbus_code(struct v4l2_subdev *sub_dev,
 			       struct v4l2_subdev_state *sd_state,
 			       struct v4l2_subdev_mbus_code_enum *code)
@@ -715,8 +737,7 @@ static int tevs_get_fmt(struct v4l2_subdev *sub_dev,
 	dev_dbg(sub_dev->dev, "%s() which [%d]\n", __func__, format->which);
 
 	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
-		fmt = v4l2_subdev_state_get_format(sd_state,
-						 format->pad);
+	fmt = v4l2_subdev_state_get_format(sd_state, format->pad);
 	else
 		fmt = &tevs->fmt;
 
@@ -776,7 +797,7 @@ static int tevs_set_fmt(struct v4l2_subdev *sub_dev,
 	memset(mbus_fmt->reserved, 0, sizeof(mbus_fmt->reserved));
 
 	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
-		fmt = v4l2_subdev_state_get_format(sd_state, 0);
+		fmt = v4l2_subdev_state_get_format(sd_state, format->pad);
 	else
 		fmt = &tevs->fmt;
 
@@ -1952,10 +1973,11 @@ static const struct v4l2_subdev_pad_ops tevs_v4l2_subdev_pad_ops = {
 	.get_fmt = tevs_get_fmt,
 	.set_fmt = tevs_set_fmt,
 	.get_selection = tevs_get_selection,
-	.get_frame_interval = tevs_get_frame_interval,
-	.set_frame_interval = tevs_set_frame_interval,
 	.enum_frame_size = tevs_enum_frame_size,
 	.enum_frame_interval = tevs_enum_frame_interval,
+	.get_frame_desc	= tevs_get_frame_desc,
+	.get_frame_interval = tevs_get_frame_interval,
+	.set_frame_interval = tevs_set_frame_interval,
 };
 
 static const struct v4l2_subdev_ops tevs_subdev_ops = {
