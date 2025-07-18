@@ -924,7 +924,7 @@ static s64 tevs_link_freqs[] = {
 };
 
 static const u32 tevs_pixel_rates[] = {
-	200000000
+	150000000, 300000000
 };
 
 static const char *const awb_mode_strings[] = {
@@ -1543,6 +1543,11 @@ static const struct v4l2_ctrl_config tevs_trigger_mode = {
 	.qmenu = trigger_mode_strings,
 };
 
+static unsigned long tevs_get_pixel_rate(struct tevs *tevs)
+{
+	return (tevs->data_lanes == 2) ? tevs_pixel_rates[0] : tevs_pixel_rates[1];
+}
+
 static int tevs_ctrls_init(struct tevs *tevs)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(&tevs->v4l2_subdev);
@@ -1833,8 +1838,8 @@ static int tevs_ctrls_init(struct tevs *tevs)
 
 	tevs->pixel_rate =
 		v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
-				  V4L2_CID_PIXEL_RATE, tevs_pixel_rates[0],
-				  tevs_pixel_rates[0], 1, tevs_pixel_rates[0]);
+				  V4L2_CID_PIXEL_RATE, tevs_get_pixel_rate(tevs),
+				  tevs_get_pixel_rate(tevs), 1, tevs_get_pixel_rate(tevs));
 	tevs->pixel_rate->flags |= V4L2_CTRL_FLAG_READ_ONLY;
 
 	tevs->bsl = v4l2_ctrl_new_custom(ctrl_hdlr, &tevs_bsl_mode, NULL);
@@ -2241,7 +2246,7 @@ static int tevs_probe(struct i2c_client *client)
 
 	/* link_freq = (pixel_rate * bpp) / (2 * data_lanes) */
 	tevs_link_freqs[0] =
-		(tevs_pixel_rates[0] * 16) / (2 * tevs->data_lanes);
+		(tevs_get_pixel_rate(tevs) * 16) / (2 * tevs->data_lanes);
 
 	ret = tevs_ctrls_init(tevs);
 	if (ret) {
