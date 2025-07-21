@@ -15,7 +15,7 @@
 
 / {
 	fragment@0 {
-		target = <&csi1>;
+		target = <&csi>;
 		__overlay__ {
 			status = "okay";
 		};
@@ -25,16 +25,18 @@
 		target = <&mipi_csi>;
 		__overlay__ {
 			status = "okay";
-			#address-cells = <1>;
-			#size-cells = <0>;
 
-			port {
-				mipi1_sensor_ep: endpoint@1 {
-					remote-endpoint = <&tevs_1_ep>;
-					data-lanes = <2>;
-					csis-hs-settle = <19>;
-					csis-clk-settle = <2>;
-					csis-wclk;
+			ports {
+				port@0 {
+					imx8mm_mipi_csi_in: endpoint {
+						remote-endpoint = <&tevs_1_ep>;
+						data-lanes = <1 2>;
+					};
+				};
+				port@1 {
+					imx8mm_mipi_csi_out: endpoint {
+						remote-endpoint = <&csi_in>;
+					};
 				};
 			};
 		};
@@ -64,7 +66,10 @@
 
 				port {
 					tevs_1_ep: endpoint {
-						remote-endpoint = <&mipi1_sensor_ep>;
+						remote-endpoint = <&imx8mm_mipi_csi_in>;
+						clock-lanes = <0>;
+						data-lanes = <1 2>;
+						link-frequencies = /bits/ 64 <456000000>;
 					};
 				};
 			};
