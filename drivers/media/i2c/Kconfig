@@ -1845,6 +1845,8 @@ config VIDEO_MAX96724
 	  To compile this driver as a module, choose M here: the
 	  module will be called max96724.
 
+source "drivers/media/i2c/maxim-serdes/Kconfig"
+
 endmenu
 
 endif # VIDEO_DEV
