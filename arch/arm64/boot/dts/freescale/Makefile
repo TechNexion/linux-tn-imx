@@ -1305,6 +1305,8 @@ dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-tevs.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-tevs-csi1.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-fusion-lvds-vl10112880.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-fusion-lvds-vl156192108.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-vls-gm2-csi0-lvds-vl10112880.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-vls-gm2-csi1-lvds-vl10112880.dtb
 
 dtb-$(CONFIG_ARCH_MXC) += imx95-19x19-frdm-pro.dtb imx95-19x19-frdm-pro-aud-hat.dtb
 
