@@ -85,6 +85,7 @@ struct i2c_atr {
 	/* lock for the I2C bus segment (see struct i2c_lock_operations) */
 	struct mutex lock;
 	int max_adapters;
+	u32 flags;
 
 	size_t num_aliases;
 	const u16 *aliases;
@@ -158,7 +159,9 @@ static int i2c_atr_map_msgs(struct i2c_atr_chan *chan, struct i2c_msg *msgs,
 		c2a = i2c_atr_find_mapping_by_addr(&chan->alias_list,
 						   msgs[i].addr);
 		if (!c2a) {
-			dev_dbg(atr->dev, "client 0x%02x not mapped!\n",
+			if (atr->flags & I2C_ATR_F_PASSTHROUGH)
+				continue;
+			dev_err(atr->dev, "client 0x%02x not mapped!\n",
 				msgs[i].addr);
 
 			while (i--)
@@ -226,7 +229,7 @@ static int i2c_atr_smbus_xfer(struct i2c_adapter *adap, u16 addr,
 	struct i2c_atr_alias_pair *c2a;
 
 	c2a = i2c_atr_find_mapping_by_addr(&chan->alias_list, addr);
-	if (!c2a) {
+	if (!c2a && !(atr->flags & I2C_ATR_F_PASSTHROUGH)) {
 		dev_err(atr->dev, "client 0x%02x not mapped!\n", addr);
 		return -ENXIO;
 	}
@@ -498,7 +501,8 @@ err_free_aliases32:
 }
 
 struct i2c_atr *i2c_atr_new(struct i2c_adapter *parent, struct device *dev,
-			    const struct i2c_atr_ops *ops, int max_adapters)
+			    const struct i2c_atr_ops *ops, int max_adapters,
+			    u32 flags)
 {
 	struct i2c_atr *atr;
 	int ret;
@@ -520,6 +524,7 @@ struct i2c_atr *i2c_atr_new(struct i2c_adapter *parent, struct device *dev,
 	atr->dev = dev;
 	atr->ops = ops;
 	atr->max_adapters = max_adapters;
+	atr->flags = flags;
 
 	if (parent->algo->master_xfer)
 		atr->algo.master_xfer = i2c_atr_master_xfer;
