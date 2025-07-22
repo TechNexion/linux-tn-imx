@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: GPL-2.0
+
+config VIDEO_MAXIM_SERDES
+	tristate "Maxim GMSL2/3 Serializer and Deserializer support"
+	depends on OF && I2C && VIDEO_DEV
+	select I2C_ATR
+	select I2C_MUX
+	select MEDIA_CONTROLLER
+	select V4L2_FWNODE
+	select VIDEO_V4L2_SUBDEV_API
+	help
+	  This driver supports the Maxim GMSL2/3 common Serializer and
+	  Deserializer framework.
+
+	  To compile this driver as a module, choose M here: the module
+	  will be called max_serdes.
