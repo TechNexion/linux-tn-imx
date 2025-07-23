@@ -104,17 +104,18 @@
 			tevs_1: tevs@3e {
 				compatible = "tn,tevs";
 				reg = <0x3e>;
+				status = "okay";
 
 				reset-gpios = <&vizionlink_tca9554_a25_1 4 GPIO_ACTIVE_HIGH>;
 				standby-gpios = <&vizionlink_tca9554_a25_1 2 GPIO_ACTIVE_HIGH>;
-				data-lanes = <4>;
-				data-frequency = <800>;
-				continuous-clock = <0>;
-				status = "okay";
 
 				port {
 					tevs_1_ep: endpoint {
 						remote-endpoint = <&mipi_csi1_ep>;
+						data-lanes = <1 2 3 4>;
+						clock-lanes = <0>;
+						clock-noncontinuous;
+						link-frequencies = /bits/ 64 <400000000>;
 					};
 				};
 			};
@@ -169,17 +170,18 @@
 			tevs_0: tevs@3e {
 				compatible = "tn,tevs";
 				reg = <0x3e>;
+				status = "okay";
 
 				reset-gpios = <&vizionlink_tca9554_a25_0 4 GPIO_ACTIVE_HIGH>;
 				standby-gpios = <&vizionlink_tca9554_a25_0 2 GPIO_ACTIVE_HIGH>;
-				data-lanes = <4>;
-				data-frequency = <800>;
-				continuous-clock = <0>;
-				status = "okay";
 
 				port {
 					tevs_0_ep: endpoint {
 						remote-endpoint = <&mipi_csi0_ep>;
+						data-lanes = <1 2 3 4>;
+						clock-lanes = <0>;
+						clock-noncontinuous;
+						link-frequencies = /bits/ 64 <400000000>;
 					};
 				};
 			};
