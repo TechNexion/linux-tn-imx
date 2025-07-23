@@ -90,24 +90,22 @@
 			tevs_mipi: tevs_mipi@48 {
 				compatible = "tn,tevs";
 				reg = <0x48>;
+				status = "okay";
 
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_csi_rst>;
 				host-power-gpios = <&pca9555_a21 10 GPIO_ACTIVE_LOW>;
 				reset-gpios = <&vizionlink_tca9554_a25 4 GPIO_ACTIVE_HIGH>;
 				standby-gpios = <&vizionlink_tca9554_a25 2 GPIO_ACTIVE_HIGH>;
-				data-lanes = <2>;
-				// data-frequency = <800>;
-				continuous-clock = <0>;
 				supports-over-4k-res;
-				status = "okay";
 
 				port {
 					tevs_1_ep: endpoint {
 						remote-endpoint = <&imx8mm_mipi_csi_in>;
-						clock-lanes = <0>;
 						data-lanes = <1 2>;
-						link-frequencies = /bits/ 64 <456000000>;
+						clock-lanes = <0>;
+						clock-noncontinuous;
+						link-frequencies = /bits/ 64 <400000000>;
 					};
 				};
 			};
