@@ -297,6 +297,9 @@
 #define TEVS_IMG_FORMAT_RAW12				(0xA0)
 #define TEVS_IMG_FORMAT_RAW16				(0xB0)
 
+#define TEVS_LINK_FREQUENCY_DEFAULT			400000000ull
+#define TEVS_PIXEL_RATE_DEFAULT				200000000ull
+
 struct header_info {
 	u8 header_version;
 	u16 content_offset;
@@ -330,8 +333,6 @@ struct tevs {
 	struct gpio_desc *reset_gpio;
 	struct gpio_desc *host_pwdn_gpio;
 	struct gpio_desc *standby_gpio;
-
-	struct v4l2_fwnode_endpoint bus_cfg;
 
 	int data_lanes;
 	int continuous_clock;
@@ -921,14 +922,6 @@ static int tevs_enum_frame_interval(struct v4l2_subdev *sub_dev,
 /*
  * V4L2 Controls
  */
-
-static s64 tevs_link_freqs[] = {
-	400000000
-};
-
-static const u32 tevs_pixel_rates[] = {
-	150000000, 300000000
-};
 
 static const char *const awb_mode_strings[] = {
 	"Manual Temp Mode", // TEVS_AWB_CTRL_MODE_MANUAL_TEMP
@@ -1548,11 +1541,6 @@ static const struct v4l2_ctrl_config tevs_trigger_mode = {
 	.qmenu = trigger_mode_strings,
 };
 
-static unsigned long tevs_get_pixel_rate(struct tevs *tevs)
-{
-	return (tevs->data_lanes == 2) ? tevs_pixel_rates[0] : tevs_pixel_rates[1];
-}
-
 static int tevs_ctrls_init(struct tevs *tevs)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(&tevs->v4l2_subdev);
@@ -1562,6 +1550,12 @@ static int tevs_ctrls_init(struct tevs *tevs)
 	u16 val;
 	s64 ctrl_def, ctrl_max, ctrl_min;
 	u8 exp[4] = { 0 };
+	static s64 link_freq[] = {
+		TEVS_LINK_FREQUENCY_DEFAULT,
+	};
+	static s64 pixel_rate[] = {
+		TEVS_PIXEL_RATE_DEFAULT,
+	};
 
 	ctrl_hdlr = &tevs->ctrls;
 	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 29);
@@ -1836,15 +1830,18 @@ static int tevs_ctrls_init(struct tevs *tevs)
 			V4L2_CID_VBLANK, 0, 0, 1, 0);
 
 	/* By default, link_freq and pixel_rate is read only */
+	link_freq[0] = (tevs->data_frequency / 2) * 1000000;
 	tevs->link_freq = v4l2_ctrl_new_int_menu(
 		ctrl_hdlr, &tevs_ctrl_ops, V4L2_CID_LINK_FREQ,
-		ARRAY_SIZE(tevs_link_freqs) - 1, 0, tevs_link_freqs);
+		ARRAY_SIZE(link_freq) - 1, 0, link_freq);
 	tevs->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
 
+	/* link_freq = (pixel_rate * bpp) / (2 * data_lanes) */
+	pixel_rate[0] = link_freq[0] * (2 * tevs->data_lanes) / 16;
 	tevs->pixel_rate =
 		v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
-				  V4L2_CID_PIXEL_RATE, tevs_get_pixel_rate(tevs),
-				  tevs_get_pixel_rate(tevs), 1, tevs_get_pixel_rate(tevs));
+				  V4L2_CID_PIXEL_RATE, pixel_rate[0],
+				  pixel_rate[0], 1, pixel_rate[0]);
 	tevs->pixel_rate->flags |= V4L2_CTRL_FLAG_READ_ONLY;
 
 	tevs->bsl = v4l2_ctrl_new_custom(ctrl_hdlr, &tevs_bsl_mode, NULL);
@@ -2045,32 +2042,13 @@ static int tevs_try_on(struct tevs *tevs)
 	return tevs_power_on(tevs);
 }
 
-static int tevs_probe(struct i2c_client *client)
+static int tevs_check_hwcfg(struct device *dev, struct tevs *tevs)
 {
-	struct tevs *tevs = NULL;
-	struct device *dev = &client->dev;
-	struct v4l2_mbus_framefmt *fmt;
 	struct fwnode_handle *ep;
-	int i = ARRAY_SIZE(tevs_sensor_table);
-	int ret;
-
-	dev_info(dev, "%s() device node: %s\n", __func__,
-		 client->dev.of_node->full_name);
-
-	tevs = devm_kzalloc(dev, sizeof(struct tevs), GFP_KERNEL);
-	if (tevs == NULL) {
-		dev_err(dev, "allocate memory failed\n");
-		return -ENOMEM;
-	}
-
-	v4l2_i2c_subdev_init(&tevs->v4l2_subdev, client, &tevs_subdev_ops);
-
-	i2c_set_clientdata(client, tevs);
-	tevs->regmap = devm_regmap_init_i2c(client, &tevs_regmap_config);
-	if (IS_ERR(tevs->regmap)) {
-		dev_err(dev, "Unable to initialize I2C\n");
-		return -ENODEV;
-	}
+	struct v4l2_fwnode_endpoint ep_cfg = {
+		.bus_type = V4L2_MBUS_CSI2_DPHY
+	};
+	int ret = -EINVAL;
 
 	tevs->reset_gpio = devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_LOW);
 	if (IS_ERR(tevs->reset_gpio)) {
@@ -2098,39 +2076,6 @@ static int tevs_probe(struct i2c_client *client)
 		return ret;
 	}
 
-	tevs->data_lanes = 4;
-	if (of_property_read_u32(dev->of_node, "data-lanes",
-				 &tevs->data_lanes) == 0) {
-		if ((tevs->data_lanes < 1) || (tevs->data_lanes > 4)) {
-			dev_err(dev,
-				"value of 'data-lanes' property is invaild\n");
-			tevs->data_lanes = 4;
-		}
-	}
-
-	tevs->continuous_clock = 0;
-	if (of_property_read_u32(dev->of_node, "continuous-clock",
-				 &tevs->continuous_clock) == 0) {
-		if (tevs->continuous_clock > 1) {
-			dev_err(dev,
-				"value of 'continuous-clock' property is invaild\n");
-			tevs->continuous_clock = 0;
-		}
-	}
-
-	tevs->data_frequency = 0;
-	if (of_property_read_u32(dev->of_node, "data-frequency",
-				 &tevs->data_frequency) == 0) {
-		if ((tevs->data_frequency != 0) &&
-		    ((tevs->data_frequency < 100) ||
-		     (tevs->data_frequency > 1200))) {
-			dev_err(dev,
-				"value of 'data-frequency = <%d>' property is invaild\n",
-				tevs->data_frequency);
-			return -EINVAL;
-		}
-	}
-
 	tevs->supports_over_4k_res =
 		of_property_read_bool(dev->of_node, "supports-over-4k-res");
 
@@ -2141,7 +2086,7 @@ static int tevs_probe(struct i2c_client *client)
 			dev_err(dev,
 				"value of 'vc-id = <%d>' property is invaild\n",
 				tevs->vc_id);
-			return -EINVAL;
+			return ret;
 		}
 	}
 
@@ -2154,9 +2099,51 @@ static int tevs_probe(struct i2c_client *client)
 			dev_err(dev,
 				"value of 'trigger-mode = <%d>' property is invaild\n",
 				tevs->trigger_mode);
-			return -EINVAL;
+			return ret;
 		}
 	}
+
+	ep = fwnode_graph_get_endpoint_by_id(dev_fwnode(dev), 0, 0,
+					     FWNODE_GRAPH_ENDPOINT_NEXT);
+	if (!ep) {
+		dev_err(dev, "no sink port found");
+		return ret;
+	}
+
+	ret = v4l2_fwnode_endpoint_alloc_parse(ep, &ep_cfg);
+	if (ret < 0) {
+		dev_err(dev, "failed to parse bus configuration\n");
+		goto error_out;
+	}
+
+	/* Check the number of MIPI CSI2 data lanes */
+	if (ep_cfg.bus.mipi_csi2.num_data_lanes != 2 &&
+	    ep_cfg.bus.mipi_csi2.num_data_lanes != 4) {
+		dev_err(dev, "only 2 or 4 data lanes are currently supported\n");
+		goto error_out;
+	}
+	tevs->data_lanes = ep_cfg.bus.mipi_csi2.num_data_lanes;
+
+	/* Check the link frequency set in device tree */
+	if (ep_cfg.nr_of_link_frequencies == 0)
+		tevs->data_frequency = (TEVS_LINK_FREQUENCY_DEFAULT / 1000000) * 2;
+	else if (ep_cfg.nr_of_link_frequencies == 1)
+		tevs->data_frequency = (ep_cfg.link_frequencies[0] / 1000000) * 2;
+	else {
+		dev_err(dev, "invalid link frequencies %u on port\n",
+				ep_cfg.nr_of_link_frequencies);
+		goto error_out;
+	}
+
+	if ((tevs->data_frequency != 0) &&
+		((tevs->data_frequency < 100) || (tevs->data_frequency > 1200))) {
+		dev_err(dev,
+			"value of data-frequency [%d] is invaild\n",
+			tevs->data_frequency);
+		goto error_out;
+	}
+
+	tevs->continuous_clock = ~(ep_cfg.bus.mipi_csi2.flags) & V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK;
 
 	dev_dbg(dev,
 		"data-lanes [%d], continuous-clock [%d], supports-over-4k-res [%d],"
@@ -2165,20 +2152,42 @@ static int tevs_probe(struct i2c_client *client)
 		tevs->supports_over_4k_res, tevs->vc_id, tevs->hw_reset_mode,
 		tevs->trigger_mode);
 
-	ep = fwnode_graph_get_endpoint_by_id(dev_fwnode(dev), 0, 0,
-					     FWNODE_GRAPH_ENDPOINT_NEXT);
-	if (!ep) {
-		dev_err(dev, "no sink port found");
-		return -EINVAL;
+error_out:
+	v4l2_fwnode_endpoint_free(&ep_cfg);
+	fwnode_handle_put(ep);
+
+	return ret;
+}
+
+static int tevs_probe(struct i2c_client *client)
+{
+	struct tevs *tevs = NULL;
+	struct device *dev = &client->dev;
+	struct v4l2_mbus_framefmt *fmt;
+	int i = ARRAY_SIZE(tevs_sensor_table);
+	int ret;
+
+	dev_info(dev, "%s() device node: %s\n", __func__,
+		 client->dev.of_node->full_name);
+
+	tevs = devm_kzalloc(dev, sizeof(struct tevs), GFP_KERNEL);
+	if (tevs == NULL) {
+		dev_err(dev, "allocate memory failed\n");
+		return -ENOMEM;
 	}
 
-	tevs->bus_cfg.bus_type = V4L2_MBUS_CSI2_DPHY;
+	v4l2_i2c_subdev_init(&tevs->v4l2_subdev, client, &tevs_subdev_ops);
 
-	ret = v4l2_fwnode_endpoint_alloc_parse(ep, &tevs->bus_cfg);
-	if (ret < 0) {
-		dev_err(dev, "Failed to parse bus configuration\n");
+	i2c_set_clientdata(client, tevs);
+	tevs->regmap = devm_regmap_init_i2c(client, &tevs_regmap_config);
+	if (IS_ERR(tevs->regmap)) {
+		dev_err(dev, "Unable to initialize I2C\n");
+		return -ENODEV;
+	}
+
+	ret = tevs_check_hwcfg(dev, tevs);
+	if (ret < 0)
 		return ret;
-	}
 
 	if (tevs_try_on(tevs) != 0) {
 		dev_err(dev, "cannot find tevs camera\n");
@@ -2250,10 +2259,6 @@ static int tevs_probe(struct i2c_client *client)
 	fmt->xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(fmt->colorspace);
 	memset(fmt->reserved, 0, sizeof(fmt->reserved));
 
-	/* link_freq = (pixel_rate * bpp) / (2 * data_lanes) */
-	tevs_link_freqs[0] =
-		(tevs_get_pixel_rate(tevs) * 16) / (2 * tevs->data_lanes);
-
 	ret = tevs_ctrls_init(tevs);
 	if (ret) {
 		dev_err(dev, "failed to init controls: %d", ret);
@@ -2312,7 +2317,6 @@ error_handler_free:
 	tevs_ctrls_free(tevs);
 
 error_power_off:
-	v4l2_fwnode_endpoint_free(&tevs->bus_cfg);
 	tevs_power_off(tevs);
 
 	dev_err(dev, "probe failed\n");
@@ -2327,7 +2331,6 @@ static void tevs_remove(struct i2c_client *client)
 	v4l2_async_unregister_subdev(sub_dev);
 	media_entity_cleanup(&sub_dev->entity);
 	tevs_ctrls_free(tevs);
-	v4l2_fwnode_endpoint_free(&tevs->bus_cfg);
 }
 
 static const struct of_device_id sensor_of[] = {
