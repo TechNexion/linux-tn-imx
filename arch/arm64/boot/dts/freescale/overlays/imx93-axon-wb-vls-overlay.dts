@@ -100,20 +100,18 @@
 	tevs: tevs@48 {
 		compatible = "tn,tevs";
 		reg = <0x48>;
+		status = "okay";
 
 		reset-gpios = <&vizionlink_tca9554_a26_0 4 GPIO_ACTIVE_HIGH>;
 		standby-gpios = <&vizionlink_tca9554_a26_0 2 GPIO_ACTIVE_HIGH>;
-
-		data-lanes = <2>;
-		data-frequency = <800>;
-		continuous-clock = <0>;
-		status = "okay";
 
 		port {
 			tevs_ep: endpoint {
 				remote-endpoint = <&mipi_csi_ep>;
 				data-lanes = <1 2>;
 				clock-lanes = <0>;
+				clock-noncontinuous;
+				link-frequencies = /bits/ 64 <400000000>;
 			};
 		};
 	};
