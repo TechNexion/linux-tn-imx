@@ -101,20 +101,18 @@
 	tevs: tevs@48 {
 		compatible = "tn,tevs";
 		reg = <0x48>;
-		host-pwdn-gpios = <&tca9555_a21 5 GPIO_ACTIVE_HIGH>;
+		status = "okay";
+
 		reset-gpios = <&tca9555_a21 4 GPIO_ACTIVE_HIGH>;
 		standby-gpios = <&tca9554_csi25 2 GPIO_ACTIVE_HIGH>;
-
-		data-lanes = <4>;
-		data-frequency = <800>;
-		continuous-clock = <0>;
-		status = "okay";
 
 		port {
 			tevs_ep: endpoint {
 				remote-endpoint = <&mipi_csi0_ep>;
 				data-lanes = <1 2 3 4>;
 				clock-lanes = <0>;
+				clock-noncontinuous;
+				link-frequencies = /bits/ 64 <400000000>;
 			};
 		};
 	};
