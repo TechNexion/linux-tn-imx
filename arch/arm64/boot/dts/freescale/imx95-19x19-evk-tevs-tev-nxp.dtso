@@ -30,20 +30,18 @@
 	tevs: tevs@48 {
 		compatible = "tn,tevs";
 		reg = <0x48>;
+		status = "okay";
 
 		reset-gpios = <&i2c3_gpio_expander_20 2 GPIO_ACTIVE_HIGH>;
 		standby-gpios = <&i2c3_gpio_expander_20 1 GPIO_ACTIVE_HIGH>;
-
-		data-lanes = <4>;
-		data-frequency = <800>;
-		continuous-clock = <0>;
-		status = "okay";
 
 		port {
 			tevs_ep: endpoint {
 				remote-endpoint = <&mipi_csi0_ep>;
 				data-lanes = <1 2 3 4>;
 				clock-lanes = <0>;
+				clock-noncontinuous;
+				link-frequencies = /bits/ 64 <400000000>;
 			};
 		};
 	};
