@@ -103,6 +103,7 @@
 		reg = <0x48>;
 		status = "okay";
 
+		host-pwdn-gpios = <&tca9555_a21 7 GPIO_ACTIVE_HIGH>;
 		reset-gpios = <&tca9555_a21 6 GPIO_ACTIVE_HIGH>;
 		standby-gpios = <&tca9554_d25 2 GPIO_ACTIVE_HIGH>;
 
