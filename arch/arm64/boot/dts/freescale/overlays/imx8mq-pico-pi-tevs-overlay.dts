@@ -34,7 +34,7 @@
 	};
 
 	fragment@2 {
-		target = <&mipi_csi_1>;
+		target = <&mipi_csi1>;
 		__overlay__ {
 			status = "okay";
 			#address-cells = <1>;
@@ -52,7 +52,7 @@
 	};
 
 	fragment@3 {
-		target = <&mipi_csi_2>;
+		target = <&mipi_csi2>;
 		__overlay__ {
 			status = "okay";
 			#address-cells = <1>;
@@ -90,21 +90,22 @@
 				compatible = "tn,tevs";
 				reg = <0x48>;
 				status = "okay";
+
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_csi1>;
-
-				csi_id = <0>;
 				reset-gpios = <&gpio1 12 GPIO_ACTIVE_HIGH>;
 				standby-gpios = <&pca9555_i2c2_a21 2 GPIO_ACTIVE_HIGH>;
 
-				data-lanes = <4>;
-				data-frequency = <800>;
-				continuous-clock = <0>;
+				csi_id = <0>;
 				supports-over-4k-res;
 
 				port {
 					tevs_mipi1_ep: endpoint {
 						remote-endpoint = <&mipi1_sensor_ep>;
+						data-lanes = <1 2 3 4>;
+						clock-lanes = <0>;
+						clock-noncontinuous;
+						link-frequencies = /bits/ 64 <400000000>;
 					};
 				};
 			};
@@ -130,21 +131,22 @@
 				compatible = "tn,tevs";
 				reg = <0x48>;
 				status = "okay";
+
 				pinctrl-names = "default";
 				pinctrl-0 = <&pinctrl_csi2>;
-
-				csi_id = <1>;
 				reset-gpios = <&gpio3 16 GPIO_ACTIVE_HIGH>;
 				standby-gpios = <&pca9554_tev_mipi2 2 GPIO_ACTIVE_HIGH>;
 
-				data-lanes = <4>;
-				data-frequency = <800>;
-				continuous-clock = <0>;
+				csi_id = <1>;
 				supports-over-4k-res;
 
 				port {
 					tevs_mipi2_ep: endpoint {
 						remote-endpoint = <&mipi2_sensor_ep>;
+						data-lanes = <1 2 3 4>;
+						clock-lanes = <0>;
+						clock-noncontinuous;
+						link-frequencies = /bits/ 64 <400000000>;
 					};
 				};
 			};
