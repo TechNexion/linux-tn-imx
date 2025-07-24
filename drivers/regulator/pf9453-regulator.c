@@ -663,6 +663,14 @@ static int pf9453_i2c_probe(struct i2c_client *i2c)
 		return ret;
 	}
 
+	if ((device_id >> 4) == 0) {
+		ret = regmap_read(pf9453->regmap, PF9453_REG_DEV_ID - 1, &device_id);
+		if (ret) {
+			dev_err(&i2c->dev, "Read device id error\n");
+			return ret;
+		}
+	}
+
 	/* Check your board and dts for match the right pmic */
 	if ((device_id >> 4) != 0xB && type == PF9453_TYPE_PF9453) {
 		dev_err(&i2c->dev, "Device id(%x) mismatched\n",
