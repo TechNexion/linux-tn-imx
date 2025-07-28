@@ -15,13 +15,6 @@
 
 / {
 	fragment@0 {
-		target = <&csi1>;
-		__overlay__ {
-			status = "okay";
-		};
-	};
-
-	fragment@1 {
 		target = <&mipi_csi>;
 		__overlay__ {
 			status = "okay";
@@ -39,6 +32,13 @@
 					};
 				};
 			};
+		};
+	};
+
+	fragment@1 {
+		target = <&csi>;
+		__overlay__ {
+			status = "okay";
 		};
 	};
 
