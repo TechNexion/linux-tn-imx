@@ -1830,7 +1830,7 @@ static int tevs_ctrls_init(struct tevs *tevs)
 			V4L2_CID_VBLANK, 0, 0, 1, 0);
 
 	/* By default, link_freq and pixel_rate is read only */
-	link_freq[0] = div_u64((tevs->data_frequency >> 1), 1000000ULL);
+	link_freq[0] = (u64)(tevs->data_frequency >> 1) * 1000000ULL;
 	tevs->link_freq = v4l2_ctrl_new_int_menu(
 		ctrl_hdlr, &tevs_ctrl_ops, V4L2_CID_LINK_FREQ,
 		ARRAY_SIZE(link_freq) - 1, 0, link_freq);
