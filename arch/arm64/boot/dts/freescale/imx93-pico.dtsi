@@ -312,8 +312,8 @@
 		#gpio-cells = <2>;
 		gpio-reserved-ranges = <5 1>;
 		#pwm-cells = <3>;
-		gpio-line-names = "CSI1_PWDN", "CSI1_RST_N", "ENET1_RSTn", "PWM_LCD_LVDS_BL", "ENET1_INTn",
-				"", "LVDS_VDDEN", "LVDS_BL_EN", "LCD_BL_EN", "TOUCH_RSTn", "SDIOREON";
+		gpio-line-names = "CSI1_PWDN", "CSI1_RST_N", "ENET1_RSTn", "R3_PWM", "BT_WAKE_HOST",
+				"", "LVDS_VDDEN", "LVDS_BL_EN", "LCD_BL_EN", "HOST_WAKE_WL", "SDIOREON";
 	};
 };
 
