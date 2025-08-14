@@ -14,7 +14,7 @@
 };
 
 / {
-	model = "TechNexion i.MX91 AXON board";
+	model = "TechNexion AXON-IMX91 and WB baseboard";
 	compatible = "fsl,imx91-axon", "fsl,imx91";
 
 	chosen {
