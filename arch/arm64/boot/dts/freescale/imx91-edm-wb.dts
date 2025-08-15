@@ -14,7 +14,7 @@
 };
 
 / {
-	model = "TechNexion i.MX91 EDM board";
+	model = "TechNexion EDM-IMX91 and WB baseboard";
 	compatible = "fsl,imx91-edm", "fsl,imx91";
 
 	chosen {
