@@ -23,6 +23,10 @@
 #define HOST_COMMAND_TEVS_INFO_VERSION_MSB 						(0x3000)
 #define HOST_COMMAND_TEVS_INFO_VERSION_LSB 						(0x3002)
 #define HOST_COMMAND_TEVS_BOOT_STATE 							(0x3004)
+#define HOST_COMMAND_TEVS_SENSOR_CHIP_ID                        (0x3008)
+#define HOST_COMMAND_TEVS_MODEL_NUMBER_0                        (0x300C)
+#define HOST_COMMAND_TEVS_MODEL_NUMBER_1                        (0x300E)
+#define HOST_COMMAND_TEVS_MODEL_NUMBER_2                        (0x3010)
 
 /* Define host command register of ISP control page */
 #define HOST_COMMAND_ISP_CTRL_PREVIEW_WIDTH 					(0x3100)
@@ -334,6 +338,7 @@ struct tevs {
 	struct gpio_desc *host_pwdn_gpio;
 	struct gpio_desc *standby_gpio;
 
+    u16 chip_id;
 	int data_lanes;
 	int continuous_clock;
 	int data_frequency;
@@ -442,6 +447,22 @@ static int tevs_i2c_write_16b(struct tevs *tevs, u16 reg, u16 val)
 	dev_dbg(regmap_get_device(tevs->regmap), "%s() write reg 0x%x, value 0x%x\n", __func__, reg,
 		val);
 
+	return 0;
+}
+
+static int tevs_get_chip_id(struct tevs *tevs)
+{
+	struct i2c_client *client = v4l2_get_subdevdata(&tevs->v4l2_subdev);
+    u16 val;
+    int ret = tevs_i2c_read_16b(tevs, HOST_COMMAND_TEVS_SENSOR_CHIP_ID, &val);
+
+    if (ret < 0) {
+        dev_err(&client->dev, "Can't get chip ID. ret = %d.\n", ret);
+		return ret;
+	}
+
+    tevs->chip_id = val;
+    dev_info(&client->dev, "Chip ID: 0x%.4X\n", tevs->chip_id);
 	return 0;
 }
 
@@ -2229,30 +2250,44 @@ static int tevs_probe(struct i2c_client *client)
 	if (ret < 0) {
 		dev_err(dev, "load header information failed\n");
 		goto error_power_off;
-	} else {
-		for (i = 0; i < ARRAY_SIZE(tevs_sensor_table); i++) {
-			if (strcmp((const char *)tevs->header_info->product_name,
-				   tevs_sensor_table[i].sensor_name) == 0)
-				break;
-		}
 	}
 
-	if (i >= ARRAY_SIZE(tevs_sensor_table)) {
-		dev_err(dev, "cannot not support the product: %s\n",
-			(const char *)tevs->header_info->product_name);
-		ret = -EINVAL;
-		goto error_power_off;
-	}
+    ret = tevs_get_chip_id(tevs);
 
-	tevs->selected_sensor = i;
-	dev_dbg(dev, "selected_sensor:%d, sensor_name:%s\n", i,
-		tevs->header_info->product_name);
+    if (ret < 0) {
+        dev_err(dev, "get chip ID failed\n");
+        goto error_power_off;
+    }
+    
+    if (tevs->chip_id == SENSOR_CHIP_ID_NONE) {
+        for (i = 0; i < ARRAY_SIZE(tevs_sensor_table); i++) {
+            if (strcmp((const char *)tevs->header_info->product_name, tevs_sensor_table[i].sensor_name) == 0)
+                break;
+        }
+    } else {
+        for (i = 0; i < ARRAY_SIZE(tevs_sensor_table); i++) {
+            if (tevs->chip_id == tevs_sensor_table[i].chip_id)
+                break;
+        }
+    }
+
+    if (i >= ARRAY_SIZE(tevs_sensor_table)) {
+        if (tevs->chip_id == SENSOR_CHIP_ID_NONE)
+            dev_err(dev, "cannot not support the product: %s\n", (const char *)tevs->header_info->product_name);
+        else
+            dev_err(dev, "cannot not support the chip ID: 0x%.4X\n", tevs->chip_id);
+
+        ret = -EINVAL;
+        goto error_power_off;
+    }
+
+    tevs->selected_sensor = i;
+	dev_dbg(dev, "selected_sensor:%d, sensor_name:%s\n", i, tevs->header_info->product_name);
 
 	/* Initialize default format */
 	fmt = &tevs->fmt;
 	fmt->width = tevs_sensor_table[tevs->selected_sensor].res_list[0].width;
-	fmt->height =
-		tevs_sensor_table[tevs->selected_sensor].res_list[0].height;
+	fmt->height = tevs_sensor_table[tevs->selected_sensor].res_list[0].height;
 	fmt->field = V4L2_FIELD_NONE;
 	fmt->code = tevs_sensor_table[tevs->selected_sensor].code_list[0];
 	fmt->colorspace = V4L2_COLORSPACE_SRGB;
