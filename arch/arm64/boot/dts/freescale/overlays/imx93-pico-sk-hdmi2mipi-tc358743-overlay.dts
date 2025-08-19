@@ -36,25 +36,21 @@
 		};
 	};
 
+
 	fragment@2 {
-		target = <&cameradev>;
-		__overlay__ {
-			status = "okay";
-		};
-	};
-
-	fragment@3 {
-		target = <&isi_0>;
+		target = <&isi>;
 		__overlay__ {
 			status = "okay";
 
-			cap_device {
-				status = "okay";
+			port {
+				isi_in: endpoint {
+					remote-endpoint = <&mipi_csi_out>;
+				};
 			};
 		};
 	};
 
-	fragment@4 {
+	fragment@3 {
 		target = <&mipi_csi>;
 		__overlay__ {
 			status = "okay";
@@ -71,10 +67,17 @@
 					bus-type = <4>;
 				};
 			};
+
+			port@1 {
+				reg = <1>;
+				mipi_csi_out: endpoint {
+					remote-endpoint = <&isi_in>;
+				};
+			};
 		};
 	};
 
-	fragment@5 {
+	fragment@4 {
 		target = <&lpi2c1>;
 		__overlay__ {
 			#address-cells = <1>;
