@@ -67,15 +67,6 @@
 		#reset-cells = <0>;
 	};
 
-	reg_usb_otg_vbus: usb_otg_vbus {
-		compatible = "regulator-fixed";
-		regulator-name = "usb_otg_vbus";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		gpio = <&tca9555_a22 0 GPIO_ACTIVE_LOW>;
-		enable-active-low;
-	};
-
 	reg_pcie0_pwr: regulator-pcie0-pwr {	/* PCIE1 M.2 B key */
 		compatible = "regulator-fixed";
 		regulator-name = "PCIe slot-power";
@@ -94,7 +85,7 @@
 		enable-active-high;
 	};
 
-	reg_serdes_eth_phy_pwr: regulator-pcie1-pwr {	/* PCIE2 M.2 M key_2 */
+	reg_serdes_eth_phy_pwr: regulator-serdes-eth-phy-pwr {	/* PCIE2 M.2 M key_2 */
 		compatible = "regulator-fixed";
 		regulator-name = "SERDES ETH PHY PWR";
 		regulator-min-microvolt = <3300000>;
@@ -104,7 +95,7 @@
 		regulator-always-on;
 	};
 
-	tlv320_mclk: clk-0 {
+	codec_ext_mclk: clock-codec {
 		#clock-cells = <0>;
 		compatible = "fixed-clock";
 		clock-frequency = <12000000>;
@@ -128,7 +119,6 @@
 		simple-audio-card,bitclock-master = <&sound_master>;
 		simple-audio-card,frame-master = <&sound_master>;
 		simple-audio-card,bitclock-inversion;
-		status = "okay";
 
 		simple-audio-card,cpu {
 			sound-dai = <&sai3>;
@@ -136,7 +126,7 @@
 
 		sound_master: simple-audio-card,codec {
 			sound-dai = <&tlv320aic3104>;
-			clocks = <&tlv320_mclk>;
+			clocks = <&codec_ext_mclk>;
 		};
 	};
 
@@ -146,7 +136,6 @@
 		pinctrl-0 = <&pinctrl_mdio_gpio>;
 		gpios = <&gpio4 0 GPIO_ACTIVE_HIGH>, /* mdc */
 			<&gpio4 1 GPIO_ACTIVE_HIGH>; /* mdio */
-		status = "okay";
 
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -163,7 +152,7 @@
 		};
 	};
 
-	fan0: pwm-fan {
+	fan: pwm-fan {
 		compatible = "pwm-fan";
 		#cooling-cells = <2>;
 		pwms = <&pca9685_pwm 0 4000000>;
@@ -204,15 +193,15 @@
 		cooling-maps {
 			map1 {
 				trip = <&atrip2>;
-				cooling-device = <&fan0 0 1>;
+				cooling-device = <&fan 0 1>;
 			};
 			map2 {
 				trip = <&atrip3>;
-				cooling-device = <&fan0 1 2>;
+				cooling-device = <&fan 1 2>;
 			};
 			map3 {
 				trip = <&atrip4>;
-				cooling-device = <&fan0 2 3>;
+				cooling-device = <&fan 2 3>;
 			};
 		};
 	};
@@ -265,24 +254,21 @@
 &usb3_dwc3 {
 	dr_mode = "host";
 	reset = <&usb_hub_rst>;
-	status = "okay";	
+	status = "okay";
 };
 
 /* I2C_CSI on EDM */
 &lpi2c2 {
-	status = "okay";
-
-	tca9554_csi25: tca9554csi25@25 {
+	tca9554_csi25: gpio@25 {
 		compatible = "nxp,pca9554";
 		reg = <0x25>;
 		vcc-supply = <&reg_1p8v>;
 		gpio-controller;
 		#gpio-cells = <2>;
-		status = "okay";
 		gpio-line-names = "EXPOSURE_TRIG_IN1", "FLASH_OUT1", "INFO_TRIG_IN1", "CAM_SHUTTER1", "PWR1_TIME0", "PWR1_TIME1", "PWR1_TIME2", "";
 	};
 
-	typec_hd3ss3220: hd3ss3220@47 {
+	usb_typec: usb-typec@47 {
 		compatible = "ti,hd3ss3220";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_hd3ss3220_irq>;
@@ -310,7 +296,7 @@
 		};
 	};
 
-	rtc_ds1337: ds1337@68 {
+	rtc_ds1337: rtc@68 {
 		compatible = "dallas,ds1337";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_rtc_irq>;
@@ -323,7 +309,7 @@
 
 /* I2C_C on EDM */
 &lpi2c3 {
-	tca9555_c21: tca9555c21@21 {
+	tca9555_c21: gpio@21 {
 		compatible = "nxp,pca9555";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_tca9555_c21_irq>;
@@ -337,10 +323,9 @@
 		interrupts = <29 IRQ_TYPE_LEVEL_LOW>;
 		gpio-line-names = "M2_B_WWAN_WAKEN", "M2_B_WAN_DISABLEN", "M2_B_PWR_EN", "M2_B_RESET", "M2_M1_PWR_EN", "M2_M2_PWR_EN", "FAN_STBY", "USB_OTG_OC",
 						  "RTC_INTA", "CAN1_STB", "CAN2_STB", "USB_HUB_RESET", "CSI1_PDB", "CSI2_PDB", "VCONN_FAULT", "AUD_RST";
-		status = "okay";
 	};
 
-	pca9685_pwm:pca9685@55 {
+	pca9685_pwm:pwm@55 {
 		compatible = "nxp,pca9685-pwm";
 		#pwm-cells = <2>;
 		reg = <0x55>;
@@ -349,33 +334,28 @@
 
 /* I2C_D on EDM */
 &lpi2c4 {
-	status = "okay";
-
-	pca9554_d23: tca9554d23@23 {
+	pca9554_d23: gpio@23 {
 		compatible = "nxp,pca9554";
 		reg = <0x23>;
 		vcc-supply = <&reg_3p3v>;
 		gpio-controller;
 		#gpio-cells = <2>;
-		status = "okay";
 		gpio-line-names = "DSI1_VDDEN", "DSI1_BL_EN", "DSI1_TE", "DSI1_RST", "DSI1_INT_N", "TOUCH_RST", "EEPROM_WP", "";
 	};
 
-	tca9554_d25: tca9554d25@25 {
+	tca9554_d25: gpio@25 {
 		compatible = "nxp,pca9554";
 		reg = <0x25>;
 		vcc-supply = <&reg_1p8v>;
 		gpio-controller;
 		#gpio-cells = <2>;
-		status = "okay";
 		gpio-line-names = "EXPOSURE_TRIG_IN2", "FLASH_OUT2", "INFO_TRIG_IN2", "CAM_SHUTTER2", "PWR2_TIME0", "PWR2_TIME1", "PWR2_TIME2", "";
 	};
 };
 
 /* I2C_B on EDM */
 &lpi2c5 {
-	status = "okay";
-	tlv320aic3104: tlv320aic3104@18 {
+	tlv320aic3104: audio-codec@18 {
 		#sound-dai-cells = <0>;
 		compatible = "ti,tlv320aic3104"; /* ti,tlv320aic3x */
 		reg = <0x18>;
@@ -394,23 +374,20 @@
 		compatible = "atmel,24c512";
 		reg = <0x51>;
 		pagesize = <128>;
-		status = "okay";
 	};
 };
 
 
 &lpi2c6 {
-	status = "okay";
-
 	/* Power monitor for VCC_12V_OUT */
-	sensor_12v:ina219_12v@40 {
+	hwmon_12v:hwmon@40 {
 		compatible = "ti,ina219";
 		reg = <0x40>;
 		shunt-resistor = <2000>; /* .002 Ohm resistor = 2000 uOhms*/
 	};
 
 	/* Power monitor for VIN_5V0 */
-	sensor_5v:ina219_5v@45 {
+	hwmon_5v:hwmon@45 {
 		compatible = "ti,ina219";
 		reg = <0x45>;
 		shunt-resistor = <2000>; /* .002 Ohm resistor = 2000 uOhms*/

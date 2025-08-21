@@ -109,7 +109,7 @@
 				};
 			};
 		};
-	};	
+	};
 };
 
 &mipi_dsi {
@@ -142,7 +142,7 @@
 
 /* I2C_B on EDM */
 &lpi2c5 {
-	tlv320aic3104: tlv320aic3104@18 {
+	tlv320aic3104: audio-codec@18 {
 		status = "disabled";
 	};
 };
