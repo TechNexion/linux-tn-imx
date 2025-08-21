@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: (GPL-2.0 OR MIT)
 /*
- * Copyright 2024 TechNexion Ltd.
+ * Copyright 2025 TechNexion Ltd.
  *
  * Author: Richard Hu <richard.hu@technexion.com>
  *
@@ -8,9 +8,6 @@
 
 /dts-v1/;
 
-#include <dt-bindings/pwm/pwm.h>
-#include <dt-bindings/phy/phy-imx8-pcie.h>
-#include <dt-bindings/usb/pd.h>
 #include "imx95.dtsi"
 
 / {
@@ -114,7 +111,7 @@
 		regulator-max-microvolt = <1800000>;
 	};
 
-	reg_usb_otg_vbus: usb_otg_vbus {
+	reg_usb_otg_vbus: regulator-otg-vbus {
 		pinctrl-names = "default";
 		compatible = "regulator-fixed";
 		regulator-name = "usb_otg_vbus";
@@ -124,12 +121,12 @@
 		enable-active-low;
 	};
 
-	usdhc3_pwrseq: usdhc3_pwrseq {
+	wlan_pwrseq: wifi-pwrseq {
 		compatible = "mmc-pwrseq-simple";
 		reset-gpios = <&tca9555_a22 11 GPIO_ACTIVE_LOW>; /* SDIO_REG_ON */
 	};
 
-	wl_reg_on: wlreg_on {
+	wl_reg_on: regulator-wl-reg-on {
 		compatible = "regulator-fixed";
 		pinctrl-names = "default";
 		regulator-name = "WL_REG_ON";
@@ -144,44 +141,7 @@
 		 */
 		off-on-delay = <20000>;
 		startup-delay-us = <100>;
-		//startup-delay-us = <20000>;
 		enable-active-high;
-	};
-
-	reg_aqr_stby: regulator-aqr-stby {
-		compatible = "regulator-fixed";
-		regulator-name = "aqr-stby";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		//gpio = <&i2c5_gpio_expander_21 1 GPIO_ACTIVE_HIGH>;
-		enable-active-high;
-	};
-
-	reg_aqr_en: regulator-aqr-en {
-		compatible = "regulator-fixed";
-		regulator-name = "aqr-en";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		vin-supply = <&reg_aqr_stby>;
-		//gpio = <&i2c5_gpio_expander_21 0 GPIO_ACTIVE_HIGH>;
-		enable-active-high;
-	};
-
-	reg_serdes_stby: regulator-mac-stby {
-		compatible = "regulator-fixed";
-		regulator-name = "mac-stby";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		//gpio = <&i2c7_pcal6524 13 GPIO_ACTIVE_LOW>;
-	};
-
-	reg_serdes_en: regulator-mac-en {
-		compatible = "regulator-fixed";
-		regulator-name = "mac-en";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		vin-supply = <&reg_serdes_stby>;
-		//gpio = <&i2c5_gpio_expander_21 3 GPIO_ACTIVE_LOW>;
 	};
 
 	cm7: imx95-cm7 {
@@ -259,13 +219,11 @@
 &flexcan1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexcan1>;
-	status = "disabled";
 };
 
 &flexcan2 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexcan2>;
-	status = "diabled";
 };
 
 &lpi2c2 {
@@ -308,7 +266,7 @@
 	pinctrl-0 = <&pinctrl_lpi2c6>;
 	status = "okay";
 
-	tca9555_a21: tca9555a21@21 {
+	tca9555_a21: gpio@21 {
 		compatible = "nxp,pca9555";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_tca9555_a21_irq>;
@@ -330,7 +288,7 @@
 		};
 	};
 
-	tca9555_a22: tca9555a22@22 {
+	tca9555_a22: gpio@22 {
 		compatible = "nxp,pca9555";
 		reg = <0x22>;
 		vcc-supply = <&reg_3p3v>;
@@ -417,7 +375,7 @@
 	pinctrl-1 = <&pinctrl_usdhc3_100mhz>;
 	pinctrl-2 = <&pinctrl_usdhc3_200mhz>;
 	pinctrl-3 = <&pinctrl_usdhc3>;
-	mmc-pwrseq = <&usdhc3_pwrseq>;
+	mmc-pwrseq = <&wlan_pwrseq>;
 	vmmc-supply = <&wl_reg_on>;
 	bus-width = <4>;
 	keep-power-in-suspend;
@@ -915,16 +873,10 @@
 
 &pcie0 {
 	reset-gpio = <&tca9555_a21 10 GPIO_ACTIVE_LOW>;
-	status = "disabled";
 };
 
 &pcie1 {
 	reset-gpio = <&tca9555_a21 13 GPIO_ACTIVE_LOW>;
-	status = "disabled";
-};
-
-&pcie1_ep {
-	status = "disabled";
 };
 
 &sai1 {
