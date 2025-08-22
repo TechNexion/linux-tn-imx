@@ -14,11 +14,11 @@
 	model = "TechNexion EDM-IMX95 and EVM baseboard with 15.6 inch LVDS panel";
 	compatible = "fsl,imx95-edm", "fsl,imx95";
 
-	reg_lvds_pwr: regulator_lvdspwr {	/* LVDS0_VDDEN */
+	reg_lvds_pwr: regulator-lvds-pwr {	/* LVDS0_VDDEN */
 		status = "okay";
 	};
 
-	lvds0_backlight: lvds0_backlight {
+	lvds0_backlight: backlight {
 		status = "okay";
 	};
 
