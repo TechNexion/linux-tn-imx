@@ -12,199 +12,195 @@
 #include "imx95-edm.dtsi"
 
 / {
-	model = "TechNexion EDM-IMX95 and EVM baseboard";
 	compatible = "fsl,imx95-edm", "fsl,imx95";
+	model = "TechNexion EDM-IMX95 and EVM baseboard";
 
 	aliases {
-		mmc0 = &usdhc1;
-		mmc1 = &usdhc2;
-		serial0 = &lpuart1;
 		ethernet0 = &enetc_port1;
 		ethernet1 = &enetc_port2;
+		mmc0 = &usdhc1;
+		mmc1 = &usdhc2;
 		rtc0 = &rtc_ds1337;
 		rtc1 = &scmi_bbm;
-	};
-
-	leds {
-		compatible = "gpio-leds";
-
-		led0: led-user1 {
-			label = "user1";
-			gpios = <&tca9555_a21 2 GPIO_ACTIVE_HIGH>;
-			default-state = "on";
-		};
-
-		led1: led-user2 {
-			label = "user2";
-			gpios = <&tca9555_a21 3 GPIO_ACTIVE_HIGH>;
-			default-state = "on";
-		};
-	};
-
-	reg_lvds_pwr: regulator_lvdspwr {	/* LVDS0_VDDEN */
-		compatible = "regulator-fixed";
-		regulator-name = "lvds0_vdden";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		gpio = <&tca9555_a21 0 GPIO_ACTIVE_HIGH>;
-		enable-active-high;
-		status = "disabled";
-	};
-
-	lvds0_backlight: lvds0_backlight {
-		compatible = "pwm-backlight";
-		pwms = <&tpm5 0 50000 0>;
-		brightness-levels = <0 36 72 108 144 180 216 255>;
-		default-brightness-level = <6>;
-		enable-gpios = <&tca9555_a21 1 GPIO_ACTIVE_HIGH>;	/* LVDS0_BL_EN */
-		status = "disabled";
-	};
-
-	usb_hub_rst: usb_hub_rst {
-		compatible = "gpio-reset";
-		reset-gpios = <&tca9555_c21 11 GPIO_ACTIVE_LOW>;
-		reset-delay-us = <10>;
-		#reset-cells = <0>;
-	};
-
-	reg_pcie0_pwr: regulator-pcie0-pwr {	/* PCIE1 M.2 B key */
-		compatible = "regulator-fixed";
-		regulator-name = "PCIe slot-power";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		gpio = <&tca9555_c21 2 GPIO_ACTIVE_HIGH>;	/* M2_B_PWR_EN */
-		enable-active-high;
-	};
-
-	reg_pcie1_pwr: regulator-pcie1-pwr {	/* PCIE2 M.2 M key_1 */
-		compatible = "regulator-fixed";
-		regulator-name = "PCIe slot-power";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		gpio = <&tca9555_c21 4 GPIO_ACTIVE_HIGH>;	/* M2_M1_PWR_EN */
-		enable-active-high;
-	};
-
-	reg_serdes_eth_phy_pwr: regulator-serdes-eth-phy-pwr {	/* PCIE2 M.2 M key_2 */
-		compatible = "regulator-fixed";
-		regulator-name = "SERDES ETH PHY PWR";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		gpio = <&tca9555_c21 5 GPIO_ACTIVE_HIGH>;	/*	M2_M2_PWR_EN */
-		enable-active-high;
-		regulator-always-on;
+		serial0 = &lpuart1;
 	};
 
 	codec_ext_mclk: clock-codec {
-		#clock-cells = <0>;
 		compatible = "fixed-clock";
+		#clock-cells = <0>;
 		clock-frequency = <12000000>;
-	};
-
-	sound {
-		compatible = "simple-audio-card";
-		simple-audio-card,name = "tlv320aic3x-audio";
-		simple-audio-card,widgets =
-			"Headphone", "Headphone Jack",
-			"Microphone", "Mic Jack",
-			"Line", "Line Out";
-		simple-audio-card,routing =
-			"Headphone Jack", "HPLOUT",
-			"Headphone Jack", "HPROUT",
-			"Line Out", "HPLCOM",
-			"Line Out", "HPRCOM",
-			"MIC2R", "Mic Jack",
-			"Mic Jack", "Mic Bias";
-		simple-audio-card,format = "dsp_b";
-		simple-audio-card,bitclock-master = <&sound_master>;
-		simple-audio-card,frame-master = <&sound_master>;
-		simple-audio-card,bitclock-inversion;
-
-		simple-audio-card,cpu {
-			sound-dai = <&sai3>;
-		};
-
-		sound_master: simple-audio-card,codec {
-			sound-dai = <&tlv320aic3104>;
-			clocks = <&codec_ext_mclk>;
-		};
-	};
-
-	mdio_gpio: mdio-gpio {
-		compatible = "virtual,mdio-gpio";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_mdio_gpio>;
-		gpios = <&gpio4 0 GPIO_ACTIVE_HIGH>, /* mdc */
-			<&gpio4 1 GPIO_ACTIVE_HIGH>; /* mdio */
-
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		ethphy2: ethernet-phy2@1 { /* RTL8211F on baseboard */
-			compatible = "ethernet-phy-ieee802.3-c22";
-			reg = <1>;
-			reset-gpios = <&tca9555_a22 1 GPIO_ACTIVE_LOW>;
-			reset-assert-us = <35000>;
-			reset-deassert-us = <75000>;
-			eee-broken-1000t;
-			realtek,aldps-disable;
-			realtek,clkout-disable;
-		};
 	};
 
 	fan: pwm-fan {
 		compatible = "pwm-fan";
 		#cooling-cells = <2>;
-		pwms = <&pca9685_pwm 0 4000000>;
 		cooling-levels = <255 192 128 64>;
 		fan-supply = <&reg_fan>;
+		pwms = <&pca9685_pwm 0 4000000>;
 	};
 
-        reg_fan: regulator-fan {
+	leds {
+		compatible = "gpio-leds";
+
+		led0: led-0 {
+			default-state = "on";
+			gpios = <&tca9555_a21 2 GPIO_ACTIVE_HIGH>;
+			label = "user1";
+		};
+
+		led1: led-1 {
+			default-state = "on";
+			gpios = <&tca9555_a21 3 GPIO_ACTIVE_HIGH>;
+			label = "user2";
+		};
+	};
+
+	lvds0_backlight: backlight {
+		compatible = "pwm-backlight";
+		brightness-levels = <0 36 72 108 144 180 216 255>;
+		default-brightness-level = <6>;
+		/* LVDS0_BL_EN */
+		enable-gpios = <&tca9555_a21 1 GPIO_ACTIVE_HIGH>;
+		pwms = <&tpm5 0 50000 0>;
+		status = "disabled";
+	};
+
+	mdio_gpio: mdio {
+		compatible = "virtual,mdio-gpio";
+		#size-cells = <0>;
+		#address-cells = <1>;
+		gpios = <&gpio4 0 GPIO_ACTIVE_HIGH>, /* mdc */
+			<&gpio4 1 GPIO_ACTIVE_HIGH>; /* mdio */
+		pinctrl-0 = <&pinctrl_mdio_gpio>;
+		pinctrl-names = "default";
+
+		ethphy2: ethernet-phy2@1 {
+			reg = <1>;
+			/* RTL8211F on baseboard */
+			compatible = "ethernet-phy-ieee802.3-c22";
+			eee-broken-1000t;
+			reset-assert-us = <35000>;
+			reset-deassert-us = <75000>;
+			reset-gpios = <&tca9555_a22 1 GPIO_ACTIVE_LOW>;
+			realtek,aldps-disable;
+			realtek,clkout-disable;
+		};
+	};
+
+	reg_lvds_pwr: regulator-lvds-pwr {
+		/* LVDS0_VDDEN */
 		compatible = "regulator-fixed";
-		regulator-name = "fan-supply";
-		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
-		gpio = <&tca9555_c21 6 GPIO_ACTIVE_LOW>;
-		regulator-boot-on;
+		regulator-min-microvolt = <3300000>;
+		regulator-name = "lvds0_vdden";
+		gpio = <&tca9555_a21 0 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		status = "disabled";
 	};
 
 	reg_can1_stby: regulator-can1-stby {
 		compatible = "regulator-fixed";
-		regulator-name = "can1-stby";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		gpio = <&tca9555_c21 9 GPIO_ACTIVE_LOW>;
 		enable-active-low;
+		regulator-max-microvolt = <3300000>;
+		regulator-min-microvolt = <3300000>;
+		regulator-name = "can1-stby";
+		gpio = <&tca9555_c21 9 GPIO_ACTIVE_LOW>;
 	};
 
 	reg_can2_stby: regulator-can2-stby {
 		compatible = "regulator-fixed";
-		regulator-name = "can2-stby";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		gpio = <&tca9555_c21 10 GPIO_ACTIVE_LOW>;
 		enable-active-low;
+		regulator-max-microvolt = <3300000>;
+		regulator-min-microvolt = <3300000>;
+		regulator-name = "can2-stby";
+		gpio = <&tca9555_c21 10 GPIO_ACTIVE_LOW>;
+	};
+
+	reg_fan: regulator-fan {
+		compatible = "regulator-fixed";
+		regulator-boot-on;
+		regulator-max-microvolt = <3300000>;
+		regulator-min-microvolt = <3300000>;
+		regulator-name = "fan-supply";
+		gpio = <&tca9555_c21 6 GPIO_ACTIVE_LOW>;
+	};
+
+	reg_pcie0_pwr: regulator-pcie0-pwr {
+		/* PCIE1 M.2 B key */
+		compatible = "regulator-fixed";
+		enable-active-high;
+		regulator-max-microvolt = <3300000>;
+		regulator-min-microvolt = <3300000>;
+		regulator-name = "PCIe-0 slot-power";
+		/* M2_B_PWR_EN */
+		gpio = <&tca9555_c21 2 GPIO_ACTIVE_HIGH>;
+	};
+
+	reg_pcie1_pwr: regulator-pcie1-pwr {
+		/* PCIE2 M.2 M key_1 */
+		compatible = "regulator-fixed";
+		enable-active-high;
+		regulator-max-microvolt = <3300000>;
+		regulator-min-microvolt = <3300000>;
+		regulator-name = "PCIe-1 slot-power";
+		/* M2_M1_PWR_EN */
+		gpio = <&tca9555_c21 4 GPIO_ACTIVE_HIGH>;
+	};
+
+	reg_serdes_eth_phy_pwr: regulator-pcie1-pwr {
+		/* PCIE2 M.2 M key_2 */
+		compatible = "regulator-fixed";
+		enable-active-high;
+		regulator-always-on;
+		regulator-max-microvolt = <3300000>;
+		regulator-min-microvolt = <3300000>;
+		regulator-name = "SERDES ETH PHY PWR";
+		/* M2_M2_PWR_EN */
+		gpio = <&tca9555_c21 5 GPIO_ACTIVE_HIGH>;
+	};
+
+	sound {
+		compatible = "simple-audio-card";
+		simple-audio-card,bitclock-inversion;
+		simple-audio-card,bitclock-master = <&sound_master>;
+		simple-audio-card,format = "dsp_b";
+		simple-audio-card,frame-master = <&sound_master>;
+		simple-audio-card,name = "tlv320aic3x-audio";
+		simple-audio-card,routing = "Headphone Jack", "HPLOUT",
+			"Headphone Jack", "HPROUT",
+			"Line Out", "HPLCOM",
+			"Line Out", "HPRCOM",
+			"MIC2R", "Mic Jack",
+			"Mic Jack", "Mic Bias";
+		simple-audio-card,widgets = "Headphone", "Headphone Jack",
+			"Microphone", "Mic Jack",
+			"Line", "Line Out";
+
+		sound_master: simple-audio-card,codec {
+			clocks = <&codec_ext_mclk>;
+			sound-dai = <&tlv320aic3104>;
+		};
+
+		simple-audio-card,cpu {
+			sound-dai = <&sai3>;
+		};
+	};
+
+	usb_hub_rst: reset-controller {
+		compatible = "gpio-reset";
+		#reset-cells = <0>;
+		reset-delay-us = <10>;
+		reset-gpios = <&tca9555_c21 11 GPIO_ACTIVE_LOW>;
 	};
 };
 
-&thermal_zones {
-	a55 {
-		cooling-maps {
-			map1 {
-				trip = <&atrip2>;
-				cooling-device = <&fan 0 1>;
-			};
-			map2 {
-				trip = <&atrip3>;
-				cooling-device = <&fan 1 2>;
-			};
-			map3 {
-				trip = <&atrip4>;
-				cooling-device = <&fan 2 3>;
-			};
-		};
-	};
+&enetc_port0 {
+	/* RTL8211F on baseboard */
+	pinctrl-names = "default";
+	phy-handle = <&ethphy2>;
+	phy-mode = "rgmii-id";
+	pinctrl-0 = <&pinctrl_enetc0>;
+	status = "okay";
 };
 
 &flexcan1 {
@@ -217,14 +213,175 @@
 	status = "okay";
 };
 
-&pcie0 { /* PCIE1 M.2 B key */
+&lpi2c2 {
+	/* I2C_CSI on EDM */
+	tca9554_csi25: gpio@25 {
+		compatible = "nxp,pca9554";
+		reg = <0x25>;
+		#gpio-cells = <2>;
+		gpio-controller;
+		gpio-line-names = "EXPOSURE_TRIG_IN1", "FLASH_OUT1", "INFO_TRIG_IN1", "CAM_SHUTTER1", "PWR1_TIME0", "PWR1_TIME1", "PWR1_TIME2", "";
+		vcc-supply = <&reg_1p8v>;
+	};
+
+	usb_typec: usb-typec@47 {
+		compatible = "ti,hd3ss3220";
+		reg = <0x47>;
+		interrupts-extended = <&gpio2 7 IRQ_TYPE_LEVEL_LOW>;
+		pinctrl-0 = <&pinctrl_hd3ss3220_irq>;
+		pinctrl-names = "default";
+		vbus-supply = <&reg_usb_otg_vbus>;
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+
+				hd3ss3220_in_ep: endpoint {
+					remote-endpoint = <&otg1_out_ep>;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+
+				hd3ss3220_out_ep: endpoint {
+					remote-endpoint = <&otg1_in_ep>;
+				};
+			};
+		};
+	};
+
+	rtc_ds1337: rtc@68 {
+		compatible = "dallas,ds1337";
+		reg = <0x68>;
+		interrupt-parent = <&gpio2>;
+		interrupts = <13 IRQ_TYPE_LEVEL_LOW>;
+		pinctrl-0 = <&pinctrl_rtc_irq>;
+		pinctrl-names = "default";
+		wakeup-source;
+	};
+};
+
+&lpi2c3 {
+	/* I2C_C on EDM */
+	tca9555_c21: gpio@21 {
+		compatible = "nxp,pca9555";
+		reg = <0x21>;
+		#interrupt-cells = <2>;
+		interrupt-controller;
+		interrupt-parent = <&gpio4>;
+		interrupts = <29 IRQ_TYPE_LEVEL_LOW>;
+		#gpio-cells = <2>;
+		gpio-controller;
+		gpio-line-names = "M2_B_WWAN_WAKEN", "M2_B_WAN_DISABLEN", "M2_B_PWR_EN", "M2_B_RESET", "M2_M1_PWR_EN", "M2_M2_PWR_EN", "FAN_STBY", "USB_OTG_OC",
+						  "RTC_INTA", "CAN1_STB", "CAN2_STB", "USB_HUB_RESET", "CSI1_PDB", "CSI2_PDB", "VCONN_FAULT", "AUD_RST";
+		pinctrl-0 = <&pinctrl_tca9555_c21_irq>;
+		pinctrl-names = "default";
+		vcc-supply = <&reg_3p3v>;
+	};
+
+	pca9685_pwm:pwm@55 {
+		compatible = "nxp,pca9685-pwm";
+		reg = <0x55>;
+		#pwm-cells = <2>;
+	};
+};
+
+&lpi2c4 {
+	/* I2C_D on EDM */
+	pca9554_d23: gpio@23 {
+		compatible = "nxp,pca9554";
+		reg = <0x23>;
+		#gpio-cells = <2>;
+		gpio-controller;
+		gpio-line-names = "DSI1_VDDEN", "DSI1_BL_EN", "DSI1_TE", "DSI1_RST", "DSI1_INT_N", "TOUCH_RST", "EEPROM_WP", "";
+		vcc-supply = <&reg_3p3v>;
+	};
+
+	tca9554_d25: gpio@25 {
+		compatible = "nxp,pca9554";
+		reg = <0x25>;
+		#gpio-cells = <2>;
+		gpio-controller;
+		gpio-line-names = "EXPOSURE_TRIG_IN2", "FLASH_OUT2", "INFO_TRIG_IN2", "CAM_SHUTTER2", "PWR2_TIME0", "PWR2_TIME1", "PWR2_TIME2", "";
+		vcc-supply = <&reg_1p8v>;
+	};
+};
+
+&lpi2c5 {
+	/* I2C_B on EDM */
+	tlv320aic3104: audio-codec@18 {
+		compatible = "ti,tlv320aic3104";
+		AVDD-supply = <&reg_3p3v>;
+		#sound-dai-cells = <0>;
+		ai3x-micbias-vg = <1>;	/* 2.0V */
+		ai3x-ocmv = <0>;
+		DRVDD-supply = <&reg_3p3v>;
+		DVDD-supply = <&reg_1p8v>;
+		IOVDD-supply = <&reg_3p3v>;
+		reset-gpios = <&tca9555_c21 15 GPIO_ACTIVE_LOW>;
+		reg = <0x18>;
+	};
+
+	eeprom_baseboard: eeprom@51 {
+		compatible = "atmel,24c512";
+		reg = <0x51>;
+		pagesize = <128>;
+	};
+};
+
+&lpi2c6 {
+	/* Power monitor for VCC_12V_OUT */
+	hwmon_12v:hwmon@40 {
+		compatible = "ti,ina219";
+		reg = <0x40>;
+		/* .002 Ohm resistor = 2000 uOhms */
+		shunt-resistor = <2000>;
+	};
+
+	/* Power monitor for VIN_5V0 */
+	hwmon_5v:hwmon@45 {
+		compatible = "ti,ina219";
+		reg = <0x45>;
+		/* .002 Ohm resistor = 2000 uOhms */
+		shunt-resistor = <2000>;
+	};
+};
+
+&pcie0 {
+	/* PCIE1 M.2 B key */
 	vpcie-supply = <&reg_pcie0_pwr>;
 	status = "okay";
 };
 
-&pcie1 { /* PCIE2 M.2 M key_1 */
+&pcie1 {
+	/* PCIE2 M.2 M key_1 */
 	vpcie-supply = <&reg_pcie1_pwr>;
 	status = "okay";
+};
+
+&thermal_zones {
+	a55-thermal {
+		cooling-maps {
+			map1 {
+				cooling-device = <&fan 0 1>;
+				trip = <&atrip2>;
+			};
+
+			map2 {
+				cooling-device = <&fan 1 2>;
+				trip = <&atrip3>;
+			};
+
+			map3 {
+				cooling-device = <&fan 2 3>;
+				trip = <&atrip4>;
+			};
+		};
+	};
 };
 
 &usb2 {
@@ -237,6 +394,7 @@
 
 		port@0 {
 			reg = <0>;
+
 			otg1_out_ep: endpoint {
 				remote-endpoint = <&hd3ss3220_in_ep>;
 			};
@@ -244,6 +402,7 @@
 
 		port@1 {
 			reg = <1>;
+
 			otg1_in_ep: endpoint {
 				remote-endpoint = <&hd3ss3220_out_ep>;
 			};
@@ -257,167 +416,10 @@
 	status = "okay";
 };
 
-/* I2C_CSI on EDM */
-&lpi2c2 {
-	tca9554_csi25: gpio@25 {
-		compatible = "nxp,pca9554";
-		reg = <0x25>;
-		vcc-supply = <&reg_1p8v>;
-		gpio-controller;
-		#gpio-cells = <2>;
-		gpio-line-names = "EXPOSURE_TRIG_IN1", "FLASH_OUT1", "INFO_TRIG_IN1", "CAM_SHUTTER1", "PWR1_TIME0", "PWR1_TIME1", "PWR1_TIME2", "";
-	};
-
-	usb_typec: usb-typec@47 {
-		compatible = "ti,hd3ss3220";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_hd3ss3220_irq>;
-		interrupts-extended = <&gpio2 7 IRQ_TYPE_LEVEL_LOW>;
-		vbus-supply = <&reg_usb_otg_vbus>;
-		reg = <0x47>;
-
-		ports {
-			#address-cells = <1>;
-			#size-cells = <0>;
-
-			port@0 {
-				reg = <0>;
-				hd3ss3220_in_ep: endpoint {
-					remote-endpoint = <&otg1_out_ep>;
-				};
-			};
-
-			port@1 {
-				reg = <1>;
-				hd3ss3220_out_ep: endpoint {
-					remote-endpoint = <&otg1_in_ep>;
-				};
-			};
-		};
-	};
-
-	rtc_ds1337: rtc@68 {
-		compatible = "dallas,ds1337";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_rtc_irq>;
-		reg = <0x68>;
-		wakeup-source;
-		interrupt-parent = <&gpio2>;
-		interrupts = <13 IRQ_TYPE_LEVEL_LOW>;
-	};
-};
-
-/* I2C_C on EDM */
-&lpi2c3 {
-	tca9555_c21: gpio@21 {
-		compatible = "nxp,pca9555";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_tca9555_c21_irq>;
-		reg = <0x21>;
-		vcc-supply = <&reg_3p3v>;
-		gpio-controller;
-		#gpio-cells = <2>;
-		interrupt-controller;
-		#interrupt-cells = <2>;
-		interrupt-parent = <&gpio4>;
-		interrupts = <29 IRQ_TYPE_LEVEL_LOW>;
-		gpio-line-names = "M2_B_WWAN_WAKEN", "M2_B_WAN_DISABLEN", "M2_B_PWR_EN", "M2_B_RESET", "M2_M1_PWR_EN", "M2_M2_PWR_EN", "FAN_STBY", "USB_OTG_OC",
-						  "RTC_INTA", "CAN1_STB", "CAN2_STB", "USB_HUB_RESET", "CSI1_PDB", "CSI2_PDB", "VCONN_FAULT", "AUD_RST";
-	};
-
-	pca9685_pwm:pwm@55 {
-		compatible = "nxp,pca9685-pwm";
-		#pwm-cells = <2>;
-		reg = <0x55>;
-	};
-};
-
-/* I2C_D on EDM */
-&lpi2c4 {
-	pca9554_d23: gpio@23 {
-		compatible = "nxp,pca9554";
-		reg = <0x23>;
-		vcc-supply = <&reg_3p3v>;
-		gpio-controller;
-		#gpio-cells = <2>;
-		gpio-line-names = "DSI1_VDDEN", "DSI1_BL_EN", "DSI1_TE", "DSI1_RST", "DSI1_INT_N", "TOUCH_RST", "EEPROM_WP", "";
-	};
-
-	tca9554_d25: gpio@25 {
-		compatible = "nxp,pca9554";
-		reg = <0x25>;
-		vcc-supply = <&reg_1p8v>;
-		gpio-controller;
-		#gpio-cells = <2>;
-		gpio-line-names = "EXPOSURE_TRIG_IN2", "FLASH_OUT2", "INFO_TRIG_IN2", "CAM_SHUTTER2", "PWR2_TIME0", "PWR2_TIME1", "PWR2_TIME2", "";
-	};
-};
-
-/* I2C_B on EDM */
-&lpi2c5 {
-	tlv320aic3104: audio-codec@18 {
-		#sound-dai-cells = <0>;
-		compatible = "ti,tlv320aic3104"; /* ti,tlv320aic3x */
-		reg = <0x18>;
-		reset-gpios = <&tca9555_c21 15 GPIO_ACTIVE_LOW>;
-		ai3x-ocmv = <0>;
-		ai3x-micbias-vg = <1>;		/* 2.0V */
-
-		/* Regulators */
-		AVDD-supply = <&reg_3p3v>;
-		IOVDD-supply = <&reg_3p3v>;
-		DRVDD-supply = <&reg_3p3v>;
-		DVDD-supply = <&reg_1p8v>;
-	};
-
-	eeprom_baseboard: eeprom@51 {
-		compatible = "atmel,24c512";
-		reg = <0x51>;
-		pagesize = <128>;
-	};
-};
-
-
-&lpi2c6 {
-	/* Power monitor for VCC_12V_OUT */
-	hwmon_12v:hwmon@40 {
-		compatible = "ti,ina219";
-		reg = <0x40>;
-		shunt-resistor = <2000>; /* .002 Ohm resistor = 2000 uOhms*/
-	};
-
-	/* Power monitor for VIN_5V0 */
-	hwmon_5v:hwmon@45 {
-		compatible = "ti,ina219";
-		reg = <0x45>;
-		shunt-resistor = <2000>; /* .002 Ohm resistor = 2000 uOhms*/
-	};
-};
-
-&enetc_port0 {	/* RTL8211F on baseboard */
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_enetc0>;
-	phy-handle = <&ethphy2>;
-	phy-mode = "rgmii-id";
-	status = "okay";
-};
-
 &scmi_iomuxc {
 	pinctrl_hd3ss3220_irq: hd3ss3220_irqgrp {
 		fsl,pins = <
 			IMX95_PAD_GPIO_IO07__GPIO2_IO_BIT7			0x91e /* GPIO_IO1 */
-		>;
-	};
-
-	pinctrl_tca9555_c21_irq: tca9555_c21_irqgrp {
-		fsl,pins = <
-			IMX95_PAD_CCM_CLKO4__GPIO4_IO_BIT29			0x31e /* GPIO_IO4 */
-		>;
-	};
-
-	pinctrl_touch_irq: touch_irqgrp {
-		fsl,pins = <
-			IMX95_PAD_GPIO_IO17__GPIO2_IO_BIT17			0x31e   /* Touch INT */
 		>;
 	};
 
@@ -430,6 +432,18 @@
 	pinctrl_rtc_irq: rtcirqgrp {
 		fsl,pins = <
 			IMX95_PAD_GPIO_IO13__GPIO2_IO_BIT13			0x31e
+		>;
+	};
+
+	pinctrl_tca9555_c21_irq: tca9555_c21_irqgrp {
+		fsl,pins = <
+			IMX95_PAD_CCM_CLKO4__GPIO4_IO_BIT29			0x31e /* GPIO_IO4 */
+		>;
+	};
+
+	pinctrl_touch_irq: touch_irqgrp {
+		fsl,pins = <
+			IMX95_PAD_GPIO_IO17__GPIO2_IO_BIT17			0x31e   /* Touch INT */
 		>;
 	};
 };
