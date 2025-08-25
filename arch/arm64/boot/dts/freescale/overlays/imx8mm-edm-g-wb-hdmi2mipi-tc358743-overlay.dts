@@ -36,14 +36,14 @@
 	};
 
 	fragment@2 {
-		target = <&csi1_bridge>;
+		target = <&csi>;
 		__overlay__ {
 			status = "okay";
 		};
 	};
 
 	fragment@3 {
-		target = <&mipi_csi_1>;
+		target = <&mipi_csi>;
 		__overlay__ {
 			status = "okay";
 			#address-cells = <1>;
