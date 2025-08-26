@@ -140,23 +140,12 @@
 		/* PCIE2 M.2 M key_1 */
 		compatible = "regulator-fixed";
 		enable-active-high;
+		regulator-always-on;
 		regulator-max-microvolt = <3300000>;
 		regulator-min-microvolt = <3300000>;
 		regulator-name = "PCIe-1 slot-power";
 		/* M2_M1_PWR_EN */
 		gpio = <&tca9555_c21 4 GPIO_ACTIVE_HIGH>;
-	};
-
-	reg_serdes_eth_phy_pwr: regulator-pcie1-pwr {
-		/* PCIE2 M.2 M key_2 */
-		compatible = "regulator-fixed";
-		enable-active-high;
-		regulator-always-on;
-		regulator-max-microvolt = <3300000>;
-		regulator-min-microvolt = <3300000>;
-		regulator-name = "SERDES ETH PHY PWR";
-		/* M2_M2_PWR_EN */
-		gpio = <&tca9555_c21 5 GPIO_ACTIVE_HIGH>;
 	};
 
 	sound {
@@ -359,7 +348,7 @@
 
 &pcie1 {
 	/* PCIE2 M.2 M key_1 */
-	vpcie-supply = <&reg_pcie1_pwr>;
+	//vpcie-supply = <&reg_pcie1_pwr>;
 	status = "okay";
 };
 
