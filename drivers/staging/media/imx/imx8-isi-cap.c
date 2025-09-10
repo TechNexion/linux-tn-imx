@@ -1290,7 +1290,7 @@ static int mxc_isi_cap_enum_framesizes(struct file *file, void *priv,
 		return ret;
 
 	parent = of_get_parent(isi_cap->pdev->dev.of_node);
-	if ((of_device_is_compatible(parent, "fsl,imx8mp-isi")) &&
+	if ((of_device_is_compatible(parent, "nxp,imx8mp-isi")) &&
 	    (fse.max_width > ISI_2K || fse.min_width > ISI_2K) &&
 	    (isi_cap->id == 1))
 		return -EINVAL;
@@ -1347,7 +1347,7 @@ static int mxc_isi_cap_enum_frameintervals(struct file *file, void *fh,
 		return ret;
 
 	parent = of_get_parent(isi_cap->pdev->dev.of_node);
-	if (of_device_is_compatible(parent, "fsl,imx8mp-isi") &&
+	if (of_device_is_compatible(parent, "nxp,imx8mp-isi") &&
 	    fie.width > ISI_2K && isi_cap->id == 1)
 		return -EINVAL;
 
