@@ -192,13 +192,15 @@
 	status = "okay";
 };
 
-&flexcan1 {
-	xceiver-supply = <&reg_can1_stby>;
+&flexcan2 {
+	/* CAN_2 on EDM */
+	xceiver-supply = <&reg_can2_stby>;
 	status = "okay";
 };
 
-&flexcan2 {
-	xceiver-supply = <&reg_can2_stby>;
+&flexcan3 {
+	/* CAN_1 on EDM */
+	xceiver-supply = <&reg_can1_stby>;
 	status = "okay";
 };
 
@@ -261,8 +263,8 @@
 		reg = <0x21>;
 		#interrupt-cells = <2>;
 		interrupt-controller;
-		interrupt-parent = <&gpio4>;
-		interrupts = <29 IRQ_TYPE_LEVEL_LOW>;
+		interrupt-parent = <&gpio2>;
+		interrupts = <12 IRQ_TYPE_LEVEL_LOW>;
 		#gpio-cells = <2>;
 		gpio-controller;
 		gpio-line-names = "M2_B_WWAN_WAKEN", "M2_B_WAN_DISABLEN", "M2_B_PWR_EN", "M2_B_RESET", "M2_M1_PWR_EN", "M2_M2_PWR_EN", "FAN_STBY", "USB_OTG_OC",
@@ -374,7 +376,20 @@
 };
 
 &usb2 {
+	dr_mode = "host";
+	reset = <&usb_hub_rst>;
+	status = "okay";
+};
+
+&usb3_dwc3 {
 	dr_mode = "otg";
+	hnp-disable;
+	srp-disable;
+	adp-disable;
+	usb-role-switch;
+	role-switch-default-mode = "none";
+	snps,dis-u1-entry-quirk;
+	snps,dis-u2-entry-quirk;
 	status = "okay";
 
 	ports {
@@ -399,12 +414,6 @@
 	};
 };
 
-&usb3_dwc3 {
-	dr_mode = "host";
-	reset = <&usb_hub_rst>;
-	status = "okay";
-};
-
 &scmi_iomuxc {
 	pinctrl_hd3ss3220_irq: hd3ss3220_irqgrp {
 		fsl,pins = <
@@ -426,7 +435,7 @@
 
 	pinctrl_tca9555_c21_irq: tca9555_c21_irqgrp {
 		fsl,pins = <
-			IMX95_PAD_CCM_CLKO4__GPIO4_IO_BIT29			0x31e /* GPIO_IO4 */
+			IMX95_PAD_GPIO_IO12__GPIO2_IO_BIT12			0x31e /* GPIO_IO4 */
 		>;
 	};
 
