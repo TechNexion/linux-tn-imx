@@ -201,7 +201,7 @@ static int ds90ub94x_init_atr(struct ds90ub94x *priv)
 	struct i2c_adapter *parent_adap = priv->client->adapter;
 
 	priv->atr = i2c_atr_new(parent_adap, dev, &ds90ub94x_atr_ops,
-				ADAPTER_NUM);
+				ADAPTER_NUM, 0);
 	if (IS_ERR(priv->atr))
 		return PTR_ERR(priv->atr);
 
