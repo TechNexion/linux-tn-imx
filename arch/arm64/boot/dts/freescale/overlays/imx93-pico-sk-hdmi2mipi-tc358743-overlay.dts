@@ -22,7 +22,6 @@
 				compatible = "nxp,imx-audio-tc358743", "nxp,imx-tc358743";
 				cpu-dai = <&sai2>;
 				nxp,audio-codec = <&hdmi_in>;
-				clocks = <&clk IMX93_CLK_SAI2>;
 				status = "okay";
 			};
 		};
@@ -61,7 +60,7 @@
 				reg = <0>;
 				mipi_csi_ep: endpoint {
 					remote-endpoint = <&tc358743_out>;
-					data-lanes = <2>;
+					data-lanes = <1 2>;
 					cfg-clk-range = <28>;
 					hs-clk-range = <0x18>;
 					bus-type = <4>;
@@ -100,6 +99,15 @@
 					};
 				};
 			};
+		};
+	};
+
+	fragment@5 {
+		target = <&dphy_rx>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
 		};
 	};
 };
