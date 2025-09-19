@@ -106,7 +106,7 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
-		enable-gpios = <&tca9555_a21 4 GPIO_ACTIVE_LOW>;
+		enable-gpios = <&tca9555_c21 13 GPIO_ACTIVE_HIGH>;
 
 		i2c-alias-pool = <0x41 0x42 0x43 0x44>;
 
