@@ -53,6 +53,7 @@
 		regulator-max-microvolt = <3300000>;
 		gpio = <&tca9555_a21 7 GPIO_ACTIVE_HIGH>;	/*	DSI_PWR_EN */
 		enable-active-high;
+		startup-delay-us = <70000>;
 		regulator-always-on;
 	};
 };
