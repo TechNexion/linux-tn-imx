@@ -192,7 +192,7 @@
 					data-lanes = <1 2 3 4>;
 					clock-lanes = <0>;
 					bus-type = <4>;
-					link-frequencies = /bits/ 64 <800000000>;
+					link-frequencies = /bits/ 64 <1250000000>;
 					remote-endpoint = <&mipi_csi1_ep>;
 				};
 			};
@@ -255,15 +255,13 @@
 					reset-gpios = <&cam_4_expander 4 GPIO_ACTIVE_HIGH>;
 					standby-gpios = <&cam_4_expander 2 GPIO_ACTIVE_HIGH>;
 
-					data-lanes = <4>;
-					data-frequency = <400>;
-					continuous-clock = <0>;
-
 					port {
 						cam_4_out: endpoint {
 							remote-endpoint = <&ser_4_csi_in>;
 							data-lanes = <1 2 3 4>;
 							clock-lanes = <0>;
+							clock-noncontinuous;
+							link-frequencies = /bits/ 64 <400000000>;
 						};
 					};
 				};
@@ -350,15 +348,13 @@
 					reset-gpios = <&cam_5_expander 4 GPIO_ACTIVE_HIGH>;
 					standby-gpios = <&cam_5_expander 2 GPIO_ACTIVE_HIGH>;
 
-					data-lanes = <4>;
-					data-frequency = <400>;
-					continuous-clock = <0>;
-
 					port {
 						cam_5_out: endpoint {
 							remote-endpoint = <&ser_5_csi_in>;
 							data-lanes = <1 2 3 4>;
 							clock-lanes = <0>;
+							clock-noncontinuous;
+							link-frequencies = /bits/ 64 <400000000>;
 						};
 					};
 				};
@@ -443,15 +439,13 @@
 					reset-gpios = <&cam_6_expander 4 GPIO_ACTIVE_HIGH>;
 					standby-gpios = <&cam_6_expander 2 GPIO_ACTIVE_HIGH>;
 
-					data-lanes = <4>;
-					data-frequency = <400>;
-					continuous-clock = <0>;
-
 					port {
 						cam_6_out: endpoint {
 							remote-endpoint = <&ser_6_csi_in>;
 							data-lanes = <1 2 3 4>;
 							clock-lanes = <0>;
+							clock-noncontinuous;
+							link-frequencies = /bits/ 64 <400000000>;
 						};
 					};
 				};
@@ -536,15 +530,13 @@
 					reset-gpios = <&cam_7_expander 4 GPIO_ACTIVE_HIGH>;
 					standby-gpios = <&cam_7_expander 2 GPIO_ACTIVE_HIGH>;
 
-					data-lanes = <4>;
-					data-frequency = <400>;
-					continuous-clock = <0>;
-
 					port {
 						cam_7_out: endpoint {
 							remote-endpoint = <&ser_7_csi_in>;
 							data-lanes = <1 2 3 4>;
 							clock-lanes = <0>;
+							clock-noncontinuous;
+							link-frequencies = /bits/ 64 <400000000>;
 						};
 					};
 				};
