@@ -562,6 +562,7 @@ static void imx7d_pcie_wait_for_phy_pll_lock(struct imx_pcie *imx_pcie)
 
 static int imx95_pcie_wait_for_phy_pll_lock(struct imx_pcie *imx_pcie)
 {
+#if 0
 	u32 val;
 	struct device *dev = imx_pcie->pci->dev;
 
@@ -576,6 +577,7 @@ static int imx95_pcie_wait_for_phy_pll_lock(struct imx_pcie *imx_pcie)
 	}
 
 	imx_pcie->pll_locked = true;
+#endif
 	return 0;
 }
 
@@ -942,6 +944,7 @@ static int imx7d_pcie_core_reset(struct imx_pcie *imx_pcie, bool assert)
 
 static int imx95_pcie_core_reset(struct imx_pcie *imx_pcie, bool assert)
 {
+#if 0
 	u32 val;
 
 	if (assert) {
@@ -974,6 +977,7 @@ static int imx95_pcie_core_reset(struct imx_pcie *imx_pcie, bool assert)
 		udelay(10);
 	}
 
+#endif
 	return 0;
 }
 
