@@ -596,6 +596,7 @@ static void imx7d_pcie_wait_for_phy_pll_lock(struct imx_pcie *imx_pcie)
 		dev_err(dev, "PCIe PLL lock timeout\n");
 }
 
+#if 0
 static int imx95_pcie_wait_for_phy_pll_lock(struct imx_pcie *imx_pcie)
 {
 	u32 val;
@@ -612,6 +613,7 @@ static int imx95_pcie_wait_for_phy_pll_lock(struct imx_pcie *imx_pcie)
 
 	return 0;
 }
+#endif
 
 static int imx_setup_phy_mpll(struct imx_pcie *imx_pcie)
 {
@@ -926,6 +928,7 @@ static int imx7d_pcie_core_reset(struct imx_pcie *imx_pcie, bool assert)
 	return 0;
 }
 
+#if 0
 static int imx95_pcie_core_reset(struct imx_pcie *imx_pcie, bool assert)
 {
 	u32 val;
@@ -964,6 +967,7 @@ static int imx95_pcie_core_reset(struct imx_pcie *imx_pcie, bool assert)
 
 	return 0;
 }
+#endif
 
 static void imx_pcie_assert_core_reset(struct imx_pcie *imx_pcie)
 {
@@ -2182,7 +2186,9 @@ static const struct imx_pcie_drvdata drvdata[] = {
 		.mode_off[0]  = IMX95_PE0_GEN_CTRL_1,
 		.mode_mask[0] = IMX95_PCIE_DEVICE_TYPE,
 		.init_phy = imx95_pcie_init_phy,
+		#if 0
 		.core_reset = imx95_pcie_core_reset,
+		#endif
 		.post_config = imx95_pcie_post_config,
 	},
 	[IMX6Q_EP] = {
