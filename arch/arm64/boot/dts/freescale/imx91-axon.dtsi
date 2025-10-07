@@ -318,6 +318,11 @@
 	fsl,uart-has-rtscts;
 	resets = <&bt_reg_on>;
 	status = "okay";
+
+	bluetooth {
+		compatible = "nxp,88w8997-bt";
+		fw-init-baudrate = <3000000>;
+	};
 };
 
 &lpm {
