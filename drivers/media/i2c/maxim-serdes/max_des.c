@@ -20,6 +20,8 @@
 #include "max_ser.h"
 #include "max_serdes.h"
 
+#define MAX_DES_PCLK		25000000ull	// Pixel mode: PCLK = Received MIPI data rate/bpp
+
 #define MAX_DES_LINK_FREQUENCY_MIN		100000000ull
 #define MAX_DES_LINK_FREQUENCY_DEFAULT		750000000ull
 #define MAX_DES_LINK_FREQUENCY_MAX		1250000000ull
@@ -1564,6 +1566,12 @@ static int max_des_init(struct max_des_priv *priv)
 			return ret;
 	}
 
+	if (des->ops->init_fsync) {
+		ret = des->ops->init_fsync(des, des->fsync);
+		if (ret)
+			return ret;
+	}
+
 	if (!des->ops->init_link)
 		return 0;
 
@@ -1580,6 +1588,46 @@ static int max_des_init(struct max_des_priv *priv)
 
 	return 0;
 }
+
+static int max_des_parse_fsync(struct max_des_priv *priv)
+{
+	struct device *dev = &priv->client->dev;
+	char const *fsync_mode;
+	u32 fsync_freq = 0;
+	int ret;
+
+	dev_dbg(priv->dev, "%s()\n", __func__);
+
+	if (of_property_read_string(dev->of_node, "fsync-mode", &fsync_mode)) {
+		return 0;
+	}
+
+	dev_dbg(priv->dev, "mode: %s\n", fsync_mode);
+
+	if (!strcmp("internal", fsync_mode) ||
+		!strcmp("internal-output", fsync_mode)) {
+		ret = of_property_read_u32(dev->of_node, "fsync-freq", &fsync_freq);
+		if (ret) {
+			dev_err(priv->dev, "fsync-freq not found: %d\n", ret);
+			return ret;
+		}
+		priv->des->fsync->freq = MAX_DES_PCLK / fsync_freq;
+
+		if (!strcmp("internal-output", fsync_mode))
+			priv->des->fsync->internal_output = true;
+		else
+			priv->des->fsync->internal = true;
+	}
+	else if (!strcmp("external", fsync_mode)) {
+		priv->des->fsync->external = true;
+	}
+	else {
+		dev_warn(priv->dev, "unknow fsync-mode");
+	}
+
+	return 0;
+}
+
 
 static void max_des_ser_find_version_range(struct max_des *des, int *min, int *max)
 {
@@ -3172,6 +3220,11 @@ static int max_des_allocate(struct max_des_priv *priv)
 	if (!des->links)
 		return -ENOMEM;
 
+	des->fsync = devm_kcalloc(priv->dev, 1,
+				  sizeof(*des->fsync), GFP_KERNEL);
+	if (!des->fsync)
+		return -ENOMEM;
+
 	priv->sources = devm_kcalloc(priv->dev, des->ops->num_links,
 				     sizeof(*priv->sources), GFP_KERNEL);
 	if (!priv->sources)
@@ -3239,6 +3292,10 @@ int max_des_probe(struct i2c_client *client, struct max_des *des)
 		return ret;
 
 	ret = max_des_parse_dt(priv);
+	if (ret)
+		return ret;
+
+	ret = max_des_parse_fsync(priv);
 	if (ret)
 		return ret;
 
