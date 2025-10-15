@@ -666,7 +666,7 @@
 					data-lanes = <1 2 3 4>;
 					clock-lanes = <0>;
 					bus-type = <4>;
-					link-frequencies = /bits/ 64 <1250000000>;
+					link-frequencies = /bits/ 64 <750000000>;
 					remote-endpoint = <&mipi_csi1_ep>;
 				};
 			};
