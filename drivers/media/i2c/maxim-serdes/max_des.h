@@ -64,6 +64,13 @@ struct max_des_phy {
 	bool enabled;
 };
 
+struct max_des_fsync {
+	unsigned int freq;
+	bool internal_output;
+	bool internal;
+	bool external;
+};
+
 struct max_des;
 
 struct max_des_ops {
@@ -119,6 +126,7 @@ struct max_des_ops {
 	int (*set_pipe_tunnel_enable)(struct max_des *des, struct max_des_pipe *pipe,
 				      bool enable);
 	int (*init_link)(struct max_des *des, struct max_des_link *link);
+	int (*init_fsync)(struct max_des *des, struct max_des_fsync *fsync);
 	int (*select_links)(struct max_des *des, unsigned int mask);
 	int (*set_link_version)(struct max_des *des, struct max_des_link *link,
 				enum max_serdes_gmsl_version version);
@@ -134,6 +142,7 @@ struct max_des {
 	struct max_des_phy *phys;
 	struct max_des_pipe *pipes;
 	struct max_des_link *links;
+	struct max_des_fsync *fsync;
 	const struct max_serdes_tpg_entry *tpg_entry;
 	enum max_serdes_tpg_pattern tpg_pattern;
 

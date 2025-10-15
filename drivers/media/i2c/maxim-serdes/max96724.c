@@ -78,6 +78,66 @@
 #define MAX96724_BACKTOP32_BPP10DBL1		BIT(6)
 #define MAX96724_BACKTOP32_BPP10DBL1_MODE	BIT(7)
 
+/* FSYNC */
+#define MAX96724_FSYNC_0				  0x04a0
+#define   FSYNC_METH_MASK				  GENMASK(1, 0)
+#define   FSYNC_METH_SHIFT				  0
+#define   FSYNC_MODE_MASK				  GENMASK(3, 2)
+#define   FSYNC_MODE_SHIFT				  2
+#define   EN_VS_GEN					  BIT(4)
+#define   FSYNC_OUT_PIN					  BIT(5)
+#define MAX96724_FSYNC_1				  0x04a1
+#define   FSYNC_PER_DIV_MASK				  GENMASK(3, 0)
+#define   FSYNC_PER_DIV_SHIFT				  0
+#define MAX96724_FSYNC_2				  0x04a2
+#define   K_VAL_MASK					  GENMASK(3, 0)
+#define   K_VAL_SHIFT					  0
+#define   K_VAL_SIGN					  BIT(4)
+#define   MST_LINK_SEL_MASK				  GENMASK(7, 5)
+#define   MST_LINK_SEL_SHIFT				  5
+#define MAX96724_FSYNC_P_VAL_L				  0x04a3
+#define MAX96724_FSYNC_4				  0x04a4
+#define   P_VAL_H_MASK					  GENMASK(4, 0)
+#define   P_VAL_H_SHIFT					  0
+#define   P_VAL_SIGN					  BIT(5)
+#define MAX96724_FSYNC_PERIOD_L				  0x04a5
+#define MAX96724_FSYNC_PERIOD_M				  0x04a6
+#define MAX96724_FSYNC_PERIOD_H				  0x04a7
+#define MAX96724_FSYNC_FRM_DIFF_ERR_THR_L		  0x04a8
+#define MAX96724_FSYNC_9				  0x04a9
+#define   FRM_DIFF_ERR_THR_H_MASK			  GENMASK(4, 0)
+#define   FRM_DIFF_ERR_THR_H_SHIFT			  0
+#define MAX96724_FSYNC_OVLP_WINDOW_L			  0x04aa
+#define MAX96724_FSYNC_11				  0x04ab
+#define   OVLP_WINDOW_H_MASK				  GENMASK(4, 0)
+#define   OVLP_WINDOW_H_SHIFT				  0
+#define   EN_FSIN_LAST					  BIT(7)
+#define MAX96724_FSYNC_15				  0x04af
+#define   FS_LINK_0					  BIT(0)
+#define   FS_LINK_1					  BIT(1)
+#define   FS_LINK_2					  BIT(2)
+#define   FS_LINK_3					  BIT(3)
+#define   AUTO_FS_LINKS					  BIT(4)
+#define   FS_USE_XTAL					  BIT(6)
+#define   FS_GPIO_TYPE					  BIT(7)
+#define MAX96724_FSYNC_ERR_CNT				  0x04b0
+#define MAX96724_FSYNC_17				  0x04b1
+#define   FSYNC_ERR_THR_MASK				  GENMASK(2, 0)
+#define   FSYNC_ERR_THR_SHIFT				  0
+#define   FSYNC_TX_ID_MASK				  GENMASK(7, 3)
+#define   FSYNC_TX_ID_SHIFT				  3
+#define MAX96724_FSYNC_CALC_FRM_LEN_L			  0x04b2
+#define MAX96724_FSYNC_CALC_FRM_LEN_M			  0x04b3
+#define MAX96724_FSYNC_CALC_FRM_LEN_H			  0x04b4
+#define MAX96724_FSYNC_FRM_DIFF_L			  0x04b5
+#define MAX96724_FSYNC_22				  0x04b6
+#define   FRM_DIFF_H_MASK				  GENMASK(5, 0)
+#define   FRM_DIFF_H_SHIFT				  0
+#define   FSYNC_LOCKED					  BIT(6)
+#define   FSYNC_LOSS_OF_LOCK				  BIT(7)
+#define MAX96724_FSYNC_23				  0x04b7
+#define   FSYNC_RST_MODE				  BIT(5)
+
 #define MAX96724_MIPI_PHY0			0x8a0
 #define MAX96724_MIPI_PHY0_PHY_CONFIG		GENMASK(4, 0)
 #define MAX96724_MIPI_PHY0_PHY_4X2		BIT(0)
@@ -757,6 +817,35 @@ static int max96724_set_phy_enable(struct max_des *des, struct max_des_phy *phy,
 	// return regmap_assign_bits(priv->regmap, MAX96724_MIPI_PHY2, mask, enable);
 }
 
+static int max96724_init_fsync(struct max_des *des, struct max_des_fsync *fsync)
+{
+	struct max96724_priv *priv = des_to_priv(des);
+	int ret = 0;
+
+	dev_dbg(priv->dev, "%s()\n", __func__);
+
+	if (fsync->internal || fsync->internal_output) {
+		dev_dbg(priv->dev, "fsync internal freq: %d\n", fsync->freq);
+		ret = regmap_write(priv->regmap, MAX96724_FSYNC_17, 0x00);
+		ret += regmap_write(priv->regmap, MAX96724_FSYNC_2, 0x01);
+		ret += regmap_write(priv->regmap, MAX96724_FSYNC_PERIOD_H, (fsync->freq >> 16) & 0xff);
+		ret += regmap_write(priv->regmap, MAX96724_FSYNC_PERIOD_M, (fsync->freq >> 8) & 0xff);
+		ret += regmap_write(priv->regmap, MAX96724_FSYNC_PERIOD_L, (fsync->freq >> 0) & 0xff);
+		ret += regmap_write(priv->regmap, MAX96724_FSYNC_15, 0xcf);	// Set GMSL2 type, enable clock for internal frame sync single.
+																	// Include video pipe 0,1,2,3 in frame sync.
+		ret += regmap_set_bits(priv->regmap, MAX96724_FSYNC_0, FSYNC_OUT_PIN);
+		ret += regmap_update_bits(priv->regmap, MAX96724_FSYNC_0, FSYNC_MODE_MASK,
+					  0x01 << FSYNC_MODE_SHIFT);
+	}
+	else if (fsync->external) {
+		dev_dbg(priv->dev, "fsync external\n");
+		ret = regmap_update_bits(priv->regmap, MAX96724_FSYNC_0, FSYNC_MODE_MASK,
+					  0x10 << FSYNC_MODE_SHIFT);
+	}
+
+	return ret;
+}
+
 static int max96724_set_pipe_remap(struct max_des *des,
 				   struct max_des_pipe *pipe,
 				   unsigned int i,
@@ -1200,6 +1289,7 @@ static const struct max_des_ops max96724_ops = {
 	.init_phy = max96724_init_phy,
 	.set_phy_mode = max96724_set_phy_mode,
 	.set_phy_enable = max96724_set_phy_enable,
+	.init_fsync = max96724_init_fsync,
 	.set_pipe_stream_id = max96724_set_pipe_stream_id,
 	.set_pipe_link = max96724_set_pipe_link,
 	.set_pipe_enable = max96724_set_pipe_enable,
