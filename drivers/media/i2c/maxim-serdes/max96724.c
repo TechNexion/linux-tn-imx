@@ -50,6 +50,27 @@
 #define MAX96724_VPRBS_PATGEN_CLK_SRC_150MHZ	0b0
 #define MAX96724_VPRBS_PATGEN_CLK_SRC_375MHZ	0b1
 
+/* GPIO_A: 0 <= gpio < 11 */
+#define MAX96724_GPIO_A_A_7				  (0x0316)
+#define   GPIO_OUT_DIS					  BIT(0)
+#define   GPIO_TX_EN_A					  BIT(1)
+#define   GPIO_RX_EN_A					  BIT(2)
+#define   GPIO_IN					  BIT(3)
+#define   GPIO_OUT					  BIT(4)
+#define   TX_COMP_EN_A					  BIT(5)
+#define   RES_CFG					  BIT(7)
+#define MAX96724_GPIO_A_B_7				  (0x0317)
+/* GPIO_B: 0 <= gpio < 11 */
+#define MAX96724_GPIO_B_B_7				  (0x034d)
+/* GPIO_C: 0 <= gpio < 11 */
+#define MAX96724_GPIO_C_B_7			 	  (0x0384)
+/* GPIO_D: 0 <= gpio < 11 */
+#define MAX96724_GPIO_D_B_7				  (0x03ba)
+#define   GPIO_TX_ID_MASK				  GENMASK(4, 0)
+#define   GPIO_TX_ID_SHIFT				  0
+#define   GPIO_TX_EN					  BIT(5)
+#define   TX_COMP_EN					  BIT(6)
+
 #define MAX96724_BACKTOP12			0x40b
 #define MAX96724_BACKTOP12_CSI_OUT_EN		BIT(1)
 
@@ -833,14 +854,23 @@ static int max96724_init_fsync(struct max_des *des, struct max_des_fsync *fsync)
 		ret += regmap_write(priv->regmap, MAX96724_FSYNC_PERIOD_L, (fsync->freq >> 0) & 0xff);
 		ret += regmap_write(priv->regmap, MAX96724_FSYNC_15, 0xcf);	// Set GMSL2 type, enable clock for internal frame sync single.
 																	// Include video pipe 0,1,2,3 in frame sync.
-		ret += regmap_set_bits(priv->regmap, MAX96724_FSYNC_0, FSYNC_OUT_PIN);
 		ret += regmap_update_bits(priv->regmap, MAX96724_FSYNC_0, FSYNC_MODE_MASK,
 					  0x01 << FSYNC_MODE_SHIFT);
 	}
 	else if (fsync->external) {
 		dev_dbg(priv->dev, "fsync external\n");
-		ret = regmap_update_bits(priv->regmap, MAX96724_FSYNC_0, FSYNC_MODE_MASK,
-					  0x10 << FSYNC_MODE_SHIFT);
+		ret = regmap_update_bits(priv->regmap, MAX96724_FSYNC_17, FSYNC_TX_ID_MASK,
+					  0x07 << FSYNC_TX_ID_SHIFT);	//MFP7 get fsync
+		ret += regmap_write(priv->regmap, MAX96724_FSYNC_2, 0x01);
+		ret += regmap_write(priv->regmap, MAX96724_GPIO_A_A_7, 0x83);
+		ret += regmap_write(priv->regmap, MAX96724_GPIO_A_B_7, 0x27);
+		ret += regmap_write(priv->regmap, MAX96724_GPIO_B_B_7, 0x27);
+		ret += regmap_write(priv->regmap, MAX96724_GPIO_C_B_7, 0x27);
+		ret += regmap_write(priv->regmap, MAX96724_GPIO_D_B_7, 0x27);
+		ret += regmap_write(priv->regmap, MAX96724_FSYNC_15, 0x9f);	// Set GMSL2 type, disable clock.
+																	// Include video pipe 0,1,2,3 in frame sync.
+		ret += regmap_update_bits(priv->regmap, MAX96724_FSYNC_0, FSYNC_MODE_MASK,
+					  0x02 << FSYNC_MODE_SHIFT);
 	}
 
 	return ret;
