@@ -925,6 +925,7 @@ dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-vls-gm2-csi0-lvds-vl10112880.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-vls-gm2-csi1-lvds-vl10112880.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-vls-gm2-lvds-vl10112880.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-vls-gm2-fsync-lvds-vl10112880.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-vls-gm2-ext-fsync-lvds-vl10112880.dtb
 
 dtb-$(CONFIG_ARCH_S32) += s32g274a-evb.dtb
 dtb-$(CONFIG_ARCH_S32) += s32g274a-rdb2.dtb
