@@ -10,6 +10,7 @@
 
 #include <dt-bindings/phy/phy-imx8-pcie.h>
 #include "imx95-edm.dtsi"
+#include <dt-bindings/i3c/i3c.h>
 
 / {
 	compatible = "fsl,imx95-edm", "fsl,imx95";
@@ -202,6 +203,20 @@
 	/* CAN_1 on EDM */
 	xceiver-supply = <&reg_can1_stby>;
 	status = "okay";
+};
+
+
+&i3c2 {
+	/* I3C shares the same pins as MDIO on baseboard */
+	i3c-scl-hz = <100000>;
+	pinctrl-0 = <&pinctrl_i3c2>;
+	pinctrl-names = "default";
+	status = "disabled";
+
+	p3t1035: temp-sensor@72,236152b00e4 {
+		reg = <0x72 0x236 0x152b00e4>;
+		assigned-address = <0x72>;
+	};
 };
 
 &lpi2c2 {
