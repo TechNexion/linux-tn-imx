@@ -750,6 +750,13 @@
 		>;
 	};
 
+	pinctrl_i3c2: i3c2grp {
+		fsl,pins = <
+			IMX95_PAD_ENET1_MDC__I3C2_SCL			0x4000099e
+			IMX95_PAD_ENET1_MDIO__I3C2_SDA			0x4000099e
+		>;
+	};
+
 	pinctrl_mipi_dsi_csi: mipidsigrp {
 		fsl,pins = <
 			IMX95_PAD_CCM_CLKO2__GPIO3_IO_BIT27			0x31e
