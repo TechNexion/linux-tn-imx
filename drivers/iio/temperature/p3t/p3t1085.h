@@ -19,6 +19,7 @@
 
 enum p3t1085_hw_id {
 	P3T1085_ID,
+	P3T1035_ID
 };
 
 struct p3t1085_data {

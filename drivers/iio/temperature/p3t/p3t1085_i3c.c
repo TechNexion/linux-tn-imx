@@ -16,6 +16,7 @@
 
 static const struct i3c_device_id p3t1085_i3c_ids[] = {
 	I3C_DEVICE(0x011B, 0x1529, (void *)P3T1085_ID),
+	I3C_DEVICE(0x011B, 0x152B, (void *)P3T1035_ID),
 	{ /* sentinel */ },
 };
 MODULE_DEVICE_TABLE(i3c, p3t1085_i3c_ids);
