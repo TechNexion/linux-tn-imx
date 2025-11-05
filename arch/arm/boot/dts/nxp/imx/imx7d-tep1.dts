@@ -21,3 +21,7 @@
 &epdc {
 	status = "disabled";
 };
+
+&pcie {
+	status = "disabled";
+};
