@@ -29,7 +29,6 @@ static struct resolution ar0144_res_list[] = {
 
 static u32 ar0144_code_list[] = {
 	MEDIA_BUS_FMT_UYVY8_1X16,
-	MEDIA_BUS_FMT_SGRBG12_1X12,
 };
 
 /* AR0145 default setting for 4 data lanes and data frequency 800 MHz */
@@ -41,7 +40,6 @@ static struct resolution ar0145_res_list[] = {
 
 static u32 ar0145_code_list[] = {
 	MEDIA_BUS_FMT_UYVY8_1X16,
-	MEDIA_BUS_FMT_SGRBG10_1X10,
 };
 
 /* AR0234 default setting for 4 data lanes and data frequency 800 MHz */
@@ -54,7 +52,6 @@ static struct resolution ar0234_res_list[] = {
 
 static u32 ar0234_code_list[] = {
 	MEDIA_BUS_FMT_UYVY8_1X16,
-	MEDIA_BUS_FMT_SGRBG10_1X10,
 };
 
 /* AR0521 default setting for 4 data lanes and data frequency 800 MHz */
@@ -69,8 +66,6 @@ static struct resolution ar0521_res_list[] = {
 
 static u32 ar0521_code_list[] = {
 	MEDIA_BUS_FMT_UYVY8_1X16,
-	MEDIA_BUS_FMT_SGRBG10_1X10,
-	MEDIA_BUS_FMT_SGRBG12_1X12,
 };
 
 /* AR0522 default setting for 4 data lanes and data frequency 800 MHz */
@@ -85,8 +80,6 @@ static struct resolution ar0522_res_list[] = {
 
 static u32 ar0522_code_list[] = {
 	MEDIA_BUS_FMT_UYVY8_1X16,
-	MEDIA_BUS_FMT_SGRBG10_1X10,
-	MEDIA_BUS_FMT_SGRBG12_1X12,
 };
 
 /* AR0821 default setting for 4 data lanes and data frequency 800 MHz */
@@ -100,8 +93,6 @@ static struct resolution ar0821_res_list[] = {
 
 static u32 ar0821_code_list[] = {
 	MEDIA_BUS_FMT_UYVY8_1X16,
-	MEDIA_BUS_FMT_SGRBG12_1X12,
-	MEDIA_BUS_FMT_SGRBG16_1X16,
 };
 
 /* AR0822 default setting for 4 data lanes and data frequency 800 MHz */
@@ -115,8 +106,6 @@ static struct resolution ar0822_res_list[] = {
 
 static u32 ar0822_code_list[] = {
 	MEDIA_BUS_FMT_UYVY8_1X16,
-	MEDIA_BUS_FMT_SGRBG12_1X12,
-	MEDIA_BUS_FMT_SGRBG16_1X16,
 };
 
 /* AR1335 default setting for 4 data lanes and data frequency 800 MHz */
@@ -131,7 +120,6 @@ static struct resolution ar1335_res_list[] = {
 
 static u32 ar1335_code_list[] = {
 	MEDIA_BUS_FMT_UYVY8_1X16,
-	MEDIA_BUS_FMT_SGRBG10_1X10,
 };
 
 struct sensor_info {
