@@ -1295,10 +1295,6 @@ static int mxc_isi_cap_enum_framesizes(struct file *file, void *priv,
 	    (isi_cap->id == 1))
 		return -EINVAL;
 
-	if ((of_device_is_compatible(parent, "fsl,imx93-isi")) &&
-	    (fse.max_width > ISI_2K || fse.min_width > ISI_2K))
-		return -EINVAL;
-
 	if (fse.min_width == fse.max_width &&
 	    fse.min_height == fse.max_height) {
 		fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
@@ -1349,10 +1345,6 @@ static int mxc_isi_cap_enum_frameintervals(struct file *file, void *fh,
 	parent = of_get_parent(isi_cap->pdev->dev.of_node);
 	if (of_device_is_compatible(parent, "nxp,imx8mp-isi") &&
 	    fie.width > ISI_2K && isi_cap->id == 1)
-		return -EINVAL;
-
-	if ((of_device_is_compatible(parent, "fsl,imx93-isi")) &&
-	    fie.width > ISI_2K)
 		return -EINVAL;
 
 	interval->type = V4L2_FRMIVAL_TYPE_DISCRETE;
