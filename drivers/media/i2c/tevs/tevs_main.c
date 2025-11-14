@@ -2189,7 +2189,7 @@ static int tevs_probe(struct i2c_client *client)
 
 	if (tevs_try_on(tevs) != 0) {
 		dev_err(dev, "cannot find tevs camera\n");
-		return -EINVAL;
+		return -ENODEV;
 	}
 
 	if (tevs->data_frequency != 0) {
@@ -2198,7 +2198,7 @@ static int tevs_probe(struct i2c_client *client)
 		msleep(TEVS_BOOT_TIME);
 		if (tevs_check_boot_state(tevs) != 0) {
 			dev_err(dev, "check tevs bootup status failed\n");
-			ret = -EINVAL;
+			ret = -ENODEV;
 			goto error_power_off;
 		}
 		if (ret < 0) {
@@ -2252,7 +2252,7 @@ static int tevs_probe(struct i2c_client *client)
         else
             dev_err(dev, "cannot not support the chip ID: 0x%.4X\n", tevs->chip_id);
 
-        ret = -EINVAL;
+        ret = -ENODEV;
         goto error_power_off;
     }
 
