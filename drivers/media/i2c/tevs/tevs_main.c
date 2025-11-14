@@ -291,15 +291,6 @@
 #define TOTAL_MICROSEC_PERSEC				(1000000)
 
 #define TEVS_IMG_FORMAT_UYVY				(0x50)
-/* ISP processed */
-// #define TEVS_IMG_FORMAT_RAW8				(0x8A)
-// #define TEVS_IMG_FORMAT_RAW10				(0x9A)
-// #define TEVS_IMG_FORMAT_RAW12				(0xAA)
-/* ISP bypass */
-#define TEVS_IMG_FORMAT_RAW8				(0x80)
-#define TEVS_IMG_FORMAT_RAW10				(0x90)
-#define TEVS_IMG_FORMAT_RAW12				(0xA0)
-#define TEVS_IMG_FORMAT_RAW16				(0xB0)
 
 #define TEVS_LINK_FREQUENCY_DEFAULT			400000000ull
 #define TEVS_PIXEL_RATE_DEFAULT				200000000ull
@@ -677,10 +668,6 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 					.height);
 			tevs_i2c_write_16b(tevs,
 					HOST_COMMAND_ISP_CTRL_PREVIEW_FORMAT,
-					tevs->fmt.code == MEDIA_BUS_FMT_SGRBG8_1X8 ? TEVS_IMG_FORMAT_RAW8 :
-					tevs->fmt.code == MEDIA_BUS_FMT_SGRBG10_1X10 ? TEVS_IMG_FORMAT_RAW10 :
-					tevs->fmt.code == MEDIA_BUS_FMT_SGRBG12_1X12 ? TEVS_IMG_FORMAT_RAW12 :
-					tevs->fmt.code == MEDIA_BUS_FMT_SGRBG16_1X16 ? TEVS_IMG_FORMAT_RAW16 :
 					TEVS_IMG_FORMAT_UYVY);
 			tevs_i2c_write_16b(
 				tevs, HOST_COMMAND_ISP_CTRL_PREVIEW_HINF_CTRL,
@@ -827,11 +814,7 @@ static int tevs_set_fmt(struct v4l2_subdev *sub_dev,
 	mbus_fmt->height =
 		tevs_sensor_table[tevs->selected_sensor].res_list[i].height;
 	// mbus_fmt->code = MEDIA_BUS_FMT_UYVY8_1X16;
-	mbus_fmt->colorspace = mbus_fmt->code == MEDIA_BUS_FMT_SGRBG8_1X8 ? V4L2_COLORSPACE_RAW :
-						mbus_fmt->code == MEDIA_BUS_FMT_SGRBG10_1X10 ? V4L2_COLORSPACE_RAW :
-						mbus_fmt->code == MEDIA_BUS_FMT_SGRBG12_1X12 ? V4L2_COLORSPACE_RAW :
-						mbus_fmt->code == MEDIA_BUS_FMT_SGRBG16_1X16 ? V4L2_COLORSPACE_RAW :
-						V4L2_COLORSPACE_SRGB;
+	mbus_fmt->colorspace = V4L2_COLORSPACE_SRGB;
 	mbus_fmt->ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(mbus_fmt->colorspace);
 	mbus_fmt->quantization = V4L2_QUANTIZATION_FULL_RANGE;
 	mbus_fmt->xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(mbus_fmt->colorspace);
@@ -1271,10 +1254,6 @@ static int tevs_set_bsl_mode(struct tevs *tevs, s32 mode)
 		}
 
 		tevs_i2c_write_16b(tevs, HOST_COMMAND_ISP_CTRL_PREVIEW_FORMAT,
-				tevs->fmt.code == MEDIA_BUS_FMT_SGRBG8_1X8 ? TEVS_IMG_FORMAT_RAW8 :
-				tevs->fmt.code == MEDIA_BUS_FMT_SGRBG10_1X10 ? TEVS_IMG_FORMAT_RAW10 :
-				tevs->fmt.code == MEDIA_BUS_FMT_SGRBG12_1X12 ? TEVS_IMG_FORMAT_RAW12 :
-				tevs->fmt.code == MEDIA_BUS_FMT_SGRBG16_1X16 ? TEVS_IMG_FORMAT_RAW16 :
 				TEVS_IMG_FORMAT_UYVY);
 		tevs_i2c_write_16b(tevs,
 				   HOST_COMMAND_ISP_CTRL_PREVIEW_HINF_CTRL,
@@ -1978,10 +1957,6 @@ static int tevs_power_on(struct tevs *tevs)
 
 		ret += tevs_i2c_write_16b(
 			tevs, HOST_COMMAND_ISP_CTRL_PREVIEW_FORMAT,
-			tevs->fmt.code == MEDIA_BUS_FMT_SGRBG8_1X8 ? TEVS_IMG_FORMAT_RAW8 :
-			tevs->fmt.code == MEDIA_BUS_FMT_SGRBG10_1X10 ? TEVS_IMG_FORMAT_RAW10 :
-			tevs->fmt.code == MEDIA_BUS_FMT_SGRBG12_1X12 ? TEVS_IMG_FORMAT_RAW12 :
-			tevs->fmt.code == MEDIA_BUS_FMT_SGRBG16_1X16 ? TEVS_IMG_FORMAT_RAW16 :
 			TEVS_IMG_FORMAT_UYVY);
 		ret += tevs_i2c_write_16b(
 			tevs, HOST_COMMAND_ISP_CTRL_PREVIEW_HINF_CTRL,
@@ -2054,7 +2029,7 @@ static const struct v4l2_subdev_ops tevs_subdev_ops = {
 
 static const struct media_entity_operations tevs_media_entity_ops = {
 	.link_setup = tevs_media_link_setup,
-	.link_validate = v4l2_subdev_link_validate
+	.link_validate = v4l2_subdev_link_validate,
 };
 
 static int tevs_try_on(struct tevs *tevs)
@@ -2258,7 +2233,7 @@ static int tevs_probe(struct i2c_client *client)
         dev_err(dev, "get chip ID failed\n");
         goto error_power_off;
     }
-    
+
     if (tevs->chip_id == SENSOR_CHIP_ID_NONE) {
         for (i = 0; i < ARRAY_SIZE(tevs_sensor_table); i++) {
             if (strcmp((const char *)tevs->header_info->product_name, tevs_sensor_table[i].sensor_name) == 0)
