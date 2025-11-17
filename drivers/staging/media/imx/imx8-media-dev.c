@@ -1040,7 +1040,7 @@ static int register_sensor_entities(struct mxc_md *mxc_md)
 		 * Need to wait sensor driver probed for the first time
 		 */
 		client = of_find_i2c_device_by_node(rem);
-		if (!client->dev.driver || !device_is_bound(&client->dev)) {
+		if (!client) {
 			v4l2_dbg(1, debug, &mxc_md->v4l2_dev,
 				 "Can't find i2c client device for %s\n",
 				 of_node_full_name(rem));
