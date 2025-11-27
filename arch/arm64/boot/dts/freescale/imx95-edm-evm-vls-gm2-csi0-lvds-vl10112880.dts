@@ -261,7 +261,7 @@
 							data-lanes = <1 2 3 4>;
 							clock-lanes = <0>;
 							clock-noncontinuous;
-							link-frequencies = /bits/ 64 <400000000>;
+							link-frequencies = /bits/ 64 <250000000>;
 						};
 					};
 				};
@@ -354,7 +354,7 @@
 							data-lanes = <1 2 3 4>;
 							clock-lanes = <0>;
 							clock-noncontinuous;
-							link-frequencies = /bits/ 64 <400000000>;
+							link-frequencies = /bits/ 64 <250000000>;
 						};
 					};
 				};
@@ -445,7 +445,7 @@
 							data-lanes = <1 2 3 4>;
 							clock-lanes = <0>;
 							clock-noncontinuous;
-							link-frequencies = /bits/ 64 <400000000>;
+							link-frequencies = /bits/ 64 <250000000>;
 						};
 					};
 				};
@@ -536,7 +536,7 @@
 							data-lanes = <1 2 3 4>;
 							clock-lanes = <0>;
 							clock-noncontinuous;
-							link-frequencies = /bits/ 64 <400000000>;
+							link-frequencies = /bits/ 64 <250000000>;
 						};
 					};
 				};
