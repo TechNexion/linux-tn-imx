@@ -24,9 +24,9 @@
 #define HOST_COMMAND_TEVS_INFO_VERSION_LSB 						(0x3002)
 #define HOST_COMMAND_TEVS_BOOT_STATE 							(0x3004)
 #define HOST_COMMAND_TEVS_SENSOR_CHIP_ID                        (0x3008)
-#define HOST_COMMAND_TEVS_MODEL_NUMBER_0                        (0x300C)
-#define HOST_COMMAND_TEVS_MODEL_NUMBER_1                        (0x300E)
-#define HOST_COMMAND_TEVS_MODEL_NUMBER_2                        (0x3010)
+#define HOST_COMMAND_TEVS_MODEL_NUMBER_0                        (0x3020)
+#define HOST_COMMAND_TEVS_MODEL_NUMBER_1                        (0x3022)
+#define HOST_COMMAND_TEVS_MODEL_NUMBER_2                        (0x3024)
 
 /* Define host command register of ISP control page */
 #define HOST_COMMAND_ISP_CTRL_PREVIEW_WIDTH 					(0x3100)
@@ -441,22 +441,6 @@ static int tevs_i2c_write_16b(struct tevs *tevs, u16 reg, u16 val)
 	return 0;
 }
 
-static int tevs_get_chip_id(struct tevs *tevs)
-{
-	struct i2c_client *client = v4l2_get_subdevdata(&tevs->v4l2_subdev);
-    u16 val;
-    int ret = tevs_i2c_read_16b(tevs, HOST_COMMAND_TEVS_SENSOR_CHIP_ID, &val);
-
-    if (ret < 0) {
-        dev_err(&client->dev, "Can't get chip ID. ret = %d.\n", ret);
-		return ret;
-	}
-
-    tevs->chip_id = val;
-    dev_info(&client->dev, "Chip ID: 0x%.4X\n", tevs->chip_id);
-	return 0;
-}
-
 static int tevs_check_trigger_mode(struct tevs *tevs)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(&tevs->v4l2_subdev);
@@ -519,6 +503,22 @@ static int tevs_load_header_info(struct tevs *tevs)
 			header_ver);
 		return -EINVAL;
 	}
+}
+
+static int tevs_get_chip_id(struct tevs *tevs)
+{
+	struct i2c_client *client = v4l2_get_subdevdata(&tevs->v4l2_subdev);
+    u16 val;
+    int ret = tevs_i2c_read_16b(tevs, HOST_COMMAND_TEVS_SENSOR_CHIP_ID, &val);
+
+    if (ret < 0) {
+        dev_err(&client->dev, "Can't get chip ID. ret = %d.\n", ret);
+		return ret;
+	}
+
+    tevs->chip_id = val;
+    dev_info(&client->dev, "Chip ID: 0x%.4X\n", tevs->chip_id);
+	return 0;
 }
 
 static int tevs_standby(struct tevs *tevs, int enable)
@@ -1194,15 +1194,15 @@ static int tevs_set_bsl_mode(struct tevs *tevs, s32 mode)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(&tevs->v4l2_subdev);
 	u16 val;
-	u8 bootcmd[6] = { 0x00, 0x12, 0x3A, 0x61, 0x44, 0xDE };
-	u8 startup[6] = { 0x00, 0x40, 0xE2, 0x51, 0x21, 0x5B };
 	u16 data_freq_tmp;
 	dev_dbg(&client->dev, "%s(): set bls mode: %d", __func__, mode);
 
 	switch (mode) {
 	case TEVS_BSL_MODE_NORMAL_IDX:
-		tevs_i2c_write(tevs, 0x8001, startup, 6);
-		tevs_i2c_read(tevs, 0x8001, (u8 *)&val, 1);
+		gpiod_set_value_cansleep(tevs->reset_gpio, 0);
+		msleep(100);
+		gpiod_set_value_cansleep(tevs->reset_gpio, 1);
+		msleep(100);
 
 		msleep(TEVS_BOOT_TIME);
 
@@ -1273,8 +1273,6 @@ static int tevs_set_bsl_mode(struct tevs *tevs, s32 mode)
 		usleep_range(9000, 10000);
 		gpiod_set_value_cansleep(tevs->standby_gpio, 0);
 		msleep(100);
-		tevs_i2c_write(tevs, 0x8001, bootcmd, 6);
-		tevs_i2c_read(tevs, 0x8001, (u8 *)&val, 1);
 		break;
 	default:
 		dev_err(&client->dev, "%s(): set err bls mode: %d", __func__,
