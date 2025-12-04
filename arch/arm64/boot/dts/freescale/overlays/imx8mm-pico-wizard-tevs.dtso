@@ -1,0 +1,60 @@
+// SPDX-License-Identifier: (GPL-2.0 OR MIT)
+/*
+ * Copyright 2023 TechNexion Ltd.
+ *
+ * Author: Nian Yang <nian.yang@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/clock/imx8mm-clock.h>
+#include <dt-bindings/gpio/gpio.h>
+
+&mipi_csi {
+	status = "okay";
+
+	ports {
+		port@0 {
+			imx8mm_mipi_csi_in: endpoint {
+				remote-endpoint = <&tevs_1_ep>;
+				data-lanes = <1 2>;
+			};
+		};
+	};
+};
+
+&csi {
+	status = "okay";
+};
+
+&i2c2 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+
+	tevs_0: tevs@48 {
+		compatible = "tn,tevs";
+		reg = <0x48>;
+		host-power-gpios = <&pca9555_26 13 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&pca9555_21 12 GPIO_ACTIVE_HIGH>;
+		device-power-gpios = <&pca9555_24 0 GPIO_ACTIVE_HIGH>;
+		standby-gpios = <&pca9555_24 2 GPIO_ACTIVE_HIGH>;
+		data-lanes = <2>;
+		data-frequency = <800>;
+		continuous-clock = <0>;
+		supports-over-4k-res;
+		status = "okay";
+
+		port {
+			tevs_0_ep: endpoint {
+				remote-endpoint = <&imx8mm_mipi_csi_in>;
+				clock-lanes = <0>;
+				data-lanes = <1 2>;
+				link-frequencies = /bits/ 64 <456000000>;
+			};
+		};
+	};
+};
