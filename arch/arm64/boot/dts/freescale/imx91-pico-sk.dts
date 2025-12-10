@@ -242,6 +242,8 @@
 };
 
 &usbotg1 {
+	status = "okay";
+
 	ports {
 		#address-cells = <1>;
 		#size-cells = <0>;
