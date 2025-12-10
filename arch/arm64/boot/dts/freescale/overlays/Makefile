@@ -58,6 +58,20 @@ dtbo-$(CONFIG_ARCH_MXC) += imx93-pico-sk-tevs.dtbo imx93-pico-sk-vls.dtbo imx93-
 dtbo-$(CONFIG_ARCH_MXC) += imx93-edm-wb-lvds-vl10112880.dtbo imx93-edm-wb-lvds-vl15613676.dtbo imx93-edm-wb-vxt-vl050-070-8048nt.dtbo imx93-edm-wb-vxt-vl0808060nt.dtbo \
 			  imx93-edm-wb-tevs.dtbo imx93-edm-wb-vls.dtbo
 
+
+dtbo-$(CONFIG_ARCH_MXC) += imx95-edm-evm-mipi2hdmi-adv7535.dtbo
+dtbo-$(CONFIG_ARCH_MXC) += imx95-edm-evm-lvds-vl10112880.dtbo
+dtbo-$(CONFIG_ARCH_MXC) += imx95-edm-evm-lvds-vl156192108.dtbo
+dtbo-$(CONFIG_ARCH_MXC) += imx95-edm-evm-tevs-csi0.dtbo
+dtbo-$(CONFIG_ARCH_MXC) += imx95-edm-evm-tevs-csi1.dtbo
+dtbo-$(CONFIG_ARCH_MXC) += imx95-edm-evm-fusion.dtbo
+dtbo-$(CONFIG_ARCH_MXC) += imx95-edm-evm-vls-gm2-csi0.dtbo
+dtbo-$(CONFIG_ARCH_MXC) += imx95-edm-evm-vls-gm2-csi1.dtbo
+dtbo-$(CONFIG_ARCH_MXC) += imx95-edm-evm-vls-gm2-fsync.dtbo
+dtbo-$(CONFIG_ARCH_MXC) += imx95-edm-evm-vls-gm2-ext-fsync.dtbo
+dtbo-$(CONFIG_ARCH_MXC) += imx95-edm-evm-vls-gm2-int-fsync.dtbo
+
+
 targets += dtbs dtbs_install
 targets += $(dtbo-y)
 
