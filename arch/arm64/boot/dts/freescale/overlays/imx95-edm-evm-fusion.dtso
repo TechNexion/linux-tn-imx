@@ -1,53 +1,20 @@
 // SPDX-License-Identifier: (GPL-2.0 OR MIT)
 /*
+ * Vision Overlay for TechNexion TEVS with TI FPD-Link III
+ * Configuration: Dual TI DS90UB960 (CSI0 & CSI1)
+ *
  * Copyright 2024 TechNexion Ltd.
  *
  * Author: Dennis Tseng <dennis.tseng@technexion.com>
+ *
  */
 
 /dts-v1/;
+/plugin/;
 
-#include "imx95-edm-evm.dts"
+#include <dt-bindings/gpio/gpio.h>
 
-/ {
-	model = "TechNexion EDM-IMX95 and EVM baseboard with 10.1 inch LVDS panel";
-	compatible = "fsl,imx95-edm", "fsl,imx95";
-
-	reg_lvds_pwr: regulator-lvds-pwr {	/* LVDS0_VDDEN */
-		status = "okay";
-	};
-
-	lvds0_backlight: backlight {
-		status = "okay";
-	};
-
-	lvds0_panel {
-		compatible = "vxt,vl10112880", "panel-lvds";
-		backlight = <&lvds0_backlight>;
-		power-supply = <&reg_lvds_pwr>;
-		data-mapping = "vesa-24";
-		height-mm = <161>;
-		width-mm = <243>;
-
-		panel-timing {
-			clock-frequency = <71100000>;
-			hactive = <1280>;
-			vactive = <800>;
-			hback-porch = <40>;
-			hfront-porch = <40>;
-			vback-porch = <10>;
-			vfront-porch = <3>;
-			hsync-len = <80>;
-			vsync-len = <10>;
-			de-active = <1>;
-		};
-		port {
-			panel_in: endpoint {
-				remote-endpoint = <&lvds0_out>;
-			};
-		};
-	};
-
+&{/} {
 	clk_ref: fixed-clock-25M {
 		compatible = "fixed-clock";
 		#clock-cells = <0>;
@@ -56,53 +23,11 @@
 	};
 };
 
-&display_pixel_link {
-	status = "okay";
-};
-
-&ldb {
-	#address-cells = <1>;
-	#size-cells = <0>;
-	assigned-clocks = <&scmi_clk IMX95_CLK_LDBPLL_VCO>,
-			  <&scmi_clk IMX95_CLK_LDBPLL>;
-	assigned-clock-rates = <2986200000>, <497700000>;
-	status = "okay";
-
-	channel@0 {
-		#address-cells = <1>;
-		#size-cells = <0>;
-		reg = <0>;
-		status = "okay";
-
-		port@1 {
-			reg = <1>;
-
-			lvds0_out: endpoint {
-				remote-endpoint = <&panel_in>;
-			};
-		};
-	};
-};
-
-&ldb0_phy {
-	status = "okay";
-};
-
-&pixel_interleaver {
-	#address-cells = <1>;
-	#size-cells = <0>;
-	status = "okay";
-
-	channel@0 {
-		reg = <0>;
-		status = "okay";
-	};
-};
-
 &lpi2c2 {
 	#address-cells = <1>;
 	#size-cells = <0>;
 	clock-frequency = <400000>;
+	status = "okay";
 
 	deser_0@30 {
 		compatible = "ti,ds90ub960-q1";
@@ -464,6 +389,7 @@
 	#address-cells = <1>;
 	#size-cells = <0>;
 	clock-frequency = <400000>;
+	status = "okay";
 
 	deser_1@30 {
 		compatible = "ti,ds90ub960-q1";
