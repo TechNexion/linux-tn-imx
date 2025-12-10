@@ -1299,19 +1299,6 @@ dtb-$(CONFIG_ARCH_MXC) += imx95-15x15-frdm-neutron.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx95-15x15-frdm-aud-hat.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx95-15x15-frdm-8mic-reve.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm.dtb
-dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-lvds-vl10112880.dtb
-dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-lvds-vl156192108.dtb
-dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-mipi2hdmi-adv7535.dtb
-dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-tevs.dtb
-dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-tevs-csi1.dtb
-dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-tevs-csi0-csi1.dtb
-dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-fusion-lvds-vl10112880.dtb
-dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-fusion-lvds-vl156192108.dtb
-dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-vls-gm2-csi0-lvds-vl10112880.dtb
-dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-vls-gm2-csi1-lvds-vl10112880.dtb
-dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-vls-gm2-lvds-vl10112880.dtb
-dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-vls-gm2-fsync-lvds-vl10112880.dtb
-dtb-$(CONFIG_ARCH_MXC) += imx95-edm-evm-vls-gm2-ext-fsync-lvds-vl10112880.dtb
 
 dtb-$(CONFIG_ARCH_MXC) += imx95-19x19-frdm-pro.dtb imx95-19x19-frdm-pro-aud-hat.dtb
 
@@ -1573,6 +1560,7 @@ DTC_FLAGS_imx8mm-pico-wizard := -@
 DTC_FLAGS_imx8mq-pico-wizard := -@
 DTC_FLAGS_imx8mp-tek := -@
 DTC_FLAGS_imx8mp-tep := -@
+DTC_FLAGS_imx95-edm-evm := -@
 DTC_FLAGS_imx93-axon-wb := -@
 DTC_FLAGS_imx93-edm-wb := -@
 DTC_FLAGS_imx93-pico-sk := -@

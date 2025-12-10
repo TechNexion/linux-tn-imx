@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: (GPL-2.0 OR MIT)
 /*
+ * Display Overlay for VXT VL10112880 LVDS Panel with EETI Touchscreen
+ *
  * Copyright 2024 TechNexion Ltd.
  *
  * Author: Richard Hu <richard.hu@technexion.com>
@@ -7,20 +9,21 @@
  */
 
 /dts-v1/;
+/plugin/;
 
-#include "imx95-edm-evm.dts"
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include "../imx95-clock.h"
 
-/ {
-	model = "TechNexion EDM-IMX95 and EVM baseboard with 10.1 inch LVDS panel";
-	compatible = "fsl,imx95-edm", "fsl,imx95";
+&reg_lvds_pwr {	/* LVDS0_VDDEN */
+	status = "okay";
+};
 
-	reg_lvds_pwr: regulator-lvds-pwr {	/* LVDS0_VDDEN */
-		status = "okay";
-	};
+&lvds0_backlight {
+	status = "okay";
+};
 
-	lvds0_backlight: backlight {
-		status = "okay";
-	};
+&{/} {
 
 	lvds0_panel {
 		compatible = "vxt,vl10112880", "panel-lvds";
@@ -29,6 +32,7 @@
 		data-mapping = "vesa-24";
 		height-mm = <161>;
 		width-mm = <243>;
+
 		panel-timing {
 			clock-frequency = <71100000>;
 			hactive = <1280>;
@@ -69,7 +73,6 @@
 
 		port@1 {
 			reg = <1>;
-
 			lvds0_out: endpoint {
 				remote-endpoint = <&panel_in>;
 			};
@@ -94,7 +97,11 @@
 
 /* I2C_C on EDM */
 &lpi2c3 {
-	exc80w46: touchscreen@2a {
+	status = "okay";
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	exc80w46 {
 		compatible = "eeti,exc80h60";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_touch_irq>;
