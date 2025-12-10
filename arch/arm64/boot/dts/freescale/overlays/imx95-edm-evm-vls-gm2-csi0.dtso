@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: (GPL-2.0 OR MIT)
 /*
+ * Vision Overlay for TechNexion TEVS using Maxim GMSL
+ * Configuration: Quad Camera (VLS-GM2) on CSI0 via MAX96724 Deserializer
+ *
  * Copyright 2024 TechNexion Ltd.
  *
  * Author: Richard Hu <richard.hu@technexion.com>
@@ -7,98 +10,19 @@
  */
 
 /dts-v1/;
+/plugin/;
 
-#include "imx95-edm-evm.dts"
+#include <dt-bindings/gpio/gpio.h>
 
-/ {
-	model = "TechNexion EDM-IMX95 and EVM baseboard with TechNexion TEVS camera";
-	compatible = "fsl,imx95-edm", "fsl,imx95";
 
-	reg_lvds_pwr: regulator-lvds-pwr {	/* LVDS0_VDDEN */
-		status = "okay";
-	};
 
-	lvds0_backlight: backlight {
-		status = "okay";
-	};
-
-	lvds0_panel {
-		compatible = "vxt,vl10112880", "panel-lvds";
-		backlight = <&lvds0_backlight>;
-		power-supply = <&reg_lvds_pwr>;
-		data-mapping = "vesa-24";
-		height-mm = <161>;
-		width-mm = <243>;
-		panel-timing {
-			clock-frequency = <71100000>;
-			hactive = <1280>;
-			vactive = <800>;
-			hback-porch = <40>;
-			hfront-porch = <40>;
-			vback-porch = <10>;
-			vfront-porch = <3>;
-			hsync-len = <80>;
-			vsync-len = <10>;
-			de-active = <1>;
-		};
-		port {
-			panel_in: endpoint {
-				remote-endpoint = <&lvds0_out>;
-			};
-		};
-	};
-};
-
-&display_pixel_link {
-	status = "okay";
-};
-
-&ldb {
-	#address-cells = <1>;
-	#size-cells = <0>;
-	assigned-clocks = <&scmi_clk IMX95_CLK_LDBPLL_VCO>,
-			  <&scmi_clk IMX95_CLK_LDBPLL>;
-	assigned-clock-rates = <2986200000>, <497700000>;
-	status = "okay";
-
-	channel@0 {
-		#address-cells = <1>;
-		#size-cells = <0>;
-		reg = <0>;
-		status = "okay";
-
-		port@1 {
-			reg = <1>;
-
-			lvds0_out: endpoint {
-				remote-endpoint = <&panel_in>;
-			};
-		};
-	};
-};
-
-&ldb0_phy {
-	status = "okay";
-};
-
-&pixel_interleaver {
+/* VLS-GM2 on MIPI CSI0 */
+&lpi2c2 {
 	#address-cells = <1>;
 	#size-cells = <0>;
 	status = "okay";
 
-	channel@0 {
-		reg = <0>;
-		status = "okay";
-	};
-};
-
-/* VLS-GM2 on MIPI CSI1 */
-&lpi2c4 {
-	#address-cells = <1>;
-	#size-cells = <0>;
-	status = "okay";
-
-	des_1: max96724@2e {
+	des_0: max96724@2e {
 		compatible = "maxim,max96724";
 		reg = <0x2e>;
 		status = "okay";
@@ -106,7 +30,7 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
-		enable-gpios = <&tca9555_c21 13 GPIO_ACTIVE_HIGH>;
+		enable-gpios = <&tca9555_c21 12 GPIO_ACTIVE_HIGH>;
 
 		i2c-alias-pool = <0x41 0x42 0x43 0x44>;
 
@@ -114,25 +38,25 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 
-			des_1_i2c_0: i2c@0 {
+			des_0_i2c_0: i2c@0 {
 				#address-cells = <1>;
 				#size-cells = <0>;
 				reg = <0>;
 			};
 
-			des_1_i2c_1: i2c@1 {
+			des_0_i2c_1: i2c@1 {
 				#address-cells = <1>;
 				#size-cells = <0>;
 				reg = <1>;
 			};
 
-			des_1_i2c_2: i2c@2 {
+			des_0_i2c_2: i2c@2 {
 				#address-cells = <1>;
 				#size-cells = <0>;
 				reg = <2>;
 			};
 
-			des_1_i2c_3: i2c@3 {
+			des_0_i2c_3: i2c@3 {
 				#address-cells = <1>;
 				#size-cells = <0>;
 				reg = <3>;
@@ -148,8 +72,8 @@
 				#size-cells = <0>;
 				reg = <0>;
 
-				des_1_gmsl_a_in: endpoint@0 {
-					remote-endpoint = <&ser_4_gmsl_out>;
+				des_0_gmsl_a_in: endpoint@0 {
+					remote-endpoint = <&ser_0_gmsl_out>;
 				};
 			};
 
@@ -158,8 +82,8 @@
 				#size-cells = <0>;
 				reg = <1>;
 
-				des_1_gmsl_b_in: endpoint@0 {
-					remote-endpoint = <&ser_5_gmsl_out>;
+				des_0_gmsl_b_in: endpoint@0 {
+					remote-endpoint = <&ser_1_gmsl_out>;
 				};
 			};
 
@@ -168,8 +92,8 @@
 				#size-cells = <0>;
 				reg = <2>;
 
-				des_1_gmsl_c_in: endpoint@0 {
-					remote-endpoint = <&ser_6_gmsl_out>;
+				des_0_gmsl_c_in: endpoint@0 {
+					remote-endpoint = <&ser_2_gmsl_out>;
 				};
 			};
 
@@ -178,8 +102,8 @@
 				#size-cells = <0>;
 				reg = <3>;
 
-				des_1_gmsl_d_in: endpoint@0 {
-					remote-endpoint = <&ser_7_gmsl_out>;
+				des_0_gmsl_d_in: endpoint@0 {
+					remote-endpoint = <&ser_3_gmsl_out>;
 				};
 			};
 
@@ -188,20 +112,20 @@
 				#size-cells = <0>;
 				reg = <4>;
 
-				des_1_csi_0_out: endpoint@0 {
+				des_0_csi_0_out: endpoint@0 {
 					data-lanes = <1 2 3 4>;
 					clock-lanes = <0>;
 					bus-type = <4>;
-					link-frequencies = /bits/ 64 <750000000>;
-					remote-endpoint = <&mipi_csi1_ep>;
+					link-frequencies = /bits/ 64 <1250000000>;
+					remote-endpoint = <&mipi_csi0_ep>;
 				};
 			};
 		};
 	};
 };
 
-&des_1_i2c_0 {
-	ser_4: serializer@40 {
+&des_0_i2c_0 {
+	ser_0: serializer@40 {
 		compatible = "maxim,max96717";
 		reg = <0x40>;
 
@@ -212,9 +136,9 @@
 		i2c-alias-pool = <0x29 0x49>;
 
 		pinctrl-names = "default";
-		pinctrl-0 = <&ser_4_fsync>;
+		pinctrl-0 = <&ser_0_fsync>;
 
-		ser_4_fsync: mfp0-pins {
+		ser_0_fsync: mfp0-pins {
 			pins = "mfp0";
 			function = "gpio";
 			maxim,rx-id = <0>;
@@ -231,7 +155,7 @@
 				#size-cells = <0>;
 				reg = <0>;
 
-				cam_4_expander: pca9554@25 {
+				cam_0_expander: pca9554@25 {
 					compatible = "nxp,pca9554";
 					reg = <0x25>;
 					gpio-controller;
@@ -247,21 +171,21 @@
 					status = "okay";
 				};
 
-				cam_4: tevs@48 {
+				cam_0: tevs@48 {
 					compatible = "tn,tevs";
 					reg = <0x48>;
 					status = "okay";
 
-					reset-gpios = <&cam_4_expander 4 GPIO_ACTIVE_HIGH>;
-					standby-gpios = <&cam_4_expander 2 GPIO_ACTIVE_HIGH>;
+					reset-gpios = <&cam_0_expander 4 GPIO_ACTIVE_HIGH>;
+					standby-gpios = <&cam_0_expander 2 GPIO_ACTIVE_HIGH>;
 
 					port {
-						cam_4_out: endpoint {
-							remote-endpoint = <&ser_4_csi_in>;
-							data-lanes = <1 2>;
+						cam_0_out: endpoint {
+							remote-endpoint = <&ser_0_csi_in>;
+							data-lanes = <1 2 3 4>;
 							clock-lanes = <0>;
 							clock-noncontinuous;
-							link-frequencies = /bits/ 64 <300000000>;
+							link-frequencies = /bits/ 64 <250000000>;
 						};
 					};
 				};
@@ -276,25 +200,25 @@
 				#address-cells = <1>;
 				#size-cells = <0>;
 				reg = <0>;
-				ser_4_csi_in: endpoint {
-					data-lanes = <1 2>;
+				ser_0_csi_in: endpoint {
+					data-lanes = <1 2 3 4>;
 					clock-noncontinuous;
-					remote-endpoint = <&cam_4_out>;
+					remote-endpoint = <&cam_0_out>;
 				};
 			};
 
 			port@1 {
 				reg = <1>;
-				ser_4_gmsl_out: endpoint {
-					remote-endpoint = <&des_1_gmsl_a_in>;
+				ser_0_gmsl_out: endpoint {
+					remote-endpoint = <&des_0_gmsl_a_in>;
 				};
 			};
 		};
 	};
 };
 
-&des_1_i2c_1 {
-	ser_5: serializer@40 {
+&des_0_i2c_1 {
+	ser_1: serializer@40 {
 		compatible = "maxim,max96717";
 		reg = <0x40>;
 
@@ -305,9 +229,9 @@
 		i2c-alias-pool = <0x2a 0x4a>;
 
 		pinctrl-names = "default";
-		pinctrl-0 = <&ser_5_fsync>;
+		pinctrl-0 = <&ser_1_fsync>;
 
-		ser_5_fsync: mfp0-pins {
+		ser_1_fsync: mfp0-pins {
 			pins = "mfp0";
 			function = "gpio";
 			maxim,rx-id = <0>;
@@ -324,7 +248,7 @@
 				#size-cells = <0>;
 				reg = <0>;
 
-				cam_5_expander: pca9554@25 {
+				cam_1_expander: pca9554@25 {
 					compatible = "nxp,pca9554";
 					reg = <0x25>;
 					gpio-controller;
@@ -340,21 +264,21 @@
 					status = "okay";
 				};
 
-				cam_5: tevs@48 {
+				cam_1: tevs@48 {
 					compatible = "tn,tevs";
 					reg = <0x48>;
 					status = "okay";
 
-					reset-gpios = <&cam_5_expander 4 GPIO_ACTIVE_HIGH>;
-					standby-gpios = <&cam_5_expander 2 GPIO_ACTIVE_HIGH>;
+					reset-gpios = <&cam_1_expander 4 GPIO_ACTIVE_HIGH>;
+					standby-gpios = <&cam_1_expander 2 GPIO_ACTIVE_HIGH>;
 
 					port {
-						cam_5_out: endpoint {
-							remote-endpoint = <&ser_5_csi_in>;
-							data-lanes = <1 2>;
+						cam_1_out: endpoint {
+							remote-endpoint = <&ser_1_csi_in>;
+							data-lanes = <1 2 3 4>;
 							clock-lanes = <0>;
 							clock-noncontinuous;
-							link-frequencies = /bits/ 64 <300000000>;
+							link-frequencies = /bits/ 64 <250000000>;
 						};
 					};
 				};
@@ -367,25 +291,25 @@
 
 			port@0 {
 				reg = <0>;
-				ser_5_csi_in: endpoint {
-					data-lanes = <1 2>;
+				ser_1_csi_in: endpoint {
+					data-lanes = <1 2 3 4>;
 					clock-noncontinuous;
-					remote-endpoint = <&cam_5_out>;
+					remote-endpoint = <&cam_1_out>;
 				};
 			};
 
 			port@1 {
 				reg = <1>;
-				ser_5_gmsl_out: endpoint {
-					remote-endpoint = <&des_1_gmsl_b_in>;
+				ser_1_gmsl_out: endpoint {
+					remote-endpoint = <&des_0_gmsl_b_in>;
 				};
 			};
 		};
 	};
 };
 
-&des_1_i2c_2 {
-	ser_6: serializer@40 {
+&des_0_i2c_2 {
+	ser_2: serializer@40 {
 		compatible = "maxim,max96717";
 		reg = <0x40>;
 
@@ -396,9 +320,9 @@
 		i2c-alias-pool = <0x2b 0x4b>;
 
 		pinctrl-names = "default";
-		pinctrl-0 = <&ser_6_fsync>;
+		pinctrl-0 = <&ser_2_fsync>;
 
-		ser_6_fsync: mfp0-pins {
+		ser_2_fsync: mfp0-pins {
 			pins = "mfp0";
 			function = "gpio";
 			maxim,rx-id = <0>;
@@ -415,7 +339,7 @@
 				#size-cells = <0>;
 				reg = <0>;
 
-				cam_6_expander: pca9554@25 {
+				cam_2_expander: pca9554@25 {
 					compatible = "nxp,pca9554";
 					reg = <0x25>;
 					gpio-controller;
@@ -431,21 +355,21 @@
 					status = "okay";
 				};
 
-				cam_6: tevs@48 {
+				cam_2: tevs@48 {
 					compatible = "tn,tevs";
 					reg = <0x48>;
 					status = "okay";
 
-					reset-gpios = <&cam_6_expander 4 GPIO_ACTIVE_HIGH>;
-					standby-gpios = <&cam_6_expander 2 GPIO_ACTIVE_HIGH>;
+					reset-gpios = <&cam_2_expander 4 GPIO_ACTIVE_HIGH>;
+					standby-gpios = <&cam_2_expander 2 GPIO_ACTIVE_HIGH>;
 
 					port {
-						cam_6_out: endpoint {
-							remote-endpoint = <&ser_6_csi_in>;
-							data-lanes = <1 2>;
+						cam_2_out: endpoint {
+							remote-endpoint = <&ser_2_csi_in>;
+							data-lanes = <1 2 3 4>;
 							clock-lanes = <0>;
 							clock-noncontinuous;
-							link-frequencies = /bits/ 64 <300000000>;
+							link-frequencies = /bits/ 64 <250000000>;
 						};
 					};
 				};
@@ -458,25 +382,25 @@
 
 			port@0 {
 				reg = <0>;
-				ser_6_csi_in: endpoint {
-					data-lanes = <1 2>;
+				ser_2_csi_in: endpoint {
+					data-lanes = <1 2 3 4>;
 					clock-noncontinuous;
-					remote-endpoint = <&cam_6_out>;
+					remote-endpoint = <&cam_2_out>;
 				};
 			};
 
 			port@1 {
 				reg = <1>;
-				ser_6_gmsl_out: endpoint {
-					remote-endpoint = <&des_1_gmsl_c_in>;
+				ser_2_gmsl_out: endpoint {
+					remote-endpoint = <&des_0_gmsl_c_in>;
 				};
 			};
 		};
 	};
 };
 
-&des_1_i2c_3 {
-	ser_7: serializer@40 {
+&des_0_i2c_3 {
+	ser_3: serializer@40 {
 		compatible = "maxim,max96717";
 		reg = <0x40>;
 
@@ -487,9 +411,9 @@
 		i2c-alias-pool = <0x2c 0x4c>;
 
 		pinctrl-names = "default";
-		pinctrl-0 = <&ser_7_fsync>;
+		pinctrl-0 = <&ser_3_fsync>;
 
-		ser_7_fsync: mfp0-pins {
+		ser_3_fsync: mfp0-pins {
 			pins = "mfp0";
 			function = "gpio";
 			maxim,rx-id = <0>;
@@ -506,7 +430,7 @@
 				#size-cells = <0>;
 				reg = <0>;
 
-				cam_7_expander: pca9554@25 {
+				cam_3_expander: pca9554@25 {
 					compatible = "nxp,pca9554";
 					reg = <0x25>;
 					gpio-controller;
@@ -522,21 +446,21 @@
 					status = "okay";
 				};
 
-				cam_7: tevs@48 {
+				cam_3: tevs@48 {
 					compatible = "tn,tevs";
 					reg = <0x48>;
 					status = "okay";
 
-					reset-gpios = <&cam_7_expander 4 GPIO_ACTIVE_HIGH>;
-					standby-gpios = <&cam_7_expander 2 GPIO_ACTIVE_HIGH>;
+					reset-gpios = <&cam_3_expander 4 GPIO_ACTIVE_HIGH>;
+					standby-gpios = <&cam_3_expander 2 GPIO_ACTIVE_HIGH>;
 
 					port {
-						cam_7_out: endpoint {
-							remote-endpoint = <&ser_7_csi_in>;
-							data-lanes = <1 2>;
+						cam_3_out: endpoint {
+							remote-endpoint = <&ser_3_csi_in>;
+							data-lanes = <1 2 3 4>;
 							clock-lanes = <0>;
 							clock-noncontinuous;
-							link-frequencies = /bits/ 64 <300000000>;
+							link-frequencies = /bits/ 64 <250000000>;
 						};
 					};
 				};
@@ -549,44 +473,28 @@
 
 			port@0 {
 				reg = <0>;
-				ser_7_csi_in: endpoint {
-					data-lanes = <1 2>;
+				ser_3_csi_in: endpoint {
+					data-lanes = <1 2 3 4>;
 					clock-noncontinuous;
-					remote-endpoint = <&cam_7_out>;
+					remote-endpoint = <&cam_3_out>;
 				};
 			};
 
 			port@1 {
 				reg = <1>;
-				ser_7_gmsl_out: endpoint {
-					remote-endpoint = <&des_1_gmsl_d_in>;
+				ser_3_gmsl_out: endpoint {
+					remote-endpoint = <&des_0_gmsl_d_in>;
 				};
 			};
 		};
 	};
 };
 
-&display_stream_csr {
-	status = "disabled";
-};
-
-&display_master_csr {
-	status = "disabled";
-};
-
-&mipi_tx_phy_csr {
-	status = "disabled";
-};
-
-&mipi_dsi_intf {
+&dphy_rx {
 	status = "okay";
 };
 
-&combo_rx {
-	status = "okay";
-};
-
-&mipi_csi1 {
+&mipi_csi0 {
 	status = "okay";
 
 	ports {
@@ -595,8 +503,8 @@
 
 		port@0 {
 			reg = <0>;
-			mipi_csi1_ep: endpoint {
-				remote-endpoint = <&des_1_csi_0_out>;
+			mipi_csi0_ep: endpoint {
+				remote-endpoint = <&des_0_csi_0_out>;
 				data-lanes = <1 2 3 4>;
 				clock-lanes = <0>;
 			};
@@ -604,14 +512,14 @@
 
 		port@1 {
 			reg = <1>;
-			mipi_csi1_out: endpoint {
-				remote-endpoint = <&formatter_1_in>;
+			mipi_csi0_out: endpoint {
+				remote-endpoint = <&formatter_0_in>;
 			};
 		};
 	};
 };
 
-&csi_pixel_formatter_1 {
+&csi_pixel_formatter_0 {
 	status = "okay";
 
 	ports {
@@ -621,16 +529,16 @@
 		port@0 {
 			reg = <0>;
 
-			formatter_1_in: endpoint {
-				remote-endpoint = <&mipi_csi1_out>;
+			formatter_0_in: endpoint {
+				remote-endpoint = <&mipi_csi0_out>;
 			};
 		};
 
 		port@1 {
 			reg = <1>;
 
-			formatter_1_out: endpoint {
-				remote-endpoint = <&isi_in_3>;
+			formatter_0_out: endpoint {
+				remote-endpoint = <&isi_in_2>;
 			};
 		};
 	};
@@ -643,11 +551,11 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
-		port@3 {
-			reg = <3>;
+		port@2 {
+			reg = <2>;
 
-			isi_in_3: endpoint {
-				remote-endpoint = <&formatter_1_out>;
+			isi_in_2: endpoint {
+				remote-endpoint = <&formatter_0_out>;
 			};
 		};
 	};
