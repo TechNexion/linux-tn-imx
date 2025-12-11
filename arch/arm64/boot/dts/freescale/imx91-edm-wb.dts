@@ -39,10 +39,10 @@
 
 	disp_backlight: disp_backlight {
 		compatible = "pwm-backlight";
-		pwms = <&tpm2 0 40000 PWM_POLARITY_INVERTED>;	/* 25KHz PWM */
+		pwms = <&tpm2 0 40000 0>;	/* 25KHz PWM */
 		/* TPM driver seems revert the value */
 		brightness-levels = <0 36 72 108 144 180 216 255>;
-		default-brightness-level = <1>;
+		default-brightness-level = <6>;
 		power-supply = <&reg_5v>;
 		status = "disabled";
 	};
