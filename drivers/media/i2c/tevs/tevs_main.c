@@ -1180,15 +1180,15 @@ static int tevs_set_zoom_target(struct tevs *tevs, s32 value)
 static int tevs_set_bsl_mode(struct tevs *tevs, s32 mode)
 {
 	u16 val;
-	u8 bootcmd[6] = { 0x00, 0x12, 0x3A, 0x61, 0x44, 0xDE };
-	u8 startup[6] = { 0x00, 0x40, 0xE2, 0x51, 0x21, 0x5B };
 	u16 data_freq_tmp;
 	dev_dbg(tevs->dev, "%s(): set bls mode: %d", __func__, mode);
 
 	switch (mode) {
 	case TEVS_BSL_MODE_NORMAL_IDX:
-		tevs_i2c_write(tevs, 0x8001, startup, 6);
-		tevs_i2c_read(tevs, 0x8001, (u8 *)&val, 1);
+		gpiod_set_value_cansleep(tevs->reset_gpio, 0);
+		usleep_range(9000, 10000);
+		gpiod_set_value_cansleep(tevs->reset_gpio, 1);
+		msleep(400);
 
 		msleep(TEVS_BOOT_TIME);
 
@@ -1259,8 +1259,6 @@ static int tevs_set_bsl_mode(struct tevs *tevs, s32 mode)
 		usleep_range(9000, 10000);
 		gpiod_set_value_cansleep(tevs->standby_gpio, 0);
 		msleep(100);
-		tevs_i2c_write(tevs, 0x8001, bootcmd, 6);
-		tevs_i2c_read(tevs, 0x8001, (u8 *)&val, 1);
 		break;
 	default:
 		dev_err(tevs->dev, "%s(): set err bls mode: %d", __func__,
@@ -2136,7 +2134,7 @@ static int tevs_probe(struct i2c_client *client)
 
 	if (tevs_try_on(tevs) != 0) {
 		dev_err(dev, "cannot find tevs camera\n");
-		return -EINVAL;
+		return -ENODEV;
 	}
 
 	mutex_init(&tevs->lock);
@@ -2147,7 +2145,7 @@ static int tevs_probe(struct i2c_client *client)
 		msleep(TEVS_BOOT_TIME);
 		if (tevs_check_boot_state(tevs) != 0) {
 			dev_err(tevs->dev, "check tevs bootup status failed\n");
-			ret = -EINVAL;
+			ret = -ENODEV;
 			goto error_power_off;
 		}
 		if (ret < 0) {
