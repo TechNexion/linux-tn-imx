@@ -21,6 +21,10 @@
 #define HOST_COMMAND_TEVS_INFO_VERSION_MSB 						(0x3000)
 #define HOST_COMMAND_TEVS_INFO_VERSION_LSB 						(0x3002)
 #define HOST_COMMAND_TEVS_BOOT_STATE 							(0x3004)
+#define HOST_COMMAND_TEVS_SENSOR_CHIP_ID                        (0x3008)
+#define HOST_COMMAND_TEVS_MODEL_NUMBER_0                        (0x3020)
+#define HOST_COMMAND_TEVS_MODEL_NUMBER_1                        (0x3022)
+#define HOST_COMMAND_TEVS_MODEL_NUMBER_2                        (0x3024)
 
 /* Define host command register of ISP control page */
 #define HOST_COMMAND_ISP_CTRL_PREVIEW_WIDTH 					(0x3100)
@@ -320,6 +324,7 @@ struct tevs {
 
 	struct v4l2_fwnode_endpoint bus_cfg;
 
+	u16 chip_id;
 	int data_lanes;
 	int continuous_clock;
 	int data_frequency;
@@ -490,6 +495,23 @@ int tevs_load_header_info(struct tevs *tevs)
 			header_ver);
 		return -EINVAL;
 	}
+}
+
+static int tevs_get_chip_id(struct tevs *tevs)
+{
+	struct i2c_client *client = v4l2_get_subdevdata(&tevs->v4l2_subdev);
+	u16 val;
+	int ret =
+		tevs_i2c_read_16b(tevs, HOST_COMMAND_TEVS_SENSOR_CHIP_ID, &val);
+
+	if (ret < 0) {
+		dev_err(&client->dev, "Can't get chip ID. ret = %d.\n", ret);
+		return ret;
+	}
+
+	tevs->chip_id = val;
+	dev_info(&client->dev, "Chip ID: 0x%.4X\n", tevs->chip_id);
+	return 0;
 }
 
 static int tevs_standby(struct tevs *tevs, int enable)
@@ -666,12 +688,15 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 			tevs_i2c_read(tevs, TEVS_AE_MANUAL_EXP_TIME, exp, 4);
 			tevs->exp_time->cur.val = be32_to_cpup((__be32 *)exp) &
 						  TEVS_AE_MANUAL_EXP_TIME_MASK;
-			tevs_i2c_read(tevs, TEVS_AE_AUTO_EXP_TIME_UPPER, exp, 4);
-			tevs->ae_exp_upper->cur.val = be32_to_cpup((__be32 *)exp) &
-						  TEVS_AE_MANUAL_EXP_TIME_MASK;
+			tevs_i2c_read(tevs, TEVS_AE_AUTO_EXP_TIME_UPPER, exp,
+				      4);
+			tevs->ae_exp_upper->cur.val =
+				be32_to_cpup((__be32 *)exp) &
+				TEVS_AE_MANUAL_EXP_TIME_MASK;
 			tevs_i2c_read(tevs, TEVS_AE_AUTO_EXP_TIME_MAX, exp, 4);
-			tevs->ae_exp_max->cur.val = be32_to_cpup((__be32 *)exp) &
-						  TEVS_AE_MANUAL_EXP_TIME_MASK;
+			tevs->ae_exp_max->cur.val =
+				be32_to_cpup((__be32 *)exp) &
+				TEVS_AE_MANUAL_EXP_TIME_MASK;
 		}
 	}
 
@@ -2149,18 +2174,37 @@ static int tevs_probe(struct i2c_client *client)
 	if (ret < 0) {
 		dev_err(dev, "load header information failed\n");
 		goto error_power_off;
-	} else {
+	}
+
+	ret = tevs_get_chip_id(tevs);
+
+	if (ret < 0) {
+		dev_err(dev, "get chip ID failed\n");
+		goto error_power_off;
+	}
+
+	if (tevs->chip_id == SENSOR_CHIP_ID_NONE) {
 		for (i = 0; i < ARRAY_SIZE(tevs_sensor_table); i++) {
 			if (strcmp((const char *)tevs->header_info->product_name,
 				   tevs_sensor_table[i].sensor_name) == 0)
 				break;
 		}
+	} else {
+		for (i = 0; i < ARRAY_SIZE(tevs_sensor_table); i++) {
+			if (tevs->chip_id == tevs_sensor_table[i].chip_id)
+				break;
+		}
 	}
 
 	if (i >= ARRAY_SIZE(tevs_sensor_table)) {
-		dev_err(dev, "cannot not support the product: %s\n",
-			(const char *)tevs->header_info->product_name);
-		ret = -EINVAL;
+		if (tevs->chip_id == SENSOR_CHIP_ID_NONE)
+			dev_err(dev, "cannot not support the product: %s\n",
+				(const char *)tevs->header_info->product_name);
+		else
+			dev_err(dev, "cannot not support the chip ID: 0x%.4X\n",
+				tevs->chip_id);
+
+		ret = -ENODEV;
 		goto error_power_off;
 	}
 
