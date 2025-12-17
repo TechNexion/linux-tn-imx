@@ -682,7 +682,7 @@
 	pinctrl_touch: touchgrp {
 		fsl,pins = <
 			MX91_PAD_ENET2_MDIO__GPIO4_IO15			0x31e
-			MX91_PAD_ENET2_RD1__GPIO4_IO25			0x31e
+			MX91_PAD_ENET2_RD3__GPIO4_IO27			0x31e
 		>;
 	};
 };
