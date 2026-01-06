@@ -805,7 +805,7 @@ static int imx_pcie_clk_enable(struct imx_pcie *imx_pcie)
 		return ret;
 
 	if (imx_pcie->drvdata->enable_ref_clk) {
-		ret = imx_pcie->drvdata->enable_ref_clk(imx_pcie, true);
+		ret = imx_pcie->drvdata->enable_ref_clk(imx_pcie, imx_pcie->ext_osc ? true : false);
 		if (ret) {
 			dev_err(dev, "Failed to enable PCIe REFCLK\n");
 			goto err_ref_clk;
