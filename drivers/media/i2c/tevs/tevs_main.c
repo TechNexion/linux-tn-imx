@@ -585,7 +585,7 @@ static int tevs_check_boot_state(struct tevs *tevs)
 				boot_state);
 			ret = -EBUSY;
 		}
-		msleep(20);
+		msleep(50);
 	}
 
 	return ret;
