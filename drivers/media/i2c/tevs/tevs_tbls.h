@@ -3,15 +3,20 @@
 #include <linux/kernel.h>
 #include <media/v4l2-subdev.h>
 
-#define SENSOR_CHIP_ID_NONE                 0x0000
-#define SENSOR_CHIP_ID_ONSEMI_AR0144        0x0356
-#define SENSOR_CHIP_ID_ONSEMI_AR0145        0x1750
-#define SENSOR_CHIP_ID_ONSEMI_AR0234        0x0A56
-#define SENSOR_CHIP_ID_ONSEMI_AR0521        0x0457
-#define SENSOR_CHIP_ID_ONSEMI_AR0522        0x1457
-#define SENSOR_CHIP_ID_ONSEMI_AR0821        0x2557
-#define SENSOR_CHIP_ID_ONSEMI_AR0822        0x0F56
-#define SENSOR_CHIP_ID_ONSEMI_AR1335        0x0153
+#define SENSOR_CHIP_ID_NONE					0x0000
+#define SENSOR_CHIP_ID_ONSEMI_AR0144		0x0356
+#define SENSOR_CHIP_ID_ONSEMI_AR0145		0x1750
+#define SENSOR_CHIP_ID_ONSEMI_AR0234		0x0A56
+#define SENSOR_CHIP_ID_ONSEMI_AR0235		0x1850
+#define SENSOR_CHIP_ID_ONSEMI_AR0246		0x1F56
+#define SENSOR_CHIP_ID_ONSEMI_AR0521		0x0457
+#define SENSOR_CHIP_ID_ONSEMI_AR0522		0x1457
+#define SENSOR_CHIP_ID_ONSEMI_AR0544		0x0453
+#define SENSOR_CHIP_ID_ONSEMI_AR0821		0x2557
+#define SENSOR_CHIP_ID_ONSEMI_AR0822		0x0F56
+#define SENSOR_CHIP_ID_ONSEMI_AR0830		0x0553
+#define SENSOR_CHIP_ID_ONSEMI_AR1335		0x0153
+#define SENSOR_CHIP_ID_ONSEMI_AR2020		0x0653
 
 struct resolution {
 	u16 width;
@@ -54,6 +59,29 @@ static u32 ar0234_code_list[] = {
 	MEDIA_BUS_FMT_UYVY8_1X16,
 };
 
+/* AR0235 default setting for 4 data lanes and data frequency 800 MHz */
+static struct resolution ar0235_res_list[] = {
+	{ .width = 640, .height = 480, .framerates = 120, .mode = 0 },
+	{ .width = 1280, .height = 720, .framerates = 120, .mode = 0 },
+	{ .width = 1920, .height = 1080, .framerates = 60, .mode = 0 },
+	{ .width = 1920, .height = 1200, .framerates = 60, .mode = 0 },
+};
+
+static u32 ar0235_code_list[] = {
+	MEDIA_BUS_FMT_UYVY8_1X16,
+};
+
+/* AR0246 default setting for 4 data lanes and data frequency 800 MHz */
+static struct resolution ar0246_res_list[] = {
+	{ .width = 640, .height = 480, .framerates = 30, .mode = 0 },
+	{ .width = 1280, .height = 720, .framerates = 30, .mode = 0 },
+	{ .width = 1920, .height = 1080, .framerates = 30, .mode = 0 },
+};
+
+static u32 ar0246_code_list[] = {
+	MEDIA_BUS_FMT_UYVY8_1X16,
+};
+
 /* AR0521 default setting for 4 data lanes and data frequency 800 MHz */
 static struct resolution ar0521_res_list[] = {
 	{ .width = 640, .height = 480, .framerates = 120, .mode = 3 },
@@ -79,6 +107,20 @@ static struct resolution ar0522_res_list[] = {
 };
 
 static u32 ar0522_code_list[] = {
+	MEDIA_BUS_FMT_UYVY8_1X16,
+};
+
+/* AR0544 default setting for 4 data lanes and data frequency 800 MHz */
+static struct resolution ar0544_res_list[] = {
+	{ .width = 640, .height = 480, .framerates = 120, .mode = 3 },
+	{ .width = 1280, .height = 720, .framerates = 60, .mode = 2 },
+	{ .width = 1280, .height = 960, .framerates = 60, .mode = 2 },
+	{ .width = 1920, .height = 1080, .framerates = 60, .mode = 2 },
+	{ .width = 2560, .height = 1440, .framerates = 32, .mode = 0 },
+	{ .width = 2592, .height = 1944, .framerates = 24, .mode = 0 },
+};
+
+static u32 ar0544_code_list[] = {
 	MEDIA_BUS_FMT_UYVY8_1X16,
 };
 
@@ -108,6 +150,19 @@ static u32 ar0822_code_list[] = {
 	MEDIA_BUS_FMT_UYVY8_1X16,
 };
 
+/* AR0830 default setting for 4 data lanes and data frequency 800 MHz */
+static struct resolution ar0830_res_list[] = {
+	{ .width = 640, .height = 480, .framerates = 60, .mode = 3 },
+	{ .width = 1280, .height = 720, .framerates = 60, .mode = 2 },
+	{ .width = 1920, .height = 1080, .framerates = 60, .mode = 2 },
+	{ .width = 2560, .height = 1440, .framerates = 30, .mode = 1 },
+	{ .width = 3840, .height = 2160, .framerates = 15, .mode = 1 },
+};
+
+static u32 ar0830_code_list[] = {
+	MEDIA_BUS_FMT_UYVY8_1X16,
+};
+
 /* AR1335 default setting for 4 data lanes and data frequency 800 MHz */
 static struct resolution ar1335_res_list[] = {
 	{ .width = 640, .height = 480, .framerates = 60, .mode = 4 },
@@ -122,8 +177,22 @@ static u32 ar1335_code_list[] = {
 	MEDIA_BUS_FMT_UYVY8_1X16,
 };
 
+/* AR2020 default setting for 4 data lanes an1 data frequency 800 MHz */
+static struct resolution ar2020_res_list[] = {
+	{ .width = 640, .height = 480, .framerates = 60, .mode = 3 },
+	{ .width = 1280, .height = 720, .framerates = 120, .mode = 3 },
+	{ .width = 1920, .height = 1080, .framerates = 60, .mode = 2 },
+	{ .width = 2560, .height = 1440, .framerates = 30, .mode = 2 },
+	{ .width = 3840, .height = 2160, .framerates = 15, .mode = 1 },
+	{ .width = 4208, .height = 3120, .framerates = 10, .mode = 1 },
+};
+
+static u32 ar2020_code_list[] = {
+	MEDIA_BUS_FMT_UYVY8_1X16,
+};
+
 struct sensor_info {
-    const u16 chip_id;
+	const u16 chip_id;
 	const char *sensor_name;
 	struct resolution *res_list;
 	u32 res_list_size;
@@ -133,53 +202,83 @@ struct sensor_info {
 
 static struct sensor_info tevs_sensor_table[] = {
 	{ .chip_id = SENSOR_CHIP_ID_ONSEMI_AR0144,
-      .sensor_name = "TEVS-AR0144",
+	  .sensor_name = "TEVS-AR0144",
 	  .res_list = ar0144_res_list,
 	  .res_list_size = ARRAY_SIZE(ar0144_res_list),
 	  .code_list = ar0144_code_list,
 	  .code_list_size = ARRAY_SIZE(ar0144_code_list) },
 	{ .chip_id = SENSOR_CHIP_ID_ONSEMI_AR0145,
-      .sensor_name = "TEVS-AR0145",
+	  .sensor_name = "TEVS-AR0145",
 	  .res_list = ar0145_res_list,
 	  .res_list_size = ARRAY_SIZE(ar0145_res_list),
 	  .code_list = ar0145_code_list,
 	  .code_list_size = ARRAY_SIZE(ar0145_code_list) },
 	{ .chip_id = SENSOR_CHIP_ID_ONSEMI_AR0234,
-      .sensor_name = "TEVS-AR0234",
+	  .sensor_name = "TEVS-AR0234",
 	  .res_list = ar0234_res_list,
 	  .res_list_size = ARRAY_SIZE(ar0234_res_list),
 	  .code_list = ar0234_code_list,
 	  .code_list_size = ARRAY_SIZE(ar0234_code_list) },
+	{ .chip_id = SENSOR_CHIP_ID_ONSEMI_AR0235,
+	  .sensor_name = "TEVS-AR0235",
+	  .res_list = ar0235_res_list,
+	  .res_list_size = ARRAY_SIZE(ar0235_res_list),
+	  .code_list = ar0235_code_list,
+	  .code_list_size = ARRAY_SIZE(ar0235_code_list) },
+	{ .chip_id = SENSOR_CHIP_ID_ONSEMI_AR0246,
+	  .sensor_name = "TEVS-AR0246",
+	  .res_list = ar0246_res_list,
+	  .res_list_size = ARRAY_SIZE(ar0246_res_list),
+	  .code_list = ar0246_code_list,
+	  .code_list_size = ARRAY_SIZE(ar0246_code_list) },
 	{ .chip_id = SENSOR_CHIP_ID_ONSEMI_AR0521,
-      .sensor_name = "TEVS-AR0521",
+	  .sensor_name = "TEVS-AR0521",
 	  .res_list = ar0521_res_list,
 	  .res_list_size = ARRAY_SIZE(ar0521_res_list),
 	  .code_list = ar0521_code_list,
 	  .code_list_size = ARRAY_SIZE(ar0521_code_list) },
 	{ .chip_id = SENSOR_CHIP_ID_ONSEMI_AR0522,
-      .sensor_name = "TEVS-AR0522",
+	  .sensor_name = "TEVS-AR0522",
 	  .res_list = ar0522_res_list,
 	  .res_list_size = ARRAY_SIZE(ar0522_res_list),
 	  .code_list = ar0522_code_list,
 	  .code_list_size = ARRAY_SIZE(ar0522_code_list) },
+	{ .chip_id = SENSOR_CHIP_ID_ONSEMI_AR0544,
+	  .sensor_name = "TEVS-AR0544",
+	  .res_list = ar0544_res_list,
+	  .res_list_size = ARRAY_SIZE(ar0544_res_list),
+	  .code_list = ar0544_code_list,
+	  .code_list_size = ARRAY_SIZE(ar0544_code_list) },
 	{ .chip_id = SENSOR_CHIP_ID_ONSEMI_AR0821,
-      .sensor_name = "TEVS-AR0821",
+	  .sensor_name = "TEVS-AR0821",
 	  .res_list = ar0821_res_list,
 	  .res_list_size = ARRAY_SIZE(ar0821_res_list),
 	  .code_list = ar0821_code_list,
 	  .code_list_size = ARRAY_SIZE(ar0821_code_list) },
 	{ .chip_id = SENSOR_CHIP_ID_ONSEMI_AR0822,
-      .sensor_name = "TEVS-AR0822",
+	  .sensor_name = "TEVS-AR0822",
 	  .res_list = ar0822_res_list,
 	  .res_list_size = ARRAY_SIZE(ar0822_res_list),
 	  .code_list = ar0822_code_list,
 	  .code_list_size = ARRAY_SIZE(ar0822_code_list) },
+	{ .chip_id = SENSOR_CHIP_ID_ONSEMI_AR0830,
+	  .sensor_name = "TEVS-AR0830",
+	  .res_list = ar0830_res_list,
+	  .res_list_size = ARRAY_SIZE(ar0830_res_list),
+	  .code_list = ar0830_code_list,
+	  .code_list_size = ARRAY_SIZE(ar0830_code_list) },
 	{ .chip_id = SENSOR_CHIP_ID_ONSEMI_AR1335,
-      .sensor_name = "TEVS-AR1335",
+	  .sensor_name = "TEVS-AR1335",
 	  .res_list = ar1335_res_list,
 	  .res_list_size = ARRAY_SIZE(ar1335_res_list),
 	  .code_list = ar1335_code_list,
 	  .code_list_size = ARRAY_SIZE(ar1335_code_list) },
+	{ .chip_id = SENSOR_CHIP_ID_ONSEMI_AR2020,
+	  .sensor_name = "TEVS-AR2020",
+	  .res_list = ar2020_res_list,
+	  .res_list_size = ARRAY_SIZE(ar2020_res_list),
+	  .code_list = ar2020_code_list,
+	  .code_list_size = ARRAY_SIZE(ar2020_code_list) },
 };
 
 #endif //__SENSOR_TABLES_H__
