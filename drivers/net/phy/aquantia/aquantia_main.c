@@ -959,6 +959,14 @@ static int aqr113c_config_init(struct phy_device *phydev)
 	if (ret)
 		return ret;
 
+	aqr_phy_led_hw_control_set(phydev, 0, BIT(TRIGGER_NETDEV_LINK_10000));
+	ret = aqr_phy_led_hw_control_set(phydev, 2, BIT(TRIGGER_NETDEV_LINK_100) |
+					BIT(TRIGGER_NETDEV_LINK_1000) |
+					BIT(TRIGGER_NETDEV_LINK_2500) |
+					BIT(TRIGGER_NETDEV_LINK_5000));
+	if (ret)
+		return ret;
+
 	return aqr113c_fill_interface_modes(phydev);
 }
 
