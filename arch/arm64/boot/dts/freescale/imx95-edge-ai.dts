@@ -248,6 +248,7 @@
 	phy-mode = "10gbase-r";
 	serdes-supply = <&reg_serdes_en>;
 	managed = "in-band-status";
+	nvmem-cells = <&eth_mac0>;
 	status = "okay";
 };
 
