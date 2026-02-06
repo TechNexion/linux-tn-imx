@@ -1369,6 +1369,8 @@ static int max_des_update_pipe_enable(struct max_des_priv *priv,
 	for_each_active_route(&state->routing, route) {
 		struct max_des_route_hw hw;
 
+		if(route->sink_pad != pipe->index)
+			continue;
 		if (!(BIT_ULL(route->sink_stream) & streams_masks[route->sink_pad]))
 			continue;
 
