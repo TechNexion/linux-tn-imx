@@ -1898,7 +1898,7 @@ static int imx_pcie_probe(struct platform_device *pdev)
 	}
 
 	if (of_property_read_u32(node, "ext_osc", &imx_pcie->ext_osc) < 0)
-		imx_pcie->ext_osc = 0;
+		imx_pcie->ext_osc = 1;
 
 	/* Fetch GPIOs */
 	imx_pcie->reset_gpiod = devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_HIGH);
