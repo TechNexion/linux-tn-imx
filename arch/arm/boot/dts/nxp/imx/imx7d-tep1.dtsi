@@ -875,6 +875,7 @@ EDM_TEP1_GPIO_DEFS();
 	clkreq-gpio = <&gpio6 13 GPIO_ACTIVE_HIGH>;
 	wake-gpio = <&gpio6 14 GPIO_ACTIVE_HIGH>;
 	reset-gpio = <&gpio6 15 GPIO_ACTIVE_HIGH>;
+	ext_osc = <0>;
 	status = "okay";
 };
 
