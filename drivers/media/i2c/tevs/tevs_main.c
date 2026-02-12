@@ -1202,12 +1202,12 @@ static int tevs_set_bsl_mode(struct tevs *tevs, s32 mode)
 		gpiod_set_value_cansleep(tevs->reset_gpio, 0);
 		usleep_range(9000, 10000);
 		gpiod_set_value_cansleep(tevs->reset_gpio, 1);
-		msleep(400);
+		usleep_range(9000, 10000);
 
 		msleep(TEVS_BOOT_TIME);
 
 		if (tevs_check_boot_state(tevs) != 0) {
-			dev_err(&client->dev, "check tevs bootup status failed 1\n");
+			dev_err(&client->dev, "check tevs bootup status failed before change data frequency\n");
 			return -ENODEV;
 		}
 
@@ -1221,7 +1221,7 @@ static int tevs_set_bsl_mode(struct tevs *tevs, s32 mode)
 				msleep(TEVS_BOOT_TIME);
 				if (tevs_check_boot_state(tevs) != 0) {
 					dev_err(&client->dev,
-						"check tevs bootup status failed 2\n");
+						"check tevs bootup status failed after change data frequency\n");
 					return -ENODEV;
 				}
 			}
@@ -1980,6 +1980,7 @@ static int tevs_power_off(struct tevs *tevs)
 
 	if (tevs->hw_reset_mode) {
 		gpiod_set_value_cansleep(tevs->reset_gpio, 0);
+		gpiod_set_value_cansleep(tevs->standby_gpio, 0);
 		gpiod_set_value_cansleep(tevs->host_pwdn_gpio, 0);
 	}
 
@@ -2069,6 +2070,7 @@ static int tevs_check_hwcfg(struct device *dev, struct tevs *tevs)
 			dev_err(dev, "Cannot get standby GPIO (%d)", ret);
 		return ret;
 	}
+	gpiod_set_value_cansleep(tevs->standby_gpio, 0);
 
 	tevs->supports_over_4k_res =
 		of_property_read_bool(dev->of_node, "supports-over-4k-res");
