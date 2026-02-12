@@ -2084,6 +2084,8 @@ panel:
 		ret = drm_connector_attach_encoder(connector, encoder);
 		if (ret)
 			goto cleanup_connector;
+
+		pm_runtime_set_autosuspend_delay(dsim->panel->dev, 0);
 	}
 
 	dev_dbg(dev, "sec-dsim bridge bind end\n");
