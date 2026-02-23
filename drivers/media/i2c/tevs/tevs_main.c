@@ -2365,5 +2365,5 @@ module_i2c_driver(sensor_i2c_driver);
 MODULE_AUTHOR("TECHNEXION Inc.");
 MODULE_DESCRIPTION("TechNexion TEVS camera driver");
 MODULE_LICENSE("GPL");
-MODULE_VERSION("1.0");
+MODULE_VERSION("2.0");
 MODULE_ALIAS("Camera");
