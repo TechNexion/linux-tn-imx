@@ -551,17 +551,6 @@
 	status = "okay";
 };
 
-&pixel_interleaver {
-	#address-cells = <1>;
-	#size-cells = <0>;
-	status = "okay";
-
-	channel@0 {
-		reg = <0>;
-		status = "okay";
-	};
-};
-
 &sai5 {
 	assigned-clocks = <&scmi_clk IMX95_CLK_AUDIOPLL1_VCO>,
 			  <&scmi_clk IMX95_CLK_AUDIOPLL2_VCO>,
