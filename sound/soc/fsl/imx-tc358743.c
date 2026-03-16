@@ -149,7 +149,7 @@ static struct snd_soc_dai_link imx_tc358743_dai_link = {
 	.stream_name	= "hdmi-in",
 	.ops            = &imx_tc358743_ops,
 	.dai_fmt = SND_SOC_DAIFMT_I2S		/* I2S format */
-		| SND_SOC_DAIFMT_CBM_CFM	/* Codec is master , imx is slave */
+		| SND_SOC_DAIFMT_CBP_CFP	/* Codec is master , imx is slave */
 		| SND_SOC_DAIFMT_NB_NF,		/* BCLK and FS is normal , invert needless*/
 };
 
