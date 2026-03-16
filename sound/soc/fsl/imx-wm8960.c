@@ -285,10 +285,10 @@ static int imx_hifi_hw_params(struct snd_pcm_substream *substream,
 
 	if (data->is_codec_master)
 		fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
-			SND_SOC_DAIFMT_CBM_CFM;
+			SND_SOC_DAIFMT_CBP_CFP;
 	else
 		fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
-			SND_SOC_DAIFMT_CBS_CFS;
+			SND_SOC_DAIFMT_CBC_CFC;
 
 	/* set cpu DAI configuration */
 	ret = snd_soc_dai_set_fmt(cpu_dai, fmt);
@@ -353,7 +353,7 @@ static int imx_hifi_hw_free(struct snd_pcm_substream *substream)
 	data->is_stream_in_use[tx] = false;
 
 	if (data->is_codec_master && !data->is_stream_in_use[!tx]) {
-		ret = snd_soc_dai_set_fmt(codec_dai, SND_SOC_DAIFMT_CBS_CFS | SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF);
+		ret = snd_soc_dai_set_fmt(codec_dai, SND_SOC_DAIFMT_CBC_CFC | SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF);
 		if (ret)
 			dev_warn(dev, "failed to set codec dai fmt: %d\n", ret);
 	}
@@ -786,8 +786,6 @@ static int imx_wm8960_probe(struct platform_device *pdev)
 	data->imx_wm8960_dai[1].stream_name = "HiFi-ASRC-FE";
 	data->imx_wm8960_dai[1].dynamic = 1;
 	data->imx_wm8960_dai[1].ignore_pmdown_time = 1;
-	data->imx_wm8960_dai[1].dpcm_playback = 1;
-	data->imx_wm8960_dai[1].dpcm_capture = 1;
 	data->imx_wm8960_dai[1].dpcm_merged_chan = 1;
 	data->imx_wm8960_dai[1].cpus = hifi_fe_cpus;
 	data->imx_wm8960_dai[1].num_cpus = ARRAY_SIZE(hifi_fe_cpus);
@@ -800,8 +798,6 @@ static int imx_wm8960_probe(struct platform_device *pdev)
 	data->imx_wm8960_dai[2].stream_name = "HiFi-ASRC-BE";
 	data->imx_wm8960_dai[2].no_pcm = 1;
 	data->imx_wm8960_dai[2].ignore_pmdown_time = 1;
-	data->imx_wm8960_dai[2].dpcm_playback = 1;
-	data->imx_wm8960_dai[2].dpcm_capture = 1;
 	data->imx_wm8960_dai[2].ops = &imx_hifi_ops;
 	data->imx_wm8960_dai[2].be_hw_params_fixup = be_hw_params_fixup;
 	data->imx_wm8960_dai[2].cpus = hifi_be_cpus;
