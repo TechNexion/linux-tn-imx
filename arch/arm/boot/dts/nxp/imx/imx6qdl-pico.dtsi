@@ -649,7 +649,7 @@
 			reset-gpios = <&gpio1 26 GPIO_ACTIVE_LOW>;
 			reset-assert-us = <35000>;
 			reset-deassert-us = <75000>;
-			qca,clk-out-frequency = <125000000>;
+			realtek,clkout-frequency = <125000000>;
 			qca,disable-smarteee;
 			realtek,phy-mode-eee-disable;
 			vddio-supply = <&vddio>;
