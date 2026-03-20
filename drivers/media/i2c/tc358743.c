@@ -119,6 +119,10 @@ struct tc358743_state {
 	struct cec_adapter *cec_adap;
 };
 
+static const s64 tc358743_link_freqs[] = {
+	297000000,
+};
+
 struct _res
 {
 	u16 x;
@@ -835,6 +839,10 @@ static void tc358743_set_csi(struct v4l2_subdev *sd)
 	struct tc358743_state *state = to_state(sd);
 	struct tc358743_platform_data *pdata = &state->pdata;
 	unsigned lanes = tc358743_num_csi_lanes_needed(sd);
+
+	if (state->bus.num_data_lanes < lanes) {
+		lanes = state->bus.num_data_lanes;
+	}
 
 	v4l2_dbg(3, debug, sd, "%s:\n", __func__);
 
@@ -2578,10 +2586,15 @@ static int tc358743_probe(struct i2c_client *client)
 	}
 
 	/* control handlers */
-	v4l2_ctrl_handler_init(&state->hdl, 3);
+	v4l2_ctrl_handler_init(&state->hdl, 4);
 
 	state->detect_tx_5v_ctrl = v4l2_ctrl_new_std(&state->hdl, NULL,
 			V4L2_CID_DV_RX_POWER_PRESENT, 0, 1, 0, 0);
+
+	v4l2_ctrl_new_int_menu(&state->hdl, NULL,
+		V4L2_CID_LINK_FREQ,
+		ARRAY_SIZE(tc358743_link_freqs) - 1,
+		0, tc358743_link_freqs);
 
 	/* custom controls */
 	state->audio_sampling_rate_ctrl = v4l2_ctrl_new_custom(&state->hdl,
