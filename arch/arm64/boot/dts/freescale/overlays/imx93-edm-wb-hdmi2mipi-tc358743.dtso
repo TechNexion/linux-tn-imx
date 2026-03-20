@@ -1,0 +1,115 @@
+// SPDX-License-Identifier: (GPL-2.0 OR MIT)
+/*
+ * Copyright 2026 TechNexion Ltd.
+ *
+ * Author: Jimmy Yi <jimmy.yi@technexion.com>
+ *
+ */
+
+/******************************************************************************
+
+USAGE NOTES:
+
+This overlay is to enable a VizionLink HDMI board connected into the CAMERA
+slot of the EDM-WB baseboard.
+
+It enables the TC358743 device and logically connects it into the MIPI-CSI of
+the i.MX93 SOC. It also explicitly disables the tlv320aic3104 and sound interface
+which are enabled by default on I2S1 ports for the EDM-WB.
+
+This overlay can be included by configuring the 'dtoverlay' in u-boot to
+include "hdmi2mipi-tc358743":
+
+setenv dtoverlay ${dtoverlay} hdmi2mipi-tc358743
+saveenv
+
+*****************************************************************************/
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+
+&lpi2c2 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+
+	hdmi_in: tc358743@f {
+		compatible = "toshiba,tc358743";
+		reg = <0x0f>;
+        reset-gpios = <&pcal6524 9 GPIO_ACTIVE_HIGH>;
+		status = "okay";
+
+		port {
+			hdmi_in_ep: endpoint {
+				remote-endpoint = <&mipi_csi_ep>;
+				data-lanes = <1 2>;
+				clock-lanes = <0>;
+				clock-noncontinuous;
+				link-frequencies = /bits/ 64 <297000000>;
+			};
+		};
+	};
+};
+
+&dphy_rx {
+	status = "okay";
+};
+
+&mipi_csi {
+	status = "okay";
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			mipi_csi_ep: endpoint {
+				remote-endpoint = <&hdmi_in_ep>;
+				data-lanes = <1 2>;
+				clock-lanes = <0>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			mipi_csi_out: endpoint {
+				remote-endpoint = <&isi_in>;
+			};
+		};
+	};
+};
+
+&isi {
+	status = "okay";
+
+	port {
+		isi_in: endpoint {
+			remote-endpoint = <&mipi_csi_out>;
+		};
+	};
+};
+
+&{/sound} {
+    status = "disabled";
+};
+
+&tlv320aic3104 {
+    status = "disabled";
+};
+
+&sai1 {
+	status = "okay";
+};
+
+&{/} {
+	sound-tc358743 {
+		compatible = "nxp,imx-audio-tc358743", "nxp,imx-tc358743";
+		cpu-dai = <&sai1>;
+		nxp,audio-codec = <&hdmi_in>;
+		status = "okay";
+	};
+};
