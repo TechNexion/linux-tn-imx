@@ -1,0 +1,135 @@
+// SPDX-License-Identifier: (GPL-2.0 OR MIT)
+/*
+ * Copyright 2026 TechNexion Ltd.
+ *
+ * Author: Jimmy Yi <jimmy.yi@technexion.com>
+ *
+ */
+
+/******************************************************************************
+
+USAGE NOTES:
+
+This overlay is to enable a VizionLink HDMI board connected into the CAMERA1
+slot of the EVM baseboard.
+
+It enables the TC358743 device and logically connects it into the MIPI-CSI of
+the i.MX95 SOC.
+
+This overlay can be included by configuring the 'dtoverlay' in u-boot to
+include "hdmi2mipi-tc358743-single-cam1":
+
+setenv dtoverlay ${dtoverlay} hdmi2mipi-tc358743-single-cam1
+saveenv
+
+*****************************************************************************/
+
+/dts-v1/;
+/plugin/;
+
+//#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/* tc358743 on CSI0 */
+&lpi2c2 {
+    #address-cells = <1>;
+    #size-cells = <0>;
+    status = "okay";
+
+    hdmi_in_0: tc358743@f {
+        compatible = "toshiba,tc358743";
+        reg = <0x0f>;
+        reset-gpios = <&tca9555_a21 4 GPIO_ACTIVE_HIGH>;
+        status = "okay";
+
+        port {
+            hdmi_in_ep_0: endpoint {
+                remote-endpoint = <&mipi_csi0_ep>;
+                data-lanes = <1 2 3 4>;
+                clock-lanes = <0>;
+                clock-noncontinuous;
+                link-frequencies = /bits/ 64 <297000000>;
+            };
+        };
+    };
+};
+
+&dphy_rx {
+    status = "okay";
+};
+
+&mipi_csi0 {
+    status = "okay";
+
+    ports {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        port@0 {
+            reg = <0>;
+            mipi_csi0_ep: endpoint {
+                remote-endpoint = <&hdmi_in_ep_0>;
+                data-lanes = <1 2 3 4>;
+                clock-lanes = <0>;
+            };
+        };
+
+        port@1 {
+            reg = <1>;
+            mipi_csi0_out: endpoint {
+                remote-endpoint = <&formatter_0_in>;
+            };
+        };
+    };
+};
+
+&csi_pixel_formatter_0 {
+    status = "okay";
+
+    ports {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        port@0 {
+            reg = <0>;
+
+            formatter_0_in: endpoint {
+                remote-endpoint = <&mipi_csi0_out>;
+            };
+        };
+
+        port@1 {
+            reg = <1>;
+
+            formatter_0_out: endpoint {
+                remote-endpoint = <&isi_in_2>;
+            };
+        };
+    };
+};
+
+&isi {
+    status = "okay";
+
+    ports {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        port@2 {
+            reg = <2>;
+
+            isi_in_2: endpoint {
+                remote-endpoint = <&formatter_0_out>;
+            };
+        };
+    };
+};
+
+&{/} {
+    sound-tc358743 {
+        compatible = "nxp,imx-audio-tc358743", "nxp,imx-tc358743";
+        cpu-dai = <&sai5>;
+        nxp,audio-codec = <&hdmi_in_0>;
+        status = "okay";
+    };
+};
