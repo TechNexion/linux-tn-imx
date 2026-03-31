@@ -14,12 +14,9 @@
 #include <dt-bindings/gpio/gpio.h>
 
 &mipi_csi_0 {
-	#address-cells = <1>;
-	#size-cells = <0>;
 	status = "okay";
 
-	port@0 {
-		reg = <0>;
+	port {
 		mipi_csi0_ep: endpoint {
 			remote-endpoint = <&tevs_0_ep>;
 			data-lanes = <4>;
@@ -60,7 +57,7 @@
 		pinctrl-0 = <&pinctrl_csi0_pwn>, <&pinctrl_csi0_rst>;
 		host-pwdn-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
 		reset-gpios = <&gpio1 8 GPIO_ACTIVE_HIGH>;
-		standby-gpios = <&pca9555_a21 2 GPIO_ACTIVE_HIGH>;
+		standby-gpios = <&expander1 2 GPIO_ACTIVE_HIGH>;
 
 		port {
 			tevs_0_ep: endpoint {
@@ -87,7 +84,7 @@
 		pinctrl-0 = <&pinctrl_csi1_pwn>, <&pinctrl_csi1_rst>;
 		host-pwdn-gpios = <&gpio4 5 GPIO_ACTIVE_HIGH>;
 		reset-gpios = <&gpio4 4 GPIO_ACTIVE_HIGH>;
-		standby-gpios = <&pca9555_a21 10 GPIO_ACTIVE_HIGH>;
+		standby-gpios = <&expander1 10 GPIO_ACTIVE_HIGH>;
 
 		port {
 			tevs_1_ep: endpoint {
