@@ -395,6 +395,11 @@
 	};
 };
 
+&snvs_pwrkey {
+	linux,keycode = <KEY_SUSPEND>;
+	status = "okay";
+};
+
 &sai2 {
 	status = "okay";
 };
