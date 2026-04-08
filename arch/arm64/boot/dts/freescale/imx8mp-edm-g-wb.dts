@@ -319,6 +319,18 @@
 	};
 };
 
+&i2c3 {
+	status = "okay";
+};
+
+&i2c4 {
+	status = "okay";
+};
+
+&i2c5 {
+	status = "okay";
+};
+
 &i2c_0 {
 	eeprom2: eeprom@51 {
 		compatible = "atmel,24c02";

@@ -265,6 +265,10 @@
 	};
 };
 
+&i2c3 {
+	status = "okay";
+};
+
 &i2c4 {
 	status = "okay";
 
@@ -288,6 +292,7 @@
 
 &i2c5 {
 	clock-frequency = <400000>;
+	status = "okay";
 
 	sensor_5v0:ina219_5v0@44 {/* Power monitor for 5V SOM input supply */
 		compatible = "ti,ina219";
