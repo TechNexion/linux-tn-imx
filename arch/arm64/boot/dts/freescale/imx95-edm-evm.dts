@@ -45,13 +45,13 @@
 
 		led0: led-0 {
 			default-state = "on";
-			gpios = <&tca9555_a21 2 GPIO_ACTIVE_HIGH>;
+			gpios = <&pca9554_d23 7 GPIO_ACTIVE_HIGH>;
 			label = "user1";
 		};
 
 		led1: led-1 {
 			default-state = "on";
-			gpios = <&tca9555_a21 3 GPIO_ACTIVE_HIGH>;
+			gpios = <&tca9555_a22 15 GPIO_ACTIVE_HIGH>;
 			label = "user2";
 		};
 	};
@@ -303,7 +303,7 @@
 		reg = <0x23>;
 		#gpio-cells = <2>;
 		gpio-controller;
-		gpio-line-names = "DSI1_VDDEN", "DSI1_BL_EN", "DSI1_TE", "DSI1_RST", "DSI1_INT_N", "TOUCH_RST", "EEPROM_WP", "";
+		gpio-line-names = "DSI1_VDDEN", "DSI1_BL_EN", "DSI1_TE", "DSI1_RST", "DSI1_INT_N", "TOUCH_RST", "EEPROM_WP", "USER_LED1";
 		vcc-supply = <&reg_3p3v>;
 	};
 
