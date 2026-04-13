@@ -691,28 +691,40 @@ static int max96724_init_phy(struct max_des *des, struct max_des_phy *phy)
 			return ret;
 	}
 
-	if (!is_cphy && dpll_freq > 1500000000ull) {
-		/* Enable initial deskew with 2 x 32k UI. */
-		ret = regmap_write(priv->regmap, MAX96724_MIPI_TX3(index),
-				   MAX96724_MIPI_TX3_DESKEW_INIT_AUTO |
-				   MAX96724_MIPI_TX3_DESKEW_INIT_8X32K);
-		if (ret)
-			return ret;
+	// if (!is_cphy && dpll_freq > 1500000000ull) {
+	// 	/* Enable initial deskew with 2 x 32k UI. */
+	// 	ret = regmap_write(priv->regmap, MAX96724_MIPI_TX3(index),
+	// 			   MAX96724_MIPI_TX3_DESKEW_INIT_AUTO |
+	// 			   MAX96724_MIPI_TX3_DESKEW_INIT_8X32K);
+	// 	if (ret)
+	// 		return ret;
 
-		/* Enable periodic deskew with 2 x 1k UI.. */
-		ret = regmap_write(priv->regmap, MAX96724_MIPI_TX4(index),
-				   MAX96724_MIPI_TX4_DESKEW_PER_AUTO |
-				   MAX96724_MIPI_TX4_DESKEW_PER_2K);
-		if (ret)
-			return ret;
-	} else {
+	// 	/* Enable periodic deskew with 2 x 1k UI.. */
+	// 	ret = regmap_write(priv->regmap, MAX96724_MIPI_TX4(index),
+	// 			   MAX96724_MIPI_TX4_DESKEW_PER_AUTO |
+	// 			   MAX96724_MIPI_TX4_DESKEW_PER_2K);
+	// 	if (ret)
+	// 		return ret;
+	// } else {
+	// 	/* Disable initial deskew. */
+	// 	ret = regmap_write(priv->regmap, MAX96724_MIPI_TX3(index), 0x7);
+	// 	if (ret)
+	// 		return ret;
+
+	// 	/* Disable periodic deskew. */
+	// 	ret = regmap_write(priv->regmap, MAX96724_MIPI_TX4(index), 0x1);
+	// 	if (ret)
+	// 		return ret;
+	// }
+
+	if (!is_cphy) {
 		/* Disable initial deskew. */
-		ret = regmap_write(priv->regmap, MAX96724_MIPI_TX3(index), 0x0);
+		ret = regmap_write(priv->regmap, MAX96724_MIPI_TX3(index), 0x7);
 		if (ret)
 			return ret;
 
 		/* Disable periodic deskew. */
-		ret = regmap_write(priv->regmap, MAX96724_MIPI_TX4(index), 0x0);
+		ret = regmap_write(priv->regmap, MAX96724_MIPI_TX4(index), 0x1);
 		if (ret)
 			return ret;
 	}
