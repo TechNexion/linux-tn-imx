@@ -191,6 +191,8 @@
 
 #define MAX96717_PIO_SLEW_FASTEST		0b00
 
+#define MAX96717_RLMS(x)			(0x1400 + (x))
+
 #define MAX96717_BIAS_PULL_STRENGTH_1000000_OHM	1000000U
 #define MAX96717_BIAS_PULL_STRENGTH_40000_OHM	40000U
 
@@ -1473,6 +1475,11 @@ static int max96717_init(struct max_ser *ser)
 				 MAX96717_CMU2_PFDDIV_RSHORT,
 				 FIELD_PREP(MAX96717_CMU2_PFDDIV_RSHORT,
 					    MAX96717_CMU2_PFDDIV_RSHORT_1_1V));
+	if (ret)
+		return ret;
+
+	/* Enable GMSL Negative Output in Coax Mode for Optimal Performance */
+	ret = regmap_write(priv->regmap, MAX96717_RLMS(0xCE), 0x19);
 	if (ret)
 		return ret;
 
