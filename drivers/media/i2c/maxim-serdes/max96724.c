@@ -282,6 +282,8 @@
 #define MAX96724_VS_POL				0x11f4
 #define MAX96724_DET(p)				BIT(p)
 
+#define MAX96724_RLMS(x)			(0x1400 + (x))
+
 #define MAX96724_DPLL_0(x)			(0x1c00 + (x) * 0x100)
 #define MAX96724_DPLL_0_CONFIG_SOFT_RST_N	BIT(0)
 
@@ -838,6 +840,27 @@ static int max96724_set_phy_enable(struct max_des *des, struct max_des_phy *phy,
 	// return regmap_assign_bits(priv->regmap, MAX96724_MIPI_PHY2, mask, enable);
 }
 
+static int max96724_init_link(struct max_des *des, struct max_des_link *link)
+{
+	struct max96724_priv *priv = des_to_priv(des);
+	unsigned int index = link->index;
+	int ret;
+
+	dev_dbg(priv->dev, "%s()\n", __func__);
+
+	/* RLMS Register Setting for robust 6Gbps GMSL2 Rate */
+	ret = regmap_write(priv->regmap, MAX96724_RLMS(0x49) + 0x100 * index, 0x75);
+	if (ret)
+		return ret;
+
+	ret = regmap_update_bits(priv->regmap, MAX96724_CTRL1, BIT(index), BIT(index));
+	if (ret)
+		return ret;
+	msleep(60);
+
+	return 0;
+}
+
 static int max96724_init_fsync(struct max_des *des, struct max_des_fsync *fsync)
 {
 	struct max96724_priv *priv = des_to_priv(des);
@@ -1319,6 +1342,7 @@ static const struct max_des_ops max96724_ops = {
 	.init_phy = max96724_init_phy,
 	.set_phy_mode = max96724_set_phy_mode,
 	.set_phy_enable = max96724_set_phy_enable,
+	.init_link = max96724_init_link,
 	.init_fsync = max96724_init_fsync,
 	.set_pipe_stream_id = max96724_set_pipe_stream_id,
 	.set_pipe_link = max96724_set_pipe_link,
