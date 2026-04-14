@@ -118,7 +118,7 @@
 					data-lanes = <1 2 3 4>;
 					clock-lanes = <0>;
 					bus-type = <4>;
-					link-frequencies = /bits/ 64 <750000000>;
+					link-frequencies = /bits/ 64 <1250000000>;
 					remote-endpoint = <&mipi_csi1_ep>;
 				};
 			};
@@ -184,10 +184,10 @@
 					port {
 						cam_4_out: endpoint {
 							remote-endpoint = <&ser_4_csi_in>;
-							data-lanes = <1 2>;
+							data-lanes = <1 2 3 4>;
 							clock-lanes = <0>;
 							clock-noncontinuous;
-							link-frequencies = /bits/ 64 <300000000>;
+							link-frequencies = /bits/ 64 <280000000>;
 						};
 					};
 				};
@@ -203,7 +203,7 @@
 				#size-cells = <0>;
 				reg = <0>;
 				ser_4_csi_in: endpoint {
-					data-lanes = <1 2>;
+					data-lanes = <1 2 3 4>;
 					clock-noncontinuous;
 					remote-endpoint = <&cam_4_out>;
 				};
@@ -277,10 +277,10 @@
 					port {
 						cam_5_out: endpoint {
 							remote-endpoint = <&ser_5_csi_in>;
-							data-lanes = <1 2>;
+							data-lanes = <1 2 3 4>;
 							clock-lanes = <0>;
 							clock-noncontinuous;
-							link-frequencies = /bits/ 64 <300000000>;
+							link-frequencies = /bits/ 64 <280000000>;
 						};
 					};
 				};
@@ -294,7 +294,7 @@
 			port@0 {
 				reg = <0>;
 				ser_5_csi_in: endpoint {
-					data-lanes = <1 2>;
+					data-lanes = <1 2 3 4>;
 					clock-noncontinuous;
 					remote-endpoint = <&cam_5_out>;
 				};
@@ -368,10 +368,10 @@
 					port {
 						cam_6_out: endpoint {
 							remote-endpoint = <&ser_6_csi_in>;
-							data-lanes = <1 2>;
+							data-lanes = <1 2 3 4>;
 							clock-lanes = <0>;
 							clock-noncontinuous;
-							link-frequencies = /bits/ 64 <300000000>;
+							link-frequencies = /bits/ 64 <280000000>;
 						};
 					};
 				};
@@ -385,7 +385,7 @@
 			port@0 {
 				reg = <0>;
 				ser_6_csi_in: endpoint {
-					data-lanes = <1 2>;
+					data-lanes = <1 2 3 4>;
 					clock-noncontinuous;
 					remote-endpoint = <&cam_6_out>;
 				};
@@ -459,10 +459,10 @@
 					port {
 						cam_7_out: endpoint {
 							remote-endpoint = <&ser_7_csi_in>;
-							data-lanes = <1 2>;
+							data-lanes = <1 2 3 4>;
 							clock-lanes = <0>;
 							clock-noncontinuous;
-							link-frequencies = /bits/ 64 <300000000>;
+							link-frequencies = /bits/ 64 <280000000>;
 						};
 					};
 				};
@@ -476,7 +476,7 @@
 			port@0 {
 				reg = <0>;
 				ser_7_csi_in: endpoint {
-					data-lanes = <1 2>;
+					data-lanes = <1 2 3 4>;
 					clock-noncontinuous;
 					remote-endpoint = <&cam_7_out>;
 				};
