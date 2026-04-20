@@ -67,6 +67,16 @@
 		gpio = <&gpio1 0 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
 	};
+
+	bt_reg_on: btreg_on {
+		compatible = "gpio-reset";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_bt_ctrl>;
+		reset-gpios = <&gpio1 5 GPIO_ACTIVE_LOW>;
+		reset-delay-us = <2000>;
+		reset-post-delay-ms = <200>;
+		#reset-cells = <0>;
+	};
 };
 
 &A53_0 {
@@ -365,7 +375,8 @@
 	assigned-clock-parents = <&clk IMX8MP_SYS_PLL1_80M>;
 	pinctrl-0 = <&pinctrl_uart1>;
 	pinctrl-names = "default";
-	uart-has-rtscts;
+	fsl,uart-has-rtscts;
+	resets = <&bt_reg_on>;
 	status = "okay";
 };
 
@@ -382,7 +393,7 @@
 	assigned-clock-parents = <&clk IMX8MP_SYS_PLL1_80M>;
 	pinctrl-0 = <&pinctrl_uart3>;
 	pinctrl-names = "default";
-	uart-has-rtscts;
+	fsl,uart-has-rtscts;
 	status = "okay";
 };
 
@@ -392,7 +403,7 @@
 	assigned-clock-parents = <&clk IMX8MP_SYS_PLL1_80M>;
 	pinctrl-0 = <&pinctrl_uart4>;
 	pinctrl-names = "default";
-	uart-has-rtscts;
+	fsl,uart-has-rtscts;
 	status = "okay";
 };
 
