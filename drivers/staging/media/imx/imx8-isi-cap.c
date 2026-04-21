@@ -1069,6 +1069,7 @@ static int mxc_isi_cap_g_parm(struct file *file, void *fh,
 		return ret;
 	}
 
+	a->parm.capture.capability |= V4L2_CAP_TIMEPERFRAME;
 	a->parm.capture.timeperframe = ival.interval;
 	return 0;
 }
