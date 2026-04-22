@@ -2387,6 +2387,7 @@ static void tevs_remove(struct i2c_client *client)
 
 static const struct of_device_id sensor_of[] = {
 	{ .compatible = "tn,tevs" },
+	{ .compatible = "tn,tevm" },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, sensor_of);
