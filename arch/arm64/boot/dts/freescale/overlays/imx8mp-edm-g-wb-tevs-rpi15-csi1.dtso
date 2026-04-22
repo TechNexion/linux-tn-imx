@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: (GPL-2.0 OR MIT)
 /*
- * Copyright 2024 TechNexion Ltd.
+ * Copyright 2026 TechNexion Ltd.
  *
  * Author: Nian Yang <nian.yang@technexion.com>
  *
@@ -12,23 +12,6 @@
 #include <dt-bindings/interrupt-controller/irq.h>
 #include <dt-bindings/clock/imx8mp-clock.h>
 #include <dt-bindings/gpio/gpio.h>
-
-&mipi_csi_0 {
-	#address-cells = <1>;
-	#size-cells = <0>;
-	status = "okay";
-
-	port@0 {
-		reg = <0>;
-		mipi_csi0_ep: endpoint {
-			remote-endpoint = <&tevs_0_ep>;
-			data-lanes = <2>;
-			csis-hs-settle = <19>;
-			csis-clk-settle = <2>;
-			csis-wclk;
-		};
-	};
-};
 
 &mipi_csi_1 {
 	#address-cells = <1>;
@@ -43,52 +26,6 @@
 			csis-hs-settle = <19>;
 			csis-clk-settle = <2>;
 			csis-wclk;
-		};
-	};
-};
-
-&i2c2 {
-	#address-cells = <1>;
-	#size-cells = <0>;
-
-	pca9555@21 {
-		status = "disabled";
-	};
-
-	rpi15_io_expander_0: pca9554@21 {
-		compatible = "nxp,pca9554";
-		reg = <0x21>;
-		gpio-controller;
-		#gpio-cells = <2>;
-		gpio-line-names = "EXPOSURE_TRIG_IN",
-						  "FLASH_OUT",
-						  "STANDBY",
-						  "SHUTTER",
-						  "FRAME_SYNC",
-						  "PWR_TIME0",
-						  "PWR_TIME1",
-						  "PWR_TIME2";
-		status = "okay";
-	};
-
-	tevs_0: tevs@48 {
-		compatible = "tn,tevs";
-		reg = <0x48>;
-		status = "okay";
-
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_csi0_pwn>, <&pinctrl_csi0_rst>;
-		reset-gpios = <&gpio1 8 GPIO_ACTIVE_HIGH>;
-		standby-gpios = <&rpi15_io_expander_0 2 GPIO_ACTIVE_HIGH>;
-
-		port {
-			tevs_0_ep: endpoint {
-				remote-endpoint = <&mipi_csi0_ep>;
-				data-lanes = <1 2>;
-				clock-lanes = <0>;
-				clock-noncontinuous;
-				link-frequencies = /bits/ 64 <400000000>;
-			};
 		};
 	};
 };
