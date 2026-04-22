@@ -835,7 +835,7 @@ config VIDEO_TEVS
 	depends on GPIOLIB && I2C && VIDEO_V4L2_SUBDEV_API
 	depends on MEDIA_CAMERA_SUPPORT
 	select V4L2_FWNODE
-	default y
+	default m
 	help
 	  This is a Video4Linux2 sensor driver for the TechNexion
 	  TEVS camera sensor with a MIPI CSI-2 interface.
