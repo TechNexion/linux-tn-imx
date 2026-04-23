@@ -369,6 +369,14 @@
 	status = "okay";
 };
 
+&netcmix_blk_ctrl {
+	status = "okay";
+};
+
+&netc_blk_ctrl {
+	status = "okay";
+};
+
 &netc_emdio {
 	pinctrl-0 = <&pinctrl_emdio>;
 	pinctrl-names = "default";
