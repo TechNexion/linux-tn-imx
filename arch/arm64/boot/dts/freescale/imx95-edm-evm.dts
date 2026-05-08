@@ -19,6 +19,7 @@
 	aliases {
 		ethernet0 = &enetc_port0;
 		ethernet1 = &enetc_port1;
+		ethernet2 = &enetc_port2;
 		mmc0 = &usdhc1;
 		mmc1 = &usdhc2;
 		rtc0 = &rtc_ds1337;
