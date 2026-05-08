@@ -1,0 +1,169 @@
+// SPDX-License-Identifier: (GPL-2.0 OR MIT)
+/**
+ * Device Tree Overlay for NXP i.MX95 EDM EVM - 10G Networking
+ *
+ * Copyright 2026 TechNexion Ltd.
+ *
+ * Author: Ray Chang <ray.chang@technexion.com>,
+ *         Jack Lo <jack.lo@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+#include "../imx95-pinfunc.h"
+#include <dt-bindings/gpio/gpio.h>
+
+&ethphy1 {
+	status = "disabled";
+};
+
+&ethphy2 {
+	status = "disabled";
+};
+
+&i3c2 {
+	status = "disabled";
+};
+
+&{/} {
+	reg_m2_m2_pwr: regulator-m2-m2-pwr {
+		compatible = "regulator-fixed";
+		enable-active-high;
+		regulator-always-on;
+		regulator-max-microvolt = <3300000>;
+		regulator-min-microvolt = <3300000>;
+		regulator-name = "M.2_M2 slot-power";
+		/* M2_M2_PWR_EN */
+		gpio = <&tca9555_c21 5 GPIO_ACTIVE_HIGH>;
+	};
+
+	reg_aqr_stby: regulator-aqr-stby {
+		compatible = "regulator-fixed";
+		regulator-name = "aqr-stby";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&tca9555_a21 15 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+
+	reg_aqr_en: regulator-aqr-en {
+		compatible = "regulator-fixed";
+		regulator-name = "aqr-en";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		vin-supply = <&reg_aqr_stby>;
+		gpio = <&tca9555_a21 3 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+
+	reg_serdes_stby: regulator-mac-stby {
+		compatible = "regulator-fixed";
+		regulator-name = "mac-stby";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		gpio = <&tca9555_a22 14 GPIO_ACTIVE_LOW>;
+	};
+
+	reg_serdes_en: regulator-mac-en {
+		compatible = "regulator-fixed";
+		regulator-name = "mac-en";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		vin-supply = <&reg_serdes_stby>;
+		gpio = <&tca9555_a22 12 GPIO_ACTIVE_LOW>;
+	};
+
+	mdio_gpio: mdio {
+		compatible = "virtual,mdio-gpio";
+		#size-cells = <0>;
+		#address-cells = <1>;
+		gpios = <&gpio4 14 GPIO_ACTIVE_HIGH>, /* enet2 mdc */
+			<&gpio4 15 GPIO_ACTIVE_HIGH>; /* enet2 mdio */
+		pinctrl-0 = <&pinctrl_enet2_gpio_mdio>;
+		pinctrl-names = "default";
+
+		mdio_ethphy1: ethernet-phy@1 {
+			reg = <1>;
+			/* RTL8211F on SOM */
+			compatible = "ethernet-phy-ieee802.3-c22";
+			eee-broken-1000t;
+			reset-assert-us = <35000>;
+			reset-deassert-us = <75000>;
+			reset-gpios = <&tca9555_a22 2 GPIO_ACTIVE_LOW>;
+			realtek,aldps-disable;
+			realtek,clkout-disable;
+		};
+	};
+};
+
+&netc_emdio {
+	#size-cells = <0>;
+	#address-cells = <1>;
+	pinctrl-0 = <&pinctrl_enet1_netc_mdio>;
+	pinctrl-names = "default";
+	status = "okay";
+	phy-supply = <&reg_aqr_en>;
+
+	netc_ethphy2: ethernet-phy2@1 {
+		reg = <1>;
+		/* RTL8211F on baseboard */
+		compatible = "ethernet-phy-ieee802.3-c22";
+		eee-broken-1000t;
+		reset-assert-us = <35000>;
+		reset-deassert-us = <75000>;
+		reset-gpios = <&tca9555_a22 1 GPIO_ACTIVE_LOW>;
+		realtek,aldps-disable;
+		realtek,clkout-disable;
+	};
+
+	netc_ethphy3: ethernet-phy@8 {
+		/* AQR113C on M2 */
+		reg = <8>;
+		compatible = "ethernet-phy-ieee802.3-c45";
+	};
+};
+
+&enetc_port0 {
+	/* RTL8211F on baseboard */
+	pinctrl-names = "default";
+	phy-handle = <&netc_ethphy2>;
+	phy-mode = "rgmii-id";
+	pinctrl-0 = <&pinctrl_enetc0>;
+	status = "okay";
+};
+
+&enetc_port1 {
+	/* RTL8211F on baseboard */
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_enetc1>;
+	phy-handle = <&mdio_ethphy1>;
+	phy-mode = "rgmii-id";
+	status = "okay";
+};
+
+&enetc_port2 {
+	/* AQR113C on M2 */
+	phy-handle = <&netc_ethphy3>;
+	phy-mode = "10gbase-r";
+	serdes-supply = <&reg_serdes_en>;
+	managed = "in-band-status";
+	status = "okay";
+};
+
+&scmi_iomuxc {
+	pinctrl_enet1_netc_mdio: emdio1grp1 {
+		fsl,pins = <
+			IMX95_PAD_ENET1_MDC__NETCMIX_TOP_NETC_MDC		0x57e
+			IMX95_PAD_ENET1_MDIO__NETCMIX_TOP_NETC_MDIO		0x97e
+		>;
+	};
+
+	pinctrl_enet2_gpio_mdio: mdiogpiogrp2 {
+		fsl,pins = <
+			IMX95_PAD_ENET2_MDC__GPIO4_IO_BIT14			0x57e
+			IMX95_PAD_ENET2_MDIO__GPIO4_IO_BIT15		0x97e
+		>;
+	};
+};
+
