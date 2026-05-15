@@ -79,7 +79,7 @@ int p3t1085_probe(struct device *dev, int irq, int hw_id, struct regmap *regmap)
 
 	return ret;
 }
-EXPORT_SYMBOL_NS(p3t1085_probe, IIO_P3T1085);
+EXPORT_SYMBOL_NS(p3t1085_probe, "IIO_P3T1085");
 
 MODULE_AUTHOR("Xiaoning Wang <xiaoning.wang@nxp.com>");
 MODULE_DESCRIPTION("NXP P3T1085 driver");

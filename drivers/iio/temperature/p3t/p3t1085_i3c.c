@@ -52,4 +52,4 @@ module_i3c_driver(p3t1085_driver);
 MODULE_AUTHOR("Xiaoning Wang <xiaoning.wang@nxp.com>");
 MODULE_DESCRIPTION("NXP p3t1085 i3c driver");
 MODULE_LICENSE("GPL");
-MODULE_IMPORT_NS(IIO_P3T1085);
+MODULE_IMPORT_NS("IIO_P3T1085");
