@@ -19,7 +19,6 @@
 	aliases {
 		ethernet0 = &enetc_port0;
 		ethernet1 = &enetc_port1;
-		ethernet2 = &enetc_port2;
 		mmc0 = &usdhc1;
 		mmc1 = &usdhc2;
 		rtc0 = &rtc_ds1337;
@@ -67,27 +66,6 @@
 		status = "disabled";
 	};
 
-	mdio_gpio: mdio {
-		compatible = "virtual,mdio-gpio";
-		#size-cells = <0>;
-		#address-cells = <1>;
-		gpios = <&gpio4 0 GPIO_ACTIVE_HIGH>, /* mdc */
-			<&gpio4 1 GPIO_ACTIVE_HIGH>; /* mdio */
-		pinctrl-0 = <&pinctrl_mdio_gpio>;
-		pinctrl-names = "default";
-
-		ethphy2: ethernet-phy2@1 {
-			reg = <1>;
-			/* RTL8211F on baseboard */
-			compatible = "ethernet-phy-ieee802.3-c22";
-			eee-broken-1000t;
-			reset-assert-us = <35000>;
-			reset-deassert-us = <75000>;
-			reset-gpios = <&tca9555_a22 1 GPIO_ACTIVE_LOW>;
-			realtek,aldps-disable;
-			realtek,clkout-disable;
-		};
-	};
 
 	reg_lvds_pwr: regulator-lvds-pwr {
 		/* LVDS0_VDDEN */
@@ -187,11 +165,7 @@
 
 &enetc_port0 {
 	/* RTL8211F on baseboard */
-	pinctrl-names = "default";
-	phy-handle = <&ethphy2>;
-	phy-mode = "rgmii-id";
-	pinctrl-0 = <&pinctrl_enetc0>;
-	status = "okay";
+	status = "disabled";
 };
 
 &flexcan2 {
@@ -209,10 +183,19 @@
 
 &i3c2 {
 	/* I3C shares the same pins as MDIO on baseboard */
-	i3c-scl-hz = <100000>;
+	i3c-scl-hz = <12500000>;
+	i2c-scl-hz = <400000>;
 	pinctrl-0 = <&pinctrl_i3c2>;
-	pinctrl-names = "default";
-	status = "disabled";
+	pinctrl-1 = <&pinctrl_i3c2_sleep>;
+	pinctrl-names = "default", "sleep";
+	status = "okay";
+
+	p3t1755: temperature-sensor@48,0x152a0090 {
+		compatible = "nxp,p3t1755";
+		reg = <0x48 0x0236 0x152a0090>;
+		/* reg = <0x48 0 0>; */
+		assigned-address = <0x48>;
+	};
 
 	p3t1035: temp-sensor@72,236152b00e4 {
 		reg = <0x72 0x236 0x152b00e4>;

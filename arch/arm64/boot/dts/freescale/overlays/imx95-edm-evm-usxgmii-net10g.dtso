@@ -18,9 +18,6 @@
 	status = "disabled";
 };
 
-&ethphy2 {
-	status = "disabled";
-};
 
 &i3c2 {
 	status = "disabled";
