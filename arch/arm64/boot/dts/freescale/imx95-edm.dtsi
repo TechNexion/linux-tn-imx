@@ -751,17 +751,18 @@
 		>;
 	};
 
-	pinctrl_mdio_gpio: mdiogpiogrp {
+	pinctrl_i3c2: i3c2grp {
 		fsl,pins = <
-			IMX95_PAD_ENET1_MDC__GPIO4_IO_BIT0		0x57e
-			IMX95_PAD_ENET1_MDIO__GPIO4_IO_BIT1		0x97e
+			IMX95_PAD_ENET1_MDC__I3C2_SCL			0x4000019e
+			IMX95_PAD_ENET1_MDIO__I3C2_SDA			0x4000019e
 		>;
 	};
 
-	pinctrl_i3c2: i3c2grp {
+
+	pinctrl_i3c2_sleep: i3c2sleepgrp {
 		fsl,pins = <
-			IMX95_PAD_ENET1_MDC__I3C2_SCL			0x4000099e
-			IMX95_PAD_ENET1_MDIO__I3C2_SDA			0x4000099e
+			IMX95_PAD_ENET1_MDC__GPIO4_IO_BIT0			0x31e
+			IMX95_PAD_ENET1_MDIO__GPIO4_IO_BIT1			0x31e
 		>;
 	};
 
