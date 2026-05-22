@@ -13,18 +13,6 @@
 #include <dt-bindings/gpio/gpio.h>
 
 &{/} {
-	reg_lvds_pwr: regulator_lvdspwr {
-		status = "okay";
-	};
-
-	reg_lvds_backlight_pwr: regulator_lvdsblpwr {
-		status = "okay";
-	};
-
-	lvds_backlight: lvds_backlight {
-		status = "okay";
-	};
-
 	lvds0_panel {
 		compatible = "vxt,vl156192108", "panel-lvds";
 		backlight = <&lvds_backlight>;
@@ -89,4 +77,24 @@
 		interrupts = <15 IRQ_TYPE_LEVEL_LOW>;
 		status = "okay";
 	};
+};
+
+&lcdif2 {
+    status = "okay";
+};
+
+&ldb_phy {
+	status = "okay";
+};
+
+&lvds_backlight {
+	status = "okay";
+};
+
+&reg_lvds_pwr {
+	status = "okay";
+};
+
+&reg_lvds_backlight_pwr {
+	status = "okay";
 };
