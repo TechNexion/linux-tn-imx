@@ -284,8 +284,10 @@
 		interrupts = <26 IRQ_TYPE_LEVEL_LOW>;
 		#gpio-cells = <2>;
 		gpio-controller;
-		gpio-line-names = "", "", "", "","", "", "", "CSI2_PWDN", "", "PCIE1_CLKREQ_N", "", "",
-						"PCIE2_CLKREQ_N", "", "", "";
+		gpio-line-names = "LVDS0_VDDEN", "LVDS0_BL_EN", "LVDS1_VDDEN", "LVDS1_BL_EN", "CSI1_RST_N",
+				"CSI1_PWDN", "CSI2_RST_N", "CSI2_PWDN", "PCIE1_WAKE_N", "PCIE1_CLKREQ_N",
+				"PCIE1_RST_N", "PCIE2_WAKE_N", "PCIE2_CLKREQ_N", "PCIE2_RST_N", "EXP_GPIO5",
+				"USB_SS_SEL";
 		pinctrl-0 = <&pinctrl_tca9555_a21_irq>;
 		pinctrl-names = "default";
 		vcc-supply = <&reg_3p3v>;
@@ -302,8 +304,19 @@
 		reg = <0x22>;
 		#gpio-cells = <2>;
 		gpio-controller;
+		gpio-line-names = "USB_OTG_PWR_EN", "ENET1_RST", "ENET2_RST", "BT_REG_ON", "RST_IND",
+				"WL_GPIO0", "HOST_WAKE_WL", "HOST_WAKE_BT", "IW612_IND_RST_15.4", "WL_REG_ON",
+				"IW612_GPIO27", "SDIO_REG_ON", "EXP_GPIO1", "EXP_GPIO2", "EXP_GPIO3",
+				"EXP_GPIO4";
 		vcc-supply = <&reg_3p3v>;
+		#interrupt-cells = <2>;
+		interrupt-controller;
+		interrupt-parent = <&gpio5>;
+		interrupts = <17 IRQ_TYPE_LEVEL_LOW>;
+		pinctrl-0 = <&pinctrl_tca9555_a22_irq>;
+		pinctrl-names = "default";
 		status = "okay";
+
 	};
 };
 
@@ -775,6 +788,12 @@
 	pinctrl_tca9555_a21_irq: pca9555_a21_irqgrp {
 		fsl,pins = <
 			IMX95_PAD_CCM_CLKO1__GPIO3_IO_BIT26			0x31e
+		>;
+	};
+
+	pinctrl_tca9555_a22_irq: pca9555_a22_irqgrp {
+		fsl,pins = <
+			IMX95_PAD_GPIO_IO37__GPIO5_IO_BIT17			0x31e
 		>;
 	};
 
