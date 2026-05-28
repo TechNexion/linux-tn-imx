@@ -267,7 +267,7 @@
 		#gpio-cells = <2>;
 		gpio-controller;
 		gpio-line-names = "M2_B_WWAN_WAKEN", "M2_B_WAN_DISABLEN", "M2_B_PWR_EN", "M2_B_RESET", "M2_M1_PWR_EN", "M2_M2_PWR_EN", "FAN_STBY", "USB_OTG_OC",
-						  "RTC_INTA", "CAN1_STB", "CAN2_STB", "USB_HUB_RESET", "CSI1_PDB", "CSI2_PDB", "VCONN_FAULT", "AUD_RST";
+				"EXP_CSI1_INT", "CAN1_STB", "CAN2_STB", "USB_HUB_RESET", "CSI1_PDB", "CSI2_PDB", "VCONN_FAULT", "AUD_RST";
 		pinctrl-0 = <&pinctrl_tca9555_c21_irq>;
 		pinctrl-names = "default";
 		vcc-supply = <&reg_3p3v>;
