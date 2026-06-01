@@ -4,6 +4,80 @@
 
 
 #include "imx7d.dtsi"
+#include <dt-bindings/gpio/gpio.h>
+
+/* external pins on PICO connector */
+#define PICO_EXT_GPIO_P24 gpio2 0
+#define PICO_EXT_GPIO_P25 gpio2 6
+#define PICO_EXT_GPIO_P26 gpio2 1
+#define PICO_EXT_GPIO_P28 gpio2 2
+#define PICO_EXT_GPIO_P30 gpio2 3
+#define PICO_EXT_GPIO_P32 gpio2 4
+#define PICO_EXT_GPIO_P34 gpio2 5
+#define PICO_EXT_GPIO_P42 gpio2 12
+#define PICO_EXT_GPIO_P44 gpio2 13
+#define PICO_EXT_GPIO_P48 gpio2 7
+
+#define PICO_DWARF_GPIO_DEFS()	\
+&gpio2 {													\
+	gpio-line-names =											\
+		"", "", "", "", "", "", "", "",									\
+		"", "", "", "", "", "", "", "",									\
+		"", "", "", "", "", "", "", "",									\
+		"", "", "", "", "", "", "", "";									\
+															\
+	pinctrl-0 = <&pinctrl_gpio2>;										\
+}
+
+#define PICO_HOBBIT_GPIO_DEFS()	\
+&gpio2 {													\
+	gpio-line-names =											\
+		"GPIO_P24", "GPIO_P26", "GPIO_P28", "GPIO_P30", "", "GPIO_P34", "", "",	\
+		"", "", "", "", "", "", "", "",									\
+		"", "", "", "", "", "", "", "",									\
+		"", "", "", "", "", "", "", "";									\
+															\
+	pinctrl-0 = <&pinctrl_gpio2>;										\
+}
+
+#define PICO_NYMPH_GPIO_DEFS()	\
+&gpio2 {													\
+	gpio-line-names =											\
+		"", "", "GPIO_P28", "GPIO_P30", "GPIO_P32", "GPIO_P34", "", "",					\
+		"", "", "", "", "", "", "", "",									\
+		"", "", "", "", "", "", "", "",									\
+		"", "", "", "", "", "", "", "";									\
+															\
+	pinctrl-0 = <&pinctrl_gpio2>;										\
+}
+
+#define PICO_PI_GPIO_DEFS()	\
+&gpio2 {													\
+	gpio-line-names =											\
+		"GPIO_P24", "GPIO_P26", "GPIO_P28", "GPIO_P30", "", "GPIO_P34", "", "GPIO_P48",			\
+		"", "", "", "", "", "", "", "",									\
+		"", "", "", "", "", "", "", "",									\
+		"", "", "", "", "", "", "", "";									\
+															\
+	pinctrl-0 = <&pinctrl_gpio2>;										\
+}
+
+#define PICO_PCIE pcie
+
+/* audio codec */
+#define PICO_AUDA_I2S_CHANNEL sai1
+#define PICO_AUDA_MUX_INT 3
+#define PICO_AUDA_MUX_EXT 3
+
+/* I2C bus */
+#define PICO_I2CA i2c1
+#define PICO_I2CB i2c4
+#define PICO_I2CC i2c2
+
+#define PICO_SPIA ecspi3
+
+#define PICO_CANA flexcan1
+#define PICO_CANB flexcan2
 
 / {
 	backlight: backlight {
@@ -412,6 +486,21 @@
 };
 
 &iomuxc {
+	pinctrl_gpio2: gpiogrp {
+		fsl,pins = <
+			MX7D_PAD_EPDC_DATA00__GPIO2_IO0		0x59 /* PICO_P24 */
+			MX7D_PAD_EPDC_DATA06__GPIO2_IO6		0x59 /* PICO_P25 */
+			MX7D_PAD_EPDC_DATA01__GPIO2_IO1		0x59 /* PICO_P26 */
+			MX7D_PAD_EPDC_DATA02__GPIO2_IO2		0x59 /* PICO_P28 */
+			MX7D_PAD_EPDC_DATA03__GPIO2_IO3		0x59 /* PICO_P30 */
+			MX7D_PAD_EPDC_DATA04__GPIO2_IO4		0x59 /* PICO_P32 */
+			MX7D_PAD_EPDC_DATA05__GPIO2_IO5		0x59 /* PICO_P34 */
+			MX7D_PAD_EPDC_DATA12__GPIO2_IO12	0x59 /* PICO_P42 */
+			MX7D_PAD_EPDC_DATA13__GPIO2_IO13	0x59 /* PICO_P44 */
+			MX7D_PAD_EPDC_DATA07__GPIO2_IO7		0x59 /* PICO_P48 */
+		>;
+	};
+
 	pinctrl_ecspi3: ecspi3grp {
 		fsl,pins = <
 			MX7D_PAD_I2C1_SCL__ECSPI3_MISO		0x2
