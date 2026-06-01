@@ -615,53 +615,49 @@ static int aqr_gen1_read_status(struct phy_device *phydev)
 
 static int aqr_gen2_update_leds(struct phy_device *phydev)
 {
-	u16 led1 = 0, led2 = 0;
+	u16 topSpeedLed = 0, normalSleedLed = 0;
+    u16 flashMask = MDIO_GLOBAL_LED_PROVIS_1_REV_ACT |
+					MDIO_GLOBAL_LED_PROVIS_1_SEN_ACT |
+					MDIO_GLOBAL_LED_PROVIS_1_STR_MASK;
+	u16 modeMask = VEND1_GLOBAL_LED_PROV_LINK10000 |
+					VEND1_GLOBAL_LED_PROV_LINK5000 |
+					VEND1_GLOBAL_LED_PROV_LINK2500 |
+					VEND1_GLOBAL_LED_PROV_LINK1000 |
+					VEND1_GLOBAL_LED_PROV_LINK100;
+	u16 flashLed = MDIO_GLOBAL_LED_PROVIS_2_REV_ACT |
+			MDIO_GLOBAL_LED_PROVIS_2_SEN_ACT |
+			MDIO_GLOBAL_LED_PROVIS_2_STR(0x1);
 	int ret;
 
 	switch (phydev->speed) {
+	case SPEED_10:
+	case SPEED_100:
 	case SPEED_1000:
-		led2 = MDIO_GLOBAL_LED_PROVIS_2_LED0_1G |
-		       MDIO_GLOBAL_LED_PROVIS_2_REV_ACT |
-		       MDIO_GLOBAL_LED_PROVIS_2_SEN_ACT |
-		       MDIO_GLOBAL_LED_PROVIS_2_STR(0x1);
-		break;
 	case SPEED_2500:
-		led1 = MDIO_GLOBAL_LED_PROVIS_1_REV_ACT |
-		       MDIO_GLOBAL_LED_PROVIS_1_SEN_ACT |
-		       MDIO_GLOBAL_LED_PROVIS_1_STR(0x1);
-		led2 = MDIO_GLOBAL_LED_PROVIS_2_LED0_2_5G;
-		break;
 	case SPEED_5000:
-		led1 = MDIO_GLOBAL_LED_PROVIS_1_LED0_5G |
-		       MDIO_GLOBAL_LED_PROVIS_1_REV_ACT |
-		       MDIO_GLOBAL_LED_PROVIS_1_SEN_ACT |
-		       MDIO_GLOBAL_LED_PROVIS_1_STR(0x1);
+		normalSleedLed = VEND1_GLOBAL_LED_PROV_LINK5000 |
+				VEND1_GLOBAL_LED_PROV_LINK2500 |
+				VEND1_GLOBAL_LED_PROV_LINK1000 |
+				VEND1_GLOBAL_LED_PROV_LINK100;
 		break;
 	case SPEED_10000:
-		led1 = MDIO_GLOBAL_LED_PROVIS_1_LED0_10G;
-		led2 = MDIO_GLOBAL_LED_PROVIS_2_REV_ACT |
-		       MDIO_GLOBAL_LED_PROVIS_2_SEN_ACT |
-		       MDIO_GLOBAL_LED_PROVIS_2_STR(0x1);
+		topSpeedLed = VEND1_GLOBAL_LED_PROV_LINK10000;
 		break;
 	default:
+		flashLed = 0;
 		break;
 	}
 
-	ret = phy_modify_mmd(phydev, MDIO_MMD_VEND1, MDIO_GLOBAL_LED_PROVIS_1,
-			     MDIO_GLOBAL_LED_PROVIS_1_LED0_5G |
-			     MDIO_GLOBAL_LED_PROVIS_1_LED0_10G |
-			     MDIO_GLOBAL_LED_PROVIS_1_REV_ACT |
-			     MDIO_GLOBAL_LED_PROVIS_1_SEN_ACT |
-			     MDIO_GLOBAL_LED_PROVIS_1_STR_MASK, led1);
+	ret = phy_modify_mmd(phydev, MDIO_MMD_VEND1, AQR_LED_PROV(0), modeMask, topSpeedLed);
 	if (ret)
 		return ret;
 
-	return phy_modify_mmd(phydev, MDIO_MMD_VEND1, MDIO_GLOBAL_LED_PROVIS_2,
-			      MDIO_GLOBAL_LED_PROVIS_2_LED0_2_5G |
-			      MDIO_GLOBAL_LED_PROVIS_2_LED0_1G |
-			      MDIO_GLOBAL_LED_PROVIS_2_REV_ACT |
-			      MDIO_GLOBAL_LED_PROVIS_2_SEN_ACT |
-			      MDIO_GLOBAL_LED_PROVIS_2_STR_MASK, led2);
+	ret = phy_modify_mmd(phydev, MDIO_MMD_VEND1, AQR_LED_PROV(1), flashMask, flashLed);
+	if (ret)
+		return ret;
+
+	ret = phy_modify_mmd(phydev, MDIO_MMD_VEND1, AQR_LED_PROV(2), modeMask, normalSleedLed);
+	return ret;
 }
 
 static int aqr_gen2_read_status(struct phy_device *phydev)
