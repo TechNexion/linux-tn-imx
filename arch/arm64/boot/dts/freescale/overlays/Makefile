@@ -51,6 +51,7 @@ dtbo-$(CONFIG_ARCH_MXC) += imx8mn-edm-g-wizard-sn65dsi84-vl10112880.dtbo imx8mn-
 
 dtbo-$(CONFIG_ARCH_MXC) += imx95-edm-evm-mipi2hdmi-adv7535.dtbo imx95-edm-evm-lvds-vl10112880.dtbo imx95-edm-evm-lvds-vl156192108.dtbo \
 			   imx95-edm-evm-tevs-csi0.dtbo imx95-edm-evm-tevs-csi1.dtbo \
+			   imx95-edm-evm-tevm-csi0.dtbo imx95-edm-evm-tevm-csi1.dtbo \
 			   imx95-edm-evm-fusion.dtbo imx95-edm-evm-vls-gm2-csi0.dtbo imx95-edm-evm-vls-gm2-csi1.dtbo \
 			   imx95-edm-evm-vls-gm2-fsync.dtbo imx95-edm-evm-vls-gm2-ext-fsync.dtbo imx95-edm-evm-vls-gm2-int-fsync.dtbo \
 			   imx95-edm-evm-hdmi2mipi-tc358743-single-cam1.dtbo \
