@@ -17,6 +17,7 @@ dtbo-$(CONFIG_ARCH_MXC) += imx8mp-axon-wizard-hdmi2mipi-tc358743-single-cam1.dtb
 			   imx8mp-axon-wizard-vizionpanel-vl10112880.dtbo imx8mp-axon-wizard-vizionpanel-vl15010276.dtbo imx8mp-axon-wizard-vizionpanel-vl15613676.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wb-lvds-vl10112880.dtbo imx8mp-edm-g-wb-lvds-vl15613676.dtbo imx8mp-edm-g-wb-lvds-vl156192108.dtbo imx8mp-edm-g-wb-lvds-vl215192108.dtbo \
 			   imx8mp-edm-g-wb-tevs-csi0.dtbo imx8mp-edm-g-wb-tevs-csi1.dtbo \
+			   imx8mp-edm-g-wb-tevm-csi0.dtbo imx8mp-edm-g-wb-tevm-csi1.dtbo \
 			   imx8mp-edm-g-wb-tevs-rpi22-csi0.dtbo imx8mp-edm-g-wb-tevs-rpi22-csi1.dtbo \
 			   imx8mp-edm-g-wb-tevs-rpi15-csi0.dtbo imx8mp-edm-g-wb-tevs-rpi15-csi1.dtbo \
 			   imx8mp-edm-g-wb-vls-csi0.dtbo imx8mp-edm-g-wb-vls-csi1.dtbo \
