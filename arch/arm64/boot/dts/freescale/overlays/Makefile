@@ -11,7 +11,8 @@ dtbo-$(CONFIG_ARCH_MXC) += imx8mm-pico-wizard-ili9881c.dtbo imx8mm-pico-wizard-v
 			   imx8mm-pico-wizard-clix1nfc.dtbo imx8mm-pico-wizard-clix2nfc.dtbo imx8mm-pico-wizard-tevs.dtbo \
 			   imx8mm-pico-wizard-sn65dsi84-vl10112880.dtbo imx8mm-pico-wizard-sn65dsi84-vl15613676.dtbo imx8mm-pico-wizard-sn65dsi84-vl215192108.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mp-axon-wizard-hdmi2mipi-tc358743-single-cam1.dtbo \
-			   imx8mp-axon-wizard-tevs.dtbo imx8mp-axon-wizard-vls.dtbo \
+			   imx8mp-axon-wizard-tevs-csi0.dtbo imx8mp-axon-wizard-tevs-csi1.dtbo \
+			   imx8mp-axon-wizard-vls.dtbo \
 			   imx8mp-axon-wizard-lvds-vl10112880.dtbo imx8mp-axon-wizard-lvds-vl15613676.dtbo imx8mp-axon-wizard-lvds-vl156192108.dtbo imx8mp-axon-wizard-lvds-vl215192108.dtbo \
 			   imx8mp-axon-wizard-ili9881c.dtbo imx8mp-axon-wizard-g101uan02.dtbo imx8mp-axon-wizard-g080uan01.dtbo imx8mp-axon-wizard-mipi2hdmi-adv7535.dtbo \
 			   imx8mp-axon-wizard-vizionpanel-vl10112880.dtbo imx8mp-axon-wizard-vizionpanel-vl15010276.dtbo imx8mp-axon-wizard-vizionpanel-vl15613676.dtbo
