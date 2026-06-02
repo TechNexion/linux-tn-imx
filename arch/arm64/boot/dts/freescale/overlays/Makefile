@@ -26,6 +26,7 @@ dtbo-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wb-lvds-vl10112880.dtbo imx8mp-edm-g-wb-
 dtbo-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wizard-mipi2hdmi-adv7535.dtbo imx8mp-edm-g-wizard-lvds-vl10112880.dtbo imx8mp-edm-g-wizard-lvds-vl15613676.dtbo \
 			   imx8mp-edm-g-wizard-lvds-vl156192108.dtbo imx8mp-edm-g-wizard-lvds-vl215192108.dtbo \
 			   imx8mp-edm-g-wizard-tevs-csi0.dtbo imx8mp-edm-g-wizard-tevs-csi1.dtbo \
+			   imx8mp-edm-g-wizard-tevm-csi0.dtbo imx8mp-edm-g-wizard-tevm-csi1.dtbo \
 			   imx8mp-edm-g-wizard-vls-csi0.dtbo imx8mp-edm-g-wizard-vls-csi1.dtbo \
 			   imx8mp-edm-g-wizard-hdmi2mipi-tc358743-dual.dtbo imx8mp-edm-g-wizard-hdmi2mipi-tc358743-single-cam1.dtbo \
 			   imx8mp-edm-g-wizard-hdmi2mipi-tc358743-csi0.dtbo imx8mp-edm-g-wizard-hdmi2mipi-tc358743-csi1.dtbo \
