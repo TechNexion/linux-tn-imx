@@ -17,7 +17,6 @@
 	model = "TechNexion EDM-IMX95 and EVM baseboard";
 
 	aliases {
-		ethernet0 = &enetc_port0;
 		ethernet1 = &enetc_port1;
 		mmc0 = &usdhc1;
 		mmc1 = &usdhc2;
