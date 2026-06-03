@@ -131,7 +131,7 @@
 };
 
 &enetc_port1 {
-	/* RTL8211F on baseboard */
+	/* RTL8211F on SOM */
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_enetc1>;
 	phy-handle = <&mdio_ethphy1>;
