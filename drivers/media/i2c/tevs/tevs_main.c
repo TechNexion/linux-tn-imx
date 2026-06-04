@@ -398,8 +398,8 @@ int tevs_i2c_read_16b(struct tevs *tevs, u16 reg, u16 *value)
 		return ret;
 
 	*value = (v[0] << 8) | v[1];
-	dev_dbg(regmap_get_device(tevs->regmap), "%s() read reg 0x%x, value 0x%x\n", __func__, reg,
-		*value);
+	dev_dbg(regmap_get_device(tevs->regmap),
+		"%s() read reg 0x%x, value 0x%x\n", __func__, reg, *value);
 
 	return 0;
 }
@@ -429,8 +429,8 @@ int tevs_i2c_write_16b(struct tevs *tevs, u16 reg, u16 val)
 	if ((ret = regmap_bulk_write(tevs->regmap, reg, data, 2)) != 0)
 		return ret;
 
-	dev_dbg(regmap_get_device(tevs->regmap), "%s() write reg 0x%x, value 0x%x\n", __func__, reg,
-		val);
+	dev_dbg(regmap_get_device(tevs->regmap),
+		"%s() write reg 0x%x, value 0x%x\n", __func__, reg, val);
 
 	return 0;
 }
@@ -484,16 +484,19 @@ int tevs_load_header_info(struct tevs *tevs)
 		tevs_i2c_read(tevs, HOST_COMMAND_ISP_BOOTDATA_1, (u8 *)header,
 			      sizeof(struct header_info));
 
-		dev_info(&client->dev, "Product:%s, HeaderVer:%d, MIPI_Rate:%d\n",
+		dev_info(&client->dev,
+			 "Product:%s, HeaderVer:%d, MIPI_Rate:%d\n",
 			 header->product_name, header->header_version,
 			 header->mipi_datarate);
 
-		dev_dbg(&client->dev, "content checksum: %x, content length: %d\n",
+		dev_dbg(&client->dev,
+			"content checksum: %x, content length: %d\n",
 			header->content_checksum, header->content_len);
 
 		return 0;
 	} else {
-		dev_err(&client->dev, "can't recognize header version number '0x%X'\n",
+		dev_err(&client->dev,
+			"can't recognize header version number '0x%X'\n",
 			header_ver);
 		return -EINVAL;
 	}
@@ -617,7 +620,8 @@ static int tevs_set_frame_interval(struct v4l2_subdev *sub_dev,
 	dev_dbg(sub_dev->dev, "%s()\n", __func__);
 
 	max_fps = tevs_sensor_table[tevs->selected_sensor]
-			  .res_list[tevs->selected_mode].framerates[0];
+			  .res_list[tevs->selected_mode]
+			  .framerates[0];
 	min_fps =
 		tevs_sensor_table[tevs->selected_sensor]
 			.res_list[tevs->selected_mode]
@@ -1193,7 +1197,8 @@ static int tevs_set_bsl_mode(struct tevs *tevs, s32 mode)
 		msleep(TEVS_BOOT_TIME);
 
 		if (tevs_check_boot_state(tevs) != 0) {
-			dev_err(&client->dev, "check tevs bootup status failed before change data frequency\n");
+			dev_err(&client->dev,
+				"check tevs bootup status failed before change data frequency\n");
 			return -ENODEV;
 		}
 
@@ -1234,7 +1239,8 @@ static int tevs_set_bsl_mode(struct tevs *tevs, s32 mode)
 			val |= 0x380;
 			if (tevs_i2c_write_16b(tevs, TEVS_TRIGGER_MODE, val) !=
 			    0) {
-				dev_err(&client->dev, "set trigger mode failed\n");
+				dev_err(&client->dev,
+					"set trigger mode failed\n");
 				return -EINVAL;
 			}
 		}
@@ -1800,17 +1806,17 @@ static int tevs_ctrls_init(struct tevs *tevs)
 
 	/* By default, link_freq and pixel_rate is read only */
 	link_freq[0] = (u64)(tevs->data_frequency >> 1) * 1000000ULL;
-	tevs->link_freq = v4l2_ctrl_new_int_menu(
-		ctrl_hdlr, &tevs_ctrl_ops, V4L2_CID_LINK_FREQ,
-		ARRAY_SIZE(link_freq) - 1, 0, link_freq);
+	tevs->link_freq = v4l2_ctrl_new_int_menu(ctrl_hdlr, &tevs_ctrl_ops,
+						 V4L2_CID_LINK_FREQ,
+						 ARRAY_SIZE(link_freq) - 1, 0,
+						 link_freq);
 	tevs->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
 
 	/* link_freq = (pixel_rate * bpp) / (2 * data_lanes) */
 	pixel_rate[0] = link_freq[0] * (2 * tevs->data_lanes) / 16;
-	tevs->pixel_rate =
-		v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
-				  V4L2_CID_PIXEL_RATE, pixel_rate[0],
-				  pixel_rate[0], 1, pixel_rate[0]);
+	tevs->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
+					     V4L2_CID_PIXEL_RATE, pixel_rate[0],
+					     pixel_rate[0], 1, pixel_rate[0]);
 	tevs->pixel_rate->flags |= V4L2_CTRL_FLAG_READ_ONLY;
 
 	tevs->bsl = v4l2_ctrl_new_custom(ctrl_hdlr, &tevs_bsl_mode, NULL);
@@ -2008,9 +2014,8 @@ static int tevs_try_on(struct tevs *tevs)
 static int tevs_check_hwcfg(struct device *dev, struct tevs *tevs)
 {
 	struct fwnode_handle *ep;
-	struct v4l2_fwnode_endpoint ep_cfg = {
-		.bus_type = V4L2_MBUS_CSI2_DPHY
-	};
+	struct v4l2_fwnode_endpoint ep_cfg = { .bus_type =
+						       V4L2_MBUS_CSI2_DPHY };
 	int ret = -EINVAL;
 
 	tevs->reset_gpio = devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_LOW);
@@ -2043,8 +2048,7 @@ static int tevs_check_hwcfg(struct device *dev, struct tevs *tevs)
 		of_property_read_bool(dev->of_node, "supports-over-4k-res");
 
 	tevs->vc_id = 0;
-	if (of_property_read_u32(dev->of_node, "vc-id", &tevs->vc_id) ==
-	    0) {
+	if (of_property_read_u32(dev->of_node, "vc-id", &tevs->vc_id) == 0) {
 		if (tevs->vc_id > 3) {
 			dev_err(dev,
 				"value of 'vc-id = <%d>' property is invaild\n",
@@ -2082,31 +2086,34 @@ static int tevs_check_hwcfg(struct device *dev, struct tevs *tevs)
 	/* Check the number of MIPI CSI2 data lanes */
 	if (ep_cfg.bus.mipi_csi2.num_data_lanes != 2 &&
 	    ep_cfg.bus.mipi_csi2.num_data_lanes != 4) {
-		dev_err(dev, "only 2 or 4 data lanes are currently supported\n");
+		dev_err(dev,
+			"only 2 or 4 data lanes are currently supported\n");
 		goto error_out;
 	}
 	tevs->data_lanes = ep_cfg.bus.mipi_csi2.num_data_lanes;
 
 	/* Check the link frequency set in device tree */
 	if (ep_cfg.nr_of_link_frequencies == 0)
-		tevs->data_frequency = (TEVS_LINK_FREQUENCY_DEFAULT / 1000000) * 2;
+		tevs->data_frequency =
+			(TEVS_LINK_FREQUENCY_DEFAULT / 1000000) * 2;
 	else if (ep_cfg.nr_of_link_frequencies == 1)
-		tevs->data_frequency = (ep_cfg.link_frequencies[0] / 1000000) * 2;
+		tevs->data_frequency =
+			(ep_cfg.link_frequencies[0] / 1000000) * 2;
 	else {
 		dev_err(dev, "invalid link frequencies %u on port\n",
-				ep_cfg.nr_of_link_frequencies);
+			ep_cfg.nr_of_link_frequencies);
 		goto error_out;
 	}
 
 	if ((tevs->data_frequency != 0) &&
-		((tevs->data_frequency < 100) || (tevs->data_frequency > 1200))) {
-		dev_err(dev,
-			"value of data-frequency [%d] is invaild\n",
+	    ((tevs->data_frequency < 100) || (tevs->data_frequency > 1200))) {
+		dev_err(dev, "value of data-frequency [%d] is invaild\n",
 			tevs->data_frequency);
 		goto error_out;
 	}
 
-	tevs->continuous_clock = ~(ep_cfg.bus.mipi_csi2.flags) & V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK;
+	tevs->continuous_clock = ~(ep_cfg.bus.mipi_csi2.flags) &
+				 V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK;
 
 	dev_dbg(dev,
 		"data-lanes [%d], continuous-clock [%d], supports-over-4k-res [%d],"
@@ -2255,8 +2262,9 @@ static int tevs_probe(struct i2c_client *client)
 
 	/* Initialize source pads */
 	tevs->pad.flags = MEDIA_PAD_FL_SOURCE;
-	tevs->fps =
-		tevs_sensor_table[tevs->selected_sensor].res_list[0].framerates[0];
+	tevs->fps = tevs_sensor_table[tevs->selected_sensor]
+			    .res_list[0]
+			    .framerates[0];
 	ret = media_entity_pads_init(&tevs->v4l2_subdev.entity, 1, &tevs->pad);
 	if (ret) {
 		dev_err(dev, "failed to init entity pads: %d\n", ret);
