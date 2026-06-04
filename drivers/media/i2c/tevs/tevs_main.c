@@ -337,7 +337,6 @@ struct tevs {
 	int vc_id;
 	unsigned int fps;
 
-	struct mutex lock; /* Protects formats */
 	/* V4L2 Controls */
 	struct v4l2_ctrl_handler ctrls;
 	struct v4l2_ctrl *brightness;
@@ -651,8 +650,6 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 	    tevs_sensor_table[tevs->selected_sensor].res_list_size)
 		return -EINVAL;
 
-	mutex_lock(&tevs->lock);
-
 	dev_dbg(sub_dev->dev, "%s() enable [%x]\n", __func__, enable);
 
 	if (enable == 0) {
@@ -716,8 +713,6 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 		}
 	}
 
-	mutex_unlock(&tevs->lock);
-
 	return ret;
 }
 
@@ -729,11 +724,9 @@ static int tevs_enum_mbus_code(struct v4l2_subdev *sub_dev,
 	if (code->pad || code->index > 0)
 		return -EINVAL;
 
-	mutex_lock(&tevs->lock);
 	dev_dbg(sub_dev->dev, "%s()\n", __func__);
 
 	code->code = MEDIA_BUS_FMT_UYVY8_1X16;
-	mutex_unlock(&tevs->lock);
 
 	return 0;
 }
@@ -749,8 +742,6 @@ static int tevs_get_fmt(struct v4l2_subdev *sub_dev,
 	if (format->pad != 0)
 		return -EINVAL;
 
-	mutex_lock(&tevs->lock);
-
 	dev_dbg(sub_dev->dev, "%s() which [%d]\n", __func__, format->which);
 
 	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
@@ -764,7 +755,6 @@ static int tevs_get_fmt(struct v4l2_subdev *sub_dev,
 		fmt->width, fmt->height, fmt->code, fmt->colorspace);
 
 	memmove(mbus_fmt, fmt, sizeof(struct v4l2_mbus_framefmt));
-	mutex_unlock(&tevs->lock);
 
 	return 0;
 }
@@ -780,8 +770,6 @@ static int tevs_set_fmt(struct v4l2_subdev *sub_dev,
 
 	if (format->pad != 0)
 		return -EINVAL;
-
-	mutex_lock(&tevs->lock);
 
 	dev_dbg(sub_dev->dev, "%s()\n", __func__);
 
@@ -820,7 +808,6 @@ static int tevs_set_fmt(struct v4l2_subdev *sub_dev,
 		fmt = &tevs->fmt;
 
 	memmove(fmt, mbus_fmt, sizeof(struct v4l2_mbus_framefmt));
-	mutex_unlock(&tevs->lock);
 
 	return 0;
 }
@@ -1553,8 +1540,6 @@ static int tevs_ctrls_init(struct tevs *tevs)
 	if (ret)
 		return ret;
 
-	ctrl_hdlr->lock = &tevs->lock;
-
 	ret = tevs_i2c_read_16b(tevs, TEVS_BRIGHTNESS, &val);
 	ctrl_def = val & TEVS_BRIGHTNESS_MASK;
 	ret += tevs_i2c_read_16b(tevs, TEVS_BRIGHTNESS_MAX, &val);
@@ -1899,7 +1884,6 @@ static int tevs_ctrls_init(struct tevs *tevs)
 
 error:
 	v4l2_ctrl_handler_free(ctrl_hdlr);
-	mutex_destroy(&tevs->lock);
 
 	return ret;
 }
@@ -1907,7 +1891,6 @@ error:
 static void tevs_ctrls_free(struct tevs *tevs)
 {
 	v4l2_ctrl_handler_free(&tevs->ctrls);
-	mutex_destroy(&tevs->lock);
 }
 
 static int tevs_media_link_setup(struct media_entity *entity,
@@ -2160,8 +2143,6 @@ static int tevs_probe(struct i2c_client *client)
 		dev_err(dev, "cannot find tevs camera\n");
 		return -ENODEV;
 	}
-
-	mutex_init(&tevs->lock);
 
 	if (tevs->data_frequency != 0) {
 		ret = tevs_i2c_write_16b(tevs, HOST_COMMAND_ISP_CTRL_MIPI_FREQ,
