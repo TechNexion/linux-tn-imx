@@ -21,15 +21,15 @@
 struct resolution {
 	u16 width;
 	u16 height;
-	u16 framerates;
+	u16 framerates[4];
 	u16 mode;
 };
 
 /* AR0144 default setting for 4 data lanes and data frequency 800 MHz */
 static struct resolution ar0144_res_list[] = {
-	{ .width = 640, .height = 480, .framerates = 60, .mode = 0 },
-	{ .width = 1280, .height = 720, .framerates = 60, .mode = 0 },
-	{ .width = 1280, .height = 800, .framerates = 60, .mode = 0 },
+	{ .width = 640, .height = 480, .framerates = { 60, 30, 15, 10 }, .mode = 0 },
+	{ .width = 1280, .height = 720, .framerates = { 60, 30, 15, 10 }, .mode = 0 },
+	{ .width = 1280, .height = 800, .framerates = { 60, 30, 15, 10 }, .mode = 0 },
 };
 
 static u32 ar0144_code_list[] = {
@@ -38,9 +38,9 @@ static u32 ar0144_code_list[] = {
 
 /* AR0145 default setting for 4 data lanes and data frequency 800 MHz */
 static struct resolution ar0145_res_list[] = {
-	{ .width = 640, .height = 480, .framerates = 115, .mode = 0 },
-	{ .width = 1280, .height = 720, .framerates = 115, .mode = 0 },
-	{ .width = 1280, .height = 800, .framerates = 115, .mode = 0 },
+	{ .width = 640, .height = 480, .framerates = { 115, 60, 30, 15 }, .mode = 0 },
+	{ .width = 1280, .height = 720, .framerates = { 115, 60, 30, 15 }, .mode = 0 },
+	{ .width = 1280, .height = 800, .framerates = { 115, 60, 30, 15 }, .mode = 0 },
 };
 
 static u32 ar0145_code_list[] = {
@@ -49,10 +49,10 @@ static u32 ar0145_code_list[] = {
 
 /* AR0234 default setting for 4 data lanes and data frequency 800 MHz */
 static struct resolution ar0234_res_list[] = {
-	{ .width = 640, .height = 480, .framerates = 120, .mode = 1 },
-	{ .width = 1280, .height = 720, .framerates = 120, .mode = 0 },
-	{ .width = 1920, .height = 1080, .framerates = 60, .mode = 0 },
-	{ .width = 1920, .height = 1200, .framerates = 60, .mode = 0 },
+	{ .width = 640, .height = 480, .framerates = { 120, 60, 30, 15 }, .mode = 1 },
+	{ .width = 1280, .height = 720, .framerates = { 120, 60, 30, 15 }, .mode = 0 },
+	{ .width = 1920, .height = 1080, .framerates = { 60, 30, 15, 10 }, .mode = 0 },
+	{ .width = 1920, .height = 1200, .framerates = { 60, 30, 15, 10 }, .mode = 0 },
 };
 
 static u32 ar0234_code_list[] = {
@@ -61,10 +61,10 @@ static u32 ar0234_code_list[] = {
 
 /* AR0235 default setting for 4 data lanes and data frequency 800 MHz */
 static struct resolution ar0235_res_list[] = {
-	{ .width = 640, .height = 480, .framerates = 120, .mode = 0 },
-	{ .width = 1280, .height = 720, .framerates = 120, .mode = 0 },
-	{ .width = 1920, .height = 1080, .framerates = 60, .mode = 0 },
-	{ .width = 1920, .height = 1200, .framerates = 60, .mode = 0 },
+	{ .width = 640, .height = 480, .framerates = { 120, 60, 30, 15 }, .mode = 0 },
+	{ .width = 1280, .height = 720, .framerates = { 120, 60, 30, 15 }, .mode = 0 },
+	{ .width = 1920, .height = 1080, .framerates = { 60, 30, 15, 10 }, .mode = 0 },
+	{ .width = 1920, .height = 1200, .framerates = { 60, 30, 15, 10 }, .mode = 0 },
 };
 
 static u32 ar0235_code_list[] = {
@@ -73,9 +73,9 @@ static u32 ar0235_code_list[] = {
 
 /* AR0246 default setting for 4 data lanes and data frequency 800 MHz */
 static struct resolution ar0246_res_list[] = {
-	{ .width = 640, .height = 480, .framerates = 30, .mode = 0 },
-	{ .width = 1280, .height = 720, .framerates = 30, .mode = 0 },
-	{ .width = 1920, .height = 1080, .framerates = 30, .mode = 0 },
+	{ .width = 640, .height = 480, .framerates = { 30, 15, 10, 5 }, .mode = 0 },
+	{ .width = 1280, .height = 720, .framerates = { 30, 15, 10, 5 }, .mode = 0 },
+	{ .width = 1920, .height = 1080, .framerates = { 30, 15, 10, 5 }, .mode = 0 },
 };
 
 static u32 ar0246_code_list[] = {
@@ -84,12 +84,12 @@ static u32 ar0246_code_list[] = {
 
 /* AR0521 default setting for 4 data lanes and data frequency 800 MHz */
 static struct resolution ar0521_res_list[] = {
-	{ .width = 640, .height = 480, .framerates = 120, .mode = 3 },
-	{ .width = 1280, .height = 720, .framerates = 60, .mode = 3 },
-	{ .width = 1280, .height = 960, .framerates = 60, .mode = 3 },
-	{ .width = 1920, .height = 1080, .framerates = 60, .mode = 1 },
-	{ .width = 2560, .height = 1440, .framerates = 32, .mode = 1 },
-	{ .width = 2592, .height = 1944, .framerates = 24, .mode = 1 },
+	{ .width = 640, .height = 480, .framerates = { 120, 60, 30, 15 }, .mode = 3 },
+	{ .width = 1280, .height = 720, .framerates = { 60, 30, 15, 10 }, .mode = 3 },
+	{ .width = 1280, .height = 960, .framerates = { 60, 30, 15, 10 }, .mode = 3 },
+	{ .width = 1920, .height = 1080, .framerates = { 60, 30, 15, 10 }, .mode = 1 },
+	{ .width = 2560, .height = 1440, .framerates = { 32, 30, 15, 10 }, .mode = 1 },
+	{ .width = 2592, .height = 1944, .framerates = { 24, 20, 15, 10 }, .mode = 1 },
 };
 
 static u32 ar0521_code_list[] = {
@@ -98,12 +98,12 @@ static u32 ar0521_code_list[] = {
 
 /* AR0522 default setting for 4 data lanes and data frequency 800 MHz */
 static struct resolution ar0522_res_list[] = {
-	{ .width = 640, .height = 480, .framerates = 120, .mode = 3 },
-	{ .width = 1280, .height = 720, .framerates = 60, .mode = 3 },
-	{ .width = 1280, .height = 960, .framerates = 60, .mode = 3 },
-	{ .width = 1920, .height = 1080, .framerates = 60, .mode = 1 },
-	{ .width = 2560, .height = 1440, .framerates = 32, .mode = 1 },
-	{ .width = 2592, .height = 1944, .framerates = 24, .mode = 1 },
+	{ .width = 640, .height = 480, .framerates = { 120, 60, 30, 15 }, .mode = 3 },
+	{ .width = 1280, .height = 720, .framerates = { 60, 30, 15, 10 }, .mode = 3 },
+	{ .width = 1280, .height = 960, .framerates = { 60, 30, 15, 10 }, .mode = 3 },
+	{ .width = 1920, .height = 1080, .framerates = { 60, 30, 15, 10 }, .mode = 1 },
+	{ .width = 2560, .height = 1440, .framerates = { 32, 30, 15, 10 }, .mode = 1 },
+	{ .width = 2592, .height = 1944, .framerates = { 24, 20, 15, 10 }, .mode = 1 },
 };
 
 static u32 ar0522_code_list[] = {
@@ -112,12 +112,12 @@ static u32 ar0522_code_list[] = {
 
 /* AR0544 default setting for 4 data lanes and data frequency 800 MHz */
 static struct resolution ar0544_res_list[] = {
-	{ .width = 640, .height = 480, .framerates = 120, .mode = 3 },
-	{ .width = 1280, .height = 720, .framerates = 60, .mode = 2 },
-	{ .width = 1280, .height = 960, .framerates = 60, .mode = 2 },
-	{ .width = 1920, .height = 1080, .framerates = 60, .mode = 2 },
-	{ .width = 2560, .height = 1440, .framerates = 32, .mode = 0 },
-	{ .width = 2592, .height = 1944, .framerates = 24, .mode = 0 },
+	{ .width = 640, .height = 480, .framerates = { 120, 60, 30, 15 }, .mode = 3 },
+	{ .width = 1280, .height = 720, .framerates = { 60, 30, 15, 10 }, .mode = 2 },
+	{ .width = 1280, .height = 960, .framerates = { 60, 30, 15, 10 }, .mode = 2 },
+	{ .width = 1920, .height = 1080, .framerates = { 60, 30, 15, 10 }, .mode = 2 },
+	{ .width = 2560, .height = 1440, .framerates = { 32, 30, 15, 10 }, .mode = 0 },
+	{ .width = 2592, .height = 1944, .framerates = { 24, 20, 15, 10 }, .mode = 0 },
 };
 
 static u32 ar0544_code_list[] = {
@@ -126,11 +126,11 @@ static u32 ar0544_code_list[] = {
 
 /* AR0821 default setting for 4 data lanes and data frequency 800 MHz */
 static struct resolution ar0821_res_list[] = {
-	{ .width = 640, .height = 480, .framerates = 60, .mode = 2 },
-	{ .width = 1280, .height = 720, .framerates = 60, .mode = 2 },
-	{ .width = 1920, .height = 1080, .framerates = 60, .mode = 2 },
-	{ .width = 2560, .height = 1440, .framerates = 30, .mode = 0 },
-	{ .width = 3840, .height = 2160, .framerates = 15, .mode = 0 },
+	{ .width = 640, .height = 480, .framerates = { 60, 30, 15, 10 }, .mode = 2 },
+	{ .width = 1280, .height = 720, .framerates = { 60, 30, 15, 10 }, .mode = 2 },
+	{ .width = 1920, .height = 1080, .framerates = { 60, 30, 15, 10 }, .mode = 2 },
+	{ .width = 2560, .height = 1440, .framerates = { 30, 20, 15, 10 }, .mode = 0 },
+	{ .width = 3840, .height = 2160, .framerates = { 15, 10, 8, 5 }, .mode = 0 },
 };
 
 static u32 ar0821_code_list[] = {
@@ -139,11 +139,11 @@ static u32 ar0821_code_list[] = {
 
 /* AR0822 default setting for 4 data lanes and data frequency 800 MHz */
 static struct resolution ar0822_res_list[] = {
-	{ .width = 640, .height = 480, .framerates = 60, .mode = 1 },
-	{ .width = 1280, .height = 720, .framerates = 60, .mode = 1 },
-	{ .width = 1920, .height = 1080, .framerates = 60, .mode = 1 },
-	{ .width = 2560, .height = 1440, .framerates = 30, .mode = 0 },
-	{ .width = 3840, .height = 2160, .framerates = 15, .mode = 0 },
+	{ .width = 640, .height = 480, .framerates = { 60, 30, 15, 10 }, .mode = 1 },
+	{ .width = 1280, .height = 720, .framerates = { 60, 30, 15, 10 }, .mode = 1 },
+	{ .width = 1920, .height = 1080, .framerates = { 60, 30, 15, 10 }, .mode = 1 },
+	{ .width = 2560, .height = 1440, .framerates = { 30, 20, 15, 10 }, .mode = 0 },
+	{ .width = 3840, .height = 2160, .framerates = { 15, 10, 8, 5 }, .mode = 0 },
 };
 
 static u32 ar0822_code_list[] = {
@@ -152,11 +152,11 @@ static u32 ar0822_code_list[] = {
 
 /* AR0830 default setting for 4 data lanes and data frequency 800 MHz */
 static struct resolution ar0830_res_list[] = {
-	{ .width = 640, .height = 480, .framerates = 60, .mode = 3 },
-	{ .width = 1280, .height = 720, .framerates = 60, .mode = 2 },
-	{ .width = 1920, .height = 1080, .framerates = 60, .mode = 2 },
-	{ .width = 2560, .height = 1440, .framerates = 30, .mode = 1 },
-	{ .width = 3840, .height = 2160, .framerates = 15, .mode = 1 },
+	{ .width = 640, .height = 480, .framerates = { 60, 30, 15, 10 }, .mode = 3 },
+	{ .width = 1280, .height = 720, .framerates = { 60, 30, 15, 10 }, .mode = 2 },
+	{ .width = 1920, .height = 1080, .framerates = { 60, 30, 15, 10 }, .mode = 2 },
+	{ .width = 2560, .height = 1440, .framerates = { 30, 20, 15, 10 }, .mode = 1 },
+	{ .width = 3840, .height = 2160, .framerates = { 15, 10, 8, 5 }, .mode = 1 },
 };
 
 static u32 ar0830_code_list[] = {
@@ -165,26 +165,26 @@ static u32 ar0830_code_list[] = {
 
 /* AR1335 default setting for 4 data lanes and data frequency 800 MHz */
 static struct resolution ar1335_res_list[] = {
-	{ .width = 640, .height = 480, .framerates = 60, .mode = 4 },
-	{ .width = 1280, .height = 720, .framerates = 120, .mode = 4 },
-	{ .width = 1920, .height = 1080, .framerates = 60, .mode = 3 },
-	{ .width = 2560, .height = 1440, .framerates = 30, .mode = 1 },
-	{ .width = 3840, .height = 2160, .framerates = 15, .mode = 0 },
-	{ .width = 4208, .height = 3120, .framerates = 10, .mode = 0 },
+	{ .width = 640, .height = 480, .framerates = { 60, 30, 15, 10 }, .mode = 4 },
+	{ .width = 1280, .height = 720, .framerates = { 120, 60, 30, 15 }, .mode = 4 },
+	{ .width = 1920, .height = 1080, .framerates = { 60, 30, 15, 10 }, .mode = 3 },
+	{ .width = 2560, .height = 1440, .framerates = { 30, 20, 15, 10 }, .mode = 1 },
+	{ .width = 3840, .height = 2160, .framerates = { 15, 10, 8, 5 }, .mode = 0 },
+	{ .width = 4208, .height = 3120, .framerates = { 10, 8, 5, 1 }, .mode = 0 },
 };
 
 static u32 ar1335_code_list[] = {
 	MEDIA_BUS_FMT_UYVY8_1X16,
 };
 
-/* AR2020 default setting for 4 data lanes an1 data frequency 800 MHz */
+/* AR2020 default setting for 4 data lanes and data frequency 800 MHz */
 static struct resolution ar2020_res_list[] = {
-	{ .width = 640, .height = 480, .framerates = 60, .mode = 3 },
-	{ .width = 1280, .height = 720, .framerates = 120, .mode = 3 },
-	{ .width = 1920, .height = 1080, .framerates = 60, .mode = 2 },
-	{ .width = 2560, .height = 1440, .framerates = 30, .mode = 2 },
-	{ .width = 3840, .height = 2160, .framerates = 15, .mode = 1 },
-	{ .width = 4208, .height = 3120, .framerates = 10, .mode = 1 },
+	{ .width = 640, .height = 480, .framerates = { 120, 60, 30, 15 }, .mode = 3 },
+	{ .width = 1280, .height = 720, .framerates = { 120, 60, 30, 15 }, .mode = 3 },
+	{ .width = 1280, .height = 960, .framerates = { 120, 60, 30, 15 }, .mode = 3 },
+	{ .width = 1920, .height = 1440, .framerates = { 60, 30, 15, 10 }, .mode = 2 },
+	{ .width = 2560, .height = 1920, .framerates = { 30, 20, 15, 10 }, .mode = 2 },
+	{ .width = 4208, .height = 3156, .framerates = { 10, 8, 5, 1 }, .mode = 0 },
 };
 
 static u32 ar2020_code_list[] = {

@@ -335,6 +335,7 @@ struct tevs {
 	int trigger_mode;
 	char *sensor_name;
 	int vc_id;
+	unsigned int fps;
 
 	struct mutex lock; /* Protects formats */
 	/* V4L2 Controls */
@@ -584,19 +585,15 @@ static int tevs_get_frame_interval(struct v4l2_subdev *sub_dev,
 				   struct v4l2_subdev_frame_interval *fi)
 {
 	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
-	u32 max_fps;
 
 	if (fi->pad != 0)
 		return -EINVAL;
 
 	dev_dbg(sub_dev->dev, "%s()\n", __func__);
 
-	max_fps = tevs_sensor_table[tevs->selected_sensor]
-			  .res_list[tevs->selected_mode]
-			  .framerates;
-
 	fi->interval.numerator = 1;
-	fi->interval.denominator = max_fps;
+	fi->interval.denominator = tevs->fps;
+	dev_dbg(sub_dev->dev, "fps = %d\n", tevs->fps);
 
 	return 0;
 }
@@ -605,7 +602,11 @@ static int tevs_set_frame_interval(struct v4l2_subdev *sub_dev,
 				   struct v4l2_subdev_frame_interval *fi)
 {
 	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
-	u32 max_fps;
+	unsigned int max_fps, min_fps;
+	unsigned int fps =
+		fi->interval.numerator ?
+			fi->interval.denominator / fi->interval.numerator :
+			fi->interval.denominator;
 
 	if (fi->pad != 0)
 		return -EINVAL;
@@ -613,11 +614,26 @@ static int tevs_set_frame_interval(struct v4l2_subdev *sub_dev,
 	dev_dbg(sub_dev->dev, "%s()\n", __func__);
 
 	max_fps = tevs_sensor_table[tevs->selected_sensor]
-			  .res_list[tevs->selected_mode]
-			  .framerates;
+			  .res_list[tevs->selected_mode].framerates[0];
+	min_fps =
+		tevs_sensor_table[tevs->selected_sensor]
+			.res_list[tevs->selected_mode]
+			.framerates
+				[ARRAY_SIZE(
+					 tevs_sensor_table[tevs->selected_sensor]
+						 .res_list[tevs->selected_mode]
+						 .framerates) -
+				 1];
+
+	if (fps > max_fps)
+		fps = max_fps;
+	else if (fps < min_fps)
+		fps = min_fps;
 
 	fi->interval.numerator = 1;
-	fi->interval.denominator = max_fps;
+	fi->interval.denominator = fps;
+	tevs->fps = fps;
+	dev_dbg(sub_dev->dev, "fps = %d\n", fps);
 
 	return 0;
 }
@@ -644,9 +660,6 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 			ret = tevs_standby(tevs, 0);
 
 		if (ret == 0) {
-			int fps = tevs_sensor_table[tevs->selected_sensor]
-					  .res_list[tevs->selected_mode]
-					  .framerates;
 			dev_dbg(sub_dev->dev, "%s() width=%d, height=%d\n",
 				__func__,
 				tevs_sensor_table[tevs->selected_sensor]
@@ -682,9 +695,9 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 					.height);
 			tevs_i2c_write_16b(
 				tevs, HOST_COMMAND_ISP_CTRL_PREVIEW_MAX_FPS,
-				fps);
+				tevs->fps);
 			if (tevs->max_fps)
-				tevs->max_fps->cur.val = fps;
+				tevs->max_fps->cur.val = tevs->fps;
 			tevs_i2c_read(tevs, TEVS_AE_MANUAL_EXP_TIME, exp, 4);
 			tevs->exp_time->cur.val = be32_to_cpup((__be32 *)exp) &
 						  TEVS_AE_MANUAL_EXP_TIME_MASK;
@@ -873,7 +886,10 @@ static int tevs_enum_frame_interval(struct v4l2_subdev *sub_dev,
 	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
 	int i;
 
-	if ((fie->pad != 0) || (fie->index != 0))
+	if ((fie->pad != 0) ||
+	    (fie->index >= ARRAY_SIZE(tevs_sensor_table[tevs->selected_sensor]
+					      .res_list[fie->index]
+					      .framerates)))
 		return -EINVAL;
 
 	dev_dbg(sub_dev->dev, "%s() index [%u]\n", __func__, fie->index);
@@ -891,7 +907,7 @@ static int tevs_enum_frame_interval(struct v4l2_subdev *sub_dev,
 			fie->interval.denominator =
 				tevs_sensor_table[tevs->selected_sensor]
 					.res_list[i]
-					.framerates;
+					.framerates[fie->index];
 			break;
 		}
 	}
@@ -2243,6 +2259,8 @@ static int tevs_probe(struct i2c_client *client)
 
 	/* Initialize source pads */
 	tevs->pad.flags = MEDIA_PAD_FL_SOURCE;
+	tevs->fps =
+		tevs_sensor_table[tevs->selected_sensor].res_list[0].framerates[0];
 	ret = media_entity_pads_init(&tevs->v4l2_subdev.entity, 1, &tevs->pad);
 	if (ret) {
 		dev_err(tevs->dev, "failed to init entity pads: %d\n", ret);
