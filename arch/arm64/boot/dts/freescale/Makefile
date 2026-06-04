@@ -1086,6 +1086,14 @@ imx95-19x19-evk-adv7535-tevs-dtbs := imx95-19x19-evk.dtb \
 				       imx95-19x19-evk-tevs-tev-nxp.dtbo
 dtb-$(CONFIG_ARCH_MXC) += imx95-19x19-evk-adv7535-tevs.dtb
 
+imx95-19x19-evk-tevm-dtbs := imx95-19x19-evk.dtb imx95-19x19-evk-tevm-tev-nxp.dtbo
+dtb-$(CONFIG_ARCH_MXC) += imx95-19x19-evk-tevm.dtb
+
+imx95-19x19-evk-adv7535-tevm-dtbs := imx95-19x19-evk.dtb \
+				       imx95-19x19-evk-adv7535.dtbo \
+				       imx95-19x19-evk-tevm-tev-nxp.dtbo
+dtb-$(CONFIG_ARCH_MXC) += imx95-19x19-evk-adv7535-tevm.dtb
+
 imx95-19x19-evk-rm692c9-dtbs := imx95-19x19-evk.dtb imx95-19x19-evk-rm692c9.dtbo
 dtb-$(CONFIG_ARCH_MXC) += imx95-19x19-evk-rm692c9.dtb
 
