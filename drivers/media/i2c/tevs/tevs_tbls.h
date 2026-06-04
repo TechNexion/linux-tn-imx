@@ -181,9 +181,9 @@ static u32 ar1335_code_list[] = {
 static struct resolution ar2020_res_list[] = {
 	{ .width = 640, .height = 480, .framerates = { 120, 60, 30, 15 }, .mode = 3 },
 	{ .width = 1280, .height = 720, .framerates = { 120, 60, 30, 15 }, .mode = 3 },
-	{ .width = 1280, .height = 960, .framerates = { 120, 60, 30, 15 }, .mode = 3 },
-	{ .width = 1920, .height = 1440, .framerates = { 60, 30, 15, 10 }, .mode = 2 },
-	{ .width = 2560, .height = 1920, .framerates = { 30, 20, 15, 10 }, .mode = 2 },
+	{ .width = 1280, .height = 960, .framerates = { 100, 60, 30, 15 }, .mode = 3 },
+	{ .width = 1920, .height = 1440, .framerates = { 40, 30, 15, 10 }, .mode = 2 },
+	{ .width = 2560, .height = 1920, .framerates = { 25, 20, 15, 10 }, .mode = 2 },
 	{ .width = 4208, .height = 3156, .framerates = { 10, 8, 5, 1 }, .mode = 0 },
 };
 
