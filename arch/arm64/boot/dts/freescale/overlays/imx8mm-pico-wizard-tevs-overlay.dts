@@ -50,19 +50,22 @@
 			tevs_0: tevs@48 {
 				compatible = "tn,tevs";
 				reg = <0x48>;
+				status = "okay";
+
 				host-power-gpios = <&pca9555_26 13 GPIO_ACTIVE_LOW>;
 				reset-gpios = <&pca9555_21 12 GPIO_ACTIVE_HIGH>;
 				device-power-gpios = <&pca9555_24 0 GPIO_ACTIVE_HIGH>;
 				standby-gpios = <&pca9555_24 2 GPIO_ACTIVE_HIGH>;
-				data-lanes = <2>;
-				data-frequency = <800>;
-				continuous-clock = <0>;
+
 				supports-over-4k-res;
-				status = "okay";
 
 				port {
 					tevs_0_ep: endpoint {
 						remote-endpoint = <&mipi_csi0_ep>;
+						data-lanes = <1 2>;
+						clock-lanes = <0>;
+						clock-noncontinuous;
+						link-frequencies = /bits/ 64 <400000000>;
 					};
 				};
 			};
