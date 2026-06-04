@@ -572,7 +572,7 @@ static int tevs_check_boot_state(struct tevs *tevs)
 		if (++timeout >= 20) {
 			dev_err(tevs->dev, "bootup timeout: state: 0x%04X\n",
 				boot_state);
-			ret = -EINVAL;
+			ret = -EBUSY;
 		}
 		msleep(20);
 	}
@@ -1194,7 +1194,7 @@ static int tevs_set_bsl_mode(struct tevs *tevs, s32 mode)
 
 		if (tevs_check_boot_state(tevs) != 0) {
 			dev_err(tevs->dev, "check tevs bootup status failed\n");
-			return -EINVAL;
+			return -ENODEV;
 		}
 
 		if (tevs->data_frequency != 0) {
@@ -1208,7 +1208,7 @@ static int tevs_set_bsl_mode(struct tevs *tevs, s32 mode)
 				if (tevs_check_boot_state(tevs) != 0) {
 					dev_err(tevs->dev,
 						"check tevs bootup status failed\n");
-					return -EINVAL;
+					return -ENODEV;
 				}
 			}
 		}
