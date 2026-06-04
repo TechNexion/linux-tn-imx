@@ -83,21 +83,21 @@
 	tevs_0: tevs@48 {
 		compatible = "tn,tevs";
 		reg = <0x48>;
+		status = "okay";
 
 		pinctrl-names = "default";
 		pinctrl-0 = <&tevs_pinctrl_csi0_pwn>, <&tevs_pinctrl_csi_rst>, <&tevs_pinctrl_csi_mclk>;
 		host-power-gpios = <&gpio1 5 GPIO_ACTIVE_HIGH>;
 		reset-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
 		standby-gpios = <&gpio2 11 GPIO_ACTIVE_HIGH>;
-		csi_id = <0>;
-		data-lanes = <4>;
-		data-frequency = <800>;
-		continuous-clock = <0>;
-		status = "okay";
 
 		port {
 			tevs_0_ep: endpoint {
 				remote-endpoint = <&mipi_csi0_ep>;
+				data-lanes = <1 2 3 4>;
+				clock-lanes = <0>;
+				clock-noncontinuous;
+				link-frequencies = /bits/ 64 <400000000>;
 			};
 		};
 	};
@@ -112,21 +112,21 @@
 	tevs_1: tevs@48 {
 		compatible = "tn,tevs";
 		reg = <0x48>;
+		status = "okay";
 
 		pinctrl-names = "default";
 		pinctrl-0 = <&tevs_pinctrl_csi1_pwn>, <&tevs_pinctrl_csi_rst>, <&tevs_pinctrl_csi_mclk>;
 		host-power-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
 		reset-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
 		standby-gpios = <&gpio2 11 GPIO_ACTIVE_HIGH>;
-		csi_id = <1>;
-		data-lanes = <4>;
-		data-frequency = <800>;
-		continuous-clock = <0>;
-		status = "okay";
 
 		port {
 			tevs_1_ep: endpoint {
 				remote-endpoint = <&mipi_csi1_ep>;
+				data-lanes = <1 2 3 4>;
+				clock-lanes = <0>;
+				clock-noncontinuous;
+				link-frequencies = /bits/ 64 <400000000>;
 			};
 		};
 	};
