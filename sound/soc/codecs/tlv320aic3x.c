@@ -101,7 +101,7 @@ static const struct reg_default aic3x_reg[] = {
 	{  28, 0x00 }, {  29, 0x00 }, {  30, 0xfe }, {  31, 0x00 },
 	{  32, 0x18 }, {  33, 0x18 }, {  34, 0x00 }, {  35, 0x00 },
 	{  36, 0x00 }, {  37, 0x00 }, {  38, 0x00 }, {  39, 0x00 },
-	{  40, 0x00 }, {  41, 0x00 }, {  42, 0x00 }, {  43, 0x80 },
+	{  40, 0x00 }, {  41, 0x00 }, {  42, 0xAC }, {  43, 0x80 },
 	{  44, 0x80 }, {  45, 0x00 }, {  46, 0x00 }, {  47, 0x00 },
 	{  48, 0x00 }, {  49, 0x00 }, {  50, 0x00 }, {  51, 0x04 },
 	{  52, 0x00 }, {  53, 0x00 }, {  54, 0x00 }, {  55, 0x00 },
@@ -1056,8 +1056,6 @@ static int aic3x_hw_params(struct snd_pcm_substream *substream,
 	u16 d, pll_d = 1;
 	int clk;
 	int width = aic3x->slot_width;
-
-	snd_soc_component_write(component, HPOUT_POP_REDUCTION, 0x68);
 
 	if (!width)
 		width = params_width(params);
