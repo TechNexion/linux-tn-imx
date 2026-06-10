@@ -1869,7 +1869,7 @@ static int tevs_ctrls_init(struct tevs *tevs)
 	tevs->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
 
 	/* link_freq = (pixel_rate * bpp) / (2 * data_lanes) */
-	pixel_rate[0] = link_freq[0] * (2 * tevs->data_lanes) / 16;
+	pixel_rate[0] = div_s64(link_freq[0] * (2 * tevs->data_lanes), 16);
 	tevs->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
 					     V4L2_CID_PIXEL_RATE, pixel_rate[0],
 					     pixel_rate[0], 1, pixel_rate[0]);
@@ -2155,11 +2155,11 @@ static int tevs_check_hwcfg(struct device *dev, struct tevs *tevs)
 
 	/* Check the link frequency set in device tree */
 	if (ep_cfg.nr_of_link_frequencies == 0)
-		tevs->data_frequency = div_u64(
-			((u64)TEVS_LINK_FREQUENCY_DEFAULT * 2), 1000000ULL);
+		tevs->data_frequency =
+			(u32)div_u64(TEVS_LINK_FREQUENCY_DEFAULT, 1000000ULL) * 2;
 	else if (ep_cfg.nr_of_link_frequencies == 1)
 		tevs->data_frequency =
-			div_u64((ep_cfg.link_frequencies[0] * 2), 1000000ULL);
+			(u32)div_u64(ep_cfg.link_frequencies[0], 1000000ULL) * 2;
 	else {
 		dev_err(dev, "invalid link frequencies %u on port\n",
 			ep_cfg.nr_of_link_frequencies);
