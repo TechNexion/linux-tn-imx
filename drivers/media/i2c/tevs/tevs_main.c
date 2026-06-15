@@ -637,11 +637,9 @@ static int tevs_set_frame_interval(struct v4l2_subdev *sub_dev,
 		tevs_sensor_table[tevs->selected_sensor]
 			.res_list[tevs->selected_mode]
 			.framerates
-				[ARRAY_SIZE(
-					 tevs_sensor_table[tevs->selected_sensor]
+				[tevs_sensor_table[tevs->selected_sensor]
 						 .res_list[tevs->selected_mode]
-						 .framerates) -
-				 1];
+						 .framerates_size - 1];
 
 	if (fps > max_fps)
 		fps = max_fps;
@@ -923,9 +921,9 @@ static int tevs_enum_frame_interval(struct v4l2_subdev *sub_dev,
 	int i;
 
 	if ((fie->pad != 0) ||
-	    (fie->index >= ARRAY_SIZE(tevs_sensor_table[tevs->selected_sensor]
+	    (fie->index >= tevs_sensor_table[tevs->selected_sensor]
 					      .res_list[fie->index]
-					      .framerates)))
+					      .framerates_size))
 		return -EINVAL;
 
 	dev_dbg(sub_dev->dev, "%s() index [%u]\n", __func__, fie->index);
