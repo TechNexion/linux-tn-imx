@@ -22,6 +22,7 @@
 
 #include <video/mipi_display.h>
 
+
 enum ili9881c_op {
 	ILI9881C_SWITCH_PAGE,
 	ILI9881C_COMMAND,
@@ -58,7 +59,7 @@ struct ili9881c {
 
 	enum drm_panel_orientation	orientation;
 	u8 address_mode;
-	u32 timing_mode;
+	u32	timing_mode;
 };
 
 #define ILI9881C_SWITCH_PAGE_INSTR(_page)	\
@@ -1653,9 +1654,7 @@ static void ili9881c_send_cmd_data(struct mipi_dsi_multi_context *mctx, u8 cmd, 
 static int ili9881c_prepare(struct drm_panel *panel)
 {
 	struct ili9881c *ctx = panel_to_ili9881c(panel);
-	struct mipi_dsi_multi_context mctx = { .dsi = ctx->dsi };
-	unsigned int i;
-	int ret;
+	int ret = 0;
 
 	/* Power the panel */
 	if (!IS_ERR(ctx->power)) {
@@ -1673,6 +1672,15 @@ static int ili9881c_prepare(struct drm_panel *panel)
 		gpiod_set_value_cansleep(ctx->reset, 0);
 		msleep(20);
 	}
+
+	return ret;
+}
+
+static int ili9881c_enable(struct drm_panel *panel)
+{
+	struct ili9881c *ctx = panel_to_ili9881c(panel);
+	struct mipi_dsi_multi_context mctx = { .dsi = ctx->dsi };
+	unsigned int i;
 
 	ctx->dsi->mode_flags |= MIPI_DSI_MODE_LPM;
 
@@ -1704,6 +1712,35 @@ static int ili9881c_prepare(struct drm_panel *panel)
 disable_power:
 	regulator_disable(ctx->power);
 	return mctx.accum_err;
+}
+
+
+static int ili9881c_disable(struct drm_panel *panel)
+{
+	struct ili9881c *ctx = panel_to_ili9881c(panel);
+	struct mipi_dsi_device *dsi = ctx->dsi;
+	struct device *dev = &dsi->dev;
+	int ret;
+
+	ctx->dsi->mode_flags |= MIPI_DSI_MODE_LPM;
+
+	usleep_range(10000, 12000);
+
+	ret = mipi_dsi_dcs_set_display_off(ctx->dsi);
+	if (ret < 0) {
+		dev_err(dev, "Failed to set display OFF (%d)\n", ret);
+		return ret;
+	}
+
+	usleep_range(5000, 10000);
+
+	ret = mipi_dsi_dcs_enter_sleep_mode(ctx->dsi);
+	if (ret < 0) {
+		dev_err(dev, "Failed to enter sleep mode (%d)\n", ret);
+		return ret;
+	}
+
+	return 0;
 }
 
 static int ili9881c_unprepare(struct drm_panel *panel)
@@ -1871,7 +1908,6 @@ static const struct drm_display_mode bsd1218_a101kl68_default_mode = {
 	.width_mm	= 120,
 	.height_mm	= 170,
 };
-
 static int ili9881c_get_modes(struct drm_panel *panel,
 			      struct drm_connector *connector)
 {
@@ -1939,6 +1975,8 @@ static enum drm_panel_orientation ili9881c_get_orientation(struct drm_panel *pan
 static const struct drm_panel_funcs ili9881c_funcs = {
 	.prepare	= ili9881c_prepare,
 	.unprepare	= ili9881c_unprepare,
+	.enable		= ili9881c_enable,
+	.disable	= ili9881c_disable,
 	.get_modes	= ili9881c_get_modes,
 	.get_orientation = ili9881c_get_orientation,
 };
@@ -2106,7 +2144,6 @@ static const struct ili9881c_desc bsd1218_a101kl68_desc = {
 		      MIPI_DSI_MODE_LPM | MIPI_DSI_MODE_NO_EOT_PACKET,
 	.lanes = 4,
 };
-
 static const struct of_device_id ili9881c_of_match[] = {
 	{ .compatible = "bananapi,lhr050h41", .data = &lhr050h41_desc },
 	{ .compatible = "bestar,bsd1218-a101kl68", .data = &bsd1218_a101kl68_desc },
