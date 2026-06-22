@@ -396,7 +396,7 @@
 	cpu-supply = <&buck2>;
 };
 
-&vpu {
+&vpu_v4l2 {
 	status = "okay";
 };
 
