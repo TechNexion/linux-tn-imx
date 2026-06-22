@@ -181,10 +181,6 @@
 	status = "okay";
 };
 
-&vpu {
-	status = "okay";
-};
-
 &irqsteer {
 	status = "okay";
 };
