@@ -24,12 +24,12 @@ const char * const max_serdes_tpg_patterns[] = {
 static const char * const max_gmsl_versions[] = {
 	[MAX_SERDES_GMSL_2_3GBPS] = "GMSL2 3Gbps",
 	[MAX_SERDES_GMSL_2_6GBPS] = "GMSL2 6Gbps",
-	[MAX_SERDES_GMSL_3] = "GMSL3",
+	[MAX_SERDES_GMSL_3_12GBPS] = "GMSL3 12Gbps",
 };
 
 const char *max_serdes_gmsl_version_str(enum max_serdes_gmsl_version version)
 {
-	if (version > MAX_SERDES_GMSL_3)
+	if (version > MAX_SERDES_GMSL_3_12GBPS)
 		return NULL;
 
 	return max_gmsl_versions[version];
@@ -203,7 +203,7 @@ int max_serdes_xlate_enable_disable_streams(struct max_serdes_source *sources,
 			continue;
 
 		source = &sources[i + source_sink_pad_offset];
-		if (!source)
+		if (!source->sd)
 			continue;
 
 		if (enable)
@@ -233,7 +233,7 @@ err:
 			continue;
 
 		source = &sources[i + source_sink_pad_offset];
-		if (!source)
+		if (!source->sd)
 			continue;
 
 		if (!enable)
@@ -264,11 +264,11 @@ int max_serdes_get_streams_masks(struct device *dev,
 		u64 matched_streams_mask = updated_streams_mask;
 		u64 updated_sink_streams_mask;
 
+		streams_masks[i] = old_streams_masks[i];
 		updated_sink_streams_mask =
 			v4l2_subdev_state_xlate_streams(state, pad, i,
 							&matched_streams_mask);
 
-		streams_masks[i] = old_streams_masks[i];
 		if (!updated_sink_streams_mask)
 			continue;
 
@@ -389,7 +389,7 @@ int max_serdes_get_tpg_timings(const struct max_serdes_tpg_entry *entry,
 
 	return -EINVAL;
 }
-EXPORT_SYMBOL_GPL(max_serdes_get_tpg_timings);
+EXPORT_SYMBOL_NS_GPL(max_serdes_get_tpg_timings, "MAX_SERDES");
 
 int max_serdes_validate_tpg_routing(struct v4l2_subdev_krouting *routing)
 {

@@ -25,10 +25,11 @@
 	{ (reg) + 1, ((val) >> 8)  & 0xff }, \
 	{ (reg) + 2, ((val) >> 16)  & 0xff }
 
-#define field_get(mask, val) (((val) & (mask)) >> __ffs(mask))
-#define field_prep(mask, val) (((val) << __ffs(mask)) & (mask))
+/* Non-constant mask variant of FIELD_GET() and FIELD_PREP() */
+#define field_get(_mask, _reg)	(((_reg) & (_mask)) >> (ffs(_mask) - 1))
+#define field_prep(_mask, _val)	(((_val) << (ffs(_mask) - 1)) & (_mask))
 
-#define MAX_SERDES_PHYS_MAX		4
+#define MAX_SERDES_PHYS_MAX			4
 #define MAX_SERDES_STREAMS_NUM		4
 #define MAX_SERDES_VC_ID_NUM		4
 #define MAX_SERDES_TPG_STREAM		0
@@ -44,8 +45,8 @@ enum max_serdes_gmsl_version {
 	MAX_SERDES_GMSL_MIN,
 	MAX_SERDES_GMSL_2_3GBPS = MAX_SERDES_GMSL_MIN,
 	MAX_SERDES_GMSL_2_6GBPS,
-	MAX_SERDES_GMSL_3,
-	MAX_SERDES_GMSL_MAX = MAX_SERDES_GMSL_3,
+	MAX_SERDES_GMSL_3_12GBPS,
+	MAX_SERDES_GMSL_MAX = MAX_SERDES_GMSL_3_12GBPS,
 };
 
 enum max_serdes_gmsl_mode {
