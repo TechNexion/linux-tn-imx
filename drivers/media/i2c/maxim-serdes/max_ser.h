@@ -66,8 +66,10 @@ struct max_ser_ops {
 	enum max_serdes_gmsl_mode tpg_mode;
 	unsigned int tpg_patterns;
 
+#ifdef CONFIG_VIDEO_ADV_DEBUG
 	int (*reg_read)(struct max_ser *ser, unsigned int reg, unsigned int *val);
 	int (*reg_write)(struct max_ser *ser, unsigned int reg, unsigned int val);
+#endif
 	int (*log_status)(struct max_ser *ser);
 	int (*log_pipe_status)(struct max_ser *ser, struct max_ser_pipe *pipe);
 	int (*log_phy_status)(struct max_ser *ser, struct max_ser_phy *phy);

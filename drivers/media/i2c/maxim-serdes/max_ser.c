@@ -19,6 +19,7 @@
 #include "max_serdes.h"
 
 #define MAX_SER_NUM_LINKS	1
+#define MAX_SER_NUM_PHYS	1
 
 struct max_ser_priv {
 	struct max_ser *ser;
@@ -69,6 +70,11 @@ static inline bool max_ser_pad_is_source(struct max_ser *ser, u32 pad)
 {
 	return pad >= ser->ops->num_phys &&
 	       pad < ser->ops->num_phys + MAX_SER_NUM_LINKS;
+}
+
+static inline u32 max_ser_source_pad(struct max_ser *ser)
+{
+	return ser->ops->num_phys;
 }
 
 static inline bool max_ser_pad_is_tpg(struct max_ser *ser, u32 pad)
@@ -210,7 +216,7 @@ static int max_ser_route_to_hw(struct max_ser_priv *priv,
 			       struct max_ser_route_hw *hw)
 {
 	struct max_ser *ser = priv->ser;
-	struct v4l2_mbus_frame_desc fd;
+	struct v4l2_mbus_frame_desc fd = {};
 	struct max_ser_phy *phy;
 	unsigned int i;
 	int ret;
@@ -370,7 +376,8 @@ static void max_ser_i2c_atr_detach_addr(struct i2c_atr *atr, u32 chan_id, u16 ad
 		if (ser->i2c_xlates[i].dst == addr)
 			break;
 
-	WARN_ON(i == ser->ops->num_i2c_xlates);
+	if (WARN_ON(i == ser->ops->num_i2c_xlates))
+		return;
 
 	ser->ops->set_i2c_xlate(ser, i, &xlate);
 	ser->i2c_xlates[i] = xlate;
@@ -395,6 +402,7 @@ static int max_ser_i2c_atr_init(struct max_ser_priv *priv)
 	struct i2c_atr_adap_desc desc = {
 		.chan_id = 0,
 	};
+	int ret;
 
 	dev_dbg(priv->dev, "%s()\n", __func__);
 
@@ -404,14 +412,18 @@ static int max_ser_i2c_atr_init(struct max_ser_priv *priv)
 
 	priv->atr = i2c_atr_new(priv->client->adapter, priv->dev,
 				&max_ser_i2c_atr_ops, 1, 0);
-	// priv->atr = i2c_atr_new(priv->client->adapter, priv->dev,
-	// 			&max_ser_i2c_atr_ops, 1);
 	if (IS_ERR(priv->atr))
 		return PTR_ERR(priv->atr);
 
 	i2c_atr_set_driver_data(priv->atr, priv);
 
-	return i2c_atr_add_adapter(priv->atr, &desc);
+	ret = i2c_atr_add_adapter(priv->atr, &desc);
+	if (ret) {
+		i2c_atr_delete(priv->atr);
+		priv->atr = NULL;
+	}
+
+	return ret;
 }
 
 static int max_ser_i2c_mux_select(struct i2c_mux_core *mux, u32 chan)
@@ -438,10 +450,15 @@ static int max_ser_i2c_mux_init(struct max_ser_priv *priv)
 
 static int max_ser_i2c_adapter_init(struct max_ser_priv *priv)
 {
-	if (device_get_named_child_node(priv->dev, "i2c-gate"))
+	struct fwnode_handle *fwnode;
+
+	fwnode = device_get_named_child_node(priv->dev, "i2c-gate");
+	if (fwnode) {
+		fwnode_handle_put(fwnode);
 		return max_ser_i2c_mux_init(priv);
-	else
-		return max_ser_i2c_atr_init(priv);
+	}
+
+	return max_ser_i2c_atr_init(priv);
 }
 
 static void max_ser_i2c_adapter_deinit(struct max_ser_priv *priv)
@@ -506,6 +523,9 @@ static int max_ser_set_fmt(struct v4l2_subdev *sd,
 			return ret;
 	}
 
+	if (format->format.code == ~0U)
+		format->format.code = MEDIA_BUS_FMT_UYVY8_1X16;
+
 	fmt = v4l2_subdev_state_get_format(state, format->pad, format->stream);
 	if (!fmt)
 		return -EINVAL;
@@ -526,10 +546,13 @@ static int max_ser_log_status(struct v4l2_subdev *sd)
 {
 	struct max_ser_priv *priv = sd_to_priv(sd);
 	struct max_ser *ser = priv->ser;
+	struct v4l2_subdev_state *state;
 	unsigned int i, j;
 	int ret;
 
 	dev_dbg(priv->dev, "%s()\n", __func__);
+
+	state = v4l2_subdev_lock_and_get_active_state(&priv->sd);
 
 	v4l2_info(sd, "mode: %s\n", max_serdes_gmsl_mode_str(ser->mode));
 	if (ser->ops->set_tpg) {
@@ -600,7 +623,7 @@ static int max_ser_log_status(struct v4l2_subdev *sd)
 		if (ser->ops->log_pipe_status) {
 			ret = ser->ops->log_pipe_status(ser, pipe);
 			if (ret)
-				return ret;
+				goto out_unlock;
 		}
 		v4l2_info(sd, "\n");
 	}
@@ -624,12 +647,17 @@ static int max_ser_log_status(struct v4l2_subdev *sd)
 		if (ser->ops->log_phy_status) {
 			ret = ser->ops->log_phy_status(ser, phy);
 			if (ret)
-				return ret;
+				goto out_unlock;
 		}
 		v4l2_info(sd, "\n");
 	}
 
-	return 0;
+	ret = 0;
+
+out_unlock:
+	v4l2_subdev_unlock_state(state);
+
+	return ret;
 }
 
 static int max_ser_s_ctrl(struct v4l2_ctrl *ctrl)
@@ -660,7 +688,7 @@ static int max_ser_enum_frame_interval(struct v4l2_subdev *sd,
 
 	if (!max_ser_pad_is_tpg(ser, fie->pad) ||
 	    fie->stream != MAX_SERDES_TPG_STREAM)
-		return -EINVAL;
+		return -ENOTTY;
 
 	entry = max_ser_find_tpg_entry(ser, fie->index, fie->width, fie->height,
 				       fie->code, fie->interval.denominator,
@@ -688,7 +716,7 @@ static int max_ser_set_frame_interval(struct v4l2_subdev *sd,
 
 	if (!max_ser_pad_is_tpg(ser, fi->pad) ||
 	    fi->stream != MAX_SERDES_TPG_STREAM)
-		return -EINVAL;
+		return -ENOTTY;
 
 	if (fi->which == V4L2_SUBDEV_FORMAT_ACTIVE && ser->active)
 		return -EBUSY;
@@ -711,6 +739,20 @@ static int max_ser_set_frame_interval(struct v4l2_subdev *sd,
 	in->denominator = fi->interval.denominator;
 
 	return 0;
+}
+
+static int max_ser_get_frame_interval(struct v4l2_subdev *sd,
+				      struct v4l2_subdev_state *state,
+				      struct v4l2_subdev_frame_interval *fi)
+{
+	struct max_ser_priv *priv = v4l2_get_subdevdata(sd);
+	struct max_ser *ser = priv->ser;
+
+	if (!max_ser_pad_is_tpg(ser, fi->pad) ||
+	    fi->stream != MAX_SERDES_TPG_STREAM)
+		return -ENOTTY;
+
+	return v4l2_subdev_get_frame_interval(sd, state, fi);
 }
 
 static int max_ser_get_frame_desc_state(struct v4l2_subdev *sd,
@@ -791,10 +833,9 @@ static int max_ser_set_tpg_routing(struct v4l2_subdev *sd,
 	return v4l2_subdev_set_routing_with_fmt(sd, state, routing, &fmt);
 }
 
-static int max_ser_set_routing(struct v4l2_subdev *sd,
-			       struct v4l2_subdev_state *state,
-			       enum v4l2_subdev_format_whence which,
-			       struct v4l2_subdev_krouting *routing)
+static int __max_ser_set_routing(struct v4l2_subdev *sd,
+				 struct v4l2_subdev_state *state,
+				 struct v4l2_subdev_krouting *routing)
 {
 	struct max_ser_priv *priv = sd_to_priv(sd);
 	struct max_ser *ser = priv->ser;
@@ -803,9 +844,6 @@ static int max_ser_set_routing(struct v4l2_subdev *sd,
 	int ret;
 
 	dev_dbg(priv->dev, "%s()\n", __func__);
-
-	if (which == V4L2_SUBDEV_FORMAT_ACTIVE && ser->active)
-		return -EBUSY;
 
 	ret = v4l2_subdev_routing_validate(sd, routing,
 					   V4L2_SUBDEV_ROUTING_ONLY_1_TO_1 |
@@ -823,7 +861,28 @@ static int max_ser_set_routing(struct v4l2_subdev *sd,
 	if (is_tpg)
 		return max_ser_set_tpg_routing(sd, state, routing);
 
-	return v4l2_subdev_set_routing(sd, state, routing);
+	static const struct v4l2_mbus_framefmt format = {
+			.code = MEDIA_BUS_FMT_Y8_1X8,
+			.field = V4L2_FIELD_NONE,
+			.width = 640,
+			.height = 480,
+		};
+
+	return v4l2_subdev_set_routing_with_fmt(sd, state, routing, &format);
+}
+
+static int max_ser_set_routing(struct v4l2_subdev *sd,
+			       struct v4l2_subdev_state *state,
+			       enum v4l2_subdev_format_whence which,
+			       struct v4l2_subdev_krouting *routing)
+{
+	struct max_ser_priv *priv = sd_to_priv(sd);
+	struct max_ser *ser = priv->ser;
+
+	if (which == V4L2_SUBDEV_FORMAT_ACTIVE && ser->active)
+		return -EBUSY;
+
+	return __max_ser_set_routing(sd, state, routing);
 }
 
 static int max_ser_get_pipe_vcs_dts(struct max_ser_priv *priv,
@@ -837,8 +896,6 @@ static int max_ser_get_pipe_vcs_dts(struct max_ser_priv *priv,
 	struct max_ser *ser = priv->ser;
 	unsigned int i;
 	int ret;
-
-	dev_dbg(priv->dev, "%s()\n", __func__);
 
 	*vcs = 0;
 	*num_dts = 0;
@@ -875,6 +932,9 @@ static int max_ser_get_pipe_vcs_dts(struct max_ser_priv *priv,
 
 		if (i < *num_dts)
 			continue;
+
+		if (*num_dts >= ser->ops->num_dts_per_pipe)
+			return -EINVAL;
 
 		dts[*num_dts] = dt;
 		(*num_dts)++;
@@ -933,13 +993,11 @@ static int max_ser_get_pipe_mode(struct max_ser_priv *priv,
 	struct v4l2_subdev_route *route;
 	struct max_ser *ser = priv->ser;
 	bool force_set_bpp = false;
-	unsigned int doubled_bpp;
+	unsigned int doubled_bpp = 0;
 	unsigned int min_bpp;
 	unsigned int max_bpp;
 	u32 bpps = 0;
 	int ret;
-
-	dev_dbg(priv->dev, "%s()\n", __func__);
 
 	if (ser->mode != MAX_SERDES_GMSL_PIXEL_MODE)
 		return 0;
@@ -981,6 +1039,9 @@ static int max_ser_get_pipe_mode(struct max_ser_priv *priv,
 		bpps |= BIT(doubled_bpp * 2);
 	}
 
+	if (!bpps)
+		return 0;
+
 	min_bpp = __ffs(bpps);
 	max_bpp = __fls(bpps);
 
@@ -1002,8 +1063,6 @@ static int max_ser_update_pipe_enable(struct max_ser_priv *priv,
 	struct v4l2_subdev_route *route;
 	bool enable = false;
 	int ret;
-
-	dev_dbg(priv->dev, "%s()\n", __func__);
 
 	for_each_active_route(&state->routing, route) {
 		struct max_ser_route_hw hw;
@@ -1045,8 +1104,6 @@ static int max_ser_update_pipe(struct max_ser_priv *priv,
 	unsigned int *dts;
 	unsigned int vcs;
 	int ret;
-
-	dev_dbg(priv->dev, "%s()\n", __func__);
 
 	if (!ser->ops->num_dts_per_pipe)
 		return 0;
@@ -1114,8 +1171,6 @@ static int max_ser_update_phy(struct max_ser_priv *priv,
 	struct max_ser_pipe *pipe;
 	int ret;
 
-	dev_dbg(priv->dev, "%s()\n", __func__);
-
 	pipe = max_ser_find_phy_pipe(ser, phy);
 	if (!pipe)
 		return -ENOENT;
@@ -1164,8 +1219,6 @@ static int max_ser_update_phys(struct max_ser_priv *priv,
 	unsigned int i;
 	int ret;
 
-	dev_dbg(priv->dev, "%s()\n", __func__);
-
 	for (i = 0; i < ser->ops->num_phys; i++) {
 		struct max_ser_phy *phy = &ser->phys[i];
 
@@ -1195,8 +1248,6 @@ static int max_ser_enable_disable_streams(struct max_ser_priv *priv,
 {
 	struct max_ser *ser = priv->ser;
 
-	dev_dbg(priv->dev, "%s()\n", __func__);
-
 	return max_serdes_xlate_enable_disable_streams(priv->sources, 0, state,
 						       pad, updated_streams_mask, 0,
 						       ser->ops->num_phys, enable);
@@ -1207,8 +1258,6 @@ static bool max_ser_is_tpg_routed(struct max_ser_priv *priv,
 {
 	struct v4l2_subdev_route *route;
 	int ret;
-
-	dev_dbg(priv->dev, "%s()\n", __func__);
 
 	for_each_active_route(&state->routing, route) {
 		struct max_ser_route_hw hw;
@@ -1232,8 +1281,6 @@ static int max_ser_update_tpg(struct max_ser_priv *priv,
 	struct max_ser *ser = priv->ser;
 	struct v4l2_subdev_route *route;
 	int ret;
-
-	dev_dbg(priv->dev, "%s()\n", __func__);
 
 	for_each_active_route(&state->routing, route) {
 		struct max_ser_route_hw hw;
@@ -1273,8 +1320,6 @@ static int max_ser_update_streams(struct v4l2_subdev *sd,
 	unsigned int num_pads = max_ser_num_pads(ser);
 	u64 *streams_masks;
 	int ret;
-
-	dev_dbg(priv->dev, "%s()\n", __func__);
 
 	ret = max_serdes_get_streams_masks(priv->dev, state, pad, updated_streams_mask,
 					   num_pads, priv->streams_masks, &streams_masks,
@@ -1341,8 +1386,48 @@ static int max_ser_disable_streams(struct v4l2_subdev *sd,
 	return max_ser_update_streams(sd, state, pad, streams_mask, false);
 }
 
+static int max_ser_init_state(struct v4l2_subdev *sd,
+			      struct v4l2_subdev_state *state)
+{
+	struct v4l2_subdev_route routes[MAX_SER_NUM_PHYS] = { 0 };
+	struct v4l2_subdev_krouting routing = {
+		.routes = routes,
+	};
+	struct max_ser_priv *priv = v4l2_get_subdevdata(sd);
+	struct max_ser *ser = priv->ser;
+	unsigned int stream = 0;
+	unsigned int i;
+
+	for (i = 0; i < ser->ops->num_phys; i++) {
+		struct max_ser_phy *phy = &ser->phys[i];
+
+		if (!phy->enabled)
+			continue;
+
+		routing.routes[routing.num_routes++] = (struct v4l2_subdev_route) {
+			.sink_pad = max_ser_phy_to_pad(ser, phy),
+			.sink_stream = 0,
+			.source_pad = max_ser_source_pad(ser),
+			.source_stream = stream,
+			.flags = V4L2_SUBDEV_ROUTE_FL_ACTIVE,
+		};
+		stream++;
+
+		/*
+		 * The Streams API is an experimental feature.
+		 * If multiple routes are provided here, userspace will not be
+		 * able to configure them unless the Streams API is enabled.
+		 * Provide a single route until it is enabled.
+		 */
+		break;
+	}
+
+	return __max_ser_set_routing(sd, state, &routing);
+}
+
 #ifdef CONFIG_VIDEO_ADV_DEBUG
-static int max_ser_g_register(struct v4l2_subdev *sd, struct v4l2_dbg_register *reg)
+static int max_ser_g_register(struct v4l2_subdev *sd,
+			      struct v4l2_dbg_register *reg)
 {
 	struct max_ser_priv *priv = sd_to_priv(sd);
 	struct max_ser *ser = priv->ser;
@@ -1359,7 +1444,8 @@ static int max_ser_g_register(struct v4l2_subdev *sd, struct v4l2_dbg_register *
 	return 0;
 }
 
-static int max_ser_s_register(struct v4l2_subdev *sd, const struct v4l2_dbg_register *reg)
+static int max_ser_s_register(struct v4l2_subdev *sd,
+			      const struct v4l2_dbg_register *reg)
 {
 	struct max_ser_priv *priv = sd_to_priv(sd);
 	struct max_ser *ser = priv->ser;
@@ -1391,7 +1477,7 @@ static const struct v4l2_subdev_pad_ops max_ser_pad_ops = {
 	.set_fmt = max_ser_set_fmt,
 
 	.enum_frame_interval = max_ser_enum_frame_interval,
-	.get_frame_interval = v4l2_subdev_get_frame_interval,
+	.get_frame_interval = max_ser_get_frame_interval,
 	.set_frame_interval = max_ser_set_frame_interval,
 };
 
@@ -1400,9 +1486,14 @@ static const struct v4l2_subdev_ops max_ser_subdev_ops = {
 	.pad = &max_ser_pad_ops,
 };
 
+static const struct v4l2_subdev_internal_ops max_ser_internal_ops = {
+	.init_state = &max_ser_init_state,
+};
+
 static const struct media_entity_operations max_ser_media_ops = {
-	.link_validate = v4l2_subdev_link_validate,
 	.get_fwnode_pad = v4l2_subdev_get_fwnode_pad_1_to_1,
+	.has_pad_interdep = v4l2_subdev_has_pad_interdep,
+	.link_validate = v4l2_subdev_link_validate,
 };
 
 static int max_ser_init(struct max_ser_priv *priv)
@@ -1410,8 +1501,6 @@ static int max_ser_init(struct max_ser_priv *priv)
 	struct max_ser *ser = priv->ser;
 	unsigned int i;
 	int ret;
-
-	dev_dbg(priv->dev, "%s()\n", __func__);
 
 	if (ser->ops->init) {
 		ret = ser->ops->init(ser);
@@ -1491,8 +1580,6 @@ static int max_ser_notify_bound(struct v4l2_async_notifier *nf,
 	u32 pad = source->index;
 	int ret;
 
-	dev_dbg(priv->dev, "%s()\n", __func__);
-
 	ret = media_entity_get_fwnode_pad(&subdev->entity,
 					  source->ep_fwnode,
 					  MEDIA_PAD_FL_SOURCE);
@@ -1537,8 +1624,6 @@ static int max_ser_v4l2_notifier_register(struct max_ser_priv *priv)
 	struct max_ser *ser = priv->ser;
 	unsigned int i;
 	int ret;
-
-	dev_dbg(priv->dev, "%s()\n", __func__);
 
 	v4l2_async_subdev_nf_init(&priv->nf, &priv->sd);
 
@@ -1593,10 +1678,9 @@ static int max_ser_v4l2_register(struct max_ser_priv *priv)
 	unsigned int i;
 	int ret;
 
-	dev_dbg(priv->dev, "%s()\n", __func__);
-
 	v4l2_i2c_subdev_init(sd, priv->client, &max_ser_subdev_ops);
 	i2c_set_clientdata(priv->client, data);
+	sd->internal_ops = &max_ser_internal_ops;
 	sd->entity.function = MEDIA_ENT_F_VID_IF_BRIDGE;
 	sd->entity.ops = &max_ser_media_ops;
 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_STREAMS;
@@ -1674,6 +1758,7 @@ static void max_ser_v4l2_unregister(struct max_ser_priv *priv)
 	v4l2_async_unregister_subdev(sd);
 	v4l2_subdev_cleanup(sd);
 	media_entity_cleanup(&sd->entity);
+	v4l2_ctrl_handler_free(&priv->ctrl_handler);
 }
 
 static int max_ser_parse_sink_dt_endpoint(struct max_ser_priv *priv,
@@ -1687,14 +1772,13 @@ static int max_ser_parse_sink_dt_endpoint(struct max_ser_priv *priv,
 	struct fwnode_handle *ep;
 	int ret;
 
-	dev_dbg(priv->dev, "%s()\n", __func__);
-
 	ep = fwnode_graph_get_endpoint_by_id(fwnode, pad, 0, 0);
 	if (!ep)
 		return 0;
 
 	source->ep_fwnode = fwnode_graph_get_remote_endpoint(ep);
 	if (!source->ep_fwnode) {
+		fwnode_handle_put(ep);
 		dev_err(priv->dev,
 			"Failed to get remote endpoint on port %u\n", pad);
 		return -EINVAL;
@@ -1719,8 +1803,6 @@ static int max_ser_find_phys_config(struct max_ser_priv *priv)
 	const struct max_serdes_phys_configs *configs = &ser->ops->phys_configs;
 	struct max_ser_phy *phy;
 	unsigned int i, j;
-
-	dev_dbg(priv->dev, "%s()\n", __func__);
 
 	if (!configs->num_configs)
 		return 0;
@@ -1766,8 +1848,6 @@ static int max_ser_parse_dt(struct max_ser_priv *priv)
 	unsigned int i;
 	int ret;
 
-	dev_dbg(priv->dev, "%s()\n", __func__);
-
 	for (i = 0; i < ser->ops->num_phys; i++) {
 		phy = &ser->phys[i];
 		phy->index = i;
@@ -1799,8 +1879,6 @@ static int max_ser_allocate(struct max_ser_priv *priv)
 {
 	struct max_ser *ser = priv->ser;
 	unsigned int num_pads = max_ser_num_pads(ser);
-
-	dev_dbg(priv->dev, "%s()\n", __func__);
 
 	ser->phys = devm_kcalloc(priv->dev, ser->ops->num_phys,
 				 sizeof(*ser->phys), GFP_KERNEL);
@@ -1842,7 +1920,8 @@ int max_ser_probe(struct i2c_client *client, struct max_ser *ser)
 	struct max_ser_priv *priv;
 	int ret;
 
-	dev_dbg(dev, "%s()\n", __func__);
+	if (ser->ops->num_phys > MAX_SER_NUM_PHYS)
+		return -E2BIG;
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
 	if (!priv)
@@ -1852,6 +1931,7 @@ int max_ser_probe(struct i2c_client *client, struct max_ser *ser)
 	priv->dev = dev;
 	priv->ser = ser;
 	ser->priv = priv;
+	ser->mode = __ffs(ser->ops->modes);
 
 	ret = max_ser_allocate(priv);
 	if (ret)
@@ -1873,8 +1953,6 @@ int max_ser_probe(struct i2c_client *client, struct max_ser *ser)
 	if (ret)
 		goto err_i2c_adapter_deinit;
 
-	dev_dbg(dev, "Probe done\n");
-
 	return 0;
 
 err_i2c_adapter_deinit:
@@ -1882,13 +1960,11 @@ err_i2c_adapter_deinit:
 
 	return ret;
 }
-EXPORT_SYMBOL_GPL(max_ser_probe);
+EXPORT_SYMBOL_NS_GPL(max_ser_probe, "MAX_SERDES");
 
 int max_ser_remove(struct max_ser *ser)
 {
 	struct max_ser_priv *priv = ser->priv;
-
-	dev_dbg(priv->dev, "%s()\n", __func__);
 
 	max_ser_v4l2_unregister(priv);
 
@@ -1896,19 +1972,16 @@ int max_ser_remove(struct max_ser *ser)
 
 	return 0;
 }
-EXPORT_SYMBOL_GPL(max_ser_remove);
+EXPORT_SYMBOL_NS_GPL(max_ser_remove, "MAX_SERDES");
 
 int max_ser_set_double_bpps(struct v4l2_subdev *sd, u32 double_bpps)
 {
 	struct max_ser_priv *priv = sd_to_priv(sd);
 
-	dev_dbg(priv->dev, "%s()\n", __func__);
-
 	priv->double_bpps = double_bpps;
 
 	return 0;
 }
-EXPORT_SYMBOL_GPL(max_ser_set_double_bpps);
 
 int max_ser_set_stream_id(struct v4l2_subdev *sd, unsigned int stream_id)
 {
@@ -1916,22 +1989,17 @@ int max_ser_set_stream_id(struct v4l2_subdev *sd, unsigned int stream_id)
 	struct max_ser *ser = priv->ser;
 	struct max_ser_pipe *pipe = &ser->pipes[0];
 
-	dev_dbg(priv->dev, "%s()\n", __func__);
-
 	if (!ser->ops->set_pipe_stream_id)
 		return -EOPNOTSUPP;
 
 	return ser->ops->set_pipe_stream_id(ser, pipe, stream_id);
 }
-EXPORT_SYMBOL_GPL(max_ser_set_stream_id);
 
 int max_ser_get_stream_id(struct v4l2_subdev *sd, unsigned int *stream_id)
 {
 	struct max_ser_priv *priv = sd_to_priv(sd);
 	struct max_ser *ser = priv->ser;
 	struct max_ser_pipe *pipe = &ser->pipes[0];
-
-	dev_dbg(priv->dev, "%s()\n", __func__);
 
 	if (!ser->ops->get_pipe_stream_id)
 		return -EOPNOTSUPP;
@@ -1940,7 +2008,6 @@ int max_ser_get_stream_id(struct v4l2_subdev *sd, unsigned int *stream_id)
 
 	return 0;
 }
-EXPORT_SYMBOL_GPL(max_ser_get_stream_id);
 
 unsigned int max_ser_get_supported_modes(struct v4l2_subdev *sd)
 {
@@ -1948,8 +2015,6 @@ unsigned int max_ser_get_supported_modes(struct v4l2_subdev *sd)
 	struct max_ser *ser = priv->ser;
 	struct v4l2_subdev_state *state;
 	unsigned int modes = ser->ops->modes;
-
-	dev_dbg(priv->dev, "%s()\n", __func__);
 
 	state = v4l2_subdev_lock_and_get_active_state(&priv->sd);
 
@@ -1960,7 +2025,6 @@ unsigned int max_ser_get_supported_modes(struct v4l2_subdev *sd)
 
 	return modes;
 }
-EXPORT_SYMBOL_GPL(max_ser_get_supported_modes);
 
 bool max_ser_supports_vc_remap(struct v4l2_subdev *sd)
 {
@@ -1969,15 +2033,12 @@ bool max_ser_supports_vc_remap(struct v4l2_subdev *sd)
 
 	return !!ser->ops->set_vc_remap;
 }
-EXPORT_SYMBOL_GPL(max_ser_supports_vc_remap);
 
 int max_ser_set_mode(struct v4l2_subdev *sd, enum max_serdes_gmsl_mode mode)
 {
 	struct max_ser_priv *priv = sd_to_priv(sd);
 	struct max_ser *ser = priv->ser;
 	int ret;
-
-	dev_dbg(priv->dev, "%s()\n", __func__);
 
 	if (!(ser->ops->modes & BIT(mode)))
 		return -EINVAL;
@@ -1997,7 +2058,6 @@ int max_ser_set_mode(struct v4l2_subdev *sd, enum max_serdes_gmsl_mode mode)
 
 	return 0;
 }
-EXPORT_SYMBOL_GPL(max_ser_set_mode);
 
 int max_ser_set_vc_remaps(struct v4l2_subdev *sd,
 			  struct max_serdes_vc_remap *vc_remaps,
@@ -2008,8 +2068,6 @@ int max_ser_set_vc_remaps(struct v4l2_subdev *sd,
 	unsigned int mask = 0;
 	unsigned int i;
 	int ret;
-
-	dev_dbg(priv->dev, "%s()\n", __func__);
 
 	if (!ser->ops->set_vc_remap)
 		return -EOPNOTSUPP;
@@ -2092,8 +2150,6 @@ int max_ser_reset(struct i2c_adapter *adapter, u8 addr)
 	int ret;
 	u8 val;
 
-	dev_dbg(&adapter->dev, "%s()\n", __func__);
-
 	ret = max_ser_read_reg(adapter, addr, MAX_SER_CTRL0, &val);
 	if (ret)
 		return ret;
@@ -2102,7 +2158,6 @@ int max_ser_reset(struct i2c_adapter *adapter, u8 addr)
 
 	return max_ser_write_reg(adapter, addr, MAX_SER_CTRL0, val);
 }
-EXPORT_SYMBOL_GPL(max_ser_reset);
 
 int max_ser_wait_for_multiple(struct i2c_adapter *adapter, u8 *addrs,
 			      unsigned int num_addrs, u8 *current_addr)
@@ -2111,11 +2166,12 @@ int max_ser_wait_for_multiple(struct i2c_adapter *adapter, u8 *addrs,
 	int ret = 0;
 	u8 val;
 
-
 	for (i = 0; i < 10; i++) {
 		for (j = 0; j < num_addrs; j++) {
-			dev_dbg(&adapter->dev, "%s(): addr [0x%02X]\n", __func__, addrs[j]);
 			ret = max_ser_read_reg(adapter, addrs[j], MAX_SER_REG0, &val);
+			dev_dbg(&adapter->dev,
+				  "%s(): dev [0x%02X], reg [0x%04x] data [0x%02x]\n",
+				  __func__, addrs[j], MAX_SER_REG0, val);
 			if (!ret && val) {
 				*current_addr = addrs[j];
 				return 0;
@@ -2127,17 +2183,13 @@ int max_ser_wait_for_multiple(struct i2c_adapter *adapter, u8 *addrs,
 
 	return ret;
 }
-EXPORT_SYMBOL_GPL(max_ser_wait_for_multiple);
 
 int max_ser_wait(struct i2c_adapter *adapter, u8 addr)
 {
 	u8 current_addr;
 
-	dev_dbg(&adapter->dev, "%s()\n", __func__);
-
 	return max_ser_wait_for_multiple(adapter, &addr, 1, &current_addr);
 }
-EXPORT_SYMBOL_GPL(max_ser_wait);
 
 int max_ser_fix_tx_ids(struct i2c_adapter *adapter, u8 addr)
 {
@@ -2152,8 +2204,6 @@ int max_ser_fix_tx_ids(struct i2c_adapter *adapter, u8 addr)
 	unsigned int i;
 	int ret;
 
-	dev_dbg(&adapter->dev, "%s()\n", __func__);
-
 	for (i = 0; i < ARRAY_SIZE(addr_regs); i++) {
 		ret = max_ser_write_reg(adapter, addr, addr_regs[i], addr);
 		if (ret)
@@ -2162,17 +2212,13 @@ int max_ser_fix_tx_ids(struct i2c_adapter *adapter, u8 addr)
 
 	return 0;
 }
-EXPORT_SYMBOL_GPL(max_ser_fix_tx_ids);
 
 int max_ser_change_address(struct i2c_adapter *adapter, u8 addr, u8 new_addr)
 {
 	u8 val = FIELD_PREP(MAX_SER_REG0_DEV_ADDR, new_addr);
 
-	dev_dbg(&adapter->dev, "%s()\n", __func__);
-
 	return max_ser_write_reg(adapter, addr, MAX_SER_REG0, val);
 }
-EXPORT_SYMBOL_GPL(max_ser_change_address);
 
 MODULE_LICENSE("GPL");
 MODULE_IMPORT_NS("I2C_ATR");
