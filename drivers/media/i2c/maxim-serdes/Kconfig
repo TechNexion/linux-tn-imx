@@ -2,7 +2,8 @@
 
 config VIDEO_MAXIM_SERDES
 	tristate "Maxim GMSL2/3 Serializer and Deserializer support"
-	depends on OF && I2C && VIDEO_DEV
+	depends on VIDEO_DEV
+	depends on I2C
 	select I2C_ATR
 	select I2C_MUX
 	select MEDIA_CONTROLLER
@@ -18,6 +19,9 @@ config VIDEO_MAXIM_SERDES
 config VIDEO_MAX96717
 	tristate "Maxim MAX96717 Serializer support"
 	depends on COMMON_CLK
+	depends on I2C
+	depends on PINCTRL
+	depends on VIDEO_DEV
 	select VIDEO_MAXIM_SERDES
 	select GENERIC_PINCONF
 	select GENERIC_PINCTRL_GROUPS
@@ -33,6 +37,8 @@ config VIDEO_MAX96717
 
 config VIDEO_MAX96724
 	tristate "Maxim MAX96724 Quad Deserializer support"
+	depends on I2C
+	depends on VIDEO_DEV
 	select VIDEO_MAXIM_SERDES
 	help
 	  This driver supports the Maxim MAX96712, MAX96724, MAX96724F,
@@ -44,6 +50,8 @@ config VIDEO_MAX96724
 
 config VIDEO_MAX9296A
 	tristate "Maxim MAX9296A Dual Deserializer support"
+	depends on I2C
+	depends on VIDEO_DEV
 	select VIDEO_MAXIM_SERDES
 	help
 	  This driver supports the Maxim MAX9296A, MAX96716A, MAX96792A

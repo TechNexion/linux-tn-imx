@@ -25,6 +25,7 @@ struct max_des_link {
 	bool enabled;
 	enum max_serdes_gmsl_version version;
 	struct max_serdes_i2c_xlate ser_xlate;
+	struct i2c_adapter *adapter;
 };
 
 struct max_des_pipe_mode {
@@ -57,7 +58,7 @@ struct max_des_phy_mode {
 
 struct max_des_phy {
 	unsigned int index;
-	s64 link_frequency;
+	u64 link_frequency;
 	struct v4l2_mbus_config_mipi_csi2 mipi;
 	enum v4l2_mbus_type bus_type;
 	struct max_des_phy_mode mode;
@@ -73,7 +74,7 @@ struct max_des_fsync {
 
 struct max_des;
 
-struct max_des_ops {
+struct max_des_info {
 	unsigned int num_phys;
 	unsigned int num_pipes;
 	unsigned int num_links;
@@ -89,9 +90,13 @@ struct max_des_ops {
 	struct max_serdes_tpg_entries tpg_entries;
 	enum max_serdes_gmsl_mode tpg_mode;
 	unsigned int tpg_patterns;
+};
 
+struct max_des_ops {
+#ifdef CONFIG_VIDEO_ADV_DEBUG
 	int (*reg_read)(struct max_des *des, unsigned int reg, unsigned int *val);
 	int (*reg_write)(struct max_des *des, unsigned int reg, unsigned int val);
+#endif
 	int (*log_status)(struct max_des *des);
 	int (*log_pipe_status)(struct max_des *des, struct max_des_pipe *pipe);
 	int (*log_phy_status)(struct max_des *des, struct max_des_phy *phy);
@@ -137,12 +142,12 @@ struct max_des_priv;
 struct max_des {
 	struct max_des_priv *priv;
 
+	const struct max_des_info *info;
 	const struct max_des_ops *ops;
 
 	struct max_des_phy *phys;
 	struct max_des_pipe *pipes;
 	struct max_des_link *links;
-	struct max_des_fsync *fsync;
 	const struct max_serdes_tpg_entry *tpg_entry;
 	enum max_serdes_tpg_pattern tpg_pattern;
 
