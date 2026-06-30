@@ -562,63 +562,6 @@ static int tevs_check_boot_state(struct tevs *tevs)
 	return ret;
 }
 
-static int tevs_get_frame_interval(struct v4l2_subdev *sub_dev,
-				   struct v4l2_subdev_state *state,
-				   struct v4l2_subdev_frame_interval *fi)
-{
-	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
-
-	if (fi->pad != 0)
-		return -EINVAL;
-
-	dev_dbg(sub_dev->dev, "%s()\n", __func__);
-
-	fi->interval.numerator = 1;
-	fi->interval.denominator = tevs->fps;
-	dev_dbg(sub_dev->dev, "fps = %d\n", tevs->fps);
-
-	return 0;
-}
-
-static int tevs_set_frame_interval(struct v4l2_subdev *sub_dev,
-				   struct v4l2_subdev_state *state,
-				   struct v4l2_subdev_frame_interval *fi)
-{
-	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
-	unsigned int max_fps, min_fps;
-	unsigned int fps =
-		fi->interval.numerator ?
-			fi->interval.denominator / fi->interval.numerator :
-			fi->interval.denominator;
-
-	if (fi->pad != 0)
-		return -EINVAL;
-
-	dev_dbg(sub_dev->dev, "%s()\n", __func__);
-
-	max_fps = tevs_sensor_table[tevs->selected_sensor]
-			  .res_list[tevs->selected_mode]
-			  .framerates[0];
-	min_fps = tevs_sensor_table[tevs->selected_sensor]
-			  .res_list[tevs->selected_mode]
-			  .framerates[tevs_sensor_table[tevs->selected_sensor]
-					      .res_list[tevs->selected_mode]
-					      .framerates_size -
-				      1];
-
-	if (fps > max_fps)
-		fps = max_fps;
-	else if (fps < min_fps)
-		fps = min_fps;
-
-	fi->interval.numerator = 1;
-	fi->interval.denominator = fps;
-	tevs->fps = fps;
-	dev_dbg(sub_dev->dev, "fps = %d\n", fps);
-
-	return 0;
-}
-
 static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 {
 	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
@@ -699,34 +642,6 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 	return ret;
 }
 
-static int tevs_get_frame_desc(struct v4l2_subdev *sub_dev, unsigned int pad,
-			       struct v4l2_mbus_frame_desc *fd)
-{
-	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
-	if (pad != 0 || !fd)
-		return -EINVAL;
-
-	memset(fd, 0x0, sizeof(*fd));
-
-	fd->type = V4L2_MBUS_FRAME_DESC_TYPE_CSI2;
-	fd->entry[0].flags = 0;
-	fd->entry[0].pixelcode = tevs->fmt.code;
-	fd->entry[0].bus.csi2.vc = 0;
-	fd->entry[0].bus.csi2.dt =
-		tevs->fmt.code == MEDIA_BUS_FMT_SGRBG8_1X8 ?
-			MIPI_CSI2_DT_RAW8 :
-		tevs->fmt.code == MEDIA_BUS_FMT_SGRBG10_1X10 ?
-			MIPI_CSI2_DT_RAW10 :
-		tevs->fmt.code == MEDIA_BUS_FMT_SGRBG12_1X12 ?
-			MIPI_CSI2_DT_RAW12 :
-		tevs->fmt.code == MEDIA_BUS_FMT_SGRBG16_1X16 ?
-			MIPI_CSI2_DT_RAW16 :
-			MIPI_CSI2_DT_YUV422_8B;
-	fd->num_entries = 1;
-
-	return 0;
-}
-
 static int tevs_enum_mbus_code(struct v4l2_subdev *sub_dev,
 			       struct v4l2_subdev_state *sd_state,
 			       struct v4l2_subdev_mbus_code_enum *code)
@@ -737,116 +652,14 @@ static int tevs_enum_mbus_code(struct v4l2_subdev *sub_dev,
 		    tevs_sensor_table[tevs->selected_sensor].code_list_size)
 		return -EINVAL;
 
-	dev_dbg(sub_dev->dev, "%s()\n", __func__);
+	dev_dbg(sub_dev->dev, "%s(), index [%u]\n", __func__, code->index);
 
 	code->code =
 		tevs_sensor_table[tevs->selected_sensor].code_list[code->index];
 
-	return 0;
-}
-
-static int tevs_get_fmt(struct v4l2_subdev *sub_dev,
-			struct v4l2_subdev_state *sd_state,
-			struct v4l2_subdev_format *format)
-{
-	struct v4l2_mbus_framefmt *fmt;
-	struct v4l2_mbus_framefmt *mbus_fmt = &format->format;
-	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
-
-	if (format->pad != 0)
-		return -EINVAL;
-
-	dev_dbg(sub_dev->dev, "%s() which [%d]\n", __func__, format->which);
-
-	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
-		fmt = v4l2_subdev_state_get_format(sd_state, format->pad);
-	else
-		fmt = &tevs->fmt;
-
-	dev_dbg(sub_dev->dev,
-		"%s() w [%u] h [%u] code [0x%04x] colorspace [%u]\n", __func__,
-		fmt->width, fmt->height, fmt->code, fmt->colorspace);
-
-	memmove(mbus_fmt, fmt, sizeof(struct v4l2_mbus_framefmt));
+	dev_dbg(sub_dev->dev, "%s(), code [0x%x]\n", __func__, code->code);
 
 	return 0;
-}
-
-static int tevs_set_fmt(struct v4l2_subdev *sub_dev,
-			struct v4l2_subdev_state *sd_state,
-			struct v4l2_subdev_format *format)
-{
-	struct v4l2_mbus_framefmt *fmt;
-	struct v4l2_mbus_framefmt *mbus_fmt = &format->format;
-	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
-	int i;
-
-	if (format->pad != 0)
-		return -EINVAL;
-
-	dev_dbg(sub_dev->dev, "%s()\n", __func__);
-
-	for (i = 0; i < tevs_sensor_table[tevs->selected_sensor].res_list_size;
-	     i++) {
-		if (mbus_fmt->width == tevs_sensor_table[tevs->selected_sensor]
-					       .res_list[i]
-					       .width &&
-		    mbus_fmt->height == tevs_sensor_table[tevs->selected_sensor]
-						.res_list[i]
-						.height)
-			break;
-	}
-
-	if (i >= tevs_sensor_table[tevs->selected_sensor].res_list_size) {
-		return -EINVAL;
-	}
-	tevs->selected_mode = i;
-	dev_dbg(sub_dev->dev, "%s() selected mode index [%d]\n", __func__,
-		tevs->selected_mode);
-
-	mbus_fmt->width =
-		tevs_sensor_table[tevs->selected_sensor].res_list[i].width;
-	mbus_fmt->height =
-		tevs_sensor_table[tevs->selected_sensor].res_list[i].height;
-	// mbus_fmt->code = MEDIA_BUS_FMT_UYVY8_1X16;
-	mbus_fmt->colorspace = V4L2_COLORSPACE_SRGB;
-	mbus_fmt->ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(mbus_fmt->colorspace);
-	mbus_fmt->quantization = V4L2_QUANTIZATION_FULL_RANGE;
-	mbus_fmt->xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(mbus_fmt->colorspace);
-	memset(mbus_fmt->reserved, 0, sizeof(mbus_fmt->reserved));
-
-	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
-		fmt = v4l2_subdev_state_get_format(sd_state, format->pad);
-	else
-		fmt = &tevs->fmt;
-
-	memmove(fmt, mbus_fmt, sizeof(struct v4l2_mbus_framefmt));
-
-	return 0;
-}
-
-static int tevs_get_selection(struct v4l2_subdev *sub_dev,
-			      struct v4l2_subdev_state *sub_state,
-			      struct v4l2_subdev_selection *sel)
-{
-	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
-	switch (sel->target) {
-	case V4L2_SEL_TGT_CROP:
-	case V4L2_SEL_TGT_NATIVE_SIZE:
-	case V4L2_SEL_TGT_CROP_DEFAULT:
-	case V4L2_SEL_TGT_CROP_BOUNDS:
-		sel->r.top = 0;
-		sel->r.left = 0;
-		sel->r.width = tevs->fmt.width;
-		sel->r.height = tevs->fmt.height;
-
-		dev_dbg(sub_dev->dev, "%s() selection [%d, %d, %d, %d]\n",
-			__func__, sel->r.top, sel->r.left, sel->r.width,
-			sel->r.height);
-		return 0;
-	}
-
-	return -EINVAL;
 }
 
 static int tevs_enum_frame_size(struct v4l2_subdev *sub_dev,
@@ -858,6 +671,9 @@ static int tevs_enum_frame_size(struct v4l2_subdev *sub_dev,
 	if ((fse->pad != 0) ||
 	    (fse->index >=
 	     tevs_sensor_table[tevs->selected_sensor].res_list_size))
+		return -EINVAL;
+
+	if (fse->code != tevs_sensor_table[tevs->selected_sensor].code_list[0])
 		return -EINVAL;
 
 	dev_dbg(sub_dev->dev, "%s(), index [%u]\n", __func__, fse->index);
@@ -905,12 +721,226 @@ static int tevs_enum_frame_interval(struct v4l2_subdev *sub_dev,
 			fie->interval.denominator =
 				sensor->res_list[i].framerates[fie->index];
 
+			dev_dbg(sub_dev->dev, "%s() frame rate [%u]\n", __func__,
+				fie->interval.denominator);
+
 			return 0;
 		}
 	}
 
-	dev_dbg(sub_dev->dev, "%s() frame rate [%u]\n", __func__,
-		fie->interval.denominator);
+	return -EINVAL;
+}
+
+static int tevs_get_fmt(struct v4l2_subdev *sub_dev,
+			struct v4l2_subdev_state *sd_state,
+			struct v4l2_subdev_format *format)
+{
+	struct v4l2_mbus_framefmt *fmt;
+	struct v4l2_mbus_framefmt *mbus_fmt = &format->format;
+	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
+
+	if (format->pad != 0)
+		return -EINVAL;
+
+	dev_dbg(sub_dev->dev, "%s() which [%d]\n", __func__, format->which);
+
+	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
+		fmt = v4l2_subdev_state_get_format(sd_state, format->pad);
+	else
+		fmt = &tevs->fmt;
+
+	dev_dbg(sub_dev->dev,
+		"%s() w [%u] h [%u] code [0x%x] colorspace [%u]\n", __func__,
+		fmt->width, fmt->height, fmt->code, fmt->colorspace);
+
+	memmove(mbus_fmt, fmt, sizeof(struct v4l2_mbus_framefmt));
+
+	return 0;
+}
+
+static int tevs_set_fmt(struct v4l2_subdev *sub_dev,
+			struct v4l2_subdev_state *sd_state,
+			struct v4l2_subdev_format *format)
+{
+	struct v4l2_mbus_framefmt *fmt;
+	struct v4l2_mbus_framefmt *mbus_fmt = &format->format;
+	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
+	int i;
+
+	if (format->pad != 0)
+		return -EINVAL;
+
+	dev_dbg(sub_dev->dev, "%s(): which [%d]\n", __func__, format->which);
+
+	for (i = 0; i < tevs_sensor_table[tevs->selected_sensor].res_list_size;
+	     i++) {
+		if (mbus_fmt->width == tevs_sensor_table[tevs->selected_sensor]
+					       .res_list[i]
+					       .width &&
+		    mbus_fmt->height == tevs_sensor_table[tevs->selected_sensor]
+						.res_list[i]
+						.height)
+			break;
+	}
+
+	if (i >= tevs_sensor_table[tevs->selected_sensor].res_list_size) {
+		return -EINVAL;
+	}
+
+	tevs->selected_mode = i;
+	dev_dbg(sub_dev->dev, "%s() selected mode index [%d]\n", __func__,
+		tevs->selected_mode);
+
+	mbus_fmt->width =
+		tevs_sensor_table[tevs->selected_sensor].res_list[i].width;
+	mbus_fmt->height =
+		tevs_sensor_table[tevs->selected_sensor].res_list[i].height;
+	mbus_fmt->code = tevs_sensor_table[tevs->selected_sensor].code_list[0];
+	mbus_fmt->field = V4L2_FIELD_NONE;
+	mbus_fmt->colorspace = V4L2_COLORSPACE_SRGB;
+	mbus_fmt->ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(mbus_fmt->colorspace);
+	mbus_fmt->quantization = V4L2_QUANTIZATION_FULL_RANGE;
+	mbus_fmt->xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(mbus_fmt->colorspace);
+	memset(mbus_fmt->reserved, 0, sizeof(mbus_fmt->reserved));
+
+	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
+		fmt = v4l2_subdev_state_get_format(sd_state, format->pad);
+	else
+		fmt = &tevs->fmt;
+
+	memmove(fmt, mbus_fmt, sizeof(struct v4l2_mbus_framefmt));
+
+	return 0;
+}
+
+static int tevs_get_selection(struct v4l2_subdev *sub_dev,
+			      struct v4l2_subdev_state *sub_state,
+			      struct v4l2_subdev_selection *sel)
+{
+	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
+	int index = tevs_sensor_table[tevs->selected_sensor].res_list_size - 1;
+	struct v4l2_mbus_framefmt *fmt;
+
+	switch (sel->target) {
+	case V4L2_SEL_TGT_CROP:
+	case V4L2_SEL_TGT_CROP_DEFAULT:
+		if (sel->which == V4L2_SUBDEV_FORMAT_TRY)
+			fmt = v4l2_subdev_state_get_format(sub_state, sel->pad);
+		else
+			fmt = &tevs->fmt;
+
+		if (!fmt)
+			return -EINVAL;
+
+		sel->r.top = 0;
+		sel->r.left = 0;
+		sel->r.width = fmt->width;
+		sel->r.height = fmt->height;
+
+		dev_dbg(sub_dev->dev, "%s() crop selection [%d, %d, %d, %d]\n",
+			__func__, sel->r.top, sel->r.left, sel->r.width,
+			sel->r.height);
+		return 0;
+
+	case V4L2_SEL_TGT_NATIVE_SIZE:
+	case V4L2_SEL_TGT_CROP_BOUNDS:
+		sel->r.top = 0;
+		sel->r.left = 0;
+		sel->r.width = tevs_sensor_table[tevs->selected_sensor].res_list[index].width;
+		sel->r.height = tevs_sensor_table[tevs->selected_sensor].res_list[index].height;
+
+		dev_dbg(sub_dev->dev, "%s() bounds selection [%d, %d, %d, %d]\n",
+			__func__, sel->r.top, sel->r.left, sel->r.width,
+			sel->r.height);
+		return 0;
+	}
+
+	return -EINVAL;
+}
+
+static int tevs_get_frame_interval(struct v4l2_subdev *sub_dev,
+				   struct v4l2_subdev_state *state,
+				   struct v4l2_subdev_frame_interval *fi)
+{
+	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
+
+	if (fi->pad != 0)
+		return -EINVAL;
+
+	dev_dbg(sub_dev->dev, "%s()\n", __func__);
+
+	fi->interval.numerator = 1;
+	fi->interval.denominator = tevs->fps;
+	dev_dbg(sub_dev->dev, "fps = %d\n", tevs->fps);
+
+	return 0;
+}
+
+static int tevs_set_frame_interval(struct v4l2_subdev *sub_dev,
+				   struct v4l2_subdev_state *state,
+				   struct v4l2_subdev_frame_interval *fi)
+{
+	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
+	unsigned int max_fps, min_fps;
+	unsigned int fps =
+		fi->interval.numerator ?
+			fi->interval.denominator / fi->interval.numerator :
+			fi->interval.denominator;
+
+	if (fi->pad != 0)
+		return -EINVAL;
+
+	dev_dbg(sub_dev->dev, "%s()\n", __func__);
+
+	max_fps = tevs_sensor_table[tevs->selected_sensor]
+			  .res_list[tevs->selected_mode]
+			  .framerates[0];
+	min_fps = tevs_sensor_table[tevs->selected_sensor]
+			  .res_list[tevs->selected_mode]
+			  .framerates[tevs_sensor_table[tevs->selected_sensor]
+					      .res_list[tevs->selected_mode]
+					      .framerates_size -
+				      1];
+
+	if (fps > max_fps)
+		fps = max_fps;
+	else if (fps < min_fps)
+		fps = min_fps;
+
+	fi->interval.numerator = 1;
+	fi->interval.denominator = fps;
+	tevs->fps = fps;
+	dev_dbg(sub_dev->dev, "fps = %d\n", fps);
+
+	return 0;
+}
+
+static int tevs_get_frame_desc(struct v4l2_subdev *sub_dev, unsigned int pad,
+			       struct v4l2_mbus_frame_desc *fd)
+{
+	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
+
+	if (pad != 0 || !fd)
+		return -EINVAL;
+
+	dev_dbg(sub_dev->dev, "%s(): code [0x%x]\n", __func__, tevs->fmt.code);
+	memset(fd, 0x0, sizeof(*fd));
+
+	fd->type = V4L2_MBUS_FRAME_DESC_TYPE_CSI2;
+	fd->entry[0].flags = 0;
+	fd->entry[0].pixelcode = tevs->fmt.code;
+	fd->entry[0].bus.csi2.vc = 0;
+	fd->entry[0].bus.csi2.dt =
+		tevs->fmt.code == MEDIA_BUS_FMT_SGRBG8_1X8 ?
+			MIPI_CSI2_DT_RAW8 :
+		tevs->fmt.code == MEDIA_BUS_FMT_SGRBG10_1X10 ?
+			MIPI_CSI2_DT_RAW10 :
+		tevs->fmt.code == MEDIA_BUS_FMT_SGRBG12_1X12 ?
+			MIPI_CSI2_DT_RAW12 :
+		tevs->fmt.code == MEDIA_BUS_FMT_SGRBG16_1X16 ?
+			MIPI_CSI2_DT_RAW16 :
+			MIPI_CSI2_DT_YUV422_8B;
+	fd->num_entries = 1;
 
 	return 0;
 }
@@ -2273,6 +2303,12 @@ static int tevs_probe(struct i2c_client *client)
 		goto error_handler_free;
 	}
 
+	ret = v4l2_subdev_init_finalize(&tevs->v4l2_subdev);
+	if (ret) {
+		dev_err(dev, "failed to initialize subdev state: %d\n", ret);
+		goto error_subdev_cleanup;
+	}
+
 	ret = v4l2_async_register_subdev_sensor(&tevs->v4l2_subdev);
 	if (ret != 0) {
 		dev_err(dev, "v4l2 register failed\n");
@@ -2307,6 +2343,9 @@ static int tevs_probe(struct i2c_client *client)
 error_media_entity:
 	media_entity_cleanup(&tevs->v4l2_subdev.entity);
 
+error_subdev_cleanup:
+	v4l2_subdev_cleanup(&tevs->v4l2_subdev);
+
 error_handler_free:
 	tevs_ctrls_free(tevs);
 
@@ -2324,6 +2363,7 @@ static void tevs_remove(struct i2c_client *client)
 
 	v4l2_async_unregister_subdev(sub_dev);
 	media_entity_cleanup(&sub_dev->entity);
+	v4l2_subdev_cleanup(&tevs->v4l2_subdev);
 	tevs_ctrls_free(tevs);
 }
 
