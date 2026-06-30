@@ -154,6 +154,12 @@
 			linux,cma-default;
 		};
 
+		ele_reserved: ele-reserved@a4120000 {
+			compatible = "shared-dma-pool";
+			reg = <0 0xa4120000 0 0x100000>;
+			no-map;
+		};
+
 		vdev0vring0: vdev0vring0@88000000 {
 			reg = <0 0x88000000 0 0x8000>;
 			no-map;
@@ -241,6 +247,10 @@
 
 &dpu {
 	status = "okay";
+};
+
+&ele_if0 {
+	memory-region = <&ele_reserved>;
 };
 
 &enetc_port2 {
