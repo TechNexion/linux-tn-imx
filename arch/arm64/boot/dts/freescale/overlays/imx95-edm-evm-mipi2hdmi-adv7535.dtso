@@ -30,7 +30,6 @@
 		};
 	};
 
-	/delete-node/ sound;
 
 	sound-adv7535 {
 		compatible = "simple-audio-card";
@@ -146,12 +145,5 @@
 	channel@0 {
 		reg = <0>;
 		status = "okay";
-	};
-};
-
-/* I2C_B on EDM */
-&lpi2c5 {
-	tlv320aic3104: audio-codec@18 {
-		status = "disabled";
 	};
 };
