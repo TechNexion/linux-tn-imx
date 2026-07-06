@@ -310,6 +310,39 @@ static int mxc_isi_crossbar_enum_mbus_code(struct v4l2_subdev *sd,
 	return 0;
 }
 
+static bool mxc_isi_crossbar_stream_is_streaming(struct mxc_isi_crossbar *xbar,
+						 struct v4l2_subdev_state *state,
+						 unsigned int pad,
+						 unsigned int stream)
+{
+	struct v4l2_subdev_route *route;
+
+	/*
+	 * Sink pads map directly to xbar->inputs[].enabled_streams.
+	 * Only reject format changes for the stream that is already enabled.
+	 */
+	if (pad < xbar->num_sinks)
+		return xbar->inputs[pad].enabled_streams & BIT_ULL(stream);
+
+	/*
+	 * Source pad formats mirror their routed sink stream format. If the
+	 * source stream is routed from an enabled sink stream, it is active too.
+	 */
+	for_each_active_route(&state->routing, route) {
+		if (route->source_pad != pad ||
+		    route->source_stream != stream)
+			continue;
+
+		if (route->sink_pad >= xbar->num_sinks)
+			continue;
+
+		return xbar->inputs[route->sink_pad].enabled_streams &
+		       BIT_ULL(route->sink_stream);
+	}
+
+	return false;
+}
+
 static int mxc_isi_crossbar_set_fmt(struct v4l2_subdev *sd,
 				    struct v4l2_subdev_state *state,
 				    struct v4l2_subdev_format *fmt)
@@ -319,7 +352,9 @@ static int mxc_isi_crossbar_set_fmt(struct v4l2_subdev *sd,
 	struct v4l2_subdev_route *route;
 
 	if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE &&
-	    media_pad_is_streaming(&xbar->pads[fmt->pad]))
+	    // media_pad_is_streaming(&xbar->pads[fmt->pad]))
+		mxc_isi_crossbar_stream_is_streaming(xbar, state,
+			   fmt->pad, fmt->stream))
 		return -EBUSY;
 
 	/*
