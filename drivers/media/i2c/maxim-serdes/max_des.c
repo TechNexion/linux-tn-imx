@@ -1864,6 +1864,39 @@ static int max_des_set_tpg_fmt(struct v4l2_subdev *sd,
 	return 0;
 }
 
+static bool max_des_stream_is_active(struct max_des_priv *priv,
+			   struct v4l2_subdev_state *state,
+			   unsigned int pad,
+			   unsigned int stream)
+{
+	struct v4l2_subdev_route *route;
+
+	if (!priv->streams_masks)
+			return false;
+
+	if (priv->streams_masks[pad] & BIT_ULL(stream))
+			return true;
+
+	/*
+	 * Sink and source pad formats are mirrored by this driver. If the
+	 * opposite side of the same route is already enabled, changing this
+	 * stream would still affect an active path.
+	 */
+	for_each_active_route(&state->routing, route) {
+		if (route->sink_pad == pad &&
+			route->sink_stream == stream)
+				return priv->streams_masks[route->source_pad] &
+						BIT_ULL(route->source_stream);
+
+		if (route->source_pad == pad &&
+			route->source_stream == stream)
+				return priv->streams_masks[route->sink_pad] &
+						BIT_ULL(route->sink_stream);
+	}
+
+	return false;
+}
+
 static int max_des_set_fmt(struct v4l2_subdev *sd,
 			   struct v4l2_subdev_state *state,
 			   struct v4l2_subdev_format *format)
@@ -1873,7 +1906,9 @@ static int max_des_set_fmt(struct v4l2_subdev *sd,
 	struct v4l2_mbus_framefmt *fmt;
 	int ret;
 
-	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE && des->active)
+	// if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE && des->active)
+	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE &&
+		max_des_stream_is_active(priv, state, format->pad, format->stream))
 		return -EBUSY;
 
 	/* No transcoding, source and sink formats must match. */
@@ -1957,7 +1992,9 @@ static int max_des_set_frame_interval(struct v4l2_subdev *sd,
 	    fi->stream != MAX_SERDES_TPG_STREAM)
 		return -ENOTTY;
 
-	if (fi->which == V4L2_SUBDEV_FORMAT_ACTIVE && des->active)
+	// if (fi->which == V4L2_SUBDEV_FORMAT_ACTIVE && des->active)
+	if (fi->which == V4L2_SUBDEV_FORMAT_ACTIVE &&
+		max_des_stream_is_active(priv, state, fi->pad, fi->stream))
 		return -EBUSY;
 
 	fmt = v4l2_subdev_state_get_format(state, fi->pad, fi->stream);
