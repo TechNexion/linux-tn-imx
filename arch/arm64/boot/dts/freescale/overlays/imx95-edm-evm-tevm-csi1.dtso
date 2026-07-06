@@ -67,6 +67,10 @@
 	status = "okay";
 };
 
+&neoisp0 {
+	status = "okay";
+};
+
 &mipi_csi1 {
 	status = "okay";
 
