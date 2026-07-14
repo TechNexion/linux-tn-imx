@@ -186,7 +186,6 @@
 							remote-endpoint = <&ser_4_csi_in>;
 							data-lanes = <1 2 3 4>;
 							clock-lanes = <0>;
-							clock-noncontinuous;
 							link-frequencies = /bits/ 64 <280000000>;
 						};
 					};
@@ -204,7 +203,6 @@
 				reg = <0>;
 				ser_4_csi_in: endpoint {
 					data-lanes = <1 2 3 4>;
-					clock-noncontinuous;
 					remote-endpoint = <&cam_4_out>;
 				};
 			};
@@ -279,7 +277,6 @@
 							remote-endpoint = <&ser_5_csi_in>;
 							data-lanes = <1 2 3 4>;
 							clock-lanes = <0>;
-							clock-noncontinuous;
 							link-frequencies = /bits/ 64 <280000000>;
 						};
 					};
@@ -295,7 +292,6 @@
 				reg = <0>;
 				ser_5_csi_in: endpoint {
 					data-lanes = <1 2 3 4>;
-					clock-noncontinuous;
 					remote-endpoint = <&cam_5_out>;
 				};
 			};
@@ -370,7 +366,6 @@
 							remote-endpoint = <&ser_6_csi_in>;
 							data-lanes = <1 2 3 4>;
 							clock-lanes = <0>;
-							clock-noncontinuous;
 							link-frequencies = /bits/ 64 <280000000>;
 						};
 					};
@@ -386,7 +381,6 @@
 				reg = <0>;
 				ser_6_csi_in: endpoint {
 					data-lanes = <1 2 3 4>;
-					clock-noncontinuous;
 					remote-endpoint = <&cam_6_out>;
 				};
 			};
@@ -461,7 +455,6 @@
 							remote-endpoint = <&ser_7_csi_in>;
 							data-lanes = <1 2 3 4>;
 							clock-lanes = <0>;
-							clock-noncontinuous;
 							link-frequencies = /bits/ 64 <280000000>;
 						};
 					};
@@ -477,7 +470,6 @@
 				reg = <0>;
 				ser_7_csi_in: endpoint {
 					data-lanes = <1 2 3 4>;
-					clock-noncontinuous;
 					remote-endpoint = <&cam_7_out>;
 				};
 			};
