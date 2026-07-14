@@ -2155,8 +2155,8 @@ static int tevs_check_hwcfg(struct device *dev, struct tevs *tevs)
 		goto error_out;
 	}
 
-	tevs->continuous_clock = ~(ep_cfg.bus.mipi_csi2.flags) &
-				 V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK;
+	tevs->continuous_clock = !(ep_cfg.bus.mipi_csi2.flags &
+				 V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK);
 
 	dev_dbg(dev,
 		"data-lanes [%d], continuous-clock [%d], supports-over-4k-res [%d],"
@@ -2339,6 +2339,13 @@ static int tevs_probe(struct i2c_client *client)
 		if (ret != 0) {
 			dev_err(dev, "set standby mode failed\n");
 			goto error_media_entity;
+		}
+		if (tevs->continuous_clock) {
+			cci_write(tevs->regmap,
+				  HOST_COMMAND_ISP_CTRL_PREVIEW_HINF_CTRL,
+				  0x10 | (TEVS_CONTINUOUS_CLOCK_DEFAULT  << 5) |
+					  (tevs->data_lanes),
+				  NULL);
 		}
 	} else {
 		ret = tevs_power_off(tevs);
