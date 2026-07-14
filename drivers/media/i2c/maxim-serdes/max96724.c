@@ -195,6 +195,7 @@
 #define MAX96724_MIPI_PHY0_FORCE_CSI_OUT_EN	BIT(7)
 
 #define MAX96724_MIPI_PHY2			0x8a2
+#define MAX96724_MIPI_PHY2_T_HS_TRAIL_MASK	GENMASK(1, 0)
 #define MAX96724_MIPI_PHY2_PHY_STDB_N_4(x)	(GENMASK(5, 4) << ((x) / 2 * 2))
 #define MAX96724_MIPI_PHY2_PHY_STDB_N_2(x)	(BIT(4 + (x)))
 
@@ -208,6 +209,7 @@
 #define MAX96724_MIPI_PHY5_PHY_POL_MAP_4_CLK	BIT(5)
 #define MAX96724_MIPI_PHY5_PHY_POL_MAP_2(x)	(GENMASK(1, 0) << (3 * ((x) % 2)))
 #define MAX96724_MIPI_PHY5_PHY_POL_MAP_2_CLK(x)	BIT(2 + 3 * ((x) % 2))
+#define MAX96724_MIPI_PHY5_T_CLK_PREP_MASK(x)	GENMASK(7, 6)
 
 #define MAX96724_MIPI_PHY13			0x8ad
 #define MAX96724_MIPI_PHY13_T_T3_PREBEGIN	GENMASK(5, 0)
@@ -781,7 +783,6 @@ static int max96724_init_phy(struct max_des *des, struct max_des_phy *phy)
 			return ret;
 
 		/* Disable periodic deskew. */
-		// ret = regmap_write(priv->regmap, MAX96724_MIPI_TX4(index), 0x1);
 		ret = max96724_reg_write(priv, MAX96724_MIPI_TX4(index), 0x1);
 		if (ret)
 			return ret;
