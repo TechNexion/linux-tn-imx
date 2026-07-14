@@ -301,6 +301,8 @@
 #define TEVS_LINK_FREQUENCY_DEFAULT			400000000ull
 #define TEVS_PIXEL_RATE_DEFAULT				200000000ull
 
+#define TEVS_CONTINUOUS_CLOCK_DEFAULT 		(0)
+
 struct header_info {
 	u8 header_version;
 	u16 content_offset;
@@ -577,6 +579,14 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 	if (enable == 0) {
 		if (!(tevs->hw_reset_mode | tevs_check_trigger_mode(tevs)))
 			ret = tevs_standby(tevs, 1);
+
+		if (tevs->continuous_clock) {
+			cci_write(tevs->regmap,
+				  HOST_COMMAND_ISP_CTRL_PREVIEW_HINF_CTRL,
+				  0x10 | (TEVS_CONTINUOUS_CLOCK_DEFAULT  << 5) |
+					  (tevs->data_lanes),
+				  NULL);
+		}
 	} else {
 		if (!(tevs->hw_reset_mode | tevs_check_trigger_mode(tevs)))
 			ret = tevs_standby(tevs, 0);
@@ -929,7 +939,8 @@ static int tevs_get_frame_desc(struct v4l2_subdev *sub_dev, unsigned int pad,
 	fd->type = V4L2_MBUS_FRAME_DESC_TYPE_CSI2;
 	fd->entry[0].flags = 0;
 	fd->entry[0].pixelcode = tevs->fmt.code;
-	fd->entry[0].bus.csi2.vc = 0;
+	fd->entry[0].stream = 0;
+	fd->entry[0].bus.csi2.vc = tevs->vc_id;
 	fd->entry[0].bus.csi2.dt =
 		tevs->fmt.code == MEDIA_BUS_FMT_SGRBG8_1X8 ?
 			MIPI_CSI2_DT_RAW8 :
