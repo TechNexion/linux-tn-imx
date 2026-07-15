@@ -142,6 +142,7 @@ enum imx_pcie_variants {
 #define IMX_PCIE_FLAG_SKIP_L23_READY		BIT(12)
 #define IMX_PCIE_FLAG_LINK_NOTIFY		BIT(13)
 #define IMX_PCIE_FLAG_PM_RUNTIME		BIT(14)
+#define IMX_PCIE_FLAG_CLK_BEFORE_HSIOMIX	BIT(15)
 
 #define imx_check_flag(pci, val)	(pci->drvdata->flags & val)
 
@@ -1331,10 +1332,13 @@ static int imx_pcie_host_init(struct dw_pcie_rp *pp)
 		pp->bridge->disable_device = imx_pcie_disable_device;
 	}
 
-	ret = imx_pcie_clk_enable(imx_pcie);
-	if (ret) {
-		dev_err(dev, "unable to enable pcie clocks: %d\n", ret);
-		return ret;
+	/* i.MX95 HSIOMIX registers are inaccessible until its clocks are on. */
+	if (imx_check_flag(imx_pcie, IMX_PCIE_FLAG_CLK_BEFORE_HSIOMIX)) {
+		ret = imx_pcie_clk_enable(imx_pcie);
+		if (ret) {
+			dev_err(dev, "unable to enable pcie clocks: %d\n", ret);
+			return ret;
+		}
 	}
 
 	if (imx_pcie->drvdata->init_pre_reset)
@@ -1344,6 +1348,15 @@ static int imx_pcie_host_init(struct dw_pcie_rp *pp)
 
 	if (imx_pcie->drvdata->init_phy)
 		imx_pcie->drvdata->init_phy(imx_pcie);
+
+	/* Older variants require reset and PHY setup before enabling clocks. */
+	if (!imx_check_flag(imx_pcie, IMX_PCIE_FLAG_CLK_BEFORE_HSIOMIX)) {
+		ret = imx_pcie_clk_enable(imx_pcie);
+		if (ret) {
+			dev_err(dev, "unable to enable pcie clocks: %d\n", ret);
+			return ret;
+		}
+	}
 
 	imx_pcie_configure_type(imx_pcie);
 
@@ -2279,6 +2292,7 @@ static const struct imx_pcie_drvdata drvdata[] = {
 			 IMX_PCIE_FLAG_8GT_ECN_ERR051586 |
 			 IMX_PCIE_FLAG_LINK_NOTIFY |
 			 IMX_PCIE_FLAG_PM_RUNTIME |
+			 IMX_PCIE_FLAG_CLK_BEFORE_HSIOMIX |
 			 IMX_PCIE_FLAG_SUPPORTS_SUSPEND,
 		.ltssm_off = IMX95_PE0_GEN_CTRL_3,
 		.ltssm_mask = IMX95_PCIE_LTSSM_EN,
@@ -2392,6 +2406,7 @@ static const struct imx_pcie_drvdata drvdata[] = {
 		.variant = IMX95_EP,
 		.flags = IMX_PCIE_FLAG_HAS_SERDES |
 			 IMX_PCIE_FLAG_8GT_ECN_ERR051586 |
+			 IMX_PCIE_FLAG_CLK_BEFORE_HSIOMIX |
 			 IMX_PCIE_FLAG_SUPPORT_64BIT,
 		.ltssm_off = IMX95_PE0_GEN_CTRL_3,
 		.ltssm_mask = IMX95_PCIE_LTSSM_EN,
