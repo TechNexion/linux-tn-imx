@@ -4963,6 +4963,7 @@ static const struct panel_desc vl050_8048nt_c01 = {
 	},
 	.bus_format = MEDIA_BUS_FMT_RGB888_1X24,
 	.bus_flags = DRM_BUS_FLAG_DE_HIGH | DRM_BUS_FLAG_PIXDATA_SAMPLE_NEGEDGE,
+	.connector_type = DRM_MODE_CONNECTOR_DPI,
 };
 
 static const struct drm_display_mode vl080_8060nt_c01_mode = {
@@ -4988,6 +4989,7 @@ static const struct panel_desc vl080_8060nt_c01 = {
 	},
 	.bus_format = MEDIA_BUS_FMT_RGB888_1X24,
 	.bus_flags = DRM_BUS_FLAG_DE_HIGH | DRM_BUS_FLAG_PIXDATA_SAMPLE_NEGEDGE,
+	.connector_type = DRM_MODE_CONNECTOR_DPI,
 };
 
 static const struct drm_display_mode winstar_wf35ltiacd_mode = {
@@ -5956,6 +5958,7 @@ static const struct panel_desc_dsi dsi2lvds_panel = {
 			.height = 105,
 		},
 		.bus_flags = DRM_BUS_FLAG_DE_LOW,
+		.connector_type = DRM_MODE_CONNECTOR_DSI,
 	},
 	.flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_SYNC_PULSE,
 	.format = MIPI_DSI_FMT_RGB888,
@@ -5985,6 +5988,7 @@ static const struct panel_desc_dsi vxt_vl15613676_panel = {
 			.height = 193,
 		},
 		.bus_flags = DRM_BUS_FLAG_DE_LOW,
+		.connector_type = DRM_MODE_CONNECTOR_DSI,
 	},
 	.flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_SYNC_PULSE,
 	.format = MIPI_DSI_FMT_RGB888,
@@ -6014,6 +6018,7 @@ static const struct panel_desc_dsi vxt_vl215192108_panel = {
 			.height = 268,
 		},
 		.bus_flags = DRM_BUS_FLAG_DE_LOW,
+		.connector_type = DRM_MODE_CONNECTOR_DSI,
 	},
 	.flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_CLOCK_NON_CONTINUOUS,
 	.format = MIPI_DSI_FMT_RGB888,
