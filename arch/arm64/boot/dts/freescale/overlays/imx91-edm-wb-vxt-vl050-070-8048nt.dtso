@@ -10,6 +10,7 @@
 /plugin/;
 
 #include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/clock/imx93-clock.h>
 #include <dt-bindings/gpio/gpio.h>
 
 &{/} {
@@ -52,7 +53,22 @@
 };
 
 &lcdif {
+	assigned-clocks = <&clk IMX93_CLK_VIDEO_PLL>,
+			  <&clk IMX93_CLK_MEDIA_DISP_PIX>,
+			  <&clk IMX93_CLK_MEDIA_AXI>,
+			  <&clk IMX93_CLK_MEDIA_APB>;
+	assigned-clock-parents = <&clk IMX93_CLK_24M>,
+				 <&clk IMX93_CLK_VIDEO_PLL>,
+				 <&clk IMX93_CLK_SYS_PLL_PFD0>,
+				 <&clk IMX93_CLK_SYS_PLL_PFD0_DIV2>;
 	status = "okay";
+};
+
+&media_blk_ctrl {
+	/* Disable the base DTS clock assignments for this display overlay. */
+	assigned-clocks = <0>;
+	assigned-clock-parents = <0>;
+	assigned-clock-rates = <0>;
 };
 
 &tpm2 {
