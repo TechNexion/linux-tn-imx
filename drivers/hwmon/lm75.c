@@ -20,6 +20,12 @@
 #include <linux/regulator/consumer.h>
 #include "lm75.h"
 
+#define P3T1755_CONF_SD          BIT(0)
+#define P3T1755_CONF_TM          BIT(1)
+#define P3T1755_CONF_POL         BIT(2)
+#define P3T1755_CONF_FAULT_MASK  GENMASK(4, 3)
+#define P3T1755_CONF_OS          BIT(7)
+
 /*
  * This driver handles the LM75 and compatible digital temperature sensors.
  */
@@ -116,6 +122,7 @@ struct lm75_data {
 	const struct lm75_params	*params;
 	u8				reg_buf[1];
 	u8				val_buf[3];
+	struct device   *hwmon_dev;
 };
 
 /*-----------------------------------------------------------------------*/
@@ -197,6 +204,7 @@ static const struct lm75_params device_params[] = {
 	[lm75] = {
 		.default_resolution = 9,
 		.default_sample_time = MSEC_PER_SEC / 10,
+		.alarm = true,
 	},
 	[lm75a] = {
 		.default_resolution = 9,
@@ -758,6 +766,8 @@ static int lm75_generic_probe(struct device *dev, const char *name,
 	if (IS_ERR(hwmon_dev))
 		return PTR_ERR(hwmon_dev);
 
+	data->hwmon_dev = hwmon_dev;
+
 	if (irq) {
 		if (data->params->alarm) {
 			err = devm_request_threaded_irq(dev,
@@ -795,6 +805,20 @@ static int lm75_i2c_probe(struct i2c_client *client)
 
 	return lm75_generic_probe(dev, client->name, (uintptr_t)i2c_get_match_data(client),
 				  client->irq, regmap);
+}
+
+static void p3t1755_ibi_handler(struct i3c_device *i3cdev,
+                                const struct i3c_ibi_payload *payload)
+{
+	struct lm75_data *data = i3cdev_get_drvdata(i3cdev);
+
+	dev_dbg(i3cdev_to_dev(i3cdev),
+		"IBI received, payload length=%u\n",
+		payload ? payload->len : 0);
+
+	hwmon_notify_event(data->hwmon_dev, hwmon_temp,
+			   hwmon_temp_alarm, 0);
+
 }
 
 static const struct i2c_device_id lm75_i2c_ids[] = {
@@ -849,11 +873,33 @@ static const struct i3c_device_id lm75_i3c_ids[] = {
 };
 MODULE_DEVICE_TABLE(i3c, lm75_i3c_ids);
 
+static const struct i3c_ibi_setup ibi_ctx = {
+	.max_payload_len = 1,
+	.handler = p3t1755_ibi_handler,
+	.num_slots = 2,
+};
+
+static void lm75_i3c_free_ibi(void *arg)
+{
+	struct i3c_device *i3cdev = arg;
+
+	i3c_device_free_ibi(i3cdev);
+}
+static void lm75_i3c_disable_ibi(void *arg)
+{
+	struct i3c_device *i3cdev = arg;
+
+	i3c_device_disable_ibi(i3cdev);
+}
+
 static int lm75_i3c_probe(struct i3c_device *i3cdev)
 {
 	struct device *dev = i3cdev_to_dev(i3cdev);
 	const struct lm75_i3c_device *id_data;
+	struct lm75_data *data;
+	unsigned int conf;
 	struct regmap *regmap;
+	int ret;
 
 	regmap = devm_regmap_init(dev, &lm75_i3c_regmap_bus, i3cdev, &lm75_regmap_config);
 	if (IS_ERR(regmap))
@@ -861,7 +907,56 @@ static int lm75_i3c_probe(struct i3c_device *i3cdev)
 
 	id_data = i3c_device_match_id(i3cdev, lm75_i3c_ids)->data;
 
-	return lm75_generic_probe(dev, id_data->name, id_data->type, 0, regmap);
+	ret = lm75_generic_probe(dev, id_data->name, id_data->type, 0, regmap);
+	if (ret) {
+		dev_err(dev, "Failed to probe\n");
+		return ret;
+	}
+
+	data = dev_get_drvdata(dev);
+
+	ret = i3c_device_request_ibi(i3cdev, &ibi_ctx);
+	if (ret) {
+		dev_err(dev, "failed to request IBI: %d\n", ret);
+		return ret;
+	}
+
+	ret = devm_add_action_or_reset(dev, lm75_i3c_free_ibi, i3cdev);
+	if (ret)
+		return ret;
+
+	ret = i3c_device_enable_ibi(i3cdev);
+	if (ret) {
+		dev_err(dev, "failed to enable IBI: %d\n", ret);
+		return ret;
+	}
+
+	ret = devm_add_action_or_reset(dev, lm75_i3c_disable_ibi, i3cdev);
+	if (ret)
+		return ret;
+
+	/*
+	 * P3T1755 must be in thermostat interrupt mode to generate
+	 * threshold events over IBI.
+	 *
+	 * TM = 1: interrupt mode
+	 * SD = 0: continuous conversion
+	 */
+	ret = regmap_update_bits(data->regmap, LM75_REG_CONF,
+				 P3T1755_CONF_TM | P3T1755_CONF_SD,
+				 P3T1755_CONF_TM);
+	if (ret) {
+		dev_err(dev, "failed to configure interrupt mode: %d\n", ret);
+		return ret;
+	}
+
+	ret = regmap_read(data->regmap, LM75_REG_CONF, &conf);
+	if (ret)
+		return ret;
+
+	dev_info(dev, "IBI enabled, configuration=0x%02x\n", conf);
+
+	return 0;
 }
 
 static const struct of_device_id __maybe_unused lm75_of_match[] = {
