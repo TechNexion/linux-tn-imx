@@ -1596,7 +1596,7 @@ static int max_des_ser_attach_addr(struct max_des_priv *priv, u32 chan_id,
 	max_des_ser_find_version_range(des, &min, &max);
 
 	if (link->ser_xlate.en) {
-		dev_err(priv->dev, "Serializer for link %u already bound\n",
+		dev_warn(priv->dev, "Serializer for link %u already bound\n",
 			link->index);
 		return -EINVAL;
 	}
@@ -1618,7 +1618,7 @@ static int max_des_ser_attach_addr(struct max_des_priv *priv, u32 chan_id,
 	}
 
 	if (ret) {
-		dev_err(priv->dev, "Cannot find serializer for link %u\n",
+		dev_warn(priv->dev, "Cannot find serializer for link %u\n",
 			link->index);
 		return -ENOENT;
 	}
@@ -1695,6 +1695,34 @@ static int max_des_i2c_atr_init(struct max_des_priv *priv)
 		ret = i2c_atr_add_adapter(priv->atr, &desc);
 		if (ret)
 			goto err_add_adapters;
+
+		/*
+		 * i2c_atr_add_adapter() creates the remote I2C bus and may
+		 * instantiate the serializer client from DT. If the physical
+		 * camera module is not connected, max_des_ser_atr_attach_addr()
+		 * fails and link->ser_xlate.en remains false.
+		 *
+		 * Treat that case as an absent camera link. Remove the ATR
+		 * adapter immediately and drop the remote endpoint so the V4L2
+		 * async notifier will not wait forever for a serializer/sensor
+		 * that cannot appear.
+		 */
+		if (!link->ser_xlate.en) {
+			struct max_serdes_source *source =
+				max_des_get_link_source(priv, link);
+
+			dev_warn(priv->dev,
+				 "Disabling link %u because no serializer was detected\n",
+				 link->index);
+
+			i2c_atr_del_adapter(priv->atr, link->index);
+			link->enabled = false;
+
+			if (source->ep_fwnode) {
+				fwnode_handle_put(source->ep_fwnode);
+				source->ep_fwnode = NULL;
+			}
+		}
 	}
 
 	for (i = 0; i < des->info->num_links; i++) {
