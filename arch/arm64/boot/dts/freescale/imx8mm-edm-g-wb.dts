@@ -235,6 +235,13 @@
 		>;
 	};
 
+	pinctrl_csi_rst: csi1_rst_grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_GPIO1_IO05_GPIO1_IO5		0x19
+			MX8MM_IOMUXC_GPIO1_IO14_CCMSRCGPCMIX_CLKO1	0x59
+		>;
+	};
+
 	pinctrl_touch_irq: touch_irqgrp {
 		fsl,pins = <
 			MX8MM_IOMUXC_GPIO1_IO13_GPIO1_IO13		0x41 /* Touch INT */
