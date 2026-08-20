@@ -473,7 +473,9 @@ static int max_des_get_supported_modes(struct max_des_priv *priv,
 
 	dev_dbg(priv->dev, "%s()\n", __func__);
 
-	*modes = des->info->modes;
+	/* DT selects the link mode; absence of the property means pixel mode. */
+	*modes = BIT(des->force_tunnel_mode ? MAX_SERDES_GMSL_TUNNEL_MODE :
+		     MAX_SERDES_GMSL_PIXEL_MODE);
 
 	if (context->tpg)
 		*modes = BIT(des->info->tpg_mode);
@@ -525,6 +527,11 @@ static int max_des_populate_remap_context_mode(struct max_des_priv *priv,
 	 */
 	if (modes == BIT(MAX_SERDES_GMSL_PIXEL_MODE))
 		return 0;
+
+	if (modes == BIT(MAX_SERDES_GMSL_TUNNEL_MODE)) {
+		context->mode = MAX_SERDES_GMSL_TUNNEL_MODE;
+		return 0;
+	}
 
 	for (i = 0; i < des->info->num_links; i++) {
 		struct max_des_link_hw hw;
@@ -1925,124 +1932,246 @@ static bool max_des_stream_is_active(struct max_des_priv *priv,
 	return false;
 }
 
-static int max_des_set_fmt(struct v4l2_subdev *sd,
-			   struct v4l2_subdev_state *state,
-			   struct v4l2_subdev_format *format)
+static int max_des_update_link(struct max_des_priv *priv,
+			       struct max_des_remap_context *context,
+			       struct max_des_link *link,
+			       struct v4l2_subdev_state *state,
+			       u64 *streams_masks)
 {
-	struct max_des_priv *priv = v4l2_get_subdevdata(sd);
 	struct max_des *des = priv->des;
-	struct v4l2_mbus_framefmt *fmt;
+	struct max_des_pipe *pipe;
 	int ret;
 
-	// if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE && des->active)
-	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE &&
-		max_des_stream_is_active(priv, state, format->pad, format->stream))
-		return -EBUSY;
+	pipe = max_des_find_link_pipe(des, link);
+	if (!pipe)
+		return -ENOENT;
 
-	/* No transcoding, source and sink formats must match. */
-	if (max_des_pad_is_source(des, format->pad))
-		return v4l2_subdev_get_fmt(sd, state, format);
+	ret = max_des_update_pipe(priv, context, pipe, state, streams_masks);
+	if (ret)
+		return ret;
 
-	if (max_des_pad_is_tpg(des, format->pad)) {
-		ret = max_des_set_tpg_fmt(sd, state, format);
+	return 0;
+}
+
+static int max_des_update_tpg(struct max_des_priv *priv,
+			      struct v4l2_subdev_state *state,
+			      u64 *streams_masks)
+{
+	const struct max_serdes_tpg_entry *entry = NULL;
+	struct max_des *des = priv->des;
+	struct v4l2_subdev_route *route;
+	int ret;
+
+	for_each_active_route(&state->routing, route) {
+		struct max_des_route_hw hw;
+
+		if (!(BIT_ULL(route->sink_stream) & streams_masks[route->sink_pad]))
+			continue;
+
+		ret = max_des_route_to_hw(priv, state, route, &hw);
+		if (ret)
+			return ret;
+
+		if (!hw.is_tpg)
+			continue;
+
+		entry = max_des_find_state_tpg_entry(des, state, route->sink_pad);
+		break;
+	}
+
+	if (entry == des->tpg_entry)
+		return 0;
+
+	ret = des->ops->set_tpg(des, entry);
+	if (ret)
+		return ret;
+
+	des->tpg_entry = entry;
+
+	return 0;
+}
+
+static int max_des_update_active(struct max_des_priv *priv, u64 *streams_masks,
+				 bool expected_active)
+{
+	struct max_des *des = priv->des;
+	bool active = false;
+	unsigned int i;
+	int ret;
+
+	for (i = 0; i < des->info->num_phys; i++) {
+		struct max_des_phy *phy = &des->phys[i];
+		u32 pad = max_des_phy_to_pad(des, phy);
+
+		if (streams_masks[pad]) {
+			active = true;
+			break;
+		}
+	}
+
+	if (active != expected_active || des->active == active)
+		return 0;
+
+	if (des->ops->set_enable) {
+		ret = des->ops->set_enable(des, active);
 		if (ret)
 			return ret;
 	}
 
-	if (format->format.code == ~0U)
-		format->format.code = MEDIA_BUS_FMT_UYVY8_1X16;
-
-	fmt = v4l2_subdev_state_get_format(state, format->pad, format->stream);
-	if (!fmt)
-		return -EINVAL;
-
-	*fmt = format->format;
-
-	fmt = v4l2_subdev_state_get_opposite_stream_format(state, format->pad,
-							   format->stream);
-	if (!fmt)
-		return -EINVAL;
-
-	*fmt = format->format;
+	des->active = active;
 
 	return 0;
 }
 
-static int max_des_enum_frame_interval(struct v4l2_subdev *sd,
-				       struct v4l2_subdev_state *state,
-				       struct v4l2_subdev_frame_interval_enum *fie)
+static int max_des_update_links(struct max_des_priv *priv,
+				struct max_des_remap_context *context,
+				struct v4l2_subdev_state *state,
+				u64 *streams_masks)
 {
-	struct max_des_priv *priv = v4l2_get_subdevdata(sd);
 	struct max_des *des = priv->des;
-	const struct max_serdes_tpg_entry *entry;
+	unsigned int failed_update_link_id = des->info->num_links;
+	unsigned int i;
+	int ret;
 
-	if (!max_des_pad_is_tpg(des, fie->pad) ||
-	    fie->stream != MAX_SERDES_TPG_STREAM)
-		return -ENOTTY;
+	for (i = 0; i < des->info->num_links; i++) {
+		struct max_des_link *link = &des->links[i];
 
-	entry = max_des_find_tpg_entry(des, fie->index, fie->width, fie->height,
-				       fie->code, fie->interval.denominator,
-				       fie->interval.numerator);
-	if (!entry)
-		return -EINVAL;
-
-	fie->interval.numerator = entry->interval.numerator;
-	fie->interval.denominator = entry->interval.denominator;
+		ret = max_des_update_link(priv, context, link, state,
+					  streams_masks);
+		if (ret) {
+			failed_update_link_id = i;
+			goto err;
+		}
+	}
 
 	return 0;
+
+err:
+	for (i = 0; i < failed_update_link_id; i++) {
+		struct max_des_link *link = &des->links[i];
+
+		max_des_update_link(priv, context, link, state,
+				    priv->streams_masks);
+	}
+
+	return ret;
 }
 
-static int max_des_get_frame_interval(struct v4l2_subdev *sd,
-				      struct v4l2_subdev_state *state,
-				      struct v4l2_subdev_frame_interval *fi)
+static int max_des_enable_disable_streams(struct max_des_priv *priv,
+					  struct v4l2_subdev_state *state,
+					  u32 pad, u64 updated_streams_mask,
+					  bool enable)
 {
-	struct max_des_priv *priv = v4l2_get_subdevdata(sd);
 	struct max_des *des = priv->des;
 
-	if (!max_des_pad_is_tpg(des, fi->pad) ||
-	    fi->stream != MAX_SERDES_TPG_STREAM)
-		return -ENOTTY;
-
-	return v4l2_subdev_get_frame_interval(sd, state, fi);
+	return max_serdes_xlate_enable_disable_streams(priv->sources, 0, state,
+						       pad, updated_streams_mask, 0,
+						       des->info->num_links, enable);
 }
 
-static int max_des_set_frame_interval(struct v4l2_subdev *sd,
-				      struct v4l2_subdev_state *state,
-				      struct v4l2_subdev_frame_interval *fi)
+static int max_des_update_streams(struct v4l2_subdev *sd,
+				  struct v4l2_subdev_state *state,
+				  u32 pad, u64 updated_streams_mask, bool enable,
+				  bool propagate)
 {
 	struct max_des_priv *priv = v4l2_get_subdevdata(sd);
+	struct max_des_remap_context context = { 0 };
+	struct max_des_mode_context mode_context = { 0 };
 	struct max_des *des = priv->des;
-	const struct max_serdes_tpg_entry *entry;
-	struct v4l2_mbus_framefmt *fmt;
-	struct v4l2_fract *in;
+	unsigned int num_pads = max_des_num_pads(des);
+	u64 *streams_masks;
+	int ret;
 
-	if (!max_des_pad_is_tpg(des, fi->pad) ||
-	    fi->stream != MAX_SERDES_TPG_STREAM)
-		return -ENOTTY;
+	ret = max_des_populate_remap_context(priv, &context, state);
+	if (ret)
+		return ret;
 
-	// if (fi->which == V4L2_SUBDEV_FORMAT_ACTIVE && des->active)
-	if (fi->which == V4L2_SUBDEV_FORMAT_ACTIVE &&
-		max_des_stream_is_active(priv, state, fi->pad, fi->stream))
-		return -EBUSY;
+	ret = max_des_populate_mode_context(priv, &mode_context, state, context.mode);
+	if (ret)
+		return ret;
 
-	fmt = v4l2_subdev_state_get_format(state, fi->pad, fi->stream);
-	if (!fmt)
-		return -EINVAL;
+	ret = max_serdes_get_streams_masks(priv->dev, state, pad, updated_streams_mask,
+					   num_pads, priv->streams_masks, &streams_masks,
+					   enable);
+	if (ret)
+		return ret;
 
-	entry = max_des_find_tpg_entry(des, 0, fmt->width, fmt->height,
-				       fmt->code, fi->interval.denominator,
-				       fi->interval.numerator);
-	if (!entry)
-		return -EINVAL;
+	ret = max_des_set_pipes_phy(priv, &context);
+	if (ret)
+		goto err_free_streams_masks;
 
-	in = v4l2_subdev_state_get_interval(state, fi->pad, fi->stream);
-	if (!in)
-		return -EINVAL;
+	ret = max_des_set_tunnel(priv, &context);
+	if (ret)
+		goto err_free_streams_masks;
 
-	in->numerator = fi->interval.numerator;
-	in->denominator = fi->interval.denominator;
+	ret = max_des_set_modes(priv, &mode_context);
+	if (ret)
+		goto err_free_streams_masks;
+
+	ret = max_des_set_vc_remaps(priv, &context, state, streams_masks);
+	if (ret)
+		goto err_free_streams_masks;
+
+	ret = max_des_set_pipes_stream_id(priv);
+	if (ret)
+		goto err_free_streams_masks;
+
+	if (!enable && propagate) {
+		ret = max_des_enable_disable_streams(priv, state, pad,
+						     updated_streams_mask, enable);
+		if (ret)
+			goto err_free_streams_masks;
+	}
+
+	ret = max_des_update_active(priv, streams_masks, false);
+	if (ret)
+		goto err_revert_streams_disable;
+
+	ret = max_des_update_links(priv, &context, state, streams_masks);
+	if (ret)
+		goto err_revert_active_disable;
+
+	ret = max_des_update_tpg(priv, state, streams_masks);
+	if (ret)
+		goto err_revert_links_update;
+
+	ret = max_des_update_active(priv, streams_masks, true);
+	if (ret)
+		goto err_revert_tpg_update;
+
+	if (enable && propagate) {
+		ret = max_des_enable_disable_streams(priv, state, pad,
+						     updated_streams_mask, enable);
+		if (ret)
+			goto err_revert_active_enable;
+	}
+
+	devm_kfree(priv->dev, priv->streams_masks);
+	priv->streams_masks = streams_masks;
 
 	return 0;
+
+err_revert_active_enable:
+	max_des_update_active(priv, priv->streams_masks, false);
+
+err_revert_tpg_update:
+	max_des_update_tpg(priv, state, priv->streams_masks);
+
+err_revert_links_update:
+	max_des_update_links(priv, &context, state, priv->streams_masks);
+
+err_revert_active_disable:
+	max_des_update_active(priv, priv->streams_masks, true);
+
+err_revert_streams_disable:
+	if (!enable)
+		max_des_enable_disable_streams(priv, state, pad,
+					       updated_streams_mask, !enable);
+
+err_free_streams_masks:
+	devm_kfree(priv->dev, streams_masks);
+
+	return ret;
 }
 
 static int max_des_log_status(struct v4l2_subdev *sd)
@@ -2183,6 +2312,420 @@ static int max_des_s_ctrl(struct v4l2_ctrl *ctrl)
 	return -EINVAL;
 }
 
+static int max_des_enum_frame_size(struct v4l2_subdev *sd,
+				   struct v4l2_subdev_state *state,
+				   struct v4l2_subdev_frame_size_enum *fse)
+{
+	struct max_des_priv *priv = v4l2_get_subdevdata(sd);
+	struct max_des *des = priv->des;
+	struct v4l2_subdev_frame_size_enum upstream = *fse;
+	struct max_serdes_source *source;
+	struct max_des_link *link;
+	bool unlock_state = false;
+	u32 sink_pad;
+	u32 sink_stream;
+	int ret;
+
+	if (!state) {
+		state = v4l2_subdev_lock_and_get_active_state(sd);
+		unlock_state = true;
+	}
+
+	if (max_des_pad_is_source(des, fse->pad)) {
+		ret = v4l2_subdev_routing_find_opposite_end(&state->routing,
+							    fse->pad, fse->stream,
+							    &sink_pad, &sink_stream);
+		if (ret)
+			goto out_unlock;
+	} else {
+		sink_pad = fse->pad;
+		sink_stream = fse->stream;
+	}
+
+	link = max_des_pad_to_link(des, sink_pad);
+	if (!link) {
+		ret = -EINVAL;
+		goto out_unlock;
+	}
+
+	source = max_des_get_link_source(priv, link);
+	if (!source->sd) {
+		ret = -ENODEV;
+		goto out_unlock;
+	}
+
+	upstream.pad = source->pad;
+	upstream.stream = sink_stream;
+	ret = v4l2_subdev_call(source->sd, pad, enum_frame_size, NULL,
+			       &upstream);
+	if (!ret) {
+		fse->min_width = upstream.min_width;
+		fse->max_width = upstream.max_width;
+		fse->min_height = upstream.min_height;
+		fse->max_height = upstream.max_height;
+	}
+
+out_unlock:
+	if (unlock_state)
+		v4l2_subdev_unlock_state(state);
+
+	return ret;
+}
+
+static int max_des_enum_frame_interval(struct v4l2_subdev *sd,
+				       struct v4l2_subdev_state *state,
+				       struct v4l2_subdev_frame_interval_enum *fie)
+{
+	struct max_des_priv *priv = v4l2_get_subdevdata(sd);
+	struct max_des *des = priv->des;
+	struct v4l2_subdev_frame_interval_enum upstream = *fie;
+	const struct max_serdes_tpg_entry *entry;
+	struct max_serdes_source *source;
+	struct max_des_link *link;
+	bool unlock_state = false;
+	u32 sink_pad;
+	u32 sink_stream;
+	int ret;
+
+	if (max_des_pad_is_tpg(des, fie->pad) &&
+	    fie->stream == MAX_SERDES_TPG_STREAM) {
+		entry = max_des_find_tpg_entry(des, fie->index,
+						fie->width, fie->height,
+						fie->code, fie->interval.denominator,
+						fie->interval.numerator);
+		if (!entry)
+			return -EINVAL;
+
+		fie->interval = entry->interval;
+		return 0;
+	}
+
+	if (!state) {
+		state = v4l2_subdev_lock_and_get_active_state(sd);
+		unlock_state = true;
+	}
+
+	if (max_des_pad_is_source(des, fie->pad)) {
+		ret = v4l2_subdev_routing_find_opposite_end(&state->routing,
+							    fie->pad, fie->stream,
+							    &sink_pad, &sink_stream);
+		if (ret)
+			goto out_unlock;
+	} else {
+		sink_pad = fie->pad;
+		sink_stream = fie->stream;
+	}
+
+	link = max_des_pad_to_link(des, sink_pad);
+	if (!link) {
+		ret = -EINVAL;
+		goto out_unlock;
+	}
+
+	source = max_des_get_link_source(priv, link);
+	if (!source->sd) {
+		ret = -ENODEV;
+		goto out_unlock;
+	}
+
+	upstream.pad = source->pad;
+	upstream.stream = sink_stream;
+	ret = v4l2_subdev_call(source->sd, pad, enum_frame_interval, NULL,
+				&upstream);
+	if (!ret)
+		fie->interval = upstream.interval;
+
+out_unlock:
+	if (unlock_state)
+		v4l2_subdev_unlock_state(state);
+
+	return ret;
+}
+
+static int max_des_set_fmt(struct v4l2_subdev *sd,
+			   struct v4l2_subdev_state *state,
+			   struct v4l2_subdev_format *format)
+{
+	struct max_des_priv *priv = v4l2_get_subdevdata(sd);
+	struct max_des *des = priv->des;
+	struct v4l2_subdev_format upstream;
+	struct v4l2_mbus_framefmt *fmt;
+	struct max_serdes_source *source;
+	struct max_des_link *link;
+	u32 sink_pad;
+	u32 sink_stream;
+	int ret;
+
+	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE &&
+		max_des_stream_is_active(priv, state, format->pad, format->stream))
+		return -EBUSY;
+
+	// /* No transcoding, source and sink formats must match. */
+	// if (max_des_pad_is_source(des, format->pad))
+	// 	return v4l2_subdev_get_fmt(sd, state, format);
+	if (max_des_pad_is_source(des, format->pad)) {
+		/* TRY formats do not own an upstream subdevice state. */
+		if (format->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+			return v4l2_subdev_get_fmt(sd, state, format);
+
+		ret = v4l2_subdev_routing_find_opposite_end(&state->routing,
+							    format->pad,
+							    format->stream,
+							    &sink_pad,
+							    &sink_stream);
+		if (ret)
+			return ret;
+
+		link = max_des_pad_to_link(des, sink_pad);
+		if (!link)
+			return -EINVAL;
+
+		source = max_des_get_link_source(priv, link);
+		if (!source->sd)
+			return -ENODEV;
+
+		upstream = *format;
+		upstream.pad = source->pad;
+		upstream.stream = sink_stream;
+		ret = v4l2_subdev_call_state_active(source->sd, pad, set_fmt,
+						    &upstream);
+		if (ret)
+			return ret;
+
+		fmt = v4l2_subdev_state_get_format(state, sink_pad,
+						   sink_stream);
+		if (!fmt)
+			return -EINVAL;
+		*fmt = upstream.format;
+
+		fmt = v4l2_subdev_state_get_format(state, format->pad,
+						   format->stream);
+		if (!fmt)
+			return -EINVAL;
+		*fmt = upstream.format;
+		format->format = upstream.format;
+
+		return 0;
+	}
+
+	if (max_des_pad_is_tpg(des, format->pad)) {
+		ret = max_des_set_tpg_fmt(sd, state, format);
+		if (ret)
+			return ret;
+	}
+
+	if (format->format.code == ~0U)
+		format->format.code = MEDIA_BUS_FMT_UYVY8_1X16;
+
+	fmt = v4l2_subdev_state_get_format(state, format->pad, format->stream);
+	if (!fmt)
+		return -EINVAL;
+
+	*fmt = format->format;
+
+	fmt = v4l2_subdev_state_get_opposite_stream_format(state, format->pad,
+							   format->stream);
+	if (!fmt)
+		return -EINVAL;
+
+	*fmt = format->format;
+
+	return 0;
+}
+
+static int max_des_get_frame_interval(struct v4l2_subdev *sd,
+				      struct v4l2_subdev_state *state,
+				      struct v4l2_subdev_frame_interval *fi)
+{
+	struct max_des_priv *priv = v4l2_get_subdevdata(sd);
+	struct max_des *des = priv->des;
+	struct v4l2_subdev_frame_interval upstream = *fi;
+	struct max_serdes_source *source;
+	struct max_des_link *link;
+	bool unlock_state = false;
+	u32 sink_pad;
+	u32 sink_stream;
+	int ret;
+
+	if (max_des_pad_is_tpg(des, fi->pad)) {
+		if (fi->stream != MAX_SERDES_TPG_STREAM)
+			return -EINVAL;
+
+		return v4l2_subdev_get_frame_interval(sd, state, fi);
+	}
+
+	if (!state) {
+		state = v4l2_subdev_lock_and_get_active_state(sd);
+		unlock_state = true;
+	}
+
+	if (max_des_pad_is_source(des, fi->pad)) {
+		ret = v4l2_subdev_routing_find_opposite_end(&state->routing,
+							    fi->pad, fi->stream,
+							    &sink_pad, &sink_stream);
+		if (ret)
+			goto out_unlock;
+	} else {
+		sink_pad = fi->pad;
+		sink_stream = fi->stream;
+	}
+
+	link = max_des_pad_to_link(des, sink_pad);
+	if (!link) {
+		ret = -EINVAL;
+		goto out_unlock;
+	}
+
+	source = max_des_get_link_source(priv, link);
+	if (!source->sd) {
+		ret = -ENODEV;
+		goto out_unlock;
+	}
+
+	upstream.pad = source->pad;
+	upstream.stream = sink_stream;
+	ret = v4l2_subdev_call_state_active(source->sd, pad,
+					    get_frame_interval, &upstream);
+	if (!ret)
+		fi->interval = upstream.interval;
+
+out_unlock:
+	if (unlock_state)
+		v4l2_subdev_unlock_state(state);
+
+	return ret;
+}
+
+static int max_des_set_frame_interval(struct v4l2_subdev *sd,
+				      struct v4l2_subdev_state *state,
+				      struct v4l2_subdev_frame_interval *fi)
+{
+	struct max_des_priv *priv = v4l2_get_subdevdata(sd);
+	struct max_des *des = priv->des;
+	struct v4l2_subdev_frame_interval upstream = *fi;
+	const struct max_serdes_tpg_entry *entry;
+	struct max_serdes_source *source;
+	struct v4l2_mbus_framefmt *fmt;
+	struct max_des_link *link;
+	struct v4l2_fract *in;
+	struct v4l2_fract *opposite_in;
+	bool unlock_state = false;
+	u32 sink_pad;
+	u32 sink_stream;
+	u32 opposite_pad;
+	u32 opposite_stream;
+	int ret;
+
+	dev_dbg(priv->dev, "%s()\n", __func__);
+
+	if (!state) {
+		state = v4l2_subdev_lock_and_get_active_state(sd);
+		unlock_state = true;
+	}
+
+	if (fi->which == V4L2_SUBDEV_FORMAT_ACTIVE &&
+	    max_des_stream_is_active(priv, state, fi->pad, fi->stream)) {
+		ret = -EBUSY;
+		goto out_unlock;
+	}
+
+	if (max_des_pad_is_tpg(des, fi->pad)) {
+		if (fi->stream != MAX_SERDES_TPG_STREAM) {
+			ret = -EINVAL;
+			goto out_unlock;
+		}
+
+		fmt = v4l2_subdev_state_get_format(state, fi->pad,
+						   fi->stream);
+		if (!fmt) {
+			ret = -EINVAL;
+			goto out_unlock;
+		}
+
+		entry = max_des_find_tpg_entry(des, 0,
+						   fmt->width, fmt->height,
+					       fmt->code,
+					       fi->interval.denominator,
+					       fi->interval.numerator);
+		if (!entry) {
+			ret = -EINVAL;
+			goto out_unlock;
+		}
+
+		in = v4l2_subdev_state_get_interval(state, fi->pad,
+						     fi->stream);
+		if (!in) {
+			ret = -EINVAL;
+			goto out_unlock;
+		}
+
+		*in = fi->interval;
+		ret = 0;
+		goto out_unlock;
+	}
+
+	if (fi->which != V4L2_SUBDEV_FORMAT_ACTIVE) {
+		ret = -EINVAL;
+		goto out_unlock;
+	}
+
+	if (max_des_pad_is_source(des, fi->pad)) {
+		ret = v4l2_subdev_routing_find_opposite_end(&state->routing,
+							    fi->pad, fi->stream,
+							    &sink_pad, &sink_stream);
+		if (ret)
+			goto out_unlock;
+		opposite_pad = fi->pad;
+		opposite_stream = fi->stream;
+	} else {
+		sink_pad = fi->pad;
+		sink_stream = fi->stream;
+		ret = v4l2_subdev_routing_find_opposite_end(&state->routing,
+							    sink_pad, sink_stream,
+							    &opposite_pad,
+							    &opposite_stream);
+		if (ret)
+			goto out_unlock;
+	}
+
+	link = max_des_pad_to_link(des, sink_pad);
+	if (!link) {
+		ret = -EINVAL;
+		goto out_unlock;
+	}
+
+	source = max_des_get_link_source(priv, link);
+	if (!source->sd) {
+		ret = -ENODEV;
+		goto out_unlock;
+	}
+
+	upstream.pad = source->pad;
+	upstream.stream = sink_stream;
+	ret = v4l2_subdev_call_state_active(source->sd, pad,
+					    set_frame_interval, &upstream);
+	if (ret)
+		goto out_unlock;
+
+	in = v4l2_subdev_state_get_interval(state, sink_pad, sink_stream);
+	opposite_in = v4l2_subdev_state_get_interval(state, opposite_pad,
+						      opposite_stream);
+	if (!in || !opposite_in) {
+		ret = -EINVAL;
+		goto out_unlock;
+	}
+
+	*in = upstream.interval;
+	*opposite_in = upstream.interval;
+	fi->interval = upstream.interval;
+
+out_unlock:
+	if (unlock_state)
+		v4l2_subdev_unlock_state(state);
+
+	return ret;
+}
+
 static int max_des_get_frame_desc_state(struct v4l2_subdev *sd,
 					struct v4l2_subdev_state *state,
 					struct v4l2_mbus_frame_desc *fd,
@@ -2308,8 +2851,9 @@ static int __max_des_set_routing(struct v4l2_subdev *sd,
 	if (is_tpg)
 		return max_des_set_tpg_routing(sd, state, routing);
 
-	static const struct v4l2_mbus_framefmt format = {
-			.code = MEDIA_BUS_FMT_Y8_1X8,
+	struct v4l2_mbus_framefmt format = {
+			.code = des->force_tunnel_mode ? MEDIA_BUS_FMT_Y8_1X8 :
+				MEDIA_BUS_FMT_UYVY8_1X16,
 			.field = V4L2_FIELD_NONE,
 			.width = 640,
 			.height = 480,
@@ -2332,259 +2876,82 @@ static int max_des_set_routing(struct v4l2_subdev *sd,
 	return __max_des_set_routing(sd, state, routing);
 }
 
-static int max_des_update_link(struct max_des_priv *priv,
-			       struct max_des_remap_context *context,
-			       struct max_des_link *link,
-			       struct v4l2_subdev_state *state,
-			       u64 *streams_masks)
-{
-	struct max_des *des = priv->des;
-	struct max_des_pipe *pipe;
-	int ret;
-
-	pipe = max_des_find_link_pipe(des, link);
-	if (!pipe)
-		return -ENOENT;
-
-	ret = max_des_update_pipe(priv, context, pipe, state, streams_masks);
-	if (ret)
-		return ret;
-
-	return 0;
-}
-
-static int max_des_update_tpg(struct max_des_priv *priv,
-			      struct v4l2_subdev_state *state,
-			      u64 *streams_masks)
-{
-	const struct max_serdes_tpg_entry *entry = NULL;
-	struct max_des *des = priv->des;
-	struct v4l2_subdev_route *route;
-	int ret;
-
-	for_each_active_route(&state->routing, route) {
-		struct max_des_route_hw hw;
-
-		if (!(BIT_ULL(route->sink_stream) & streams_masks[route->sink_pad]))
-			continue;
-
-		ret = max_des_route_to_hw(priv, state, route, &hw);
-		if (ret)
-			return ret;
-
-		if (!hw.is_tpg)
-			continue;
-
-		entry = max_des_find_state_tpg_entry(des, state, route->sink_pad);
-		break;
-	}
-
-	if (entry == des->tpg_entry)
-		return 0;
-
-	ret = des->ops->set_tpg(des, entry);
-	if (ret)
-		return ret;
-
-	des->tpg_entry = entry;
-
-	return 0;
-}
-
-static int max_des_update_active(struct max_des_priv *priv, u64 *streams_masks,
-				 bool expected_active)
-{
-	struct max_des *des = priv->des;
-	bool active = false;
-	unsigned int i;
-	int ret;
-
-	for (i = 0; i < des->info->num_phys; i++) {
-		struct max_des_phy *phy = &des->phys[i];
-		u32 pad = max_des_phy_to_pad(des, phy);
-
-		if (streams_masks[pad]) {
-			active = true;
-			break;
-		}
-	}
-
-	if (active != expected_active || des->active == active)
-		return 0;
-
-	if (des->ops->set_enable) {
-		ret = des->ops->set_enable(des, active);
-		if (ret)
-			return ret;
-	}
-
-	des->active = active;
-
-	return 0;
-}
-
-static int max_des_update_links(struct max_des_priv *priv,
-				struct max_des_remap_context *context,
-				struct v4l2_subdev_state *state,
-				u64 *streams_masks)
-{
-	struct max_des *des = priv->des;
-	unsigned int failed_update_link_id = des->info->num_links;
-	unsigned int i;
-	int ret;
-
-	for (i = 0; i < des->info->num_links; i++) {
-		struct max_des_link *link = &des->links[i];
-
-		ret = max_des_update_link(priv, context, link, state,
-					  streams_masks);
-		if (ret) {
-			failed_update_link_id = i;
-			goto err;
-		}
-	}
-
-	return 0;
-
-err:
-	for (i = 0; i < failed_update_link_id; i++) {
-		struct max_des_link *link = &des->links[i];
-
-		max_des_update_link(priv, context, link, state,
-				    priv->streams_masks);
-	}
-
-	return ret;
-}
-
-static int max_des_enable_disable_streams(struct max_des_priv *priv,
-					  struct v4l2_subdev_state *state,
-					  u32 pad, u64 updated_streams_mask,
-					  bool enable)
-{
-	struct max_des *des = priv->des;
-
-	return max_serdes_xlate_enable_disable_streams(priv->sources, 0, state,
-						       pad, updated_streams_mask, 0,
-						       des->info->num_links, enable);
-}
-
-static int max_des_update_streams(struct v4l2_subdev *sd,
-				  struct v4l2_subdev_state *state,
-				  u32 pad, u64 updated_streams_mask, bool enable)
-{
-	struct max_des_priv *priv = v4l2_get_subdevdata(sd);
-	struct max_des_remap_context context = { 0 };
-	struct max_des_mode_context mode_context = { 0 };
-	struct max_des *des = priv->des;
-	unsigned int num_pads = max_des_num_pads(des);
-	u64 *streams_masks;
-	int ret;
-
-	ret = max_des_populate_remap_context(priv, &context, state);
-	if (ret)
-		return ret;
-
-	ret = max_des_populate_mode_context(priv, &mode_context, state, context.mode);
-	if (ret)
-		return ret;
-
-	ret = max_serdes_get_streams_masks(priv->dev, state, pad, updated_streams_mask,
-					   num_pads, priv->streams_masks, &streams_masks,
-					   enable);
-	if (ret)
-		return ret;
-
-	ret = max_des_set_pipes_phy(priv, &context);
-	if (ret)
-		goto err_free_streams_masks;
-
-	ret = max_des_set_tunnel(priv, &context);
-	if (ret)
-		goto err_free_streams_masks;
-
-	ret = max_des_set_modes(priv, &mode_context);
-	if (ret)
-		goto err_free_streams_masks;
-
-	ret = max_des_set_vc_remaps(priv, &context, state, streams_masks);
-	if (ret)
-		goto err_free_streams_masks;
-
-	ret = max_des_set_pipes_stream_id(priv);
-	if (ret)
-		goto err_free_streams_masks;
-
-	if (!enable) {
-		ret = max_des_enable_disable_streams(priv, state, pad,
-						     updated_streams_mask, enable);
-		if (ret)
-			goto err_free_streams_masks;
-	}
-
-	ret = max_des_update_active(priv, streams_masks, false);
-	if (ret)
-		goto err_revert_streams_disable;
-
-	ret = max_des_update_links(priv, &context, state, streams_masks);
-	if (ret)
-		goto err_revert_active_disable;
-
-	ret = max_des_update_tpg(priv, state, streams_masks);
-	if (ret)
-		goto err_revert_links_update;
-
-	ret = max_des_update_active(priv, streams_masks, true);
-	if (ret)
-		goto err_revert_tpg_update;
-
-	if (enable) {
-		ret = max_des_enable_disable_streams(priv, state, pad,
-						     updated_streams_mask, enable);
-		if (ret)
-			goto err_revert_active_enable;
-	}
-
-	devm_kfree(priv->dev, priv->streams_masks);
-	priv->streams_masks = streams_masks;
-
-	return 0;
-
-err_revert_active_enable:
-	max_des_update_active(priv, priv->streams_masks, false);
-
-err_revert_tpg_update:
-	max_des_update_tpg(priv, state, priv->streams_masks);
-
-err_revert_links_update:
-	max_des_update_links(priv, &context, state, priv->streams_masks);
-
-err_revert_active_disable:
-	max_des_update_active(priv, priv->streams_masks, true);
-
-err_revert_streams_disable:
-	if (!enable)
-		max_des_enable_disable_streams(priv, state, pad,
-					       updated_streams_mask, !enable);
-
-err_free_streams_masks:
-	devm_kfree(priv->dev, streams_masks);
-
-	return ret;
-}
-
 static int max_des_enable_streams(struct v4l2_subdev *sd,
 				  struct v4l2_subdev_state *state,
 				  u32 pad, u64 streams_mask)
 {
-	return max_des_update_streams(sd, state, pad, streams_mask, true);
+	return max_des_update_streams(sd, state, pad, streams_mask, true, true);
 }
 
 static int max_des_disable_streams(struct v4l2_subdev *sd,
 				   struct v4l2_subdev_state *state,
 				   u32 pad, u64 streams_mask)
 {
-	return max_des_update_streams(sd, state, pad, streams_mask, false);
+		return max_des_update_streams(sd, state, pad, streams_mask, false, true);
+}
+
+/*
+ * The legacy i.MX8 ISI pipeline starts every subdevice through .s_stream().
+ * Translate that operation to the streams API used by the Maxim SerDes
+ * drivers.  Keep this compatibility local to the deserializer so pipelines
+ * with a sensor connected directly to the CSI receiver are unaffected.
+ */
+static int max_des_s_stream(struct v4l2_subdev *sd, int enable)
+{
+	struct max_des_priv *priv = sd_to_priv(sd);
+	struct max_des *des = priv->des;
+	u64 source_streams[MAX_DES_NUM_PHYS] = { 0 };
+	struct v4l2_subdev_state *state;
+	struct v4l2_subdev_route *route;
+	unsigned int i;
+	int ret = 0;
+
+	state = v4l2_subdev_lock_and_get_active_state(sd);
+	for_each_active_route(&state->routing, route) {
+		struct max_des_phy *phy;
+
+		phy = max_des_pad_to_phy(des, route->source_pad);
+		if (!phy) {
+			ret = -EINVAL;
+			break;
+		}
+
+		source_streams[phy->index] |= BIT_ULL(route->source_stream);
+	}
+	// v4l2_subdev_unlock_state(state);
+	if (ret)
+		goto out_unlock;
+
+	for (i = 0; i < des->info->num_phys; i++) {
+		u32 pad;
+
+		if (!source_streams[i])
+			continue;
+
+		pad = max_des_phy_to_pad(des, &des->phys[i]);
+		ret = max_des_update_streams(sd, state, pad, source_streams[i],
+					enable, false);
+		if (ret)
+			break;
+	}
+
+	/* Roll back PHYs that were updated before an error. */
+	if (ret) {
+		while (i--) {
+			u32 pad;
+
+			if (!source_streams[i])
+				continue;
+
+			pad = max_des_phy_to_pad(des, &des->phys[i]);
+			max_des_update_streams(sd, state, pad,
+				       source_streams[i], !enable, false);
+		}
+	}
+
+out_unlock:
+	v4l2_subdev_unlock_state(state);
+	return ret;
 }
 
 static int max_des_init_state(struct v4l2_subdev *sd,
@@ -2678,25 +3045,27 @@ static const struct v4l2_ctrl_ops max_des_ctrl_ops = {
 	.s_ctrl = max_des_s_ctrl,
 };
 
+static const struct v4l2_subdev_video_ops max_des_video_ops = {
+	.s_stream = max_des_s_stream,
+};
+
 static const struct v4l2_subdev_pad_ops max_des_pad_ops = {
-	.enable_streams = max_des_enable_streams,
-	.disable_streams = max_des_disable_streams,
-
-	.set_routing = max_des_set_routing,
-	.get_frame_desc = max_des_get_frame_desc,
-
-	.get_mbus_config = max_des_get_mbus_config,
-
+	.enum_frame_size = max_des_enum_frame_size,
+	.enum_frame_interval = max_des_enum_frame_interval,
 	.get_fmt = v4l2_subdev_get_fmt,
 	.set_fmt = max_des_set_fmt,
-
-	.enum_frame_interval = max_des_enum_frame_interval,
 	.get_frame_interval = max_des_get_frame_interval,
 	.set_frame_interval = max_des_set_frame_interval,
+	.get_frame_desc = max_des_get_frame_desc,
+	.get_mbus_config = max_des_get_mbus_config,
+	.set_routing = max_des_set_routing,
+	.enable_streams = max_des_enable_streams,
+	.disable_streams = max_des_disable_streams,
 };
 
 static const struct v4l2_subdev_ops max_des_subdev_ops = {
 	.core = &max_des_core_ops,
+	.video = &max_des_video_ops,
 	.pad = &max_des_pad_ops,
 };
 
@@ -3139,6 +3508,17 @@ static int max_des_parse_dt(struct max_des_priv *priv)
 	unsigned int i;
 	int ret;
 
+	if (fwnode_property_read_bool(fwnode, "maxim,tunnel-mode")) {
+		if (!(des->info->modes & BIT(MAX_SERDES_GMSL_TUNNEL_MODE))) {
+			dev_err(priv->dev,
+				"maxim,tunnel-mode is not supported by this device\n");
+			return -EINVAL;
+		}
+
+		des->mode = MAX_SERDES_GMSL_TUNNEL_MODE;
+		des->force_tunnel_mode = true;
+	}
+
 	for (i = 0; i < des->info->num_phys; i++) {
 		phy = &des->phys[i];
 		phy->index = i;
@@ -3290,6 +3670,10 @@ int max_des_probe(struct i2c_client *client, struct max_des *des)
 	priv->dev = dev;
 	priv->des = des;
 	des->priv = priv;
+
+	des->mode = MAX_SERDES_GMSL_PIXEL_MODE;
+	if (!(des->info->modes & BIT(des->mode)))
+		return -EINVAL;
 
 	ret = max_des_allocate(priv);
 	if (ret)
