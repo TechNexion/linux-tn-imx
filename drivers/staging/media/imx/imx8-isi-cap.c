@@ -116,7 +116,14 @@ static int mxc_isi_pipeline_enable(struct mxc_isi_cap_dev *isi_cap, bool enable)
 	struct media_device *mdev = entity->graph_obj.mdev;
 	struct media_graph graph;
 	struct v4l2_subdev *subdev;
+	struct v4l2_subdev **subdevs = NULL;
+	unsigned int num_subdevs = 0;
+	unsigned int i;
+	bool downstream_first;
 	int ret = 0;
+
+	downstream_first = enable && of_property_read_bool(dev->of_node,
+					"fsl,stream-on-downstream-first");
 
 	mutex_lock(&mdev->graph_mutex);
 
@@ -126,6 +133,15 @@ static int mxc_isi_pipeline_enable(struct mxc_isi_cap_dev *isi_cap, bool enable)
 		return ret;
 	}
 	media_graph_walk_start(&graph, entity);
+
+	if (downstream_first) {
+		subdevs = kcalloc(mdev->entity_internal_idx_max + 1,
+				   sizeof(*subdevs), GFP_KERNEL);
+		if (!subdevs) {
+			ret = -ENOMEM;
+			goto out_cleanup;
+		}
+	}
 
 	while ((entity = media_graph_walk_next(&graph))) {
 		if (!entity) {
@@ -144,14 +160,40 @@ static int mxc_isi_pipeline_enable(struct mxc_isi_cap_dev *isi_cap, bool enable)
 			continue;
 		}
 
+		if (downstream_first) {
+			subdevs[num_subdevs++] = subdev;
+			continue;
+		}
+
 		ret = v4l2_subdev_call(subdev, video, s_stream, enable);
 		if (ret < 0 && ret != -ENOIOCTLCMD) {
 			dev_err(dev, "subdev %s s_stream failed\n", subdev->name);
 			break;
 		}
 	}
-	mutex_unlock(&mdev->graph_mutex);
+	// mutex_unlock(&mdev->graph_mutex);
+	// media_graph_walk_cleanup(&graph);
+
+	/*
+	 * media_graph_walk() returns the VLS-GM2 source first.  Start in the
+	 * reverse order so the receiver is ready before the transmitter.
+	 */
+	if (downstream_first) {
+		for (i = num_subdevs; i > 0; i--) {
+			subdev = subdevs[i - 1];
+			ret = v4l2_subdev_call(subdev, video, s_stream, true);
+			if (ret < 0 && ret != -ENOIOCTLCMD) {
+				dev_err(dev, "subdev %s s_stream failed\n",
+					subdev->name);
+				break;
+			}
+		}
+	}
+
+	kfree(subdevs);
+out_cleanup:
 	media_graph_walk_cleanup(&graph);
+	mutex_unlock(&mdev->graph_mutex);
 
 	return ret;
 }
@@ -1262,6 +1304,45 @@ static int mxc_isi_cap_s_selection(struct file *file, void *fh,
 	return 0;
 }
 
+static u32 mxc_isi_cap_enum_mbus_code(struct mxc_isi_cap_dev *isi_cap,
+			   struct v4l2_subdev *sd,
+			   const struct mxc_isi_fmt *fmt)
+{
+	struct v4l2_subdev_format sd_fmt = {
+		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+	};
+	struct media_pad *source_pad;
+	int ret;
+
+	/*
+	 * V4L2_PIX_FMT_YUYV describes the ISI DMA memory layout.  The
+	 * upstream link may independently use YUYV or UYVY byte order.
+	 */
+	if (fmt->fourcc != V4L2_PIX_FMT_YUYV)
+		return fmt->mbus_code;
+
+	source_pad = mxc_isi_get_remote_source_pad(&isi_cap->sd);
+	if (!source_pad)
+		// return fmt->mbus_code;
+		return MEDIA_BUS_FMT_UYVY8_1X16;
+
+	sd_fmt.pad = source_pad->index;
+	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &sd_fmt);
+	if (ret)
+		// return fmt->mbus_code;
+		return MEDIA_BUS_FMT_UYVY8_1X16;
+
+	switch (sd_fmt.format.code) {
+	case MEDIA_BUS_FMT_YUYV8_1X16:
+	case MEDIA_BUS_FMT_UYVY8_1X16:
+		return sd_fmt.format.code;
+	default:
+		// return fmt->mbus_code;
+		/* Tunnel-mode bridges expose the encapsulated stream as Y8. */
+		return MEDIA_BUS_FMT_UYVY8_1X16;
+	}
+}
+
 static int mxc_isi_cap_enum_framesizes(struct file *file, void *priv,
 				       struct v4l2_frmsizeenum *fsize)
 {
@@ -1278,7 +1359,6 @@ static int mxc_isi_cap_enum_framesizes(struct file *file, void *priv,
 	fmt = mxc_isi_find_format(&fsize->pixel_format, NULL, 0);
 	if (!fmt || fmt->fourcc != fsize->pixel_format)
 		return -EINVAL;
-	fse.code = fmt->mbus_code;
 
 	sd = mxc_get_remote_subdev(&isi_cap->sd, __func__);
 	if (!sd) {
@@ -1286,7 +1366,13 @@ static int mxc_isi_cap_enum_framesizes(struct file *file, void *priv,
 		return -ENODEV;
 	}
 
+	fse.code = mxc_isi_cap_enum_mbus_code(isi_cap, sd, fmt);
+
 	ret = v4l2_subdev_call(sd, pad, enum_frame_size, NULL, &fse);
+	if (ret == -EINVAL && fse.code != fmt->mbus_code) {
+		fse.code = fmt->mbus_code;
+		ret = v4l2_subdev_call(sd, pad, enum_frame_size, NULL, &fse);
+	}
 	if (ret)
 		return ret;
 
@@ -1333,13 +1419,18 @@ static int mxc_isi_cap_enum_frameintervals(struct file *file, void *fh,
 	fmt = mxc_isi_find_format(&interval->pixel_format, NULL, 0);
 	if (!fmt || fmt->fourcc != interval->pixel_format)
 		return -EINVAL;
-	fie.code = fmt->mbus_code;
 
 	sd = mxc_get_remote_subdev(&isi_cap->sd, __func__);
 	if (!sd)
 		return -EINVAL;
 
+	fie.code = mxc_isi_cap_enum_mbus_code(isi_cap, sd, fmt);
+
 	ret = v4l2_subdev_call(sd, pad, enum_frame_interval, NULL, &fie);
+	if (ret == -EINVAL && fie.code != fmt->mbus_code) {
+		fie.code = fmt->mbus_code;
+		ret = v4l2_subdev_call(sd, pad, enum_frame_interval, NULL, &fie);
+	}
 	if (ret)
 		return ret;
 
