@@ -25,8 +25,15 @@
 			data-lanes = <4>;
 			csis-hs-settle = <13>;
 			csis-clk-settle = <2>;
-			csis-wclk;
 		};
+	};
+};
+
+&isi_1 {
+	status = "okay";
+
+	cap_device {
+		status = "okay";
 	};
 };
 

@@ -326,22 +326,6 @@
 	status = "okay";
 };
 
-&isi_0 {
-	status = "okay";
-
-	cap_device {
-		status = "okay";
-	};
-};
-
-&isi_1 {
-	status = "okay";
-
-	cap_device {
-		status = "okay";
-	};
-};
-
 &dewarp {
 	status = "okay";
 };

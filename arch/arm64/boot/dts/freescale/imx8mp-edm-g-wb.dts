@@ -172,14 +172,6 @@
 	status = "okay";
 };
 
-&cameradev {
-	status = "okay";
-};
-
-&dewarp {
-	status = "okay";
-};
-
 &easrc {
 	fsl,asrc-rate  = <48000>;
 	status = "okay";
@@ -341,20 +333,12 @@
 	};
 };
 
-&isi_0 {
+&cameradev {
 	status = "okay";
-
-	cap_device {
-		status = "okay";
-	};
 };
 
-&isi_1 {
+&dewarp {
 	status = "okay";
-
-	cap_device {
-		status = "okay";
-	};
 };
 
 &lcdif1 {
