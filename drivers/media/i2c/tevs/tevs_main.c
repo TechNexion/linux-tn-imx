@@ -275,10 +275,11 @@
 #define TEVS_DENOISE_MASK 						(0xFFFF)
 #define TEVS_TRIGGER_MODE						HOST_COMMAND_ISP_CTRL_TRIGGER_MODE
 #define TEVS_TRIGGER_MODE_MASK		 			(0x0003)
-#define TEVS_TRIGGER_MODE_DISABLE				(0U << 0)
-#define TEVS_TRIGGER_MODE_SYNC					(1U << 0)
-#define TEVS_TRIGGER_MODE_PERIODIC				(2U << 0)
-#define TEVS_TRIGGER_MODE_NON_PERIODIC			(3U << 0)
+#define TEVS_TRIGGER_MODE_BASE					0x0380
+#define TEVS_TRIGGER_MODE_DISABLE				TEVS_TRIGGER_MODE_BASE | (0U << 0)
+#define TEVS_TRIGGER_MODE_SYNC					TEVS_TRIGGER_MODE_BASE | (1U << 0)
+#define TEVS_TRIGGER_MODE_PERIODIC				TEVS_TRIGGER_MODE_BASE | (2U << 0)
+#define TEVS_TRIGGER_MODE_NON_PERIODIC			TEVS_TRIGGER_MODE_BASE | (3U << 0)
 #define TEVS_TRIGGER_MODE_DISABLE_IDX			(0U << 0)
 #define TEVS_TRIGGER_MODE_SYNC_IDX				(1U << 0)
 #define TEVS_TRIGGER_MODE_PERIODIC_IDX			(2U << 0)
@@ -388,26 +389,6 @@ static const struct regmap_config tevs_regmap_config = {
 	.val_bits = 8,
 	.cache_type = REGCACHE_NONE,
 };
-
-static int tevs_check_trigger_mode(struct tevs *tevs)
-{
-	struct i2c_client *client = v4l2_get_subdevdata(&tevs->v4l2_subdev);
-	u64 val;
-	int ret = 0;
-
-	dev_dbg(&client->dev, "%s()\n", __func__);
-
-	cci_read(tevs->regmap, TEVS_TRIGGER_MODE, &val, NULL);
-	if (ret < 0) {
-		dev_err(&client->dev, "check trigger mode fail\n");
-		return ret;
-	}
-
-	if ((val & TEVS_TRIGGER_MODE_MASK) == TEVS_TRIGGER_MODE_DISABLE)
-		return 0;
-	else
-		return 1;
-}
 
 static int tevs_check_version(struct tevs *tevs)
 {
@@ -564,6 +545,103 @@ static int tevs_check_boot_state(struct tevs *tevs)
 	return ret;
 }
 
+static int tevs_write_trigger_mode(struct tevs *tevs, s32 value)
+{
+	u16 val = value & TEVS_TRIGGER_MODE_MASK;
+
+	switch (val) {
+	case TEVS_TRIGGER_MODE_DISABLE_IDX:
+		val = TEVS_TRIGGER_MODE_DISABLE;
+		break;
+	case TEVS_TRIGGER_MODE_SYNC_IDX:
+		val = TEVS_TRIGGER_MODE_SYNC;
+		break;
+	case TEVS_TRIGGER_MODE_PERIODIC_IDX:
+		val = TEVS_TRIGGER_MODE_PERIODIC;
+		break;
+	case TEVS_TRIGGER_MODE_NON_PERIODIC_IDX:
+		val = TEVS_TRIGGER_MODE_NON_PERIODIC;
+		break;
+	default:
+		val = TEVS_TRIGGER_MODE_DISABLE;
+		break;
+	}
+
+	return cci_write(tevs->regmap, TEVS_TRIGGER_MODE, val, NULL);
+}
+
+static int tevs_init_setting(struct tevs *tevs)
+{
+	struct i2c_client *client = v4l2_get_subdevdata(&tevs->v4l2_subdev);
+	int ret = 0;
+
+	ret = tevs_write_trigger_mode(tevs, TEVS_TRIGGER_MODE_DISABLE);
+	if (ret != 0) {
+		dev_err(&client->dev, "set trigger mode failed\n");
+		return ret;
+	}
+
+	ret = cci_write(tevs->regmap,
+				HOST_COMMAND_ISP_CTRL_PREVIEW_FORMAT,
+				TEVS_IMG_FORMAT_UYVY, NULL);
+	if (ret != 0) {
+		dev_err(&client->dev, "set format failed\n");
+		return ret;
+	}
+
+	ret = cci_write(tevs->regmap,
+				HOST_COMMAND_ISP_CTRL_PREVIEW_HINF_CTRL,
+				0x10 | (tevs->continuous_clock << 5) |
+					(tevs->data_lanes),
+				NULL);
+	if (ret != 0) {
+		dev_err(&client->dev, "set hinf ctrl failed\n");
+		return ret;
+	}
+
+	ret = cci_write(tevs->regmap,
+				HOST_COMMAND_ISP_CTRL_PREVIEW_MIPI_CTRL,
+				tevs->vc_id, NULL);
+	if (ret != 0) {
+		dev_err(&client->dev, "set mipi ctrl failed\n");
+		return ret;
+	}
+
+	ret = tevs_standby(tevs, 1);
+	if (ret != 0) {
+		dev_err(&client->dev, "set standby mode failed\n");
+		return ret;
+	}
+
+	if (tevs->continuous_clock) {
+		ret = cci_write(tevs->regmap,
+					HOST_COMMAND_ISP_CTRL_PREVIEW_HINF_CTRL,
+					0x10 | (TEVS_CONTINUOUS_CLOCK_DEFAULT << 5) |
+						(tevs->data_lanes),
+					NULL);
+		if (ret != 0)
+			return ret;
+
+		ret = tevs_standby(tevs, 0);
+		if (ret != 0)
+			return ret;
+
+		ret = cci_write(tevs->regmap,
+					HOST_COMMAND_ISP_CTRL_PREVIEW_HINF_CTRL,
+					0x10 | (tevs->continuous_clock << 5) |
+						(tevs->data_lanes),
+					NULL);
+		if (ret)
+			return ret;
+
+		ret = tevs_standby(tevs, 1);
+		if (ret)
+			return ret;
+	}
+
+	return ret;
+}
+
 static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 {
 	struct tevs *tevs = container_of(sub_dev, struct tevs, v4l2_subdev);
@@ -577,76 +655,119 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 	dev_dbg(sub_dev->dev, "%s() enable [%x]\n", __func__, enable);
 
 	if (enable == 0) {
-		if (!(tevs->hw_reset_mode | tevs_check_trigger_mode(tevs)))
-			ret = tevs_standby(tevs, 1);
+		if (tevs->trigger_mode) {
+			ret = tevs_write_trigger_mode(tevs, TEVS_TRIGGER_MODE_DISABLE);
+			if (ret)
+				return ret;
+		}
+
+		ret = tevs_standby(tevs, 1);
+		if (ret)
+			return ret;
 
 		if (tevs->continuous_clock) {
-			cci_write(tevs->regmap,
-				  HOST_COMMAND_ISP_CTRL_PREVIEW_HINF_CTRL,
-				  0x10 | (TEVS_CONTINUOUS_CLOCK_DEFAULT  << 5) |
-					  (tevs->data_lanes),
-				  NULL);
+			ret = cci_write(tevs->regmap,
+						HOST_COMMAND_ISP_CTRL_PREVIEW_HINF_CTRL,
+						0x10 | (TEVS_CONTINUOUS_CLOCK_DEFAULT << 5) |
+							(tevs->data_lanes),
+						NULL);
+			if (ret != 0)
+				return ret;
+
+			ret = tevs_standby(tevs, 0);
+			if (ret != 0)
+				return ret;
+
+			ret = cci_write(tevs->regmap,
+						HOST_COMMAND_ISP_CTRL_PREVIEW_HINF_CTRL,
+						0x10 | (tevs->continuous_clock << 5) |
+							(tevs->data_lanes),
+						NULL);
+			if (ret)
+				return ret;
+
+			ret = tevs_standby(tevs, 1);
+			if (ret)
+				return ret;
 		}
 	} else {
-		if (!(tevs->hw_reset_mode | tevs_check_trigger_mode(tevs)))
-			ret = tevs_standby(tevs, 0);
+		ret = tevs_standby(tevs, 0);
+		if (ret)
+			return ret;
 
-		if (ret == 0) {
-			dev_dbg(sub_dev->dev, "%s() width=%d, height=%d\n",
-				__func__,
+		if (tevs->trigger_mode) {
+			ret = tevs_write_trigger_mode(tevs, tevs->trigger_mode);
+			if (ret)
+				return ret;
+		}
+
+		dev_dbg(sub_dev->dev, "%s() width=%d, height=%d\n",
+			__func__,
+			tevs_sensor_table[tevs->selected_sensor]
+				.res_list[tevs->selected_mode]
+				.width,
+			tevs_sensor_table[tevs->selected_sensor]
+				.res_list[tevs->selected_mode]
+				.height);
+		ret = cci_write(tevs->regmap,
+				HOST_COMMAND_ISP_CTRL_PREVIEW_MIPI_CTRL,
+				tevs->vc_id, NULL);
+		if (ret)
+			return ret;
+		ret = cci_write(tevs->regmap,
+				HOST_COMMAND_ISP_CTRL_PREVIEW_FORMAT,
+				TEVS_IMG_FORMAT_UYVY, NULL);
+		if (ret)
+			return ret;
+		ret = cci_write(tevs->regmap,
+				HOST_COMMAND_ISP_CTRL_PREVIEW_SENSOR_MODE,
+				tevs_sensor_table[tevs->selected_sensor]
+					.res_list[tevs->selected_mode]
+					.mode,
+				NULL);
+		if (ret)
+			return ret;
+		ret = cci_write(tevs->regmap,
+				HOST_COMMAND_ISP_CTRL_PREVIEW_WIDTH,
 				tevs_sensor_table[tevs->selected_sensor]
 					.res_list[tevs->selected_mode]
 					.width,
+				NULL);
+		if (ret)
+			return ret;
+		ret = cci_write(tevs->regmap,
+				HOST_COMMAND_ISP_CTRL_PREVIEW_HEIGHT,
 				tevs_sensor_table[tevs->selected_sensor]
 					.res_list[tevs->selected_mode]
-					.height);
-			cci_write(tevs->regmap,
-				  HOST_COMMAND_ISP_CTRL_PREVIEW_FORMAT,
-				  TEVS_IMG_FORMAT_UYVY, NULL);
-			cci_write(tevs->regmap,
-				  HOST_COMMAND_ISP_CTRL_PREVIEW_HINF_CTRL,
-				  0x10 | (tevs->continuous_clock << 5) |
-					  (tevs->data_lanes),
-				  NULL);
-			cci_write(tevs->regmap,
-				  HOST_COMMAND_ISP_CTRL_PREVIEW_MIPI_CTRL,
-				  tevs->vc_id, NULL);
-			cci_write(tevs->regmap,
-				  HOST_COMMAND_ISP_CTRL_PREVIEW_SENSOR_MODE,
-				  tevs_sensor_table[tevs->selected_sensor]
-					  .res_list[tevs->selected_mode]
-					  .mode,
-				  NULL);
-			cci_write(tevs->regmap,
-				  HOST_COMMAND_ISP_CTRL_PREVIEW_WIDTH,
-				  tevs_sensor_table[tevs->selected_sensor]
-					  .res_list[tevs->selected_mode]
-					  .width,
-				  NULL);
-			cci_write(tevs->regmap,
-				  HOST_COMMAND_ISP_CTRL_PREVIEW_HEIGHT,
-				  tevs_sensor_table[tevs->selected_sensor]
-					  .res_list[tevs->selected_mode]
-					  .height,
-				  NULL);
-			cci_write(tevs->regmap,
-				  HOST_COMMAND_ISP_CTRL_PREVIEW_MAX_FPS,
-				  tevs->fps, NULL);
-			if (tevs->max_fps)
-				tevs->max_fps->cur.val = tevs->fps;
-			cci_read(tevs->regmap, TEVS_AE_MANUAL_EXP_TIME, &val,
-				 NULL);
-			tevs->exp_time->cur.val = val &
-						  TEVS_AE_MANUAL_EXP_TIME_MASK;
-			cci_read(tevs->regmap, TEVS_AE_AUTO_EXP_TIME_UPPER,
-				 &val, NULL);
-			tevs->ae_exp_upper->cur.val =
-				val & TEVS_AE_MANUAL_EXP_TIME_MASK;
-			cci_read(tevs->regmap, TEVS_AE_AUTO_EXP_TIME_MAX, &val,
-				 NULL);
-			tevs->ae_exp_max->cur.val =
-				val & TEVS_AE_MANUAL_EXP_TIME_MASK;
-		}
+					.height,
+				NULL);
+		if (ret)
+			return ret;
+		ret = cci_write(tevs->regmap,
+				HOST_COMMAND_ISP_CTRL_PREVIEW_MAX_FPS,
+				tevs->fps, NULL);
+		if (ret)
+			return ret;
+		if (tevs->max_fps)
+			tevs->max_fps->cur.val = tevs->fps;
+		ret = cci_read(tevs->regmap, TEVS_AE_MANUAL_EXP_TIME, &val,
+				NULL);
+		if (ret)
+			return ret;
+		tevs->exp_time->cur.val = val &
+						TEVS_AE_MANUAL_EXP_TIME_MASK;
+		ret = cci_read(tevs->regmap, TEVS_AE_AUTO_EXP_TIME_UPPER,
+				&val, NULL);
+		if (ret)
+			return ret;
+		tevs->ae_exp_upper->cur.val =
+			val & TEVS_AE_MANUAL_EXP_TIME_MASK;
+		ret = cci_read(tevs->regmap, TEVS_AE_AUTO_EXP_TIME_MAX, &val,
+				NULL);
+		if (ret)
+			return ret;
+		tevs->ae_exp_max->cur.val =
+			val & TEVS_AE_MANUAL_EXP_TIME_MASK;
 	}
 
 	return ret;
@@ -1251,41 +1372,10 @@ static int tevs_set_bsl_mode(struct tevs *tevs, s32 mode)
 			}
 		}
 
-		if (tevs->trigger_mode) {
-			switch (tevs->trigger_mode) {
-			case TEVS_TRIGGER_MODE_DISABLE_IDX:
-				val = TEVS_TRIGGER_MODE_DISABLE;
-				break;
-			case TEVS_TRIGGER_MODE_SYNC_IDX:
-				val = TEVS_TRIGGER_MODE_SYNC;
-				break;
-			case TEVS_TRIGGER_MODE_PERIODIC_IDX:
-				val = TEVS_TRIGGER_MODE_PERIODIC;
-				break;
-			case TEVS_TRIGGER_MODE_NON_PERIODIC_IDX:
-				val = TEVS_TRIGGER_MODE_NON_PERIODIC;
-				break;
-			default:
-				val = TEVS_TRIGGER_MODE_DISABLE;
-				break;
-			}
-			val |= 0x380;
-			if (cci_write(tevs->regmap, TEVS_TRIGGER_MODE, val,
-				      NULL) != 0) {
-				dev_err(&client->dev,
-					"set trigger mode failed\n");
-				return -EINVAL;
-			}
+		if (tevs_init_setting(tevs)) {
+			dev_err(&client->dev, "init setting failed\n");
+			return -EINVAL;
 		}
-
-		cci_write(tevs->regmap, HOST_COMMAND_ISP_CTRL_PREVIEW_FORMAT,
-			  TEVS_IMG_FORMAT_UYVY, NULL);
-		cci_write(tevs->regmap, HOST_COMMAND_ISP_CTRL_PREVIEW_HINF_CTRL,
-			  0x10 | (tevs->continuous_clock << 5) |
-				  (tevs->data_lanes),
-			  NULL);
-		cci_write(tevs->regmap, HOST_COMMAND_ISP_CTRL_PREVIEW_MIPI_CTRL,
-			  tevs->vc_id, NULL);
 
 		break;
 	case TEVS_BSL_MODE_FLASH_IDX:
@@ -1339,28 +1429,13 @@ static int tevs_set_ae_auto_exp_max(struct tevs *tevs, s32 value)
 
 static int tevs_set_trigger_mode(struct tevs *tevs, s32 value)
 {
-	u16 val = value & TEVS_TRIGGER_MODE_MASK;
+	int ret;
 
-	switch (val) {
-	case TEVS_TRIGGER_MODE_DISABLE_IDX:
-		val = TEVS_TRIGGER_MODE_DISABLE;
-		break;
-	case TEVS_TRIGGER_MODE_SYNC_IDX:
-		val = TEVS_TRIGGER_MODE_SYNC;
-		break;
-	case TEVS_TRIGGER_MODE_PERIODIC_IDX:
-		val = TEVS_TRIGGER_MODE_PERIODIC;
-		break;
-	case TEVS_TRIGGER_MODE_NON_PERIODIC_IDX:
-		val = TEVS_TRIGGER_MODE_NON_PERIODIC;
-		break;
-	default:
-		val = TEVS_TRIGGER_MODE_DISABLE;
-		break;
-	}
+	ret = tevs_write_trigger_mode(tevs, value);
+	if (!ret)
+		tevs->trigger_mode = value & TEVS_TRIGGER_MODE_MASK;
 
-	val |= 0x380;
-	return cci_write(tevs->regmap, TEVS_TRIGGER_MODE, val, NULL);
+	return ret;
 }
 
 static int tevs_s_ctrl(struct v4l2_ctrl *ctrl)
@@ -1959,24 +2034,10 @@ static int tevs_power_on(struct tevs *tevs)
 		goto error;
 	}
 
-	if (tevs->trigger_mode | tevs->hw_reset_mode) {
-		ret = tevs_set_trigger_mode(tevs, tevs->trigger_mode);
-		if (ret != 0) {
-			dev_err(&client->dev, "set trigger mode failed\n");
-			return ret;
-		}
-
-		ret += cci_write(tevs->regmap,
-				 HOST_COMMAND_ISP_CTRL_PREVIEW_FORMAT,
-				 TEVS_IMG_FORMAT_UYVY, NULL);
-		ret += cci_write(tevs->regmap,
-				 HOST_COMMAND_ISP_CTRL_PREVIEW_HINF_CTRL,
-				 0x10 | (tevs->continuous_clock << 5) |
-					 (tevs->data_lanes),
-				 NULL);
-		ret += cci_write(tevs->regmap,
-				 HOST_COMMAND_ISP_CTRL_PREVIEW_MIPI_CTRL,
-				 tevs->vc_id, NULL);
+	if ((tevs->hw_reset_mode | tevs->trigger_mode)) {
+		ret = tevs_init_setting(tevs);
+		if (ret != 0)
+			dev_err(&client->dev, "init setting failed\n");
 	}
 
 	return ret;
@@ -2222,6 +2283,11 @@ static int tevs_probe(struct i2c_client *client)
 		}
 	}
 
+	if ((ret = tevs_init_setting(tevs)) != 0) {
+		dev_err(dev, "init setting failed\n");
+		return ret;
+	}
+
 	ret = tevs_check_version(tevs);
 	if (ret < 0) {
 		dev_err(dev, "check device version failed\n");
@@ -2324,35 +2390,6 @@ static int tevs_probe(struct i2c_client *client)
 	if (ret != 0) {
 		dev_err(dev, "v4l2 register failed\n");
 		goto error_media_entity;
-	}
-
-	if (tevs->trigger_mode) {
-		ret = tevs_set_trigger_mode(tevs, tevs->trigger_mode);
-		if (ret != 0) {
-			dev_err(dev, "set trigger mode failed\n");
-			goto error_media_entity;
-		}
-	}
-
-	if (!(tevs->hw_reset_mode | tevs_check_trigger_mode(tevs))) {
-		ret = tevs_standby(tevs, 1);
-		if (ret != 0) {
-			dev_err(dev, "set standby mode failed\n");
-			goto error_media_entity;
-		}
-		if (tevs->continuous_clock) {
-			cci_write(tevs->regmap,
-				  HOST_COMMAND_ISP_CTRL_PREVIEW_HINF_CTRL,
-				  0x10 | (TEVS_CONTINUOUS_CLOCK_DEFAULT  << 5) |
-					  (tevs->data_lanes),
-				  NULL);
-		}
-	} else {
-		ret = tevs_power_off(tevs);
-		if (ret != 0) {
-			dev_err(dev, "set power off failed\n");
-			goto error_media_entity;
-		}
 	}
 
 	dev_info(dev, "probe success\n");
