@@ -121,6 +121,7 @@ struct max_ser {
 	unsigned int phys_config;
 	unsigned int active;
 	enum max_serdes_gmsl_mode mode;
+	bool force_tunnel_mode;
 };
 
 int max_ser_probe(struct i2c_client *client, struct max_ser *ser);

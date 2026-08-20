@@ -153,6 +153,7 @@ struct max_des {
 
 	unsigned int phys_config;
 	enum max_serdes_gmsl_mode mode;
+	bool force_tunnel_mode;
 	bool active;
 };
 
