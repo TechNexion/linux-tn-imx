@@ -304,7 +304,7 @@ static struct media_entity *find_entity_by_name(struct mxc_md *mxc_md,
 static int mxc_md_create_links(struct mxc_md *mxc_md)
 {
 	struct device_node *csi_ep, *remote_ep;
-	struct of_endpoint endpoint;
+	struct of_endpoint source_endpoint, sink_endpoint;
 	struct media_entity *source, *sink;
 	struct mxc_isi_info *mxc_isi;
 	struct mxc_sensor_info *sensor;
@@ -524,6 +524,15 @@ static int mxc_md_create_links(struct mxc_md *mxc_md)
 				return -ENODEV;
 			}
 
+			memset(&sink_endpoint, 0, sizeof(sink_endpoint));
+			ret = of_graph_parse_endpoint(csi_ep, &sink_endpoint);
+			if (ret < 0) {
+				of_node_put(csi_ep);
+				v4l2_err(&mxc_md->v4l2_dev,
+					 "Failed to parse CSI endpoint\n");
+				return ret;
+			}
+
 			remote_ep = of_graph_get_remote_endpoint(csi_ep);
 			of_node_put(csi_ep);
 			if (!remote_ep) {
@@ -532,8 +541,9 @@ static int mxc_md_create_links(struct mxc_md *mxc_md)
 				return -ENODEV;
 			}
 
-			memset(&endpoint, 0x0, sizeof(struct of_endpoint));
-			ret = of_graph_parse_endpoint(remote_ep, &endpoint);
+			memset(&source_endpoint, 0, sizeof(source_endpoint));
+			ret = of_graph_parse_endpoint(remote_ep,
+					      &source_endpoint);
 			of_node_put(remote_ep);
 			if (ret < 0) {
 				v4l2_err(&mxc_md->v4l2_dev,
@@ -541,8 +551,8 @@ static int mxc_md_create_links(struct mxc_md *mxc_md)
 				return ret;
 			}
 
-			source_pad = endpoint.port;
-			sink_pad = source_pad;
+			source_pad = source_endpoint.port;
+			sink_pad = sink_endpoint.port;
 
 			mipi_vc = (mipi_csi2->vchannel) ? 4 : 1;
 			for (j = 0; j < mipi_vc; j++) {

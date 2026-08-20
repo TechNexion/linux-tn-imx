@@ -1149,7 +1149,7 @@ static int mipi_csis_set_fmt(struct v4l2_subdev *mipi_sd,
 	}
 
 	format->pad = source_pad->index;
-	ret = v4l2_subdev_call(sen_sd, pad, set_fmt, NULL, format);
+	ret = v4l2_subdev_call_state_active(sen_sd, pad, set_fmt, format);
 	if (ret < 0) {
 		v4l2_err(&state->sd, "%s, set sensor format fail\n", __func__);
 		return -EINVAL;
@@ -1191,7 +1191,7 @@ static int mipi_csis_get_fmt(struct v4l2_subdev *mipi_sd,
 	}
 
 	format->pad = source_pad->index;
-	ret = v4l2_subdev_call(sen_sd, pad, get_fmt, NULL, format);
+	ret = v4l2_subdev_call_state_active(sen_sd, pad, get_fmt, format);
 	if (ret < 0) {
 		v4l2_err(&state->sd, "%s, call get_fmt of subdev failed!\n", __func__);
 		return ret;
@@ -1231,7 +1231,8 @@ static int mipi_csis_set_frame_interval(struct v4l2_subdev *mipi_sd,
 		return -EINVAL;
 	}
 
-	return v4l2_subdev_call(sen_sd, pad, set_frame_interval, sd_state, interval);
+	return v4l2_subdev_call_state_active(sen_sd, pad, set_frame_interval,
+					      interval);
 }
 
 static int mipi_csis_get_frame_interval(struct v4l2_subdev *mipi_sd,
@@ -1248,7 +1249,8 @@ static int mipi_csis_get_frame_interval(struct v4l2_subdev *mipi_sd,
 		return -EINVAL;
 	}
 
-	return v4l2_subdev_call(sen_sd, pad, get_frame_interval, sd_state, interval);
+	return v4l2_subdev_call_state_active(sen_sd, pad, get_frame_interval,
+					      interval);
 }
 
 static int mipi_csis_enum_framesizes(struct v4l2_subdev *mipi_sd,
@@ -1256,7 +1258,12 @@ static int mipi_csis_enum_framesizes(struct v4l2_subdev *mipi_sd,
 		struct v4l2_subdev_frame_size_enum *fse)
 {
 	struct csi_state *state = mipi_sd_to_csi_state(mipi_sd);
+	struct media_pad *source_pad;
 	struct v4l2_subdev *sen_sd;
+
+	source_pad = csis_get_remote_sensor_pad(state);
+	if (!source_pad)
+		return -EINVAL;
 
 	/* Get remote source pad subdev */
 	sen_sd = csis_get_remote_subdev(state, __func__);
@@ -1265,6 +1272,7 @@ static int mipi_csis_enum_framesizes(struct v4l2_subdev *mipi_sd,
 		return -EINVAL;
 	}
 
+	fse->pad = source_pad->index;
 	return v4l2_subdev_call(sen_sd, pad, enum_frame_size, NULL, fse);
 }
 
@@ -1273,7 +1281,12 @@ static int mipi_csis_enum_frameintervals(struct v4l2_subdev *mipi_sd,
 		struct v4l2_subdev_frame_interval_enum *fie)
 {
 	struct csi_state *state = mipi_sd_to_csi_state(mipi_sd);
+	struct media_pad *source_pad;
 	struct v4l2_subdev *sen_sd;
+
+	source_pad = csis_get_remote_sensor_pad(state);
+	if (!source_pad)
+		return -EINVAL;
 
 	/* Get remote source pad subdev */
 	sen_sd = csis_get_remote_subdev(state, __func__);
@@ -1282,6 +1295,7 @@ static int mipi_csis_enum_frameintervals(struct v4l2_subdev *mipi_sd,
 		return -EINVAL;
 	}
 
+	fie->pad = source_pad->index;
 	return v4l2_subdev_call(sen_sd, pad, enum_frame_interval, NULL, fie);
 }
 
