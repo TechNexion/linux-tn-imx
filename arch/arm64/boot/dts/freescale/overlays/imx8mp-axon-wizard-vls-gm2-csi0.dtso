@@ -1,0 +1,196 @@
+// SPDX-License-Identifier: (GPL-2.0 OR MIT)
+/*
+ * Copyright 2024 TechNexion Ltd.
+ *
+ * Author: Nian Yang <nian.yang@technexion.com>
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/clock/imx8mp-clock.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/*
+ * MIPI CSI hs_settle = (lane_rate - 5 MHz) / 45 MHz
+ *                    = (1500 - 5) / 45
+ *                    = 33
+ */
+&mipi_csi_0 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+
+	port {
+		mipi_csi0_ep: endpoint {
+			remote-endpoint = <&des_0_csi_0_out>;
+			data-lanes = <4>;
+			csis-hs-settle = <33>;
+			csis-clk-settle = <2>;
+		};
+	};
+};
+
+&isi_0 {
+	status = "okay";
+
+	cap_device {
+		status = "okay";
+		fsl,stream-on-downstream-first;
+	};
+
+	m2m_device{
+		status = "okay";
+	};
+};
+
+&i2c2 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	des_0: max96724@2e {
+		compatible = "maxim,max96724";
+		reg = <0x2e>;
+		status = "okay";
+
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		enable-gpios = <&tca9554_22 1 GPIO_ACTIVE_HIGH>;
+
+		i2c-alias-pool = <0x41 0x42 0x43 0x44>;
+
+		i2c-atr {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			des_0_i2c_0: i2c@0 {
+				#address-cells = <1>;
+				#size-cells = <0>;
+				reg = <0>;
+			};
+		};
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				#address-cells = <1>;
+				#size-cells = <0>;
+				reg = <0>;
+
+				des_0_gmsl_a_in: endpoint@0 {
+					remote-endpoint = <&ser_0_gmsl_out>;
+				};
+			};
+
+			port@4 {
+				#address-cells = <1>;
+				#size-cells = <0>;
+				reg = <4>;
+
+				des_0_csi_0_out: endpoint@0 {
+					data-lanes = <1 2 3 4>;
+					clock-lanes = <0>;
+					bus-type = <4>;
+					link-frequencies = /bits/ 64 <750000000>;
+					remote-endpoint = <&mipi_csi0_ep>;
+				};
+			};
+		};
+	};
+};
+
+&des_0_i2c_0 {
+	ser_0: serializer@40 {
+		compatible = "maxim,max96717";
+		reg = <0x40>;
+
+		gpio-controller;
+		#gpio-cells = <2>;
+		#clock-cells = <0>;
+
+		i2c-alias-pool = <0x29 0x49>;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&ser_0_fsync>;
+
+		ser_0_fsync: mfp0-pins {
+			pins = "mfp0";
+			function = "gpio";
+			maxim,rx-id = <0>;
+			output-enable;
+			output-low;
+		};
+
+		i2c-atr {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			i2c@0 {
+				#address-cells = <1>;
+				#size-cells = <0>;
+				reg = <0>;
+
+				cam_0_expander: pca9554@25 {
+					compatible = "nxp,pca9554";
+					reg = <0x25>;
+					gpio-controller;
+					#gpio-cells = <2>;
+					gpio-line-names = "EXPOSURE_TRIG_IN",
+									"FLASH_OUT",
+									"INFO_TRIG_IN",
+									"CAMA_SHUTTER",
+									"CSI_P1_nRST",
+									"PWR_TIME0",
+									"PWR_TIME1",
+									"3V3_EN";
+					status = "okay";
+				};
+
+				cam_0: tevs@48 {
+					compatible = "tn,tevs";
+					reg = <0x48>;
+					status = "okay";
+
+					reset-gpios = <&cam_0_expander 4 GPIO_ACTIVE_HIGH>;
+					standby-gpios = <&cam_0_expander 2 GPIO_ACTIVE_HIGH>;
+
+					port {
+						cam_0_out: endpoint {
+							remote-endpoint = <&ser_0_csi_in>;
+							data-lanes = <1 2 3 4>;
+							clock-lanes = <0>;
+							link-frequencies = /bits/ 64 <400000000>;
+						};
+					};
+				};
+			};
+		};
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				#address-cells = <1>;
+				#size-cells = <0>;
+				reg = <0>;
+				ser_0_csi_in: endpoint {
+					data-lanes = <1 2 3 4>;
+					remote-endpoint = <&cam_0_out>;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+				ser_0_gmsl_out: endpoint {
+					remote-endpoint = <&des_0_gmsl_a_in>;
+				};
+			};
+		};
+	};
+};

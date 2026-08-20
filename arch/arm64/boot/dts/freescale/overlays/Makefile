@@ -14,6 +14,7 @@ dtbo-$(CONFIG_ARCH_MXC) += imx8mp-axon-wizard-hdmi2mipi-tc358743-single-cam1.dtb
 			   imx8mp-axon-wizard-tevs-csi0.dtbo imx8mp-axon-wizard-tevs-csi1.dtbo \
 			   imx8mp-axon-wizard-tevm-csi0.dtbo imx8mp-axon-wizard-tevm-csi1.dtbo \
 			   imx8mp-axon-wizard-vls-csi0.dtbo imx8mp-axon-wizard-vls-csi1.dtbo \
+			   imx8mp-axon-wizard-vls-gm2-csi0.dtbo imx8mp-axon-wizard-vls-gm2-csi1.dtbo \
 			   imx8mp-axon-wizard-lvds-vl10112880.dtbo imx8mp-axon-wizard-lvds-vl15613676.dtbo imx8mp-axon-wizard-lvds-vl156192108.dtbo imx8mp-axon-wizard-lvds-vl215192108.dtbo \
 			   imx8mp-axon-wizard-ili9881c.dtbo imx8mp-axon-wizard-g101uan02.dtbo imx8mp-axon-wizard-g080uan01.dtbo imx8mp-axon-wizard-mipi2hdmi-adv7535.dtbo \
 			   imx8mp-axon-wizard-vizionpanel-vl10112880.dtbo imx8mp-axon-wizard-vizionpanel-vl15010276.dtbo imx8mp-axon-wizard-vizionpanel-vl15613676.dtbo
@@ -23,6 +24,7 @@ dtbo-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wb-lvds-vl10112880.dtbo imx8mp-edm-g-wb-
 			   imx8mp-edm-g-wb-tevs-rpi22-csi0.dtbo imx8mp-edm-g-wb-tevs-rpi22-csi1.dtbo \
 			   imx8mp-edm-g-wb-tevs-rpi15-csi0.dtbo imx8mp-edm-g-wb-tevs-rpi15-csi1.dtbo \
 			   imx8mp-edm-g-wb-vls-csi0.dtbo imx8mp-edm-g-wb-vls-csi1.dtbo \
+			   imx8mp-edm-g-wb-vls-gm2-csi0.dtbo imx8mp-edm-g-wb-vls-gm2-csi1.dtbo \
 			   imx8mp-edm-g-wb-hdmi2mipi-tc358743-dual.dtbo imx8mp-edm-g-wb-hdmi2mipi-tc358743-single-cam1.dtbo \
 			   imx8mp-edm-g-wb-hdmi2mipi-tc358743-csi0.dtbo imx8mp-edm-g-wb-hdmi2mipi-tc358743-csi1.dtbo
 dtbo-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wizard-mipi2hdmi-adv7535.dtbo imx8mp-edm-g-wizard-lvds-vl10112880.dtbo imx8mp-edm-g-wizard-lvds-vl15613676.dtbo \
@@ -30,6 +32,7 @@ dtbo-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wizard-mipi2hdmi-adv7535.dtbo imx8mp-edm
 			   imx8mp-edm-g-wizard-tevs-csi0.dtbo imx8mp-edm-g-wizard-tevs-csi1.dtbo \
 			   imx8mp-edm-g-wizard-tevm-csi0.dtbo imx8mp-edm-g-wizard-tevm-csi1.dtbo \
 			   imx8mp-edm-g-wizard-vls-csi0.dtbo imx8mp-edm-g-wizard-vls-csi1.dtbo \
+			   imx8mp-edm-g-wizard-vls-gm2-csi0.dtbo imx8mp-edm-g-wizard-vls-gm2-csi1.dtbo \
 			   imx8mp-edm-g-wizard-hdmi2mipi-tc358743-dual.dtbo imx8mp-edm-g-wizard-hdmi2mipi-tc358743-single-cam1.dtbo \
 			   imx8mp-edm-g-wizard-hdmi2mipi-tc358743-csi0.dtbo imx8mp-edm-g-wizard-hdmi2mipi-tc358743-csi1.dtbo \
 			   imx8mp-edm-g-wizard-ili9881c.dtbo imx8mp-edm-g-wizard-g101uan02.dtbo \
