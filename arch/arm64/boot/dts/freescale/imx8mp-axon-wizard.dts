@@ -9,6 +9,8 @@
 /dts-v1/;
 
 #include "imx8mp-axon.dtsi"
+#include "imx8mp-nxp-display.dtsi"
+#include "imx8mp-nxp-capture.dtsi"
 
 / {
 	model = "TechNexion AXON-IMX8MP and WIZARD baseboard";
@@ -338,6 +340,14 @@
 		reg = <0x44>;
 		shunt-resistor = <200000>; /* .2 Ohm resistor = 200000 uOhms*/
 	};
+};
+
+&cameradev {
+	status = "okay";
+};
+
+&dewarp {
+	status = "okay";
 };
 
 &flexcan1 {
