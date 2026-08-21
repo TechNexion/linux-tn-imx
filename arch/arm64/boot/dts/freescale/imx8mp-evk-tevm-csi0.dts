@@ -1,0 +1,95 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2024 TechNexion Ltd.
+ *
+ * Author: Nian Yang <nian.yang@technexion.com>
+ */
+
+#include "imx8mp-evk.dts"
+
+/ {
+	model = "NXP i.MX8MPlus EVK with TechNexion TEVS on CSI0";
+};
+
+&iomuxc {
+	tevs_pinctrl_csi0_ctrl: tevs-csi0-ctrl-grp {
+		fsl,pins = <
+			/* TEVS standby */
+			MX8MP_IOMUXC_SD1_STROBE__GPIO2_IO11	0x9
+
+			/* TEVS host power */
+			MX8MP_IOMUXC_GPIO1_IO05__GPIO1_IO05	0x9
+		>;
+	};
+
+	tevs_pinctrl_csi0_mclk: tevs-csi0-mclk-grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_GPIO1_IO15__GPIO1_IO15	0x9
+		>;
+	};
+
+	tevs_pinctrl_csi0_rst: tevs-csi0-rst-grp {
+		fsl,pins = <
+			MX8MP_IOMUXC_GPIO1_IO06__GPIO1_IO06	0x19
+		>;
+	};
+};
+
+&mipi_csi_0 {
+	status = "okay";
+
+	port {
+		mipi_csi0_ep: endpoint {
+			remote-endpoint = <&tevs_0_ep>;
+			data-lanes = <4>;
+			csis-hs-settle = <13>;
+			csis-clk-settle = <2>;
+			csis-wclk;
+		};
+	};
+};
+
+&mipi_csi_1 {
+	status = "disabled";
+};
+
+&i2c2 {
+	clock-frequency = <400000>;
+	status = "okay";
+
+	/delete-node/ ov5640_mipi@3c;
+
+	tevs_0: tevs@48 {
+		compatible = "tn,tevs";
+		reg = <0x48>;
+		status = "okay";
+
+		pinctrl-names = "default";
+		pinctrl-0 = <
+			&tevs_pinctrl_csi0_ctrl
+			&tevs_pinctrl_csi0_rst
+			&tevs_pinctrl_csi0_mclk
+		>;
+
+		host-power-gpios = <&gpio1 5 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
+		standby-gpios = <&gpio2 11 GPIO_ACTIVE_HIGH>;
+
+		csi_id = <0>;
+
+		port {
+			tevs_0_ep: endpoint {
+				remote-endpoint = <&mipi_csi0_ep>;
+				data-lanes = <1 2 3 4>;
+				clock-lanes = <0>;
+				clock-noncontinuous;
+				link-frequencies = /bits/ 64 <400000000>;
+			};
+		};
+	};
+
+	imu_0: lsm6dsm@6a {
+		compatible = "st,lsm6dso16is";
+		reg = <0x6a>;
+	};
+};
