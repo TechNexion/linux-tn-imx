@@ -1,0 +1,61 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2025 NXP
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include "imx93-pinfunc.h"
+#include <dt-bindings/gpio/gpio.h>
+
+&lpi2c3 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	/delete-node/ap1302_mipi@3c;
+
+	pca9554_a27: pca9554@27 {
+		compatible = "nxp,pca9554";
+		pinctrl-names = "default";
+		reg = <0x27>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		status = "okay";
+		gpio-line-names = "EXPOSURE_TRIG_IN1", "FLASH_OUT1", "CAM_SHUTTER1", "XVS1",
+							"CSI1_PDB", "CSI1_INT", "INFO_TRIG_IN1", "CSI1_RST_N";
+	};
+
+	tevs: tevs@48 {
+		compatible = "tn,tevs";
+		reg = <0x48>;
+		status = "okay";
+
+		reset-gpios   = <&pcal6524 22 GPIO_ACTIVE_HIGH>;
+		standby-gpios = <&pca9554_a27 6 GPIO_ACTIVE_HIGH>;
+
+		port {
+			tevs_ep: endpoint {
+				remote-endpoint = <&mipi_csi0_ep>;
+				data-lanes = <1 2>;
+				clock-lanes = <0>;
+				clock-noncontinuous;
+				link-frequencies = /bits/ 64 <400000000>;
+			};
+		};
+	};
+};
+
+&mipi_csi {
+	status = "okay";
+
+	ports {
+		/delete-node/port@0;
+
+		port@0{
+			mipi_csi0_ep: endpoint {
+				remote-endpoint = <&tevs_ep>;
+				data-lanes = <1 2>;
+			};
+		};
+	};
+};
