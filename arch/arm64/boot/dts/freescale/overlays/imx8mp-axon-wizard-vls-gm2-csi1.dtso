@@ -161,7 +161,6 @@
 							remote-endpoint = <&ser_4_csi_in>;
 							data-lanes = <1 2 3 4>;
 							clock-lanes = <0>;
-							clock-noncontinuous;
 							link-frequencies = /bits/ 64 <400000000>;
 						};
 					};
@@ -179,7 +178,6 @@
 				reg = <0>;
 				ser_4_csi_in: endpoint {
 					data-lanes = <1 2 3 4>;
-					clock-noncontinuous;
 					remote-endpoint = <&cam_4_out>;
 				};
 			};
