@@ -1401,10 +1401,17 @@ static int tevs_set_max_fps(struct tevs *tevs, s32 value)
 {
 	u64 val;
 	int ret = 0;
-	ret += cci_write(tevs->regmap, TEVS_MAX_FPS, value & TEVS_MAX_FPS_MASK,
+	ret = cci_write(tevs->regmap, TEVS_MAX_FPS, value & TEVS_MAX_FPS_MASK,
 			 NULL);
-	ret += cci_read(tevs->regmap, TEVS_AE_MANUAL_EXP_TIME, &val, NULL);
+	if (ret)
+		return ret;
+	tevs->fps = value & TEVS_MAX_FPS_MASK;
+
+	ret = cci_read(tevs->regmap, TEVS_AE_MANUAL_EXP_TIME, &val, NULL);
+	if (ret)
+		return ret;
 	tevs->exp_time->cur.val = val & TEVS_AE_MANUAL_EXP_TIME_MASK;
+
 	return ret;
 }
 
