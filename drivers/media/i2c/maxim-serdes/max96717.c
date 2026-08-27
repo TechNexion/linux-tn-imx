@@ -18,182 +18,183 @@
 
 #include "max_ser.h"
 
-#define MAX96717_REG0				0x0
+#define MAX96717_REG0						0x0
 
-#define MAX96717_REG2				0x2
+#define MAX96717_REG2						0x2
 #define MAX96717_REG2_VID_TX_EN_P(p)		BIT(4 + (p))
 
-#define MAX96717_REG3				0x3
-#define MAX96717_REG3_RCLKSEL			GENMASK(1, 0)
-#define MAX96717_REG3_RCLK_ALT			BIT(2)
+#define MAX96717_REG3						0x3
+#define MAX96717_REG3_RCLKSEL				GENMASK(1, 0)
+#define MAX96717_REG3_RCLK_ALT				BIT(2)
 
-#define MAX96717_REG6				0x6
-#define MAX96717_REG6_RCLKEN			BIT(5)
+#define MAX96717_REG6						0x6
+#define MAX96717_REG6_RCLKEN				BIT(5)
 
-#define MAX96717_I2C_2(x)			(0x42 + (x) * 0x2)
-#define MAX96717_I2C_2_SRC			GENMASK(7, 1)
+#define MAX96717_I2C_2(x)					(0x42 + (x) * 0x2)
+#define MAX96717_I2C_2_SRC					GENMASK(7, 1)
 
-#define MAX96717_I2C_3(x)			(0x43 + (x) * 0x2)
-#define MAX96717_I2C_3_DST			GENMASK(7, 1)
+#define MAX96717_I2C_3(x)					(0x43 + (x) * 0x2)
+#define MAX96717_I2C_3_DST					GENMASK(7, 1)
 
-#define MAX96717_TX3(p)				(0x53 + (p) * 0x4)
-#define MAX96717_TX3_TX_STR_SEL			GENMASK(1, 0)
+#define MAX96717_TX3(p)						(0x53 + (p) * 0x4)
+#define MAX96717_TX3_TX_STR_SEL				GENMASK(1, 0)
 
-#define MAX96717_VIDEO_TX0(p)			(0x100 + (p) * 0x8)
-#define MAX96717_VIDEO_TX0_AUTO_BPP		BIT(3)
+#define MAX96717_VIDEO_TX0(p)				(0x100 + (p) * 0x8)
+#define MAX96717_VIDEO_TX0_CLKDET_BYP		BIT(2)
+#define MAX96717_VIDEO_TX0_AUTO_BPP			BIT(3)
+#define MAX96717_VIDEO_TX0_LINE_CRC_EN		BIT(6)
 
-#define MAX96717_VIDEO_TX1(p)			(0x101 + (p) * 0x8)
-#define MAX96717_VIDEO_TX1_BPP			GENMASK(5, 0)
+#define MAX96717_VIDEO_TX1(p)				(0x101 + (p) * 0x8)
+#define MAX96717_VIDEO_TX1_BPP				GENMASK(5, 0)
 
-#define MAX96717_VIDEO_TX2(p)			(0x102 + (p) * 0x8)
-#define MAX96717_VIDEO_TX2_PCLKDET		BIT(7)
+#define MAX96717_VIDEO_TX2(p)				(0x102 + (p) * 0x8)
 #define MAX96717_VIDEO_TX2_DRIFT_DET_EN		BIT(1)
+#define MAX96717_VIDEO_TX2_PCLKDET			BIT(7)
 
-#define MAX96717_VTX0(p)			(0x1c8 + (p) * 0x43)
-#define MAX96717_VTX0_VTG_MODE			GENMASK(1, 0)
+#define MAX96717_VTX0(p)					(0x1c8 + (p) * 0x43)
+#define MAX96717_VTX0_VTG_MODE				GENMASK(1, 0)
 #define MAX96717_VTX0_VTG_MODE_FREE_RUNNING	0b11
-#define MAX96717_VTX0_DE_INV			BIT(2)
-#define MAX96717_VTX0_HS_INV			BIT(3)
-#define MAX96717_VTX0_VS_INV			BIT(4)
-#define MAX96717_VTX0_GEN_DE			BIT(5)
-#define MAX96717_VTX0_GEN_HS			BIT(6)
-#define MAX96717_VTX0_GEN_VS			BIT(7)
+#define MAX96717_VTX0_DE_INV				BIT(2)
+#define MAX96717_VTX0_HS_INV				BIT(3)
+#define MAX96717_VTX0_VS_INV				BIT(4)
+#define MAX96717_VTX0_GEN_DE				BIT(5)
+#define MAX96717_VTX0_GEN_HS				BIT(6)
+#define MAX96717_VTX0_GEN_VS				BIT(7)
 
-#define MAX96717_VTX1(p)			(0x1c9 + (p) * 0x43)
+#define MAX96717_VTX1(p)					(0x1c9 + (p) * 0x43)
 #define MAX96717_VTX1_PATGEN_CLK_SRC		GENMASK(3, 1)
 #define MAX96717_VTX1_PATGEN_CLK_SRC_25MHZ	0b100
 #define MAX96717_VTX1_PATGEN_CLK_SRC_75MHZ	0b101
 #define MAX96717_VTX1_PATGEN_CLK_SRC_150MHZ	0b110
 #define MAX96717_VTX1_PATGEN_CLK_SRC_375MHZ	0b111
 
-#define MAX96717_VTX2_VS_DLY_2(p)		(0x1ca + (p) * 0x43)
-#define MAX96717_VTX5_VS_HIGH_2(p)		(0x1cd + (p) * 0x43)
-#define MAX96717_VTX8_VS_LOW_2(p)		(0x1d0 + (p) * 0x43)
-#define MAX96717_VTX11_V2H_2(p)			(0x1d3 + (p) * 0x43)
-#define MAX96717_VTX14_HS_HIGH_1(p)		(0x1d6 + (p) * 0x43)
-#define MAX96717_VTX16_HS_LOW_1(p)		(0x1d8 + (p) * 0x43)
-#define MAX96717_VTX18_HS_CNT_1(p)		(0x1da + (p) * 0x43)
-#define MAX96717_VTX20_V2D_2(p)			(0x1dc + (p) * 0x43)
-#define MAX96717_VTX23_DE_HIGH_1(p)		(0x1df + (p) * 0x43)
-#define MAX96717_VTX25_DE_LOW_1(p)		(0x1e1 + (p) * 0x43)
-#define MAX96717_VTX27_DE_CNT_1(p)		(0x1e3 + (p) * 0x43)
-#define MAX96717_VTX29(p)			(0x1e5 + (p) * 0x43)
+#define MAX96717_VTX2_VS_DLY_2(p)			(0x1ca + (p) * 0x43)
+#define MAX96717_VTX5_VS_HIGH_2(p)			(0x1cd + (p) * 0x43)
+#define MAX96717_VTX8_VS_LOW_2(p)			(0x1d0 + (p) * 0x43)
+#define MAX96717_VTX11_V2H_2(p)				(0x1d3 + (p) * 0x43)
+#define MAX96717_VTX14_HS_HIGH_1(p)			(0x1d6 + (p) * 0x43)
+#define MAX96717_VTX16_HS_LOW_1(p)			(0x1d8 + (p) * 0x43)
+#define MAX96717_VTX18_HS_CNT_1(p)			(0x1da + (p) * 0x43)
+#define MAX96717_VTX20_V2D_2(p)				(0x1dc + (p) * 0x43)
+#define MAX96717_VTX23_DE_HIGH_1(p)			(0x1df + (p) * 0x43)
+#define MAX96717_VTX25_DE_LOW_1(p)			(0x1e1 + (p) * 0x43)
+#define MAX96717_VTX27_DE_CNT_1(p)			(0x1e3 + (p) * 0x43)
+#define MAX96717_VTX29(p)					(0x1e5 + (p) * 0x43)
 
-#define MAX96717_VTX29_PATGEN_MODE		GENMASK(1, 0)
+#define MAX96717_VTX29_PATGEN_MODE			GENMASK(1, 0)
 #define MAX96717_VTX29_PATGEN_MODE_DISABLED	0b00
 #define MAX96717_VTX29_PATGEN_MODE_CHECKER	0b01
 #define MAX96717_VTX29_PATGEN_MODE_GRADIENT	0b10
 
-#define MAX96717_VTX30_GRAD_INCR(p)		(0x1e6 + (p) * 0x43)
-#define MAX96717_VTX31_CHKR_A_L(p)		(0x1e7 + (p) * 0x43)
-#define MAX96717_VTX34_CHKR_B_L(p)		(0x1ea + (p) * 0x43)
+#define MAX96717_VTX30_GRAD_INCR(p)			(0x1e6 + (p) * 0x43)
+#define MAX96717_VTX31_CHKR_A_L(p)			(0x1e7 + (p) * 0x43)
+#define MAX96717_VTX34_CHKR_B_L(p)			(0x1ea + (p) * 0x43)
 #define MAX96717_VTX37_CHKR_RPT_A(p)		(0x1ed + (p) * 0x43)
 #define MAX96717_VTX38_CHKR_RPT_B(p)		(0x1ee + (p) * 0x43)
-#define MAX96717_VTX39_CHKR_ALT(p)		(0x1ef + (p) * 0x43)
+#define MAX96717_VTX39_CHKR_ALT(p)			(0x1ef + (p) * 0x43)
 
-#define MAX96717_GPIO_A(x)			(0x2be + (x) * 0x3)
+#define MAX96717_GPIO_A(x)					(0x2be + (x) * 0x3)
 #define MAX96717_GPIO_A_GPIO_OUT_DIS		BIT(0)
-#define MAX96717_GPIO_A_GPIO_TX_EN		BIT(1)
-#define MAX96717_GPIO_A_GPIO_RX_EN		BIT(2)
-#define MAX96717_GPIO_A_GPIO_IN			BIT(3)
-#define MAX96717_GPIO_A_GPIO_OUT		BIT(4)
-#define MAX96717_GPIO_A_TX_COMP_EN		BIT(5)
-#define MAX96717_GPIO_A_RES_CFG			BIT(7)
+#define MAX96717_GPIO_A_GPIO_TX_EN			BIT(1)
+#define MAX96717_GPIO_A_GPIO_RX_EN			BIT(2)
+#define MAX96717_GPIO_A_GPIO_IN				BIT(3)
+#define MAX96717_GPIO_A_GPIO_OUT			BIT(4)
+#define MAX96717_GPIO_A_TX_COMP_EN			BIT(5)
+#define MAX96717_GPIO_A_RES_CFG				BIT(7)
 
-#define MAX96717_GPIO_B(x)			(0x2bf + (x) * 0x3)
-#define MAX96717_GPIO_B_GPIO_TX_ID		GENMASK(4, 0)
-#define MAX96717_GPIO_B_OUT_TYPE		BIT(5)
+#define MAX96717_GPIO_B(x)					(0x2bf + (x) * 0x3)
+#define MAX96717_GPIO_B_GPIO_TX_ID			GENMASK(4, 0)
+#define MAX96717_GPIO_B_OUT_TYPE			BIT(5)
 #define MAX96717_GPIO_B_PULL_UPDN_SEL		GENMASK(7, 6)
 #define MAX96717_GPIO_B_PULL_UPDN_SEL_NONE	0b00
 #define MAX96717_GPIO_B_PULL_UPDN_SEL_PU	0b01
 #define MAX96717_GPIO_B_PULL_UPDN_SEL_PD	0b10
 
-#define MAX96717_GPIO_C(x)			(0x2c0 + (x) * 0x3)
-#define MAX96717_GPIO_C_GPIO_RX_ID		GENMASK(4, 0)
+#define MAX96717_GPIO_C(x)					(0x2c0 + (x) * 0x3)
+#define MAX96717_GPIO_C_GPIO_RX_ID			GENMASK(4, 0)
 
-#define MAX96717_CMU2				0x302
-#define MAX96717_CMU2_PFDDIV_RSHORT		GENMASK(6, 4)
+#define MAX96717_CMU2						0x302
+#define MAX96717_CMU2_PFDDIV_RSHORT			GENMASK(6, 4)
 #define MAX96717_CMU2_PFDDIV_RSHORT_1_1V	0b001
 
-#define MAX96717_FRONTTOP_0			0x308
+#define MAX96717_FRONTTOP_0					0x308
 #define MAX96717_FRONTTOP_0_CLK_SEL_P(x)	BIT(x)
 #define MAX96717_FRONTTOP_0_START_PORT(x)	BIT((x) + 4)
 #define MAX96717_FRONTTOP_0_RSVD			BIT(7)
 
-#define MAX96717_FRONTTOP_1(p)			(0x309 + (p) * 0x2)
-#define MAX96717_FRONTTOP_2(p)			(0x30a + (p) * 0x2)
+#define MAX96717_FRONTTOP_1(p)				(0x309 + (p) * 0x2)
+#define MAX96717_FRONTTOP_2(p)				(0x30a + (p) * 0x2)
 
-#define MAX96717_FRONTTOP_9			0x311
+#define MAX96717_FRONTTOP_9					0x311
 #define MAX96717_FRONTTOP_9_START_PORT(p, x)	BIT((p) + (x) * 4)
 
-#define MAX96717_FRONTTOP_10			0x312
+#define MAX96717_FRONTTOP_10				0x312
 #define MAX96717_FRONTTOP_10_BPP8DBL(p)		BIT(p)
 
-#define MAX96717_FRONTTOP_11			0x313
+#define MAX96717_FRONTTOP_11				0x313
 #define MAX96717_FRONTTOP_11_BPP10DBL(p)	BIT(p)
 #define MAX96717_FRONTTOP_11_BPP12DBL(p)	BIT((p) + 4)
 
-#define MAX96717_FRONTTOP_12(p, x)		(0x314 + (p) * 0x2 + (x))
-#define MAX96717_MEM_DT_SEL			GENMASK(5, 0)
-#define MAX96717_MEM_DT_EN			BIT(6)
+#define MAX96717_FRONTTOP_12(p, x)			(0x314 + (p) * 0x2 + (x))
+#define MAX96717_MEM_DT_SEL					GENMASK(5, 0)
+#define MAX96717_MEM_DT_EN					BIT(6)
 
-#define MAX96717_FRONTTOP_20(p)			(0x31c + (p) * 0x1)
+#define MAX96717_FRONTTOP_20(p)				(0x31c + (p) * 0x1)
 #define MAX96717_FRONTTOP_20_SOFT_BPP_EN	BIT(5)
 #define MAX96717_FRONTTOP_20_SOFT_BPP		GENMASK(4, 0)
 
-#define MAX96717_MIPI_RX0			0x330
+#define MAX96717_MIPI_RX0					0x330
 #define MAX96717_MIPI_RX0_NONCONTCLK_EN		BIT(6)
 #define MAX96717_MIPI_RX0_RX_RESET			BIT(3)
 
-#define MAX96717_MIPI_RX1			0x331
+#define MAX96717_MIPI_RX1					0x331
 #define MAX96717_MIPI_RX1_CTRL_NUM_LANES	GENMASK(5, 4)
 
-#define MAX96717_MIPI_RX2			0x332
+#define MAX96717_MIPI_RX2					0x332
 #define MAX96717_MIPI_RX2_PHY1_LANE_MAP		GENMASK(7, 4)
 
-#define MAX96717_MIPI_RX3			0x333
+#define MAX96717_MIPI_RX3					0x333
 #define MAX96717_MIPI_RX3_PHY2_LANE_MAP		GENMASK(3, 0)
 
-#define MAX96717_MIPI_RX4			0x334
+#define MAX96717_MIPI_RX4					0x334
 #define MAX96717_MIPI_RX4_PHY1_POL_MAP		GENMASK(5, 4)
 
-#define MAX96717_MIPI_RX5			0x335
+#define MAX96717_MIPI_RX5					0x335
 #define MAX96717_MIPI_RX5_PHY2_POL_MAP		GENMASK(1, 0)
 #define MAX96717_MIPI_RX5_PHY2_POL_MAP_CLK	BIT(2)
 
-#define MAX96717_EXTA(x)			(0x3dc + (x))
+#define MAX96717_EXTA(x)					(0x3dc + (x))
 
-#define MAX96717_EXT11				0x383
-#define MAX96717_EXT11_TUN_MODE			BIT(7)
+#define MAX96717_EXT11						0x383
+#define MAX96717_EXT11_TUN_MODE				BIT(7)
 
-#define MAX96717_EXT21				0x38d
-#define MAX96717_EXT22				0x38e
-#define MAX96717_EXT23				0x38f
-#define MAX96717_EXT24				0x390
+#define MAX96717_EXT21						0x38d
+#define MAX96717_EXT22						0x38e
+#define MAX96717_EXT23						0x38f
+#define MAX96717_EXT24						0x390
 
-#define MAX96717_REF_VTG0			0x3f0
-#define MAX96717_REF_VTG0_REFGEN_EN		BIT(0)
+#define MAX96717_REF_VTG0					0x3f0
+#define MAX96717_REF_VTG0_REFGEN_EN			BIT(0)
 #define MAX96717_REF_VTG0_REFGEN_RST		BIT(1)
-#define MAX96717_REF_VTG0_REFGEN_PREDEF_FREQ_ALT\
-						BIT(3)
+#define MAX96717_REF_VTG0_REFGEN_PREDEF_FREQ_ALT	BIT(3)
 #define MAX96717_REF_VTG0_REFGEN_PREDEF_FREQ	GENMASK(5, 4)
 
-#define MAX96717_PIO_SLEW_0			0x56f
+#define MAX96717_PIO_SLEW_0					0x56f
 #define MAX96717_PIO_SLEW_0_PIO00_SLEW		GENMASK(1, 0)
 #define MAX96717_PIO_SLEW_0_PIO01_SLEW		GENMASK(3, 2)
 #define MAX96717_PIO_SLEW_0_PIO02_SLEW		GENMASK(5, 4)
 
-#define MAX96717_PIO_SLEW_1			0x570
+#define MAX96717_PIO_SLEW_1					0x570
 #define MAX96717_PIO_SLEW_1_PIO05_SLEW		GENMASK(3, 2)
 #define MAX96717_PIO_SLEW_1_PIO06_SLEW		GENMASK(5, 4)
 
-#define MAX96717_PIO_SLEW_2			0x571
+#define MAX96717_PIO_SLEW_2					0x571
 #define MAX96717_PIO_SLEW_2_PIO010_SLEW		GENMASK(5, 4)
 #define MAX96717_PIO_SLEW_2_PIO011_SLEW		GENMASK(7, 6)
 
-#define MAX96717_PIO_SLEW_FASTEST		0b00
+#define MAX96717_PIO_SLEW_FASTEST			0b00
 
-#define MAX96717_RLMS(x)			(0x1400 + (x))
+#define MAX96717_RLMS(x)					(0x1400 + (x))
 
 #define MAX96717_BIAS_PULL_STRENGTH_1000000_OHM	1000000U
 #define MAX96717_BIAS_PULL_STRENGTH_40000_OHM	40000U
@@ -201,10 +202,10 @@
 #define MAX96717_DEFAULT_CLKOUT_RATE		24000000UL
 
 #define MAX96717_NAME				"max96717"
-#define MAX96717_PINCTRL_NAME			MAX96717_NAME "-pinctrl"
-#define MAX96717_GPIOCHIP_NAME			MAX96717_NAME "-gpiochip"
+#define MAX96717_PINCTRL_NAME		MAX96717_NAME "-pinctrl"
+#define MAX96717_GPIOCHIP_NAME		MAX96717_NAME "-gpiochip"
 #define MAX96717_GPIO_NUM			11
-#define MAX96717_RCLK_ALT_MFP			2
+#define MAX96717_RCLK_ALT_MFP		2
 #define MAX96717_RCLK_MFP			4
 #define MAX96717_PIPES_NUM			4
 #define MAX96717_PHYS_NUM			2
@@ -1206,9 +1207,29 @@ static int max96717_set_i2c_xlate(struct max_ser *ser, unsigned int i,
 static int max96717_set_tunnel_enable(struct max_ser *ser, bool enable)
 {
 	struct max96717_priv *priv = ser_to_priv(ser);
+	unsigned int index = max96717_pipe_id(priv, &ser->pipes[0]);
+	int ret;
 
-	return max96717_assign_bits(priv, MAX96717_EXT11,
-				  MAX96717_EXT11_TUN_MODE, enable);
+	dev_dbg(priv->dev, "%s(): enable [%d]\n", __func__, enable);
+
+	if (enable) {
+		ret = max96717_set_bits(priv, MAX96717_VIDEO_TX0(index),
+					 MAX96717_VIDEO_TX0_CLKDET_BYP);
+		if (ret)
+			return ret;
+	}
+
+	ret = max96717_assign_bits(priv, MAX96717_EXT11,
+				   MAX96717_EXT11_TUN_MODE, enable);
+	if (ret || enable)
+		return ret;
+
+	ret = max96717_clear_bits(priv, MAX96717_VIDEO_TX0(index),
+					 MAX96717_VIDEO_TX0_CLKDET_BYP);
+	if (ret)
+		return ret;
+
+	return ret;
 }
 
 static int max96717_set_tpg_timings(struct max96717_priv *priv,

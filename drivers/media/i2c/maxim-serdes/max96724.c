@@ -17,9 +17,9 @@
 
 #include "max_des.h"
 
-#define MAX96724_REG0				0x0
+#define MAX96724_REG0						0x0
 
-#define MAX96724_REG3				0x3
+#define MAX96724_REG3						0x3
 #define MAX96724_REG3_CC_PORT_SEL(n)		GENMASK((n) * 2 + 1, (n) * 2)
 #define MAX96724_REG3_CC_PORT_SEL_MASK		(MAX96724_REG3_CC_PORT_SEL(0) | \
 						 MAX96724_REG3_CC_PORT_SEL(1) | \
@@ -37,173 +37,176 @@
 #define MAX96724_REG3_CC_PORT_CFG_PORT1 \
 	MAX96724_REG3_CC_PORT_CFG(MAX96724_REG3_CC_PORT_SEL_PORT1)
 
-#define MAX96724_REG6				0x6
-#define MAX96724_REG6_LINK_EN			GENMASK(3, 0)
+#define MAX96724_REG6						0x6
+#define MAX96724_REG6_LINK_EN				GENMASK(3, 0)
 
-#define MAX96724_REG7				0x7
+#define MAX96724_REG7						0x7
 #define MAX96724_REG7_CC_CROSSOVER_SEL		GENMASK(7, 4)
 
-#define MAX96724_DEBUG_EXTRA			0x9
+#define MAX96724_DEBUG_EXTRA				0x9
 #define MAX96724_DEBUG_EXTRA_PCLK_SRC		GENMASK(1, 0)
 #define MAX96724_DEBUG_EXTRA_PCLK_SRC_25MHZ	0b00
 #define MAX96724_DEBUG_EXTRA_PCLK_SRC_75MHZ	0b01
 #define MAX96724_DEBUG_EXTRA_PCLK_SRC_USE_PIPE	0b10
 
-#define MAX96724_REG26(x)			(0x10 + (x) / 2)
+#define MAX96724_REG26(x)					(0x10 + (x) / 2)
 #define MAX96724_REG26_RX_RATE_PHY(x)		(GENMASK(1, 0) << (4 * ((x) % 2)))
 #define MAX96724_REG26_RX_RATE_3GBPS		0b01
 #define MAX96724_REG26_RX_RATE_6GBPS		0b10
 
-#define MAX96724_PWR1				0x13
-#define MAX96724_PWR1_RESET_ALL			BIT(6)
+#define MAX96724_PWR1						0x13
+#define MAX96724_PWR1_RESET_ALL				BIT(6)
 
-#define MAX96724_CTRL1				0x18
+#define MAX96724_CTRL1						0x18
 #define MAX96724_CTRL1_RESET_ONESHOT		GENMASK(3, 0)
 
-#define MAX96724_CTRL3				0x1a
-#define MAX96724_CTRL3_LOCKED_A			BIT(3)
+#define MAX96724_CTRL3						0x1a
+#define MAX96724_CTRL3_LOCKED_A				BIT(3)
 
-#define MAX96724_VIDEO_PIPE_SEL(p)		(0xf0 + (p) / 2)
+#define MAX96724_VIDEO_PIPE_SEL(p)			(0xf0 + (p) / 2)
 #define MAX96724_VIDEO_PIPE_SEL_STREAM(p)	(GENMASK(1, 0) << (4 * ((p) % 2)))
 #define MAX96724_VIDEO_PIPE_SEL_LINK(p)		(GENMASK(3, 2) << (4 * ((p) % 2)))
 
-#define MAX96724_VIDEO_PIPE_EN			0xf4
+#define MAX96724_VIDEO_PIPE_EN				0xf4
 #define MAX96724_VIDEO_PIPE_EN_MASK(p)		BIT(p)
 #define MAX96724_VIDEO_PIPE_EN_STREAM_SEL_ALL	BIT(4)
 
-#define MAX96724_VPRBS(p)			(0x1dc + (p) * 0x20)
-#define MAX96724_VPRBS_VIDEO_LOCK		BIT(0)
+#define MAX96724_VIDEO_RX0(p)				(0x100 + (p) * 0x12)
+#define MAX96724_VIDEO_RX0_LINE_CRC_EN		BIT(1)
+
+#define MAX96724_VPRBS(p)					(0x1dc + (p) * 0x20)
+#define MAX96724_VPRBS_VIDEO_LOCK			BIT(0)
 #define MAX96724_VPRBS_PATGEN_CLK_SRC		BIT(7)
 #define MAX96724_VPRBS_PATGEN_CLK_SRC_150MHZ	0b0
 #define MAX96724_VPRBS_PATGEN_CLK_SRC_375MHZ	0b1
 
 /* GPIO_A: 0 <= gpio < 11 */
-#define MAX96724_GPIO_A_A_7				  (0x0316)
-#define   GPIO_OUT_DIS					  BIT(0)
-#define   GPIO_TX_EN_A					  BIT(1)
-#define   GPIO_RX_EN_A					  BIT(2)
-#define   GPIO_IN					  BIT(3)
-#define   GPIO_OUT					  BIT(4)
-#define   TX_COMP_EN_A					  BIT(5)
-#define   RES_CFG					  BIT(7)
-#define MAX96724_GPIO_A_B_7				  (0x0317)
+#define MAX96724_GPIO_A_A_7					(0x0316)
+#define   GPIO_OUT_DIS						BIT(0)
+#define   GPIO_TX_EN_A						BIT(1)
+#define   GPIO_RX_EN_A						BIT(2)
+#define   GPIO_IN							BIT(3)
+#define   GPIO_OUT							BIT(4)
+#define   TX_COMP_EN_A						BIT(5)
+#define   RES_CFG							BIT(7)
+#define MAX96724_GPIO_A_B_7					(0x0317)
 /* GPIO_B: 0 <= gpio < 11 */
-#define MAX96724_GPIO_B_B_7				  (0x034d)
+#define MAX96724_GPIO_B_B_7					(0x034d)
 /* GPIO_C: 0 <= gpio < 11 */
-#define MAX96724_GPIO_C_B_7			 	  (0x0384)
+#define MAX96724_GPIO_C_B_7					(0x0384)
 /* GPIO_D: 0 <= gpio < 11 */
-#define MAX96724_GPIO_D_B_7				  (0x03ba)
-#define   GPIO_TX_ID_MASK				  GENMASK(4, 0)
-#define   GPIO_TX_ID_SHIFT				  0
-#define   GPIO_TX_EN					  BIT(5)
-#define   TX_COMP_EN					  BIT(6)
+#define MAX96724_GPIO_D_B_7					(0x03ba)
+#define   GPIO_TX_ID_MASK					GENMASK(4, 0)
+#define   GPIO_TX_ID_SHIFT					0
+#define   GPIO_TX_EN						BIT(5)
+#define   TX_COMP_EN						BIT(6)
 
-#define MAX96724_BACKTOP12			0x40b
+#define MAX96724_BACKTOP12					0x40b
 #define MAX96724_BACKTOP12_CSI_OUT_EN		BIT(1)
 
-#define MAX96724_BACKTOP21(p)			(0x414 + (p) / 4 * 0x20)
+#define MAX96724_BACKTOP21(p)				(0x414 + (p) / 4 * 0x20)
 #define MAX96724_BACKTOP21_BPP8DBL(p)		BIT(4 + (p) % 4)
 
-#define MAX96724_BACKTOP22(x)			(0x415 + (x) * 0x3)
+#define MAX96724_BACKTOP22(x)				(0x415 + (x) * 0x3)
 #define MAX96724_BACKTOP22_PHY_CSI_TX_DPLL	GENMASK(4, 0)
 #define MAX96724_BACKTOP22_PHY_CSI_TX_DPLL_EN	BIT(5)
 
-#define MAX96724_BACKTOP24(p)			(0x417 + (p) / 4 * 0x20)
+#define MAX96724_BACKTOP24(p)				(0x417 + (p) / 4 * 0x20)
 #define MAX96724_BACKTOP24_BPP8DBL_MODE(p)	BIT(4 + (p) % 4)
 
-#define MAX96724_BACKTOP30(p)			(0x41d + (p) / 4 * 0x20)
+#define MAX96724_BACKTOP30(p)				(0x41d + (p) / 4 * 0x20)
 #define MAX96724_BACKTOP30_BPP10DBL3		BIT(4)
 #define MAX96724_BACKTOP30_BPP10DBL3_MODE	BIT(5)
 
-#define MAX96724_BACKTOP31(p)			(0x41e + (p) / 4 * 0x20)
+#define MAX96724_BACKTOP31(p)				(0x41e + (p) / 4 * 0x20)
 #define MAX96724_BACKTOP31_BPP10DBL2		BIT(6)
 #define MAX96724_BACKTOP31_BPP10DBL2_MODE	BIT(7)
 
-#define MAX96724_BACKTOP32(p)			(0x41f + (p) / 4 * 0x20)
-#define MAX96724_BACKTOP32_BPP12(p)		BIT((p) % 4)
+#define MAX96724_BACKTOP32(p)				(0x41f + (p) / 4 * 0x20)
+#define MAX96724_BACKTOP32_BPP12(p)			BIT((p) % 4)
 #define MAX96724_BACKTOP32_BPP10DBL0		BIT(4)
 #define MAX96724_BACKTOP32_BPP10DBL0_MODE	BIT(5)
 #define MAX96724_BACKTOP32_BPP10DBL1		BIT(6)
 #define MAX96724_BACKTOP32_BPP10DBL1_MODE	BIT(7)
 
 /* FSYNC */
-#define MAX96724_FSYNC_0				  0x04a0
-#define   FSYNC_METH_MASK				  GENMASK(1, 0)
-#define   FSYNC_METH_SHIFT				  0
-#define   FSYNC_MODE_MASK				  GENMASK(3, 2)
-#define   FSYNC_MODE_SHIFT				  2
-#define   EN_VS_GEN					  BIT(4)
-#define   FSYNC_OUT_PIN					  BIT(5)
-#define MAX96724_FSYNC_1				  0x04a1
-#define   FSYNC_PER_DIV_MASK				  GENMASK(3, 0)
-#define   FSYNC_PER_DIV_SHIFT				  0
-#define MAX96724_FSYNC_2				  0x04a2
-#define   K_VAL_MASK					  GENMASK(3, 0)
-#define   K_VAL_SHIFT					  0
-#define   K_VAL_SIGN					  BIT(4)
-#define   MST_LINK_SEL_MASK				  GENMASK(7, 5)
-#define   MST_LINK_SEL_SHIFT				  5
-#define MAX96724_FSYNC_P_VAL_L				  0x04a3
-#define MAX96724_FSYNC_4				  0x04a4
-#define   P_VAL_H_MASK					  GENMASK(4, 0)
-#define   P_VAL_H_SHIFT					  0
-#define   P_VAL_SIGN					  BIT(5)
-#define MAX96724_FSYNC_PERIOD_L				  0x04a5
-#define MAX96724_FSYNC_PERIOD_M				  0x04a6
-#define MAX96724_FSYNC_PERIOD_H				  0x04a7
-#define MAX96724_FSYNC_FRM_DIFF_ERR_THR_L		  0x04a8
-#define MAX96724_FSYNC_9				  0x04a9
-#define   FRM_DIFF_ERR_THR_H_MASK			  GENMASK(4, 0)
-#define   FRM_DIFF_ERR_THR_H_SHIFT			  0
-#define MAX96724_FSYNC_OVLP_WINDOW_L			  0x04aa
-#define MAX96724_FSYNC_11				  0x04ab
-#define   OVLP_WINDOW_H_MASK				  GENMASK(4, 0)
-#define   OVLP_WINDOW_H_SHIFT				  0
-#define   EN_FSIN_LAST					  BIT(7)
-#define MAX96724_FSYNC_15				  0x04af
-#define   FS_LINK_0					  BIT(0)
-#define   FS_LINK_1					  BIT(1)
-#define   FS_LINK_2					  BIT(2)
-#define   FS_LINK_3					  BIT(3)
-#define   AUTO_FS_LINKS					  BIT(4)
-#define   FS_USE_XTAL					  BIT(6)
-#define   FS_GPIO_TYPE					  BIT(7)
-#define MAX96724_FSYNC_ERR_CNT				  0x04b0
-#define MAX96724_FSYNC_17				  0x04b1
-#define   FSYNC_ERR_THR_MASK				  GENMASK(2, 0)
-#define   FSYNC_ERR_THR_SHIFT				  0
-#define   FSYNC_TX_ID_MASK				  GENMASK(7, 3)
-#define   FSYNC_TX_ID_SHIFT				  3
-#define MAX96724_FSYNC_CALC_FRM_LEN_L			  0x04b2
-#define MAX96724_FSYNC_CALC_FRM_LEN_M			  0x04b3
-#define MAX96724_FSYNC_CALC_FRM_LEN_H			  0x04b4
-#define MAX96724_FSYNC_FRM_DIFF_L			  0x04b5
-#define MAX96724_FSYNC_22				  0x04b6
-#define   FRM_DIFF_H_MASK				  GENMASK(5, 0)
-#define   FRM_DIFF_H_SHIFT				  0
-#define   FSYNC_LOCKED					  BIT(6)
-#define   FSYNC_LOSS_OF_LOCK				  BIT(7)
-#define MAX96724_FSYNC_23				  0x04b7
-#define   FSYNC_RST_MODE				  BIT(5)
+#define MAX96724_FSYNC_0					0x04a0
+#define   FSYNC_METH_MASK					GENMASK(1, 0)
+#define   FSYNC_METH_SHIFT					0
+#define   FSYNC_MODE_MASK					GENMASK(3, 2)
+#define   FSYNC_MODE_SHIFT					2
+#define   EN_VS_GEN							BIT(4)
+#define   FSYNC_OUT_PIN						BIT(5)
+#define MAX96724_FSYNC_1					0x04a1
+#define   FSYNC_PER_DIV_MASK				GENMASK(3, 0)
+#define   FSYNC_PER_DIV_SHIFT				0
+#define MAX96724_FSYNC_2					0x04a2
+#define   K_VAL_MASK						GENMASK(3, 0)
+#define   K_VAL_SHIFT						0
+#define   K_VAL_SIGN						BIT(4)
+#define   MST_LINK_SEL_MASK					GENMASK(7, 5)
+#define   MST_LINK_SEL_SHIFT				5
+#define MAX96724_FSYNC_P_VAL_L				0x04a3
+#define MAX96724_FSYNC_4					0x04a4
+#define   P_VAL_H_MASK						GENMASK(4, 0)
+#define   P_VAL_H_SHIFT						0
+#define   P_VAL_SIGN						BIT(5)
+#define MAX96724_FSYNC_PERIOD_L				0x04a5
+#define MAX96724_FSYNC_PERIOD_M				0x04a6
+#define MAX96724_FSYNC_PERIOD_H				0x04a7
+#define MAX96724_FSYNC_FRM_DIFF_ERR_THR_L	0x04a8
+#define MAX96724_FSYNC_9					0x04a9
+#define   FRM_DIFF_ERR_THR_H_MASK			GENMASK(4, 0)
+#define   FRM_DIFF_ERR_THR_H_SHIFT			0
+#define MAX96724_FSYNC_OVLP_WINDOW_L		0x04aa
+#define MAX96724_FSYNC_11					0x04ab
+#define   OVLP_WINDOW_H_MASK				GENMASK(4, 0)
+#define   OVLP_WINDOW_H_SHIFT				0
+#define   EN_FSIN_LAST						BIT(7)
+#define MAX96724_FSYNC_15					0x04af
+#define   FS_LINK_0							BIT(0)
+#define   FS_LINK_1							BIT(1)
+#define   FS_LINK_2							BIT(2)
+#define   FS_LINK_3							BIT(3)
+#define   AUTO_FS_LINKS						BIT(4)
+#define   FS_USE_XTAL						BIT(6)
+#define   FS_GPIO_TYPE						BIT(7)
+#define MAX96724_FSYNC_ERR_CNT				0x04b0
+#define MAX96724_FSYNC_17					0x04b1
+#define   FSYNC_ERR_THR_MASK				GENMASK(2, 0)
+#define   FSYNC_ERR_THR_SHIFT				0
+#define   FSYNC_TX_ID_MASK					GENMASK(7, 3)
+#define   FSYNC_TX_ID_SHIFT					3
+#define MAX96724_FSYNC_CALC_FRM_LEN_L		0x04b2
+#define MAX96724_FSYNC_CALC_FRM_LEN_M		0x04b3
+#define MAX96724_FSYNC_CALC_FRM_LEN_H		0x04b4
+#define MAX96724_FSYNC_FRM_DIFF_L			0x04b5
+#define MAX96724_FSYNC_22					0x04b6
+#define   FRM_DIFF_H_MASK					GENMASK(5, 0)
+#define   FRM_DIFF_H_SHIFT					0
+#define   FSYNC_LOCKED						BIT(6)
+#define   FSYNC_LOSS_OF_LOCK				BIT(7)
+#define MAX96724_FSYNC_23					0x04b7
+#define   FSYNC_RST_MODE					BIT(5)
 
-#define MAX96724_MIPI_PHY0			0x8a0
+#define MAX96724_MIPI_PHY0					0x8a0
 #define MAX96724_MIPI_PHY0_PHY_CONFIG		GENMASK(4, 0)
-#define MAX96724_MIPI_PHY0_PHY_4X2		BIT(0)
-#define MAX96724_MIPI_PHY0_PHY_2X4		BIT(2)
+#define MAX96724_MIPI_PHY0_PHY_4X2			BIT(0)
+#define MAX96724_MIPI_PHY0_PHY_2X4			BIT(2)
 #define MAX96724_MIPI_PHY0_PHY_1X4A_2X2		BIT(3)
 #define MAX96724_MIPI_PHY0_PHY_1X4B_2X2		BIT(4)
 #define MAX96724_MIPI_PHY0_FORCE_CSI_OUT_EN	BIT(7)
 
-#define MAX96724_MIPI_PHY2			0x8a2
+#define MAX96724_MIPI_PHY2					0x8a2
 #define MAX96724_MIPI_PHY2_T_HS_TRAIL_MASK	GENMASK(1, 0)
 #define MAX96724_MIPI_PHY2_PHY_STDB_N_4(x)	(GENMASK(5, 4) << ((x) / 2 * 2))
 #define MAX96724_MIPI_PHY2_PHY_STDB_N_2(x)	(BIT(4 + (x)))
 
-#define MAX96724_MIPI_PHY3(x)			(0x8a3 + (x) / 2)
+#define MAX96724_MIPI_PHY3(x)				(0x8a3 + (x) / 2)
 #define MAX96724_MIPI_PHY3_PHY_LANE_MAP_4	GENMASK(7, 0)
 #define MAX96724_MIPI_PHY3_PHY_LANE_MAP_2(x)	(GENMASK(3, 0) << (4 * ((x) % 2)))
 
-#define MAX96724_MIPI_PHY5(x)			(0x8a5 + (x) / 2)
+#define MAX96724_MIPI_PHY5(x)				(0x8a5 + (x) / 2)
 #define MAX96724_MIPI_PHY5_PHY_POL_MAP_4_0_1	GENMASK(1, 0)
 #define MAX96724_MIPI_PHY5_PHY_POL_MAP_4_2_3	GENMASK(4, 3)
 #define MAX96724_MIPI_PHY5_PHY_POL_MAP_4_CLK	BIT(5)
@@ -211,109 +214,109 @@
 #define MAX96724_MIPI_PHY5_PHY_POL_MAP_2_CLK(x)	BIT(2 + 3 * ((x) % 2))
 #define MAX96724_MIPI_PHY5_T_CLK_PREP_MASK(x)	GENMASK(7, 6)
 
-#define MAX96724_MIPI_PHY13			0x8ad
+#define MAX96724_MIPI_PHY13					0x8ad
 #define MAX96724_MIPI_PHY13_T_T3_PREBEGIN	GENMASK(5, 0)
 #define MAX96724_MIPI_PHY13_T_T3_PREBEGIN_64X7	FIELD_PREP(MAX96724_MIPI_PHY13_T_T3_PREBEGIN, 63)
 
-#define MAX96724_MIPI_PHY14			0x8ae
+#define MAX96724_MIPI_PHY14					0x8ae
 #define MAX96724_MIPI_PHY14_T_T3_PREP		GENMASK(1, 0)
 #define MAX96724_MIPI_PHY14_T_T3_PREP_55NS	FIELD_PREP(MAX96724_MIPI_PHY14_T_T3_PREP, 0b01)
 #define MAX96724_MIPI_PHY14_T_T3_POST		GENMASK(6, 2)
 #define MAX96724_MIPI_PHY14_T_T3_POST_32X7	FIELD_PREP(MAX96724_MIPI_PHY14_T_T3_POST, 31)
 
-#define MAX96724_MIPI_CTRL_SEL			0x8ca
+#define MAX96724_MIPI_CTRL_SEL				0x8ca
 #define MAX96724_MIPI_CTRL_SEL_MASK(p)		(GENMASK(1, 0) << ((p) * 2))
 
-#define MAX96724_MIPI_PHY25(x)			(0x8d0 + (x) / 2)
+#define MAX96724_MIPI_PHY25(x)				(0x8d0 + (x) / 2)
 #define MAX96724_MIPI_PHY25_CSI2_TX_PKT_CNT(x)	(GENMASK(3, 0) << (4 * ((x) % 2)))
 
-#define MAX96724_MIPI_PHY27(x)			(0x8d2 + (x) / 2)
+#define MAX96724_MIPI_PHY27(x)				(0x8d2 + (x) / 2)
 #define MAX96724_MIPI_PHY27_PHY_PKT_CNT(x)	(GENMASK(3, 0) << (4 * ((x) % 2)))
 
-#define MAX96724_MIPI_TX3(x)			(0x903 + (x) * 0x40)
+#define MAX96724_MIPI_TX3(x)				(0x903 + (x) * 0x40)
 #define MAX96724_MIPI_TX3_DESKEW_INIT_8X32K	FIELD_PREP(GENMASK(2, 0), 0b001)
 #define MAX96724_MIPI_TX3_DESKEW_INIT_AUTO	BIT(7)
 
-#define MAX96724_MIPI_TX4(x)			(0x904 + (x) * 0x40)
+#define MAX96724_MIPI_TX4(x)				(0x904 + (x) * 0x40)
 #define MAX96724_MIPI_TX4_DESKEW_PER_2K		FIELD_PREP(GENMASK(2, 0), 0b001)
 #define MAX96724_MIPI_TX4_DESKEW_PER_AUTO	BIT(7)
 
-#define MAX96724_MIPI_TX10(x)			(0x90a + (x) * 0x40)
+#define MAX96724_MIPI_TX10(x)				(0x90a + (x) * 0x40)
 #define MAX96724_MIPI_TX10_CSI2_CPHY_EN		BIT(5)
 #define MAX96724_MIPI_TX10_CSI2_LANE_CNT	GENMASK(7, 6)
 
-#define MAX96724_MIPI_TX11(p)			(0x90b + (p) * 0x40)
-#define MAX96724_MIPI_TX12(p)			(0x90c + (p) * 0x40)
+#define MAX96724_MIPI_TX11(p)				(0x90b + (p) * 0x40)
+#define MAX96724_MIPI_TX12(p)				(0x90c + (p) * 0x40)
 
-#define MAX96724_MIPI_TX13(p, x)		(0x90d + (p) * 0x40 + (x) * 0x2)
+#define MAX96724_MIPI_TX13(p, x)			(0x90d + (p) * 0x40 + (x) * 0x2)
 #define MAX96724_MIPI_TX13_MAP_SRC_DT		GENMASK(5, 0)
 #define MAX96724_MIPI_TX13_MAP_SRC_VC		GENMASK(7, 6)
 
-#define MAX96724_MIPI_TX14(p, x)		(0x90e + (p) * 0x40 + (x) * 0x2)
+#define MAX96724_MIPI_TX14(p, x)			(0x90e + (p) * 0x40 + (x) * 0x2)
 #define MAX96724_MIPI_TX14_MAP_DST_DT		GENMASK(5, 0)
 #define MAX96724_MIPI_TX14_MAP_DST_VC		GENMASK(7, 6)
 
-#define MAX96724_MIPI_TX45(p, x)		(0x92d + (p) * 0x40 + (x) / 4)
+#define MAX96724_MIPI_TX45(p, x)			(0x92d + (p) * 0x40 + (x) / 4)
 #define MAX96724_MIPI_TX45_MAP_DPHY_DEST(x)	(GENMASK(1, 0) << (2 * ((x) % 4)))
 
-#define MAX96724_MIPI_TX51(x)			(0x933 + (x) * 0x40)
+#define MAX96724_MIPI_TX51(x)				(0x933 + (x) * 0x40)
 #define MAX96724_MIPI_TX51_ALT_MEM_MAP_12	BIT(0)
 #define MAX96724_MIPI_TX51_ALT_MEM_MAP_8	BIT(1)
 #define MAX96724_MIPI_TX51_ALT_MEM_MAP_10	BIT(2)
 #define MAX96724_MIPI_TX51_ALT2_MEM_MAP_8	BIT(4)
 
-#define MAX96724_MIPI_TX54(x)			(0x936 + (x) * 0x40)
-#define MAX96724_MIPI_TX54_TUN_EN		BIT(0)
+#define MAX96724_MIPI_TX54(x)				(0x936 + (x) * 0x40)
+#define MAX96724_MIPI_TX54_TUN_EN			BIT(0)
 
-#define MAX96724_MIPI_TX57(x)			(0x939 + (x) * 0x40)
-#define MAX96724_MIPI_TX57_TUN_DEST		GENMASK(5, 4)
+#define MAX96724_MIPI_TX57(x)				(0x939 + (x) * 0x40)
+#define MAX96724_MIPI_TX57_TUN_DEST			GENMASK(5, 4)
 #define MAX96724_MIPI_TX57_DIS_AUTO_TUN_DET	BIT(6)
-#define MAX96724_DET(p)				BIT(p)
+#define MAX96724_DET(p)						BIT(p)
 
-#define MAX96724_PATGEN_0			0x1050
-#define MAX96724_PATGEN_0_VTG_MODE		GENMASK(1, 0)
+#define MAX96724_PATGEN_0					0x1050
+#define MAX96724_PATGEN_0_VTG_MODE			GENMASK(1, 0)
 #define MAX96724_PATGEN_0_VTG_MODE_FREE_RUNNING	0b11
-#define MAX96724_PATGEN_0_DE_INV		BIT(2)
-#define MAX96724_PATGEN_0_HS_INV		BIT(3)
-#define MAX96724_PATGEN_0_VS_INV		BIT(4)
-#define MAX96724_PATGEN_0_GEN_DE		BIT(5)
-#define MAX96724_PATGEN_0_GEN_HS		BIT(6)
-#define MAX96724_PATGEN_0_GEN_VS		BIT(7)
+#define MAX96724_PATGEN_0_DE_INV			BIT(2)
+#define MAX96724_PATGEN_0_HS_INV			BIT(3)
+#define MAX96724_PATGEN_0_VS_INV			BIT(4)
+#define MAX96724_PATGEN_0_GEN_DE			BIT(5)
+#define MAX96724_PATGEN_0_GEN_HS			BIT(6)
+#define MAX96724_PATGEN_0_GEN_VS			BIT(7)
 
-#define MAX96724_PATGEN_1			0x1051
+#define MAX96724_PATGEN_1					0x1051
 #define MAX96724_PATGEN_1_PATGEN_MODE		GENMASK(5, 4)
 #define MAX96724_PATGEN_1_PATGEN_MODE_DISABLED	0b00
 #define MAX96724_PATGEN_1_PATGEN_MODE_CHECKER	0b01
 #define MAX96724_PATGEN_1_PATGEN_MODE_GRADIENT	0b10
 
-#define MAX96724_VS_DLY_2			0x1052
-#define MAX96724_VS_HIGH_2			0x1055
-#define MAX96724_VS_LOW_2			0x1058
-#define MAX96724_V2H_2				0x105b
-#define MAX96724_HS_HIGH_1			0x105e
-#define MAX96724_HS_LOW_1			0x1060
-#define MAX96724_HS_CNT_1			0x1062
-#define MAX96724_V2D_2				0x1064
-#define MAX96724_DE_HIGH_1			0x1067
-#define MAX96724_DE_LOW_1			0x1069
-#define MAX96724_DE_CNT_1			0x106b
-#define MAX96724_GRAD_INCR			0x106d
-#define MAX96724_CHKR_COLOR_A_L			0x106e
-#define MAX96724_CHKR_COLOR_B_L			0x1071
-#define MAX96724_CHKR_RPT_A			0x1074
-#define MAX96724_CHKR_RPT_B			0x1075
-#define MAX96724_CHKR_ALT			0x1076
+#define MAX96724_VS_DLY_2					0x1052
+#define MAX96724_VS_HIGH_2					0x1055
+#define MAX96724_VS_LOW_2					0x1058
+#define MAX96724_V2H_2						0x105b
+#define MAX96724_HS_HIGH_1					0x105e
+#define MAX96724_HS_LOW_1					0x1060
+#define MAX96724_HS_CNT_1					0x1062
+#define MAX96724_V2D_2						0x1064
+#define MAX96724_DE_HIGH_1					0x1067
+#define MAX96724_DE_LOW_1					0x1069
+#define MAX96724_DE_CNT_1					0x106b
+#define MAX96724_GRAD_INCR					0x106d
+#define MAX96724_CHKR_COLOR_A_L				0x106e
+#define MAX96724_CHKR_COLOR_B_L				0x1071
+#define MAX96724_CHKR_RPT_A					0x1074
+#define MAX96724_CHKR_RPT_B					0x1075
+#define MAX96724_CHKR_ALT					0x1076
 
-#define MAX96724_DE_DET				0x11f0
-#define MAX96724_HS_DET				0x11f1
-#define MAX96724_VS_DET				0x11f2
-#define MAX96724_HS_POL				0x11f3
-#define MAX96724_VS_POL				0x11f4
-#define MAX96724_DET(p)				BIT(p)
+#define MAX96724_DE_DET						0x11f0
+#define MAX96724_HS_DET						0x11f1
+#define MAX96724_VS_DET						0x11f2
+#define MAX96724_HS_POL						0x11f3
+#define MAX96724_VS_POL						0x11f4
+#define MAX96724_DET(p)						BIT(p)
 
-#define MAX96724_RLMS(x)			(0x1400 + (x))
+#define MAX96724_RLMS(x)					(0x1400 + (x))
 
-#define MAX96724_DPLL_0(x)			(0x1c00 + (x) * 0x100)
+#define MAX96724_DPLL_0(x)					(0x1c00 + (x) * 0x100)
 #define MAX96724_DPLL_0_CONFIG_SOFT_RST_N	BIT(0)
 
 #define MAX96724_PHY1_ALT_CLOCK			5
