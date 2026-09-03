@@ -10,6 +10,7 @@
 
 &ele_fw2 {
 	memory-region = <&ele_reserved>;
+	status = "disabled";
 };
 
 / {
