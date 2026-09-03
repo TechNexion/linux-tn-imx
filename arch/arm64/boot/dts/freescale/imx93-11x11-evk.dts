@@ -204,7 +204,16 @@
 		regulator-max-microvolt = <1800000>;
 		enable-active-high;
 	};
-
+/*
+	reg_usdhc1_vmmc: regulator-usdhc1 {
+		compatible = "regulator-fixed";
+		regulator-name = "EMMC_3V3";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-boot-on;
+		regulator-always-on;
+	};
+*/
 	reg_usdhc2_vmmc: regulator-usdhc2 {
 		compatible = "regulator-fixed";
 		pinctrl-names = "default";
@@ -825,6 +834,8 @@
 	pinctrl-1 = <&pinctrl_usdhc1_100mhz>;
 	pinctrl-2 = <&pinctrl_usdhc1_200mhz>;
 	bus-width = <8>;
+	//vmmc-supply = <&reg_usdhc1_vmmc>;
+	vqmmc-supply = <&ldo5>;
 	fsl,tuning-step = <1>;
 	non-removable;
 	status = "okay";
