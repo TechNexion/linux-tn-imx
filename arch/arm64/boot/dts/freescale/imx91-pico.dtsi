@@ -123,7 +123,7 @@
 		regulator-name = "WL_REG_ON";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
-		gpio = <&adp5585 5 GPIO_ACTIVE_HIGH>;
+		gpio = <&adp5585 6 GPIO_ACTIVE_HIGH>;
 		off-on-delay = <20000>;
 		startup-delay-us = <100>;
 		enable-active-high;
@@ -131,7 +131,7 @@
 
 	bt_reg_on: btreg_on {
 		compatible = "gpio-reset";
-		reset-gpios = <&adp5585 6 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&adp5585 7 GPIO_ACTIVE_LOW>;
 		reset-delay-us = <2000>;
 		reset-post-delay-ms = <200>;
 		#reset-cells = <0>;
