@@ -166,6 +166,16 @@
 
 };
 
+&ecspi1 {
+	status = "okay";
+
+	spidev1: spi@0 {
+		reg = <0>;
+		compatible = "rohm,dh2228fv";
+		spi-max-frequency = <500000>;
+	};
+};
+
 &gpio1 {
 	pinctrl-0 = <&pinctrl_gpio1>;
 	gpio-line-names =	\
