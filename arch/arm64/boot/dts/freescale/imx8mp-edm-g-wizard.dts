@@ -384,6 +384,14 @@
 	status = "okay";
 };
 
+&lcdif1 {
+	status = "okay";
+};
+
+&lcdif2 {
+	status = "okay";
+};
+
 &lcdif3 {
 	status = "okay";
 
