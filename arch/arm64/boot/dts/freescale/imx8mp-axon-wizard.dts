@@ -187,6 +187,54 @@
 	};
 };
 
+&hdmi {
+	status = "okay";
+};
+
+&hdmiphy {
+	status = "okay";
+};
+
+&mu2 {
+	status = "okay";
+};
+
+&sdma3 {
+	status = "okay";
+};
+
+&lcdif2 {
+	status = "okay";
+};
+
+&isi_0 {
+	status = "okay";
+};
+
+&isi_1 {
+	status = "okay";
+};
+
+&lcdif3 {
+	status = "okay";
+};
+
+&lcdif1 {
+	status = "okay";
+};
+
+&ldb_phy {
+	status = "okay";
+};
+
+&hdmi_pavi {
+	status = "okay";
+};
+
+&mipi_dsi {
+	status = "okay";
+};
+
 &gpio4 {
 	pinctrl-0 = <&pinctrl_gpio4>;
 	gpio-line-names =	\
