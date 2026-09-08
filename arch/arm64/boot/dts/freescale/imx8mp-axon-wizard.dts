@@ -358,6 +358,21 @@
 	status = "okay";
 };
 
+&lcdif1 {
+	status = "okay";
+};
+
+&lcdif2 {
+	status = "okay";
+};
+
+&lcdif3 {
+	status = "okay";
+
+	thres-low  = <1 2>;             /* (FIFO * 1 / 2) */
+	thres-high = <3 4>;             /* (FIFO * 3 / 4) */
+};
+
 &usb_dwc3_0 {
 	dr_mode = "otg";
 	usb-role-switch;
