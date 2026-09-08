@@ -247,8 +247,8 @@ static int rtl821x_probe(struct phy_device *phydev)
 	priv->disable_clk_out = of_property_read_bool(dev->of_node,
 						      "realtek,clkout-disable");
 
-	if (!of_property_read_u32(dev->of_node, "realtek,clkout-frequency", &priv->clkout_freq))
-		return dev_err_probe(dev, -EINVAL, "invalid realtek,clkout-frequency\n");
+	if (of_property_read_u32(dev->of_node, "realtek,clkout-frequency", &priv->clkout_freq))
+		priv->clkout_freq = 0;
 
 	phydev->priv = priv;
 
