@@ -962,7 +962,7 @@ static int fsl_asoc_card_probe(struct platform_device *pdev)
 		priv->dai_fmt |= SND_SOC_DAIFMT_CBP_CFP;
 		priv->card_type = CARD_TLV320AIC3X;
 	} else if (of_device_is_compatible(np, "fsl,imx-audio-tlv320aic31xx")) {
-		codec_dai_name[0] = "tlv320dac31xx-hifi";
+		codec_dai_name[0] = "tlv320aic31xx-hifi";
 		priv->dai_fmt |= SND_SOC_DAIFMT_CBC_CFC;
 		priv->dai_link[1].playback_only = 1;
 		priv->dai_link[2].playback_only = 1;
