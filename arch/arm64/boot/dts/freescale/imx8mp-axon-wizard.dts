@@ -153,6 +153,7 @@
 			"MIC1RP", "MICBIAS",
 			"Mic Jack", "MICBIAS";
 		headset-det;
+		status = "okay";
 	};
 
 	clocks {
@@ -212,6 +213,10 @@
 };
 
 &isi_1 {
+	status = "okay";
+};
+
+&dsp {
 	status = "okay";
 };
 
