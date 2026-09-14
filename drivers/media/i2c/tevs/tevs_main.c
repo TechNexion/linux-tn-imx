@@ -691,7 +691,7 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 				return ret;
 		}
 	} else {
-		ret = tevs_standby(tevs, 0);
+		ret = tevs_standby(tevs, 1);
 		if (ret)
 			return ret;
 
@@ -750,6 +750,11 @@ static int tevs_set_stream(struct v4l2_subdev *sub_dev, int enable)
 			return ret;
 		if (tevs->max_fps)
 			tevs->max_fps->cur.val = tevs->fps;
+
+		ret = tevs_standby(tevs, 0);
+		if (ret)
+			return ret;
+
 		ret = cci_read(tevs->regmap, TEVS_AE_MANUAL_EXP_TIME, &val,
 				NULL);
 		if (ret)
