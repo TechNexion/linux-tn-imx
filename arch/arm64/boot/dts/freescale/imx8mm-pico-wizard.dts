@@ -470,3 +470,8 @@
 	pinctrl-0 = <&pinctrl_fan_pwm>;
 	status = "okay";
 };
+
+&snvs_pwrkey {
+	linux,keycode = <KEY_SUSPEND>;
+	status = "okay";
+};
