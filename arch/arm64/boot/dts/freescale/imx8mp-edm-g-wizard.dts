@@ -166,6 +166,58 @@
 
 };
 
+&mu2 {
+	status = "okay";
+};
+
+&lcdif2 {
+	status = "okay";
+};
+
+&isi_0 {
+	status = "okay";
+};
+
+&isi_1 {
+	status = "okay";
+};
+
+&dewarp {
+	status = "okay";
+};
+
+&lcdif1 {
+	status = "okay";
+};
+
+&dsp {
+	status = "okay";
+};
+
+&easrc {
+	status = "okay";
+};
+
+&aud2htx {
+	status = "okay";
+};
+
+&sdma3 {
+	status = "okay";
+};
+
+&sdma2 {
+	status = "okay";
+};
+
+&ldb_phy {
+	status = "okay";
+};
+
+&dsp_reserved {
+	status = "okay";
+};
+
 &ecspi1 {
 	status = "okay";
 
