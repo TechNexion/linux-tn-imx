@@ -295,6 +295,8 @@
 
 #define DEFAULT_HEADER_VERSION 3
 #define TEVS_BOOT_TIME						(250)
+#define TEVS_CTRL_READ_RETRIES				(5)
+#define TEVS_CTRL_RETRY_DELAY_MS			(50)
 #define TOTAL_MICROSEC_PERSEC				(1000000)
 
 #define TEVS_IMG_FORMAT_UYVY				(0x50)
@@ -1639,6 +1641,69 @@ static const struct v4l2_ctrl_config tevs_trigger_mode = {
 	.qmenu = trigger_mode_strings,
 };
 
+static int tevs_read_ctrl_range(struct tevs *tevs, u32 reg, u32 max_reg,
+				u32 min_reg, u8 size, u32 mask,
+				s64 *ctrl_def, s64 *ctrl_max,
+				s64 *ctrl_min)
+{
+	struct i2c_client *client = v4l2_get_subdevdata(&tevs->v4l2_subdev);
+	s64 def = 0;
+	s64 max = 0;
+	s64 min = 0;
+	int ret = -ERANGE;
+	int i;
+
+	if (size != sizeof(u16) && size != sizeof(u32))
+		return -EINVAL;
+
+	for (i = 0; i < TEVS_CTRL_READ_RETRIES; i++) {
+		ret = cci_read(tevs->regmap, reg, &def, NULL);
+		if (ret) {
+			dev_dbg(&client->dev,
+				 "control 0x%04x default read failed on attempt %d: %d\n",
+				 reg, i + 1, ret);
+			goto retry;
+		}
+
+		ret = cci_read(tevs->regmap, max_reg, &max, NULL);
+		if (ret) {
+			dev_dbg(&client->dev,
+				 "control 0x%04x maximum read failed on attempt %d: %d\n",
+				 reg, i + 1, ret);
+			goto retry;
+		}
+
+		ret = cci_read(tevs->regmap, min_reg, &min, NULL);
+		if (ret) {
+			dev_dbg(&client->dev,
+				 "control 0x%04x minimum read failed on attempt %d: %d\n",
+				 reg, i + 1, ret);
+			goto retry;
+		}
+
+		if (min <= def && def <= max) {
+			*ctrl_min = min & mask;
+			*ctrl_max = max & mask;
+			*ctrl_def = def & mask;
+			return 0;
+		}
+
+		ret = -ERANGE;
+		dev_dbg(&client->dev,
+			 "invalid control range reg 0x%04x: min %lld, max %lld, default %lld\n",
+			 reg, min, max, def);
+
+retry:
+		if (i + 1 < TEVS_CTRL_READ_RETRIES)
+			msleep(TEVS_CTRL_RETRY_DELAY_MS);
+	}
+
+	dev_err(&client->dev,
+		"failed to read valid control 0x%04x range: min %lld, max %lld, default %lld, error %d\n",
+		reg, min, max, def, ret);
+	return ret;
+}
+
 static int tevs_ctrls_init(struct tevs *tevs)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(&tevs->v4l2_subdev);
@@ -1659,43 +1724,57 @@ static int tevs_ctrls_init(struct tevs *tevs)
 	if (ret)
 		return ret;
 
-	ret = cci_read(tevs->regmap, TEVS_BRIGHTNESS, &val, NULL);
-	ctrl_def = val & TEVS_BRIGHTNESS_MASK;
-	ret += cci_read(tevs->regmap, TEVS_BRIGHTNESS_MAX, &val, NULL);
-	ctrl_max = val & TEVS_BRIGHTNESS_MASK;
-	ret += cci_read(tevs->regmap, TEVS_BRIGHTNESS_MIN, &val, NULL);
-	ctrl_min = val & TEVS_BRIGHTNESS_MASK;
+	ret = tevs_read_ctrl_range(tevs, TEVS_BRIGHTNESS,
+				   TEVS_BRIGHTNESS_MAX, TEVS_BRIGHTNESS_MIN,
+				   sizeof(u16), TEVS_BRIGHTNESS_MASK, &ctrl_def,
+				   &ctrl_max, &ctrl_min);
 	if (ret)
 		goto error;
 	tevs->brightness = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
 					     V4L2_CID_BRIGHTNESS, ctrl_min,
 					     ctrl_max, 1, ctrl_def);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "brightness ctrls init error (%d)\n", ret);
+		goto error;
+	}
 
-	ret = cci_read(tevs->regmap, TEVS_CONTRAST, &val, NULL);
-	ctrl_def = val & TEVS_CONTRAST_MASK;
-	ret += cci_read(tevs->regmap, TEVS_CONTRAST_MAX, &val, NULL);
-	ctrl_max = val & TEVS_CONTRAST_MASK;
-	ret += cci_read(tevs->regmap, TEVS_CONTRAST_MIN, &val, NULL);
-	ctrl_min = val & TEVS_CONTRAST_MASK;
+	ret = tevs_read_ctrl_range(tevs, TEVS_CONTRAST,
+				   TEVS_CONTRAST_MAX, TEVS_CONTRAST_MIN,
+				   sizeof(u16), TEVS_CONTRAST_MASK, &ctrl_def,
+				   &ctrl_max, &ctrl_min);
 	if (ret)
 		goto error;
 	tevs->contrast = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
 					   V4L2_CID_CONTRAST, ctrl_min,
 					   ctrl_max, 1, ctrl_def);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "contrast ctrls init error (%d)\n", ret);
+		goto error;
+	}
 
-	ret = cci_read(tevs->regmap, TEVS_SATURATION, &val, NULL);
-	ctrl_def = val & TEVS_SATURATION_MASK;
-	ret += cci_read(tevs->regmap, TEVS_SATURATION_MAX, &val, NULL);
-	ctrl_max = val & TEVS_SATURATION_MASK;
-	ret += cci_read(tevs->regmap, TEVS_SATURATION_MIN, &val, NULL);
-	ctrl_min = val & TEVS_SATURATION_MASK;
+	ret = tevs_read_ctrl_range(tevs, TEVS_SATURATION,
+				   TEVS_SATURATION_MAX, TEVS_SATURATION_MIN,
+				   sizeof(u16), TEVS_SATURATION_MASK, &ctrl_def,
+				   &ctrl_max, &ctrl_min);
 	if (ret)
 		goto error;
 	tevs->saturation = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
 					     V4L2_CID_SATURATION, ctrl_min,
 					     ctrl_max, 1, ctrl_def);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "saturation ctrls init error (%d)\n", ret);
+		goto error;
+	}
 
 	tevs->awb = v4l2_ctrl_new_custom(ctrl_hdlr, &tevs_awb_mode, NULL);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "awb ctrls init error (%d)\n", ret);
+		goto error;
+	}
 	ret = cci_read(tevs->regmap, TEVS_AWB_CTRL_MODE, &val, NULL);
 	if (ret)
 		goto error;
@@ -1714,44 +1793,58 @@ static int tevs_ctrls_init(struct tevs *tevs)
 		break;
 	}
 
-	ret = cci_read(tevs->regmap, TEVS_GAMMA, &val, NULL);
-	ctrl_def = val & TEVS_GAMMA_MASK;
-	ret += cci_read(tevs->regmap, TEVS_GAMMA_MAX, &val, NULL);
-	ctrl_max = val & TEVS_GAMMA_MASK;
-	ret += cci_read(tevs->regmap, TEVS_GAMMA_MIN, &val, NULL);
-	ctrl_min = val & TEVS_GAMMA_MASK;
+	ret = tevs_read_ctrl_range(tevs, TEVS_GAMMA,
+				   TEVS_GAMMA_MAX, TEVS_GAMMA_MIN,
+				   sizeof(u16), TEVS_GAMMA_MASK, &ctrl_def,
+				   &ctrl_max, &ctrl_min);
 	if (ret)
 		goto error;
 	tevs->gamma = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
 					V4L2_CID_GAMMA, ctrl_min, ctrl_max, 1,
 					ctrl_def);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "gamma ctrls init error (%d)\n", ret);
+		goto error;
+	}
 
-	ret = cci_read(tevs->regmap, TEVS_AE_MANUAL_EXP_TIME, &val, NULL);
-	ctrl_def = val & TEVS_AE_MANUAL_EXP_TIME_MASK;
-	ret += cci_read(tevs->regmap, TEVS_AE_MANUAL_EXP_TIME_MAX, &val, NULL);
-	ctrl_max = val & TEVS_AE_MANUAL_EXP_TIME_MASK;
-	ret += cci_read(tevs->regmap, TEVS_AE_MANUAL_EXP_TIME_MIN, &val, NULL);
-	ctrl_min = val & TEVS_AE_MANUAL_EXP_TIME_MASK;
+	ret = tevs_read_ctrl_range(tevs, TEVS_AE_MANUAL_EXP_TIME,
+				   TEVS_AE_MANUAL_EXP_TIME_MAX, TEVS_AE_MANUAL_EXP_TIME_MIN,
+				   sizeof(u32), TEVS_AE_MANUAL_EXP_TIME_MASK, &ctrl_def,
+				   &ctrl_max, &ctrl_min);
 	if (ret)
 		goto error;
 	tevs->exp_time = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
 					   V4L2_CID_EXPOSURE, ctrl_min,
 					   ctrl_max, 1, ctrl_def);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "exp_time ctrls init error (%d)\n", ret);
+		goto error;
+	}
 
-	ret = cci_read(tevs->regmap, TEVS_AE_MANUAL_GAIN, &val, NULL);
-	ctrl_def = val & TEVS_AE_MANUAL_GAIN_MASK;
-	ret += cci_read(tevs->regmap, TEVS_AE_MANUAL_GAIN_MAX, &val, NULL);
-	ctrl_max = val & TEVS_AE_MANUAL_GAIN_MASK;
-	ret += cci_read(tevs->regmap, TEVS_AE_MANUAL_GAIN_MIN, &val, NULL);
-	ctrl_min = val & TEVS_AE_MANUAL_GAIN_MASK;
+	ret = tevs_read_ctrl_range(tevs, TEVS_AE_MANUAL_GAIN,
+				   TEVS_AE_MANUAL_GAIN_MAX, TEVS_AE_MANUAL_GAIN_MIN,
+				   sizeof(u16), TEVS_AE_MANUAL_GAIN_MASK, &ctrl_def,
+				   &ctrl_max, &ctrl_min);
 	if (ret)
 		goto error;
 	tevs->exp_gain = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
 					   V4L2_CID_GAIN, ctrl_min, ctrl_max, 1,
 					   ctrl_def);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "gain ctrls init error (%d)\n", ret);
+		goto error;
+	}
 	tevs->alg_gain = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
 					   V4L2_CID_ANALOGUE_GAIN, ctrl_min,
 					   ctrl_max, 1, ctrl_def);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "alg_gain ctrls init error (%d)\n", ret);
+		goto error;
+	}
 
 	ret = cci_read(tevs->regmap, TEVS_ORIENTATION, &val, NULL);
 	ctrl_def = val & TEVS_ORIENTATION_HFLIP;
@@ -1759,10 +1852,20 @@ static int tevs_ctrls_init(struct tevs *tevs)
 		goto error;
 	tevs->hflip = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
 					V4L2_CID_HFLIP, 0x0, 0x1, 1, ctrl_def);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "hflip ctrls init error (%d)\n", ret);
+		goto error;
+	}
 
 	ctrl_def = (val & TEVS_ORIENTATION_VFLIP) >> TEVS_ORIENTATION_VFLIP_BIT;
 	tevs->vflip = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
 					V4L2_CID_VFLIP, 0x0, 0x1, 1, ctrl_def);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "vflip ctrls init error (%d)\n", ret);
+		goto error;
+	}
 
 	ret = cci_read(tevs->regmap, TEVS_FLICK_CTRL, &val, NULL);
 	if (ret)
@@ -1790,46 +1893,63 @@ static int tevs_ctrls_init(struct tevs *tevs)
 					     V4L2_CID_POWER_LINE_FREQUENCY,
 					     V4L2_CID_POWER_LINE_FREQUENCY_AUTO,
 					     0, ctrl_def);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "flick ctrls init error (%d)\n", ret);
+		goto error;
+	}
 
-	ret = cci_read(tevs->regmap, TEVS_AWB_MANUAL_TEMP, &val, NULL);
-	ctrl_def = val & TEVS_AWB_MANUAL_TEMP_MASK;
-	ret += cci_read(tevs->regmap, TEVS_AWB_MANUAL_TEMP_MAX, &val, NULL);
-	ctrl_max = val & TEVS_AWB_MANUAL_TEMP_MASK;
-	ret += cci_read(tevs->regmap, TEVS_AWB_MANUAL_TEMP_MIN, &val, NULL);
-	ctrl_min = val & TEVS_AWB_MANUAL_TEMP_MASK;
+	ret = tevs_read_ctrl_range(tevs, TEVS_AWB_MANUAL_TEMP,
+				   TEVS_AWB_MANUAL_TEMP_MAX, TEVS_AWB_MANUAL_TEMP_MIN,
+				   sizeof(u16), TEVS_AWB_MANUAL_TEMP_MASK, &ctrl_def,
+				   &ctrl_max, &ctrl_min);
 	if (ret)
 		goto error;
 	tevs->wb_temp = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
 					  V4L2_CID_WHITE_BALANCE_TEMPERATURE,
 					  ctrl_min, ctrl_max, 1, ctrl_def);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "wb ctrls init error (%d)\n", ret);
+		goto error;
+	}
 
-	ret = cci_read(tevs->regmap, TEVS_SHARPEN, &val, NULL);
-	ctrl_def = val & TEVS_SHARPEN_MASK;
-	ret += cci_read(tevs->regmap, TEVS_SHARPEN_MAX, &val, NULL);
-	ctrl_max = val & TEVS_SHARPEN_MASK;
-	ret += cci_read(tevs->regmap, TEVS_SHARPEN_MIN, &val, NULL);
-	ctrl_min = val & TEVS_SHARPEN_MASK;
+	ret = tevs_read_ctrl_range(tevs, TEVS_SHARPEN,
+				   TEVS_SHARPEN_MAX, TEVS_SHARPEN_MIN,
+				   sizeof(u16), TEVS_SHARPEN_MASK, &ctrl_def,
+				   &ctrl_max, &ctrl_min);
 	if (ret)
 		goto error;
 	tevs->sharpness = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
 					    V4L2_CID_SHARPNESS, ctrl_min,
 					    ctrl_max, 1, ctrl_def);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "sharpness ctrls init error (%d)\n", ret);
+		goto error;
+	}
 
-	ret = cci_read(tevs->regmap, TEVS_BACKLIGHT_COMPENSATION, &val, NULL);
-	ctrl_def = val & TEVS_BACKLIGHT_COMPENSATION_MASK;
-	ret += cci_read(tevs->regmap, TEVS_BACKLIGHT_COMPENSATION_MAX, &val,
-			NULL);
-	ctrl_max = val & TEVS_BACKLIGHT_COMPENSATION_MASK;
-	ret += cci_read(tevs->regmap, TEVS_BACKLIGHT_COMPENSATION_MIN, &val,
-			NULL);
-	ctrl_min = val & TEVS_BACKLIGHT_COMPENSATION_MASK;
+	ret = tevs_read_ctrl_range(tevs, TEVS_BACKLIGHT_COMPENSATION,
+				   TEVS_BACKLIGHT_COMPENSATION_MAX, TEVS_BACKLIGHT_COMPENSATION_MIN,
+				   sizeof(u16), TEVS_BACKLIGHT_COMPENSATION_MASK, &ctrl_def,
+				   &ctrl_max, &ctrl_min);
 	if (ret)
 		goto error;
 	tevs->backlight_comp = v4l2_ctrl_new_std(
 		ctrl_hdlr, &tevs_ctrl_ops, V4L2_CID_BACKLIGHT_COMPENSATION,
 		ctrl_min, ctrl_max, 1, ctrl_def);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "backlight_comp ctrls init error (%d)\n", ret);
+		goto error;
+	}
 
 	tevs->colorfx = v4l2_ctrl_new_custom(ctrl_hdlr, &tevs_sfx_mode, NULL);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "colorfx ctrls init error (%d)\n", ret);
+		goto error;
+	}
 	ret = cci_read(tevs->regmap, TEVS_SFX_MODE, &val, NULL);
 	if (ret)
 		goto error;
@@ -1861,6 +1981,11 @@ static int tevs_ctrls_init(struct tevs *tevs)
 	}
 
 	tevs->ae = v4l2_ctrl_new_custom(ctrl_hdlr, &tevs_ae_mode, NULL);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "ae ctrls init error (%d)\n", ret);
+		goto error;
+	}
 	ret = cci_read(tevs->regmap, TEVS_AE_CTRL_MODE, &val, NULL);
 	if (ret)
 		goto error;
@@ -1886,46 +2011,65 @@ static int tevs_ctrls_init(struct tevs *tevs)
 		break;
 	}
 
-	ret = cci_read(tevs->regmap, TEVS_DZ_CT_X, &val, NULL);
-	ctrl_def = val & TEVS_DZ_CT_MASK;
-	ret += cci_read(tevs->regmap, TEVS_DZ_CT_MAX, &val, NULL);
-	ctrl_max = val & TEVS_DZ_CT_MASK;
-	ret += cci_read(tevs->regmap, TEVS_DZ_CT_MIN, &val, NULL);
-	ctrl_min = val & TEVS_DZ_CT_MASK;
+	ret = tevs_read_ctrl_range(tevs, TEVS_DZ_CT_X,
+				   TEVS_DZ_CT_MAX, TEVS_DZ_CT_MIN,
+				   sizeof(u16), TEVS_DZ_CT_MASK, &ctrl_def,
+				   &ctrl_max, &ctrl_min);
 	if (ret)
 		goto error;
 	tevs->pan = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
 				      V4L2_CID_PAN_ABSOLUTE, ctrl_min, ctrl_max,
 				      1, ctrl_def);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "pan ctrls init error (%d)\n", ret);
+		goto error;
+	}
 
-	ret = cci_read(tevs->regmap, TEVS_DZ_CT_Y, &val, NULL);
-	ctrl_def = val & TEVS_DZ_CT_MASK;
-	ret += cci_read(tevs->regmap, TEVS_DZ_CT_MAX, &val, NULL);
-	ctrl_max = val & TEVS_DZ_CT_MASK;
-	ret += cci_read(tevs->regmap, TEVS_DZ_CT_MIN, &val, NULL);
-	ctrl_min = val & TEVS_DZ_CT_MASK;
+	ret = tevs_read_ctrl_range(tevs, TEVS_DZ_CT_Y,
+				   TEVS_DZ_CT_MAX, TEVS_DZ_CT_MIN,
+				   sizeof(u16), TEVS_DZ_CT_MASK, &ctrl_def,
+				   &ctrl_max, &ctrl_min);
 	if (ret)
 		goto error;
 	tevs->tilt = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
 				       V4L2_CID_TILT_ABSOLUTE, ctrl_min,
 				       ctrl_max, 1, ctrl_def);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "tilt ctrls init error (%d)\n", ret);
+		goto error;
+	}
 
-	ret = cci_read(tevs->regmap, TEVS_DZ_TGT_FCT, &val, NULL);
-	ctrl_def = val & TEVS_DZ_TGT_FCT_MASK;
-	ret += cci_read(tevs->regmap, TEVS_DZ_TGT_FCT_MAX, &val, NULL);
-	ctrl_max = val & TEVS_DZ_TGT_FCT_MASK;
-	ret += cci_read(tevs->regmap, TEVS_DZ_TGT_FCT_MIN, &val, NULL);
-	ctrl_min = val & TEVS_DZ_TGT_FCT_MASK;
+	ret = tevs_read_ctrl_range(tevs, TEVS_DZ_TGT_FCT,
+				   TEVS_DZ_TGT_FCT_MAX, TEVS_DZ_TGT_FCT_MIN,
+				   sizeof(u16), TEVS_DZ_TGT_FCT_MASK, &ctrl_def,
+				   &ctrl_max, &ctrl_min);
 	if (ret)
 		goto error;
 	tevs->zoom = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
 				       V4L2_CID_ZOOM_ABSOLUTE, ctrl_min,
 				       ctrl_max, 1, ctrl_def);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "zoom ctrls init error (%d)\n", ret);
+		goto error;
+	}
 
 	tevs->hblank = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
 					 V4L2_CID_HBLANK, 0, 0, 1, 0);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "hblank ctrls init error (%d)\n", ret);
+		goto error;
+	}
 	tevs->vblank = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
 					 V4L2_CID_VBLANK, 0, 0, 1, 0);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "vblank ctrls init error (%d)\n", ret);
+		goto error;
+	}
 
 	/* By default, link_freq and pixel_rate is read only */
 	link_freq[0] = (u64)(tevs->data_frequency >> 1) * 1000000ULL;
@@ -1933,6 +2077,11 @@ static int tevs_ctrls_init(struct tevs *tevs)
 						 V4L2_CID_LINK_FREQ,
 						 ARRAY_SIZE(link_freq) - 1, 0,
 						 link_freq);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "link_freq ctrls init error (%d)\n", ret);
+		goto error;
+	}
 	tevs->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
 
 	/* link_freq = (pixel_rate * bpp) / (2 * data_lanes) */
@@ -1940,11 +2089,26 @@ static int tevs_ctrls_init(struct tevs *tevs)
 	tevs->pixel_rate = v4l2_ctrl_new_std(ctrl_hdlr, &tevs_ctrl_ops,
 					     V4L2_CID_PIXEL_RATE, pixel_rate[0],
 					     pixel_rate[0], 1, pixel_rate[0]);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "pixel_rate ctrls init error (%d)\n", ret);
+		goto error;
+	}
 	tevs->pixel_rate->flags |= V4L2_CTRL_FLAG_READ_ONLY;
 
 	tevs->bsl = v4l2_ctrl_new_custom(ctrl_hdlr, &tevs_bsl_mode, NULL);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "bsl ctrls init error (%d)\n", ret);
+		goto error;
+	}
 
 	tevs->max_fps = v4l2_ctrl_new_custom(ctrl_hdlr, &tevs_max_fps, NULL);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "max_fps ctrls init error (%d)\n", ret);
+		goto error;
+	}
 	ret = cci_read(tevs->regmap, TEVS_MAX_FPS, &val, NULL);
 	if (ret)
 		goto error;
@@ -1952,12 +2116,15 @@ static int tevs_ctrls_init(struct tevs *tevs)
 		val & TEVS_MAX_FPS_MASK;
 
 	tevs->denoise = v4l2_ctrl_new_custom(ctrl_hdlr, &tevs_denoise, NULL);
-	ret = cci_read(tevs->regmap, TEVS_DENOISE, &val, NULL);
-	ctrl_def = val & TEVS_DENOISE_MASK;
-	ret += cci_read(tevs->regmap, TEVS_DENOISE_MAX, &val, NULL);
-	ctrl_max = val & TEVS_DENOISE_MASK;
-	ret += cci_read(tevs->regmap, TEVS_DENOISE_MIN, &val, NULL);
-	ctrl_min = val & TEVS_DENOISE_MASK;
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "denoise ctrls init error (%d)\n", ret);
+		goto error;
+	}
+	ret = tevs_read_ctrl_range(tevs, TEVS_DENOISE,
+				   TEVS_DENOISE_MAX, TEVS_DENOISE_MIN,
+				   sizeof(u16), TEVS_DENOISE_MASK, &ctrl_def,
+				   &ctrl_max, &ctrl_min);
 	if (ret)
 		goto error;
 	tevs->denoise->default_value = tevs->denoise->cur.val = ctrl_def;
@@ -1966,12 +2133,15 @@ static int tevs_ctrls_init(struct tevs *tevs)
 
 	tevs->ae_exp_upper =
 		v4l2_ctrl_new_custom(ctrl_hdlr, &tevs_ae_exp_upper, NULL);
-	ret = cci_read(tevs->regmap, TEVS_AE_AUTO_EXP_TIME_UPPER, &val, NULL);
-	ctrl_def = val & TEVS_AE_AUTO_EXP_TIME_MASK;
-	ret += cci_read(tevs->regmap, TEVS_AE_MANUAL_EXP_TIME_MAX, &val, NULL);
-	ctrl_max = val & TEVS_AE_MANUAL_EXP_TIME_MASK;
-	ret += cci_read(tevs->regmap, TEVS_AE_MANUAL_EXP_TIME_MIN, &val, NULL);
-	ctrl_min = val & TEVS_AE_MANUAL_EXP_TIME_MASK;
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "ae_exp_upper ctrls init error (%d)\n", ret);
+		goto error;
+	}
+	ret = tevs_read_ctrl_range(tevs, TEVS_AE_AUTO_EXP_TIME_UPPER,
+				   TEVS_AE_MANUAL_EXP_TIME_MAX, TEVS_AE_MANUAL_EXP_TIME_MIN,
+				   sizeof(u32), TEVS_AE_MANUAL_EXP_TIME_MASK, &ctrl_def,
+				   &ctrl_max, &ctrl_min);
 	if (ret)
 		goto error;
 	tevs->ae_exp_upper->default_value = tevs->ae_exp_upper->cur.val =
@@ -1981,6 +2151,11 @@ static int tevs_ctrls_init(struct tevs *tevs)
 
 	tevs->ae_exp_max =
 		v4l2_ctrl_new_custom(ctrl_hdlr, &tevs_ae_exp_max, NULL);
+	if (ctrl_hdlr->error) {
+		ret = ctrl_hdlr->error;
+		dev_err(&client->dev, "ae_exp_max ctrls init error (%d)\n", ret);
+		goto error;
+	}
 	ret = cci_read(tevs->regmap, TEVS_AE_AUTO_EXP_TIME_MAX, &val, NULL);
 	ctrl_def = val & TEVS_AE_AUTO_EXP_TIME_MASK;
 	if (ret)
@@ -1991,14 +2166,13 @@ static int tevs_ctrls_init(struct tevs *tevs)
 
 	tevs->trigger =
 		v4l2_ctrl_new_custom(ctrl_hdlr, &tevs_trigger_mode, NULL);
-	tevs->trigger->default_value = tevs->trigger->cur.val =
-		tevs->trigger_mode;
-
 	if (ctrl_hdlr->error) {
 		ret = ctrl_hdlr->error;
-		dev_err(&client->dev, "ctrls init error (%d)\n", ret);
+		dev_err(&client->dev, "trigger ctrls init error (%d)\n", ret);
 		goto error;
 	}
+	tevs->trigger->default_value = tevs->trigger->cur.val =
+		tevs->trigger_mode;
 
 	ret = v4l2_fwnode_device_parse(&client->dev, &props);
 	if (ret)
