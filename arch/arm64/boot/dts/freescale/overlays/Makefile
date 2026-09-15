@@ -23,6 +23,8 @@ dtbo-$(CONFIG_ARCH_MXC) += imx8mp-edm-g-wb-lvds-vl10112880.dtbo imx8mp-edm-g-wb-
 			   imx8mp-edm-g-wb-tevm-csi0.dtbo imx8mp-edm-g-wb-tevm-csi1.dtbo \
 			   imx8mp-edm-g-wb-tevs-rpi22-csi0.dtbo imx8mp-edm-g-wb-tevs-rpi22-csi1.dtbo \
 			   imx8mp-edm-g-wb-tevs-rpi15-csi0.dtbo imx8mp-edm-g-wb-tevs-rpi15-csi1.dtbo \
+			   imx8mp-edm-g-wb-tevm-rpi22-csi0.dtbo imx8mp-edm-g-wb-tevm-rpi22-csi1.dtbo \
+			   imx8mp-edm-g-wb-tevm-rpi15-csi0.dtbo imx8mp-edm-g-wb-tevm-rpi15-csi1.dtbo \
 			   imx8mp-edm-g-wb-vls-csi0.dtbo imx8mp-edm-g-wb-vls-csi1.dtbo \
 			   imx8mp-edm-g-wb-vls-gm2-csi0.dtbo imx8mp-edm-g-wb-vls-gm2-csi1.dtbo \
 			   imx8mp-edm-g-wb-hdmi2mipi-tc358743-dual.dtbo imx8mp-edm-g-wb-hdmi2mipi-tc358743-single-cam1.dtbo \
