@@ -204,27 +204,7 @@
 	status = "okay";
 };
 
-&lcdif2 {
-	status = "okay";
-};
-
-&isi_0 {
-	status = "okay";
-};
-
-&isi_1 {
-	status = "okay";
-};
-
 &dsp {
-	status = "okay";
-};
-
-&lcdif3 {
-	status = "okay";
-};
-
-&lcdif1 {
 	status = "okay";
 };
 
@@ -233,10 +213,6 @@
 };
 
 &hdmi_pavi {
-	status = "okay";
-};
-
-&mipi_dsi {
 	status = "okay";
 };
 
