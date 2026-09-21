@@ -1376,8 +1376,8 @@ static void sec_mipi_dsim_bridge_atomic_enable(struct drm_bridge *bridge,
 	/* initialize FIFO pointers */
 	sec_mipi_dsim_init_fifo_pointers(dsim);
 
-	if (!pm_runtime_enabled(dsim->panel->dev) &&
-			(dsim->panel->dev->power.runtime_status == RPM_SUSPENDED))
+	if (dsim->panel && !pm_runtime_enabled(dsim->panel->dev) &&
+	    dsim->panel->dev->power.runtime_status == RPM_SUSPENDED)
 		pm_runtime_enable(dsim->panel->dev);
 	drm_panel_prepare(dsim->panel);
 
