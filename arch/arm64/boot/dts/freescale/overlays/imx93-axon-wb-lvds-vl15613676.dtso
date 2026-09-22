@@ -9,6 +9,7 @@
 /dts-v1/;
 /plugin/;
 
+#include <dt-bindings/clock/imx93-clock.h>
 #include <dt-bindings/interrupt-controller/irq.h>
 #include <dt-bindings/gpio/gpio.h>
 
@@ -35,7 +36,7 @@
 		width-mm = <344>;
 
 		panel-timing {
-			clock-frequency = <76000000>;
+			clock-frequency = <74250000>;
 			hactive = <1368>;
 			vactive = <768>;
 			hback-porch = <90>;
@@ -80,7 +81,18 @@
 
 &lcdif {
 	status = "okay";
-	assigned-clock-rates = <498000000>, <71100000>, <400000000>, <133333333>;
+};
+
+&media_blk_ctrl {
+	assigned-clocks = <&clk IMX93_CLK_VIDEO_PLL>,
+			  <&clk IMX93_CLK_MEDIA_DISP_PIX>,
+			  <&clk IMX93_CLK_MEDIA_AXI>,
+			  <&clk IMX93_CLK_MEDIA_APB>;
+	assigned-clock-parents = <&clk IMX93_CLK_24M>,
+				 <&clk IMX93_CLK_VIDEO_PLL>,
+				 <&clk IMX93_CLK_SYS_PLL_PFD1>,
+				 <&clk IMX93_CLK_SYS_PLL_PFD1_DIV2>;
+	assigned-clock-rates = <519750000>, <74250000>, <400000000>, <133333333>;
 };
 
 &lpi2c3 {
