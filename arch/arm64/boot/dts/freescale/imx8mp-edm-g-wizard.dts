@@ -170,26 +170,6 @@
 	status = "okay";
 };
 
-&lcdif2 {
-	status = "okay";
-};
-
-&isi_0 {
-	status = "okay";
-};
-
-&isi_1 {
-	status = "okay";
-};
-
-&dewarp {
-	status = "okay";
-};
-
-&lcdif1 {
-	status = "okay";
-};
-
 &dsp {
 	status = "okay";
 };
@@ -207,10 +187,6 @@
 };
 
 &sdma2 {
-	status = "okay";
-};
-
-&ldb_phy {
 	status = "okay";
 };
 
