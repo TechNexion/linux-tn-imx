@@ -702,9 +702,37 @@ static int max_ser_update_pipe_enable(struct max_ser_priv *priv,
 	if (ret)
 		return ret;
 
+	/* A 1 ms delay was sufficient to recover the first stream in testing. */
+	if (ser->force_tunnel_mode) {
+		cancel_delayed_work_sync(&pipe->tunnel_recover_work);
+
+		if (enable && !pipe->tunnel_recovered)
+			schedule_delayed_work(&pipe->tunnel_recover_work, msecs_to_jiffies(1));
+	}
+
 	pipe->enabled = enable;
 
 	return 0;
+}
+
+static void max_ser_tunnel_recover_work(struct work_struct *work)
+{
+	struct max_ser_pipe *pipe = container_of(to_delayed_work(work),
+						 struct max_ser_pipe,
+						 tunnel_recover_work);
+	struct max_ser_priv *priv = pipe->priv;
+	struct max_ser *ser = priv->ser;
+
+	if (!pipe->enabled)
+		return;
+
+	if (ser->ops->set_pipe_enable(ser, pipe, false))
+		return;
+
+	if (ser->ops->set_pipe_enable(ser, pipe, true))
+		return;
+
+	pipe->tunnel_recovered = true;
 }
 
 static int max_ser_update_pipe(struct max_ser_priv *priv,
@@ -2198,6 +2226,9 @@ static int max_ser_parse_dt(struct max_ser_priv *priv)
 		pipe->index = i;
 		pipe->phy_id = i % ser->ops->num_phys;
 		pipe->stream_id = i % MAX_SERDES_STREAMS_NUM;
+		pipe->priv = priv;
+		INIT_DELAYED_WORK(&pipe->tunnel_recover_work,
+				 max_ser_tunnel_recover_work);
 	}
 
 	for (i = 0; i < ser->ops->num_phys; i++) {

@@ -7,6 +7,7 @@
 #define MAX_SER_H
 
 #include <linux/i2c.h>
+#include <linux/workqueue.h>
 
 #include <media/v4l2-mediabus.h>
 
@@ -49,6 +50,10 @@ struct max_ser_pipe {
 	unsigned int vcs;
 	struct max_ser_pipe_mode mode;
 	bool enabled;
+
+	bool tunnel_recovered;
+	struct max_ser_priv *priv;
+	struct delayed_work tunnel_recover_work;
 };
 
 struct max_ser;
