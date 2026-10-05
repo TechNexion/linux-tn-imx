@@ -307,6 +307,8 @@ dtb-$(CONFIG_ARCH_MXC) += imx8mp-evk.dtb imx8mp-evk-rm67191.dtb imx8mp-evk-it626
 			  imx8mp-evk-tevs-csi1.dtb \
 			  imx8mp-evk-tevm-csi0.dtb \
 			  imx8mp-evk-tevm-csi1.dtb \
+			  imx8mp-evk-tevs-tevs.dtb imx8mp-evk-tevs-tevm.dtb \
+			  imx8mp-evk-tevm-tevs.dtb imx8mp-evk-tevm-tevm.dtb \
 			  imx8mp-evk-dpdk.dtb imx8mp-evk-8mic-swpdm.dtb imx8mp-evk-revA3-8mic-revE.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-hummingboard-mate.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mp-hummingboard-pro.dtb

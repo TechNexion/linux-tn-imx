@@ -1,0 +1,21 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+
+#include "imx8mp-evk-dual-tevs.dtsi"
+
+/ {
+	model = "NXP i.MX8MPlus EVK with TEVM on CSI0 and CSI1";
+};
+
+&i2c2 {
+	imu_0: lsm6dsm@6a {
+		compatible = "st,lsm6dso16is";
+		reg = <0x6a>;
+	};
+};
+
+&i2c3 {
+	imu_1: lsm6dsm@6a {
+		compatible = "st,lsm6dso16is";
+		reg = <0x6a>;
+	};
+};

@@ -1,0 +1,120 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+
+#include "imx8mp-evk.dts"
+
+/* Reset and standby are shared. CSI0 owns them; CSI1 must not request them. */
+&iomuxc {
+	pinctrl-0 = <&pinctrl_hog &dual_camera_pins>;
+
+	dual_camera_pins: dual-camera-pins {
+		fsl,pins = <
+			MX8MP_IOMUXC_SD1_STROBE__GPIO2_IO11 0x9
+			MX8MP_IOMUXC_GPIO1_IO05__GPIO1_IO05 0x9
+			MX8MP_IOMUXC_GPIO1_IO06__GPIO1_IO06 0x19
+			MX8MP_IOMUXC_GPIO1_IO07__GPIO1_IO07 0x9
+			MX8MP_IOMUXC_GPIO1_IO15__GPIO1_IO15 0x9
+		>;
+	};
+};
+
+&gpio1 {
+	camera-csi0-power-hog {
+		gpio-hog;
+		gpios = <5 GPIO_ACTIVE_HIGH>;
+		output-high;
+		line-name = "camera-csi0-power";
+	};
+
+	camera-csi1-power-hog {
+		gpio-hog;
+		gpios = <7 GPIO_ACTIVE_HIGH>;
+		output-high;
+		line-name = "camera-csi1-power";
+	};
+};
+
+&mipi_csi_0 {
+	status = "okay";
+
+	port {
+		mipi_csi0_ep: endpoint {
+			remote-endpoint = <&tevs_0_ep>;
+			data-lanes = <4>;
+			csis-hs-settle = <13>;
+			csis-clk-settle = <2>;
+			csis-wclk;
+		};
+	};
+};
+
+&mipi_csi_1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+
+	port@1 {
+		reg = <1>;
+
+		mipi_csi1_ep: endpoint {
+			remote-endpoint = <&tevs_1_ep>;
+			data-lanes = <4>;
+			csis-hs-settle = <13>;
+			csis-clk-settle = <2>;
+			csis-wclk;
+		};
+	};
+};
+
+&isi_1 {
+	status = "okay";
+
+	cap_device {
+		status = "okay";
+	};
+};
+
+&i2c2 {
+	clock-frequency = <400000>;
+	status = "okay";
+	/delete-node/ ov5640_mipi@3c;
+
+	tevs_0: tevs@48 {
+		compatible = "tn,tevs";
+		reg = <0x48>;
+		reset-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
+		standby-gpios = <&gpio2 11 GPIO_ACTIVE_HIGH>;
+		csi_id = <0>;
+
+		port {
+			tevs_0_ep: endpoint {
+				remote-endpoint = <&mipi_csi0_ep>;
+				data-lanes = <1 2 3 4>;
+				clock-lanes = <0>;
+				clock-noncontinuous;
+				link-frequencies = /bits/ 64 <400000000>;
+			};
+		};
+	};
+};
+
+&i2c3 {
+	clock-frequency = <400000>;
+	status = "okay";
+	/delete-node/ ov5640_mipi@3c;
+
+	tevs_1: tevs@48 {
+		compatible = "tn,tevs";
+		reg = <0x48>;
+		csi_id = <1>;
+
+		port {
+			tevs_1_ep: endpoint {
+				remote-endpoint = <&mipi_csi1_ep>;
+				data-lanes = <1 2 3 4>;
+				clock-lanes = <0>;
+				clock-noncontinuous;
+				link-frequencies = /bits/ 64 <400000000>;
+			};
+		};
+	};
+};
